@@ -110,7 +110,7 @@ export function LiteHeader() {
                 <Link
                   key={item.label}
                   to={item.to}
-                  params={item.params}
+                  {...(item.params ? { params: item.params } : {})}
                   className="block px-3 py-2 text-xs font-semibold text-ink hover:bg-muted"
                 >
                   {item.label}
