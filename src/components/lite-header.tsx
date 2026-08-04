@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 
@@ -18,24 +19,119 @@ const RAIL = [
   { to: "/forums", label: "Forums" },
 ] as const;
 
-/** Everything else from the full site menu, collapsed into one dropdown. */
-const MORE: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
-  { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
-  { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-  { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-  { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
-  { to: "/associations", label: "Associations" },
-  { to: "/people", label: "People" },
-  { to: "/foundation-icons", label: "Foundation Icons" },
-  { to: "/bay-area-icons", label: "Bay Area Icons" },
-  { to: "/explore", label: "Explore" },
-  { to: "/connect", label: "Connect" },
-  { to: "/epaper", label: "E-Paper" },
-  { to: "/submit", label: "Submit a Story" },
-  { to: "/about", label: "About Us" },
-  { to: "/contact", label: "Advertise / Contact" },
+type MoreItem = { to: string; params?: { category: string }; label: string };
+
+/** Everything else from the full site menu, grouped so the panel scans fast. */
+const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreItem> }> = [
+  {
+    heading: "Sections",
+    items: [
+      { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+      { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+      { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
+      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
+      { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
+    ],
+  },
+  {
+    heading: "Community",
+    items: [
+      { to: "/associations", label: "Associations" },
+      { to: "/people", label: "People" },
+      { to: "/foundation-icons", label: "Foundation Icons" },
+      { to: "/bay-area-icons", label: "Bay Area Icons" },
+      { to: "/explore", label: "Explore" },
+      { to: "/connect", label: "Connect" },
+    ],
+  },
+  {
+    heading: "More from us",
+    items: [
+      { to: "/epaper", label: "E-Paper" },
+      { to: "/submit", label: "Submit a Story" },
+      { to: "/about", label: "About Us" },
+      { to: "/contact", label: "Advertise / Contact" },
+    ],
+  },
 ];
+
+function MoreMenu() {
+  const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
+  const wrap = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const r = wrap.current?.getBoundingClientRect();
+      if (r) setTop(r.bottom);
+    };
+    measure();
+    const onDoc = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open]);
+
+  return (
+    <div ref={wrap} className="relative shrink-0">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-0.5 whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
+      >
+        More
+        {open ? <X className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+      </button>
+
+      {open ? (
+        <div
+          style={{ top }}
+          className="fixed left-0 right-0 z-50 max-h-[70dvh] overflow-y-auto border-y border-border bg-background p-4 shadow-lg"
+        >
+
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+            {MORE_GROUPS.map((group) => (
+              <div key={group.heading}>
+                <p className="mb-1.5 border-b border-border pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {group.heading}
+                </p>
+                <ul className="flex flex-col">
+                  {group.items.map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        to={item.to}
+                        {...(item.params ? { params: item.params } : {})}
+                        onClick={() => setOpen(false)}
+                        className="block py-1.5 text-[13px] font-medium text-ink hover:text-primary"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export function LiteHeader() {
   return (
@@ -96,28 +192,7 @@ export function LiteHeader() {
             </Link>
           ))}
 
-          <div className="group relative shrink-0">
-            <button
-              type="button"
-              aria-haspopup="true"
-              className="flex items-center gap-0.5 whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
-            >
-              More
-              <ChevronDown className="h-3 w-3" />
-            </button>
-            <div className="invisible absolute right-0 top-full z-50 w-56 rounded-md border border-border bg-background py-1 opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-              {MORE.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  {...(item.params ? { params: item.params } : {})}
-                  className="block px-3 py-2 text-xs font-semibold text-ink hover:bg-muted"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+          <MoreMenu />
         </div>
       </nav>
     </header>
