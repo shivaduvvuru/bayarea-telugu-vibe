@@ -109,9 +109,7 @@ export function LiteHeader() {
               {MORE.map((item) => (
                 <Link
                   key={item.label}
-                  // @ts-expect-error — params only present on dynamic entries
                   to={item.to}
-                  // @ts-expect-error — params only present on dynamic entries
                   params={item.params}
                   className="block px-3 py-2 text-xs font-semibold text-ink hover:bg-muted"
                 >
