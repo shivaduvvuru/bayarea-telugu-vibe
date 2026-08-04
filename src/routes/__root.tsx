@@ -169,7 +169,7 @@ function RootComponent() {
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </main>
-          {!isLite && <SiteFooter />}
+          <SiteFooter />
           {!isLite && <MobileTabBar />}
         </div>
         <Toaster />
