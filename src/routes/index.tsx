@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/wp.functions";
+import { listTempleAnnouncements } from "@/lib/temples.functions";
+import { listPolitics } from "@/lib/politics.functions";
+import { listCommunityItems } from "@/lib/cms.functions";
+import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/wp";
 import { canonical } from "@/lib/site";
 
@@ -12,9 +16,31 @@ const HOME_URL = canonical("/");
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
-  queryFn: () => listPosts({ data: { perPage: 30, instant: true, compact: true } }),
+  queryFn: () => listPosts({ data: { perPage: 40, instant: true, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
+
+/** Community-submitted and editor-published items from the newsroom CMS. */
+const communityQuery = queryOptions({
+  queryKey: ["cms", "community", "home"],
+  queryFn: () => listCommunityItems({ data: { limit: 8 } }),
+  staleTime: 5 * 60 * 1000,
+});
+
+/** Pulled straight from temple websites — independent of the newsroom feed. */
+const templeQuery = queryOptions({
+  queryKey: ["temples", "announcements"],
+  queryFn: () => listTempleAnnouncements(),
+  staleTime: 30 * 60 * 1000,
+});
+
+/** City-hall and Indian political headlines, pulled from publisher feeds. */
+const politicsQuery = queryOptions({
+  queryKey: ["politics", "all"],
+  queryFn: () => listPolitics(),
+  staleTime: 30 * 60 * 1000,
+});
+
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
@@ -86,8 +112,65 @@ function Row({ a }: { a: Article }) {
   );
 }
 
+function Head({ children, more }: { children: string; more?: React.ReactNode }) {
+  return (
+    <h2 className="mb-1 flex items-baseline justify-between gap-2 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
+      <span>{children}</span>
+      {more}
+    </h2>
+  );
+}
+
+function MoreTo({ to, label }: { to: string; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="text-[11px] font-semibold normal-case tracking-normal text-primary underline"
+    >
+      {label}
+    </Link>
+  );
+}
+
+/** External or CMS link rows keep the same lean look as story rows. */
+function LinkRow({
+  href,
+  title,
+  meta,
+  internal,
+}: {
+  href: string;
+  title: string;
+  meta?: string;
+  internal?: boolean;
+}) {
+  const body = (
+    <>
+      <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">{title}</h3>
+      {meta ? (
+        <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{meta}</p>
+      ) : null}
+    </>
+  );
+  const cls = "block border-b border-border py-3 last:border-0";
+  return internal ? (
+    <Link to={href} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <a href={href} target="_blank" rel="noreferrer" className={cls}>
+      {body}
+    </a>
+  );
+}
+
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
+  // Fresh, non-blocking reads: these stream in after the snapshot first paint.
+  const { data: communityItems = [] } = useQuery(communityQuery);
+  const { data: templeFeeds = [] } = useQuery(templeQuery);
+  const { data: politicsGroups = [] } = useQuery(politicsQuery);
+
   const local = articles.filter(isLocal);
   const lead = local[0] ?? articles[0];
 
@@ -101,7 +184,13 @@ function Home() {
 
   const rest = articles.filter((a) => a.slug !== lead.slug);
   const localRest = rest.filter(isLocal).slice(0, 8);
-  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 10);
+  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
+
+  const events = upcomingEvents().slice(0, 5);
+  const templeNews = templeFeeds
+    .flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name })))
+    .slice(0, 6);
+  const politics = politicsGroups.flatMap((g) => g.stories.slice(0, 2)).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
@@ -109,22 +198,72 @@ function Home() {
       <Lead a={lead} />
 
       <section className="mt-5">
-        <h2 className="mb-1 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
-          Bay Area
-        </h2>
+        <Head>Bay Area</Head>
         {localRest.map((a) => (
           <Row key={a.slug} a={a} />
         ))}
       </section>
 
+      {communityItems.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
+          {communityItems.map((item) => (
+            <LinkRow
+              key={item.id}
+              href={item.link_url ?? "/connect"}
+              internal={!item.link_url || item.link_url.startsWith("/")}
+              title={item.title}
+              meta={[item.city, item.kind].filter(Boolean).join(" · ")}
+            />
+          ))}
+        </section>
+      )}
+
+      {events.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
+          {events.map((e) => (
+            <LinkRow
+              key={e.id}
+              href="/events"
+              internal
+              title={e.title}
+              meta={`${e.city} · ${formatDate(e.start)}`}
+            />
+          ))}
+        </section>
+      )}
+
+      {templeNews.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
+          {templeNews.map((a) => (
+            <LinkRow key={a.url} href={a.url} title={a.title} meta={a.temple} />
+          ))}
+        </section>
+      )}
+
+      {politics.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
+          {politics.map((s) => (
+            <LinkRow
+              key={s.url}
+              href={s.url}
+              title={s.title}
+              meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
+            />
+          ))}
+        </section>
+      )}
+
       <section className="mt-5">
-        <h2 className="mb-1 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
-          More news
-        </h2>
+        <Head>More news</Head>
         {more.map((a) => (
           <Row key={a.slug} a={a} />
         ))}
       </section>
     </div>
   );
+
 }
