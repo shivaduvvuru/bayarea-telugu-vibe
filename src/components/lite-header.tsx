@@ -57,10 +57,16 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
 
 function MoreMenu() {
   const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
   const wrap = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const measure = () => {
+      const r = wrap.current?.getBoundingClientRect();
+      if (r) setTop(r.bottom);
+    };
+    measure();
     const onDoc = (e: MouseEvent) => {
       if (!wrap.current?.contains(e.target as Node)) setOpen(false);
     };
@@ -69,9 +75,13 @@ function MoreMenu() {
     };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
     return () => {
       document.removeEventListener("mousedown", onDoc);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
     };
   }, [open]);
 
@@ -89,7 +99,11 @@ function MoreMenu() {
       </button>
 
       {open ? (
-        <div className="fixed left-0 right-0 z-50 mt-0 max-h-[70dvh] overflow-y-auto border-y border-border bg-background p-4 shadow-lg sm:absolute sm:right-0 sm:left-auto sm:top-full sm:mt-0 sm:w-[34rem] sm:rounded-b-md sm:border">
+        <div
+          style={{ top }}
+          className="fixed left-0 right-0 z-50 max-h-[70dvh] overflow-y-auto border-y border-border bg-background p-4 shadow-lg"
+        >
+
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
             {MORE_GROUPS.map((group) => (
               <div key={group.heading}>
