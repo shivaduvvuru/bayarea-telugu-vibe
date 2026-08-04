@@ -112,8 +112,65 @@ function Row({ a }: { a: Article }) {
   );
 }
 
+function Head({ children, more }: { children: string; more?: React.ReactNode }) {
+  return (
+    <h2 className="mb-1 flex items-baseline justify-between gap-2 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
+      <span>{children}</span>
+      {more}
+    </h2>
+  );
+}
+
+function MoreTo({ to, label }: { to: string; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="text-[11px] font-semibold normal-case tracking-normal text-primary underline"
+    >
+      {label}
+    </Link>
+  );
+}
+
+/** External or CMS link rows keep the same lean look as story rows. */
+function LinkRow({
+  href,
+  title,
+  meta,
+  internal,
+}: {
+  href: string;
+  title: string;
+  meta?: string;
+  internal?: boolean;
+}) {
+  const body = (
+    <>
+      <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">{title}</h3>
+      {meta ? (
+        <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{meta}</p>
+      ) : null}
+    </>
+  );
+  const cls = "block border-b border-border py-3 last:border-0";
+  return internal ? (
+    <Link to={href} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <a href={href} target="_blank" rel="noreferrer" className={cls}>
+      {body}
+    </a>
+  );
+}
+
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
+  // Fresh, non-blocking reads: these stream in after the snapshot first paint.
+  const { data: communityItems = [] } = useQuery(communityQuery);
+  const { data: templeFeeds = [] } = useQuery(templeQuery);
+  const { data: politicsGroups = [] } = useQuery(politicsQuery);
+
   const local = articles.filter(isLocal);
   const lead = local[0] ?? articles[0];
 
@@ -127,7 +184,13 @@ function Home() {
 
   const rest = articles.filter((a) => a.slug !== lead.slug);
   const localRest = rest.filter(isLocal).slice(0, 8);
-  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 10);
+  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
+
+  const events = upcomingEvents().slice(0, 5);
+  const templeNews = templeFeeds
+    .flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name })))
+    .slice(0, 6);
+  const politics = politicsGroups.flatMap((g) => g.stories.slice(0, 2)).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
@@ -135,22 +198,72 @@ function Home() {
       <Lead a={lead} />
 
       <section className="mt-5">
-        <h2 className="mb-1 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
-          Bay Area
-        </h2>
+        <Head>Bay Area</Head>
         {localRest.map((a) => (
           <Row key={a.slug} a={a} />
         ))}
       </section>
 
+      {communityItems.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
+          {communityItems.map((item) => (
+            <LinkRow
+              key={item.id}
+              href={item.link_url ?? "/connect"}
+              internal={!item.link_url || item.link_url.startsWith("/")}
+              title={item.title}
+              meta={[item.city, item.kind].filter(Boolean).join(" · ")}
+            />
+          ))}
+        </section>
+      )}
+
+      {events.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
+          {events.map((e) => (
+            <LinkRow
+              key={e.id}
+              href="/events"
+              internal
+              title={e.title}
+              meta={`${e.city} · ${formatDate(e.start)}`}
+            />
+          ))}
+        </section>
+      )}
+
+      {templeNews.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
+          {templeNews.map((a) => (
+            <LinkRow key={a.url} href={a.url} title={a.title} meta={a.temple} />
+          ))}
+        </section>
+      )}
+
+      {politics.length > 0 && (
+        <section className="mt-5">
+          <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
+          {politics.map((s) => (
+            <LinkRow
+              key={s.url}
+              href={s.url}
+              title={s.title}
+              meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
+            />
+          ))}
+        </section>
+      )}
+
       <section className="mt-5">
-        <h2 className="mb-1 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
-          More news
-        </h2>
+        <Head>More news</Head>
         {more.map((a) => (
           <Row key={a.slug} a={a} />
         ))}
       </section>
     </div>
   );
+
 }
