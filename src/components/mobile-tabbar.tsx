@@ -20,12 +20,12 @@ const ICON_TABS = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/category/$category", params: { category: "city-news" }, icon: Newspaper, label: "News" },
   { to: "/events", icon: CalendarDays, label: "Events" },
-  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/forums", icon: MessagesSquare, label: "Forums" },
 ] as const;
 
 /** Secondary sections, shown in the More sheet instead of a dense strip. */
 const MORE = [
-  { to: "/forums", icon: MessagesSquare, label: "Forums" },
+  { to: "/directory", icon: Store, label: "Directory" },
   { to: "/temples", icon: Landmark, label: "Temples" },
   { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
   { to: "/category/$category", params: { category: "gallery" }, icon: Image, label: "Gallery" },
