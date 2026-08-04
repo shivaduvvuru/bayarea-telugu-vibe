@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 
@@ -17,6 +17,25 @@ const RAIL = [
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
   { to: "/forums", label: "Forums" },
 ] as const;
+
+/** Everything else from the full site menu, collapsed into one dropdown. */
+const MORE: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
+  { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
+  { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
+  { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
+  { to: "/associations", label: "Associations" },
+  { to: "/people", label: "People" },
+  { to: "/foundation-icons", label: "Foundation Icons" },
+  { to: "/bay-area-icons", label: "Bay Area Icons" },
+  { to: "/explore", label: "Explore" },
+  { to: "/connect", label: "Connect" },
+  { to: "/epaper", label: "E-Paper" },
+  { to: "/submit", label: "Submit a Story" },
+  { to: "/about", label: "About Us" },
+  { to: "/contact", label: "Advertise / Contact" },
+];
 
 export function LiteHeader() {
   return (
@@ -76,6 +95,31 @@ export function LiteHeader() {
               {item.label}
             </Link>
           ))}
+
+          <div className="group relative shrink-0">
+            <button
+              type="button"
+              aria-haspopup="true"
+              className="flex items-center gap-0.5 whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
+            >
+              More
+              <ChevronDown className="h-3 w-3" />
+            </button>
+            <div className="invisible absolute right-0 top-full z-50 w-56 rounded-md border border-border bg-background py-1 opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              {MORE.map((item) => (
+                <Link
+                  key={item.label}
+                  // @ts-expect-error — params only present on dynamic entries
+                  to={item.to}
+                  // @ts-expect-error — params only present on dynamic entries
+                  params={item.params}
+                  className="block px-3 py-2 text-xs font-semibold text-ink hover:bg-muted"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </nav>
     </header>
