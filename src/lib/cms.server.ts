@@ -1,0 +1,149 @@
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import { PUBLIC_COLUMNS, type ContentItem } from "@/lib/cms";
+import { dedupeBy, dedupeKey } from "@/lib/dedupe";
+
+/** Anonymous, RLS-respecting client for reading published items during SSR. */
+export function publicClient() {
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+          h.delete("Authorization");
+        }
+        h.set("apikey", key);
+        return fetch(input, { ...init, headers: h });
+      },
+    },
+  });
+}
+
+export async function admin() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
+/** Throws unless the signed-in caller is an admin or editor. */
+export async function assertStaff(
+  supabase: unknown,
+  userId: string,
+) {
+  const client = supabase as {
+    from: (t: string) => {
+      select: (c: string) => {
+        eq: (c: string, v: string) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
+      };
+    };
+  };
+  const { data } = await client.from("user_roles").select("role").eq("user_id", userId).limit(1);
+  if (!data || data.length === 0) throw new Error("Forbidden: staff access required");
+}
+
+export type IngestRow = {
+  source: string;
+  source_ref: string;
+  kind: string;
+  title: string;
+  summary?: string | null;
+  link_url?: string | null;
+  image_url?: string | null;
+  city?: string | null;
+  region?: string | null;
+  category?: string | null;
+  published_at?: string | null;
+};
+
+/**
+ * Records automatically pulled items. New rows go live immediately
+ * (auto-publish); rows an editor already removed stay removed, because we
+ * only insert rows whose source_ref is not already known.
+ *
+ * Anything that repeats a title already on the site — or repeats within the
+ * same pull — is stored with status "duplicate" and linked to the original, so
+ * it never reaches readers but still shows up as an alert in the newsroom.
+ */
+export async function ingest(rows: IngestRow[]) {
+  if (rows.length === 0) return { inserted: 0, skipped: 0, duplicates: 0 };
+  const db = await admin();
+  const refs = rows.map((r) => r.source_ref);
+  const known = new Set<string>();
+  for (let i = 0; i < refs.length; i += 200) {
+    const { data } = await db
+      .from("content_items")
+      .select("source_ref")
+      .in("source_ref", refs.slice(i, i + 200));
+    for (const r of data ?? []) if (r.source_ref) known.add(r.source_ref);
+  }
+  const candidates = rows.filter((r) => !known.has(r.source_ref));
+  if (candidates.length === 0) return { inserted: 0, skipped: rows.length, duplicates: 0 };
+
+  // Collapse repeats inside this batch first.
+  const { unique: fresh, duplicates: inBatch } = dedupeBy(candidates, (r) => r.title);
+
+  // Then check the surviving keys against what the site already carries.
+  const keys = fresh.map((r) => dedupeKey(r.title)).filter(Boolean);
+  const existing = new Map<string, string>();
+  for (let i = 0; i < keys.length; i += 200) {
+    const { data } = await db
+      .from("content_items")
+      .select("id, dedupe_key")
+      .neq("status", "duplicate")
+      .in("dedupe_key", keys.slice(i, i + 200));
+    for (const r of data ?? []) if (r.dedupe_key) existing.set(r.dedupe_key, r.id);
+  }
+
+  const now = new Date().toISOString();
+  const payload = [
+    ...fresh.map((r) => {
+      const key = dedupeKey(r.title);
+      const clash = key ? existing.get(key) : undefined;
+      return {
+        ...r,
+        dedupe_key: key || null,
+        status: clash ? "duplicate" : "published",
+        duplicate_of: clash ?? null,
+        placement: "auto",
+        published_at: r.published_at ?? now,
+      };
+    }),
+    // Repeats found inside this same pull are recorded too, so editors can see
+    // which source keeps re-sending the same item.
+    ...inBatch.flatMap((group) =>
+      group.dropped.map((r) => ({
+        ...r,
+        dedupe_key: group.key,
+        status: "duplicate",
+        duplicate_of: null,
+        placement: "hidden",
+        published_at: r.published_at ?? now,
+      })),
+    ),
+  ];
+
+  const { error } = await db.from("content_items").insert(payload);
+  if (error) throw error;
+  const duplicates = payload.filter((p) => p.status === "duplicate").length;
+  return {
+    inserted: payload.length - duplicates,
+    skipped: rows.length - candidates.length,
+    duplicates,
+  };
+}
+
+/** Published items for the public site, newest first. */
+export async function readPublished(opts: { kind?: string | undefined; limit?: number | undefined }) {
+  let q = publicClient()
+    .from("content_items")
+    .select(PUBLIC_COLUMNS)
+    .eq("status", "published")
+    .neq("placement", "hidden")
+    .order("published_at", { ascending: false })
+    .limit(opts.limit ?? 12);
+  if (opts.kind) q = q.eq("kind", opts.kind);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as ContentItem[];
+}

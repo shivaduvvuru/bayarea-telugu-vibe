@@ -1,0 +1,396 @@
+{
+  "generatedAt": "2026-08-04T05:34:18.019Z",
+  "temples": [
+    {
+      "id": "hccc-livermore",
+      "name": "Shiva-Vishnu Temple (HCCC)",
+      "city": "Livermore",
+      "region": "East Bay",
+      "site": "https://www.livermoretemple.org/",
+      "ok": false,
+      "announcements": []
+    },
+    {
+      "id": "sunnyvale-hindu-temple",
+      "name": "Sunnyvale Hindu Temple",
+      "city": "Sunnyvale",
+      "region": "South Bay",
+      "site": "https://www.sunnyvale-hindutemple.org/",
+      "ok": true,
+      "announcements": [
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Sankatahara Chaturthi",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 1"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Aadi Krittika Lord Sri Karthikeya Abhishekam",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 6"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Sri Maha Lakshmi Homam",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 9"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Akhand Ramayan Parayan",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 15"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Ganesha, Ayyappa, and Naga Panchami Abhishekams",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 16"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Vara Maha Lakshmi Vratham",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 21"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Poornima Satyanarayana Vratha Katha",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 26"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Yajur Upakarma",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "August 27"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Sri Krishna Janmashtami",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "September 3"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Swarna Gowri Vratham",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "September 13"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Ganesh Chaturthi",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "September 14"
+        },
+        {
+          "templeId": "sunnyvale-hindu-temple",
+          "temple": "Sunnyvale Hindu Temple",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Poornima Sri Satyanarayana Vrath Katha",
+          "url": "https://www.sunnyvale-hindutemple.org/",
+          "date": "September 25"
+        }
+      ]
+    },
+    {
+      "id": "seva-sharadamba",
+      "name": "Sri Sharadamba Temple (SEVA)",
+      "city": "Milpitas",
+      "region": "South Bay",
+      "site": "https://sharadaseva.org/",
+      "ok": true,
+      "announcements": [
+        {
+          "templeId": "seva-sharadamba",
+          "temple": "Sri Sharadamba Temple (SEVA)",
+          "city": "Milpitas",
+          "region": "South Bay",
+          "title": "Outreach & Festivals",
+          "url": "https://sharadaseva.org/",
+          "date": null
+        }
+      ]
+    },
+    {
+      "id": "shirdi-sai-parivaar",
+      "name": "Shirdi Sai Parivaar (Sai Mandir)",
+      "city": "Milpitas",
+      "region": "South Bay",
+      "site": "https://shirdisaiparivaar.org/",
+      "ok": false,
+      "announcements": []
+    },
+    {
+      "id": "fremont-hindu-temple",
+      "name": "Fremont Hindu Temple",
+      "city": "Fremont",
+      "region": "East Bay",
+      "site": "https://fremonttemple.org/",
+      "ok": true,
+      "announcements": [
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Srinivasa Kalyanam",
+          "url": "https://fremonttemple.org/",
+          "date": null
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Sankashthi Chaturthi",
+          "url": "https://fremonttemple.org/",
+          "date": null
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Pradosham",
+          "url": "https://fremonttemple.org/",
+          "date": null
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Saraswati Hall",
+          "url": "https://fremonttemple.org/",
+          "date": null
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Satyanarayan Katha",
+          "url": "https://fremonttemple.org/",
+          "date": null
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Ashada Amavasya",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 12, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Fog Festival Of India",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 15, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Naga Panchami",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 16, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Sri Vara Laksmi Maa Vratam",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 21, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Mangala Gouri Vratam",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 25, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Rig Veda Upakarma",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 26, 2026"
+        },
+        {
+          "templeId": "fremont-hindu-temple",
+          "temple": "Fremont Hindu Temple",
+          "city": "Fremont",
+          "region": "East Bay",
+          "title": "Sravan Purnima",
+          "url": "https://fremonttemple.org/",
+          "date": "Aug 27, 2026"
+        }
+      ]
+    },
+    {
+      "id": "shirdi-sai-darbar",
+      "name": "Shirdi Sai Darbar",
+      "city": "Sunnyvale",
+      "region": "South Bay",
+      "site": "http://shirdisaidarbar.org/",
+      "ok": true,
+      "announcements": [
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Free Sai Satya Puja Signup QR Code",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "GRAND SHIVRATRI 2026 CELEBRATION FREE BILVA PATRA FOR EVERYONE FEB 15 SUNDAY 24 HRS",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "FEB 15"
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Maha Lakshami Puja Diwali OCT 20th Monday & Bengali Kali Puja OCT 21st Tuesday",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "OCT 1"
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Grand Baba Maha Samadhi Celebration OCT 1 WEDNESDAY 7AM-9PM, DURGA PUJA & SHARADHYA NAVRATRI CELEBRATION",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "OCT 1"
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "🌟 KINDLY SUPPORT BABA’S ANNADANAM PROGRAM THURSDAY SATURDAY SUNDAY 🌟",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "ADI SHANKARACHARYA JAYANTI 2026 APRIL 21st TUESDAY 7:30PM-8:30PM",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Narasimha Jayanti 2026 – The Divine Appearance of Lord Narasimha April 29th Wednesday",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "BHADRACHALA SITA RAMA KALYANAM & SAMRAJYA PATTABHISHEKAM Saturday, March 28, 2026 11:00 AM Onwards",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "March 28, 2026"
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Grand Hanuman Jayanti Celebration – Seek Strength, Protection & Divine Blessings with Palki Procession",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "🌟 VARAHI NAVRATRI 2026 – 9 DIVINE NIGHTS OF THE DIVINE MOTHER July 14 – July 22, 2026 🌟",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "July 14"
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Grand Shri Krishna Janmasthami Celebration Aug 25th Sunday Free Seva & Ganesh Chathurthi Celebration Sep6th Fri -Sep 15th Sun",
+          "url": "http://shirdisaidarbar.org/",
+          "date": null
+        },
+        {
+          "templeId": "shirdi-sai-darbar",
+          "temple": "Shirdi Sai Darbar",
+          "city": "Sunnyvale",
+          "region": "South Bay",
+          "title": "Grand skanda shasthi celebration, free blessed vel, milk pot signup for lord Muruga abhishek Nov 9 Saturday 9-2pm",
+          "url": "http://shirdisaidarbar.org/",
+          "date": "Nov 9"
+        }
+      ]
+    }
+  ]
+}
