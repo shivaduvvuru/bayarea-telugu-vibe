@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import heroImage from "@/assets/housing-hero.jpg";
 
 const CARDS = [
@@ -39,6 +41,8 @@ const CARDS = [
  * gradient scrim, followed by six explainer cards.
  */
 export function HousingHero() {
+  const [open, setOpen] = useState(false);
+
   return (
     <div>
       <Link
@@ -46,7 +50,7 @@ export function HousingHero() {
         params={{ category: "city-news" }}
         className="group block overflow-hidden rounded-2xl border border-border bg-ink shadow-sm"
       >
-        <div className="relative aspect-[16/9] w-full max-h-[520px] overflow-hidden">
+        <div className="relative aspect-[4/3] w-full max-h-[520px] overflow-hidden sm:aspect-[16/9]">
           <img
             src={heroImage}
             alt="New apartment buildings under construction beside older homes near a Caltrain station on the Peninsula"
@@ -84,42 +88,61 @@ export function HousingHero() {
         </div>
       </Link>
 
-      <div className="mt-5 space-y-3 text-[15px] leading-relaxed text-ink">
-        <p>
+      <div
+        id="housing-story-body"
+        className="mt-5 space-y-3 text-[15px] leading-relaxed text-ink"
+      >
+        <p className={open ? "" : "line-clamp-3"}>
           For decades, many Peninsula neighborhoods changed very little. That is beginning to
-          change.
+          change. New California housing policies encourage cities to build significantly more homes
+          near major transit corridors such as Caltrain.
         </p>
-        <p>
-          New California housing policies encourage cities to build significantly more homes near
-          major transit corridors such as Caltrain. Cities including Palo Alto, Menlo Park, Redwood
-          City, Mountain View and others are already evaluating proposals for higher-density housing
-          close to stations.
-        </p>
-        <p>For Bay Area families, this raises important questions.</p>
-        <p>
-          Will home values rise or stabilize? Will rents become more affordable? Will traffic
-          increase? Which neighborhoods are likely to change first?
-        </p>
-        <p>
-          Whether we own a home, plan to buy one, or simply commute through these cities, these
-          decisions will shape the Bay Area for years to come.
-        </p>
+        {open && (
+          <>
+            <p>
+              Cities including Palo Alto, Menlo Park, Redwood City, Mountain View and others are
+              already evaluating proposals for higher-density housing close to stations.
+            </p>
+            <p>For Bay Area families, this raises important questions.</p>
+            <p>
+              Will home values rise or stabilize? Will rents become more affordable? Will traffic
+              increase? Which neighborhoods are likely to change first?
+            </p>
+            <p>
+              Whether we own a home, plan to buy one, or simply commute through these cities, these
+              decisions will shape the Bay Area for years to come.
+            </p>
+          </>
+        )}
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {CARDS.map((c) => (
-          <div
-            key={c.title}
-            className="rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
-          >
-            <p className="text-lg" aria-hidden>
-              {c.icon}
-            </p>
-            <p className="mt-1 text-sm font-bold text-ink">{c.title}</p>
-            <p className="mt-1 text-sm leading-snug text-muted-foreground">{c.body}</p>
-          </div>
-        ))}
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="housing-story-body"
+        className="mt-3 inline-flex min-h-11 items-center gap-1 text-sm font-bold text-primary"
+      >
+        {open ? "Show less" : "Read full story"}
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CARDS.map((c) => (
+            <div
+              key={c.title}
+              className="rounded-2xl border border-border bg-card p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+            >
+              <p className="text-lg" aria-hidden>
+                {c.icon}
+              </p>
+              <p className="mt-1 text-sm font-bold text-ink">{c.title}</p>
+              <p className="mt-1 text-sm leading-snug text-muted-foreground">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
