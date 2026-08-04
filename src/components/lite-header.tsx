@@ -22,7 +22,7 @@ export function LiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
-        <Link to="/lite" className="shrink-0" aria-label="Bay Area Telugu Times home">
+        <Link to="/" className="shrink-0" aria-label="Bay Area Telugu Times home">
           <img
             src={masthead}
             alt="Bay Area Telugu Times"
