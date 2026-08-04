@@ -41,6 +41,8 @@ const CARDS = [
  * gradient scrim, followed by six explainer cards.
  */
 export function HousingHero() {
+  const [open, setOpen] = useState(false);
+
   return (
     <div>
       <Link
@@ -48,7 +50,7 @@ export function HousingHero() {
         params={{ category: "city-news" }}
         className="group block overflow-hidden rounded-2xl border border-border bg-ink shadow-sm"
       >
-        <div className="relative aspect-[16/9] w-full max-h-[520px] overflow-hidden">
+        <div className="relative aspect-[4/3] w-full max-h-[520px] overflow-hidden sm:aspect-[16/9]">
           <img
             src={heroImage}
             alt="New apartment buildings under construction beside older homes near a Caltrain station on the Peninsula"
