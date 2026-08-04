@@ -155,9 +155,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  // The lite edition renders its own minimal chrome for a faster first paint.
+  // The lite edition is now the homepage: it renders its own minimal chrome.
   const isLite = useRouterState({
-    select: (s) => s.location.pathname.startsWith("/lite"),
+    select: (s) => s.location.pathname === "/" || s.location.pathname.startsWith("/lite"),
   });
 
   return (
