@@ -7,6 +7,7 @@ import { listCommunityItems } from "@/lib/cms.functions";
 import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/wp";
 import { canonical } from "@/lib/site";
+import { HousingHero } from "@/components/housing-hero";
 
 const TITLE = "Bay Area Telugu Times — Local Telugu news, events & community";
 const DESC =
@@ -195,13 +196,16 @@ function Home() {
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times</h1>
-      <Lead a={lead} />
+      <HousingHero />
 
-      <section className="mt-5">
+      <section className="mt-6">
         <Head>Bay Area</Head>
-        {localRest.map((a) => (
-          <Row key={a.slug} a={a} />
-        ))}
+        <Lead a={lead} />
+        <div className="mt-4">
+          {localRest.map((a) => (
+            <Row key={a.slug} a={a} />
+          ))}
+        </div>
       </section>
 
       {communityItems.length > 0 && (
