@@ -9,7 +9,7 @@ import { TT_LINKS } from "@/lib/network-links";
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
 const RAIL = [
-  { to: "/", label: "Top News" },
+  { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/politics", label: "Political" },
