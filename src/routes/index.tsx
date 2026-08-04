@@ -1,6 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/wp.functions";
+import { listTempleAnnouncements } from "@/lib/temples.functions";
+import { listPolitics } from "@/lib/politics.functions";
+import { listCommunityItems } from "@/lib/cms.functions";
+import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/wp";
 import { canonical } from "@/lib/site";
 
@@ -12,9 +16,31 @@ const HOME_URL = canonical("/");
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
-  queryFn: () => listPosts({ data: { perPage: 30, instant: true, compact: true } }),
+  queryFn: () => listPosts({ data: { perPage: 40, instant: true, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
+
+/** Community-submitted and editor-published items from the newsroom CMS. */
+const communityQuery = queryOptions({
+  queryKey: ["cms", "community", "home"],
+  queryFn: () => listCommunityItems({ data: { limit: 8 } }),
+  staleTime: 5 * 60 * 1000,
+});
+
+/** Pulled straight from temple websites — independent of the newsroom feed. */
+const templeQuery = queryOptions({
+  queryKey: ["temples", "announcements"],
+  queryFn: () => listTempleAnnouncements(),
+  staleTime: 30 * 60 * 1000,
+});
+
+/** City-hall and Indian political headlines, pulled from publisher feeds. */
+const politicsQuery = queryOptions({
+  queryKey: ["politics", "all"],
+  queryFn: () => listPolitics(),
+  staleTime: 30 * 60 * 1000,
+});
+
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
