@@ -63,7 +63,7 @@ export function MobileTabBar() {
               <li key={item.label} className="bg-background">
                 <Link
                   to={item.to}
-                  params={"params" in item ? item.params : undefined}
+                  {...("params" in item ? { params: item.params } : {})}
                   onClick={() => setOpen(false)}
                   className="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold text-ink"
                 >
@@ -79,7 +79,7 @@ export function MobileTabBar() {
             <li key={item.label}>
               <Link
                 to={item.to}
-                params={"params" in item ? item.params : undefined}
+                {...("params" in item ? { params: item.params } : {})}
                 onClick={() => setOpen(false)}
                 className={tabClass}
                 activeProps={{ className: "text-primary" }}

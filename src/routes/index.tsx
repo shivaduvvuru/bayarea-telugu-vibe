@@ -8,7 +8,6 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/wp";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
-import { UpdatedStamp } from "@/components/freshness";
 
 const TITLE = "Bay Area Telugu Times — Local Telugu news, events & community";
 const DESC =
@@ -248,7 +247,7 @@ function Home() {
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times</h1>
-      <UpdatedStamp at={lead.date} label="Latest story" />
+      
       <HousingHero />
 
       <section className="mt-6">
