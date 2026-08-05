@@ -112,18 +112,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@graph": [
             {
               "@type": "NewsMediaOrganization",
-              "@id": "https://bayarea-dev-buddy.lovable.app/#organization",
+              "@id": "https://bayarea-telugu-vibe.lovable.app/#organization",
               name: "Bay Area Telugu Times",
-              url: "https://bayarea-dev-buddy.lovable.app",
+              url: "https://bayarea-telugu-vibe.lovable.app",
               areaServed: "San Francisco Bay Area, California",
             },
             {
               "@type": "WebSite",
-              "@id": "https://bayarea-dev-buddy.lovable.app/#website",
+              "@id": "https://bayarea-telugu-vibe.lovable.app/#website",
               name: "Bay Area Telugu Times",
-              url: "https://bayarea-dev-buddy.lovable.app",
+              url: "https://bayarea-telugu-vibe.lovable.app",
               inLanguage: ["te", "en"],
-              publisher: { "@id": "https://bayarea-dev-buddy.lovable.app/#organization" },
+              publisher: { "@id": "https://bayarea-telugu-vibe.lovable.app/#organization" },
             },
           ],
         }),

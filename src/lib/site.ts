@@ -8,7 +8,7 @@
  */
 const rawOrigin =
   (import.meta.env['VITE_SITE_ORIGIN'] as string | undefined) ??
-  "https://bayarea-dev-buddy.lovable.app";
+  "https://bayarea-telugu-vibe.lovable.app";
 
 const rawBase = (import.meta.env['VITE_BASE_PATH'] as string | undefined) ?? "";
 

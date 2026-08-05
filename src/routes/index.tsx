@@ -8,6 +8,7 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/wp";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
+import { UpdatedStamp } from "@/components/freshness";
 
 const TITLE = "Bay Area Telugu Times — Local Telugu news, events & community";
 const DESC =
@@ -56,9 +57,45 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: HOME_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: TITLE,
+          description: DESC,
+          url: HOME_URL,
+        }),
+      },
+    ],
   }),
   component: Home,
+  pendingComponent: () => (
+    <div className="mx-auto max-w-3xl px-3 py-6">
+      <div className="aspect-[4/3] w-full animate-pulse rounded-2xl bg-muted sm:aspect-[16/9]" />
+      <div className="mt-4 space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 animate-pulse rounded bg-muted" />
+        ))}
+      </div>
+    </div>
+  ),
+  errorComponent: () => (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">Today's edition didn't load</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Please refresh, or browse sections from the menu below.
+      </p>
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">No stories yet</h1>
+    </div>
+  ),
 });
+
 
 function Lead({ a }: { a: Article }) {
   return (
@@ -188,14 +225,30 @@ function Home() {
   const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
 
   const events = upcomingEvents().slice(0, 5);
-  const templeNews = templeFeeds
-    .flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name })))
-    .slice(0, 6);
-  const politics = politicsGroups.flatMap((g) => g.stories.slice(0, 2)).slice(0, 6);
+  // Feeds sometimes repeat the same link (or point at the site root), which both
+  // duplicated rows and tripped React's key warning.
+  const uniqueBy = <T,>(list: T[], key: (item: T) => string) => {
+    const seen = new Set<string>();
+    return list.filter((item) => {
+      const k = key(item);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+  const templeNews = uniqueBy(
+    templeFeeds.flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name }))),
+    (a) => `${a.temple}|${a.title}`,
+  ).slice(0, 6);
+  const politics = uniqueBy(
+    politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
+    (s) => s.title,
+  ).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times</h1>
+      <UpdatedStamp at={lead.date} label="Latest story" />
       <HousingHero />
 
       <section className="mt-6">
@@ -241,8 +294,8 @@ function Home() {
       {templeNews.length > 0 && (
         <section className="mt-5">
           <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
-          {templeNews.map((a) => (
-            <LinkRow key={a.url} href={a.url} title={a.title} meta={a.temple} />
+          {templeNews.map((a, i) => (
+            <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
           ))}
         </section>
       )}
@@ -250,9 +303,9 @@ function Home() {
       {politics.length > 0 && (
         <section className="mt-5">
           <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
-          {politics.map((s) => (
+          {politics.map((s, i) => (
             <LinkRow
-              key={s.url}
+              key={`${s.url}-${i}`}
               href={s.url}
               title={s.title}
               meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
@@ -260,6 +313,7 @@ function Home() {
           ))}
         </section>
       )}
+
 
       <section className="mt-5">
         <Head>More news</Head>

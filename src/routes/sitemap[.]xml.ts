@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { ALL_CATEGORIES } from "@/lib/wp";
 import { TEMPLES, CITY_SLUGS, REGION_SLUGS } from "@/lib/temple-directory";
+import { SITE_ORIGIN, BASE_PATH } from "@/lib/site";
 
-const BASE_URL = "https://bayarea-dev-buddy.lovable.app";
+const BASE_URL = SITE_ORIGIN + BASE_PATH;
 
 interface SitemapEntry {
   path: string;
@@ -35,6 +36,14 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "monthly" as const,
             priority: "0.5",
           })),
+          { path: "/politics", changefreq: "daily", priority: "0.7" },
+          { path: "/forums", changefreq: "daily", priority: "0.7" },
+          { path: "/associations", changefreq: "weekly", priority: "0.6" },
+          { path: "/people", changefreq: "weekly", priority: "0.6" },
+          { path: "/bay-area-icons", changefreq: "monthly", priority: "0.6" },
+          { path: "/explore", changefreq: "weekly", priority: "0.5" },
+          { path: "/connect", changefreq: "weekly", priority: "0.5" },
+          { path: "/submit", changefreq: "monthly", priority: "0.4" },
           { path: "/epaper", changefreq: "weekly", priority: "0.6" },
           { path: "/foundation-icons", changefreq: "monthly", priority: "0.6" },
           { path: "/about", changefreq: "yearly", priority: "0.4" },
