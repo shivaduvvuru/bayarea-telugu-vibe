@@ -9,7 +9,7 @@ const TITLE = "Bay Area Telugu Events Calendar — festivals, meetups & temple p
 const DESC =
   "Verified Telugu community events across San Francisco, San Jose, Fremont and the Tri-Valley: dates, venues, ticket prices and directions.";
 
-const EVENTS_URL = "https://bayarea-dev-buddy.lovable.app/events";
+const EVENTS_URL = "https://bayarea-telugu-vibe.lovable.app/events";
 
 export const Route = createFileRoute("/events")({
   head: () => ({

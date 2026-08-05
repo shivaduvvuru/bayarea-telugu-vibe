@@ -40,7 +40,7 @@ export const Route = createFileRoute("/article/$slug")({
       meta.push({ property: "og:image", content: article.image });
       meta.push({ name: "twitter:image", content: article.image });
     }
-    const url = `https://bayarea-dev-buddy.lovable.app/article/${article.slug}`;
+    const url = `https://bayarea-telugu-vibe.lovable.app/article/${article.slug}`;
     return {
       meta: [...meta, { property: "og:url", content: url }],
       links: [{ rel: "canonical", href: url }],
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/article/$slug")({
             publisher: {
               "@type": "NewsMediaOrganization",
               name: "Bay Area Telugu Times",
-              url: "https://bayarea-dev-buddy.lovable.app",
+              url: "https://bayarea-telugu-vibe.lovable.app",
             },
           }),
         },
