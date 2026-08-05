@@ -248,7 +248,7 @@ function Home() {
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times</h1>
-      <UpdatedStamp at={lead.date} label="Latest story" />
+      
       <HousingHero />
 
       <section className="mt-6">
