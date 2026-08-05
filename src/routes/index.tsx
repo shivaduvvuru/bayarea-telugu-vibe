@@ -241,8 +241,8 @@ function Home() {
       {templeNews.length > 0 && (
         <section className="mt-5">
           <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
-          {templeNews.map((a) => (
-            <LinkRow key={a.url} href={a.url} title={a.title} meta={a.temple} />
+          {templeNews.map((a, i) => (
+            <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
           ))}
         </section>
       )}
@@ -250,9 +250,9 @@ function Home() {
       {politics.length > 0 && (
         <section className="mt-5">
           <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
-          {politics.map((s) => (
+          {politics.map((s, i) => (
             <LinkRow
-              key={s.url}
+              key={`${s.url}-${i}`}
               href={s.url}
               title={s.title}
               meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
@@ -260,6 +260,7 @@ function Home() {
           ))}
         </section>
       )}
+
 
       <section className="mt-5">
         <Head>More news</Head>
