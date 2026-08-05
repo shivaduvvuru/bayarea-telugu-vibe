@@ -56,9 +56,45 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: HOME_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: TITLE,
+          description: DESC,
+          url: HOME_URL,
+        }),
+      },
+    ],
   }),
   component: Home,
+  pendingComponent: () => (
+    <div className="mx-auto max-w-3xl px-3 py-6">
+      <div className="aspect-[4/3] w-full animate-pulse rounded-2xl bg-muted sm:aspect-[16/9]" />
+      <div className="mt-4 space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 animate-pulse rounded bg-muted" />
+        ))}
+      </div>
+    </div>
+  ),
+  errorComponent: () => (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">Today's edition didn't load</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Please refresh, or browse sections from the menu below.
+      </p>
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">No stories yet</h1>
+    </div>
+  ),
 });
+
 
 function Lead({ a }: { a: Article }) {
   return (
