@@ -188,10 +188,25 @@ function Home() {
   const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
 
   const events = upcomingEvents().slice(0, 5);
-  const templeNews = templeFeeds
-    .flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name })))
-    .slice(0, 6);
-  const politics = politicsGroups.flatMap((g) => g.stories.slice(0, 2)).slice(0, 6);
+  // Feeds sometimes repeat the same link (or point at the site root), which both
+  // duplicated rows and tripped React's key warning.
+  const uniqueBy = <T,>(list: T[], key: (item: T) => string) => {
+    const seen = new Set<string>();
+    return list.filter((item) => {
+      const k = key(item);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+  const templeNews = uniqueBy(
+    templeFeeds.flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name }))),
+    (a) => `${a.temple}|${a.title}`,
+  ).slice(0, 6);
+  const politics = uniqueBy(
+    politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
+    (s) => s.title,
+  ).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
