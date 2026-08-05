@@ -79,7 +79,7 @@ export function MobileTabBar() {
             <li key={item.label}>
               <Link
                 to={item.to}
-                params={"params" in item ? item.params : undefined}
+                {...("params" in item ? { params: item.params } : {})}
                 onClick={() => setOpen(false)}
                 className={tabClass}
                 activeProps={{ className: "text-primary" }}
