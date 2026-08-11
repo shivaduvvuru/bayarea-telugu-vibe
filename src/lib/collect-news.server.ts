@@ -62,7 +62,55 @@ function tag(block: string, name: string) {
   return m ? decodeEntities(m[1]!) : "";
 }
 
-type RawItem = { title: string; link: string; source: string; published: string | null };
+type RawItem = {
+  title: string;
+  link: string;
+  source: string;
+  published: string | null;
+  image: string | null;
+};
+
+/** Pulls a usable image URL out of an RSS <item> block. */
+function imageFrom(block: string): string | null {
+  const patterns = [
+    /<media:content[^>]+url="([^"]+)"/i,
+    /<media:thumbnail[^>]+url="([^"]+)"/i,
+    /<enclosure[^>]+url="([^"]+)"[^>]*type="image/i,
+    /<enclosure[^>]+type="image[^"]*"[^>]*url="([^"]+)"/i,
+    /<image[^>]*>[\s\S]*?<url>([^<]+)<\/url>/i,
+    /&lt;img[^&]*?src=(?:&quot;|")([^"&]+)/i,
+    /<img[^>]+src="([^"]+)"/i,
+  ];
+  for (const re of patterns) {
+    const m = block.match(re);
+    const url = m?.[1]?.trim();
+    if (url && /^https?:\/\//.test(url)) return url.replace(/&amp;/g, "&");
+  }
+  return null;
+}
+
+/** Reads the article page and returns its og:image / twitter:image, if any. */
+async function ogImage(link: string): Promise<string | null> {
+  try {
+    const res = await fetch(link, {
+      headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    const html = (await res.text()).slice(0, 200_000);
+    const m =
+      html.match(/<meta[^>]+property="og:image(?::secure_url)?"[^>]+content="([^"]+)"/i) ??
+      html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i) ??
+      html.match(/<meta[^>]+name="twitter:image"[^>]+content="([^"]+)"/i);
+    const url = m?.[1]?.trim();
+    if (!url) return null;
+    const abs = url.startsWith("//") ? `https:${url}` : new URL(url, res.url || link).toString();
+    return /^https?:\/\//.test(abs) ? abs : null;
+  } catch {
+    return null;
+  }
+}
 
 function parseRss(xml: string): RawItem[] {
   const out: RawItem[] = [];
@@ -78,6 +126,7 @@ function parseRss(xml: string): RawItem[] {
       link: tag(b, "link"),
       source,
       published: pub ? new Date(pub).toISOString() : null,
+      image: imageFrom(b),
     });
   }
   return out;
@@ -147,6 +196,13 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
+  // Feeds rarely carry artwork, so read og:image from the article page itself.
+  await Promise.all(
+    merged.map(async (item) => {
+      if (!item.image && item.link) item.image = await ogImage(item.link);
+    }),
+  );
+
   lastDiag.kept += merged.length;
   return merged;
 
@@ -230,6 +286,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
               summary: summaries[i] ?? "",
               source: it.source,
               sourceUrl: it.link,
+              image: it.image,
               collectedAt: today,
             },
           } satisfies CollectedItem;
