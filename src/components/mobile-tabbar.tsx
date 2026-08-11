@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Home,
@@ -11,9 +11,13 @@ import {
   BookOpen,
   Megaphone,
   Vote,
+  ClipboardCheck,
+  Settings,
   Menu,
   X,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
 
 /** Four core destinations — everything else lives behind More. */
 const ICON_TABS = [
