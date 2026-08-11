@@ -309,6 +309,12 @@ function DeskPage() {
                         <MapPin className="size-3" /> {c?.en ?? item.citySlug}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{c?.region}</span>
+                      <Badge
+                        variant={item.status === "approved" ? "default" : "outline"}
+                        className="ml-auto capitalize"
+                      >
+                        {item.status}
+                      </Badge>
                     </div>
                     <h2 className="text-base font-semibold leading-snug text-foreground">
                       {item.title}
