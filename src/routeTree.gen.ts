@@ -30,6 +30,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as TemplesRouteImport } from './routes/temples'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDeskRouteImport } from './routes/_authenticated/desk'
 import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated/health'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
@@ -147,6 +148,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeskRoute = AuthenticatedDeskRouteImport.update({
+  id: '/desk',
+  path: '/desk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHealthRoute = AuthenticatedHealthRouteImport.update({
   id: '/health',
   path: '/health',
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/submit': typeof SubmitRoute
   '/temples': typeof TemplesRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
+  '/desk': typeof AuthenticatedDeskRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/desk': typeof AuthenticatedDeskRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/submit': typeof SubmitRoute
   '/temples': typeof TemplesRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/desk': typeof AuthenticatedDeskRoute
   '/_authenticated/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/submit'
     | '/temples'
     | '/admin'
+    | '/desk'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/submit'
     | '/admin'
+    | '/desk'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/submit'
     | '/temples'
     | '/_authenticated/admin'
+    | '/_authenticated/desk'
     | '/_authenticated/health'
     | '/article/$slug'
     | '/category/$category'
@@ -597,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/desk': {
+      id: '/_authenticated/desk'
+      path: '/desk'
+      fullPath: '/desk'
+      preLoaderRoute: typeof AuthenticatedDeskRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/health': {
       id: '/_authenticated/health'
       path: '/health'
@@ -686,11 +705,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedDeskRoute: typeof AuthenticatedDeskRoute
   AuthenticatedHealthRoute: typeof AuthenticatedHealthRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedDeskRoute: AuthenticatedDeskRoute,
   AuthenticatedHealthRoute: AuthenticatedHealthRoute,
 }
 
