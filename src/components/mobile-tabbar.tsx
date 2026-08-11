@@ -11,6 +11,7 @@ import {
   BookOpen,
   Megaphone,
   Vote,
+  ClipboardCheck,
   LogIn,
   Settings,
   Menu,
