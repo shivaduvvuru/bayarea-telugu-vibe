@@ -470,6 +470,50 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   );
   rows.push(...topicRows.flat());
 
+  // Temple announcements come from each temple's own website, not news search —
+  // news feeds almost never carry seva / utsavam notices.
+  try {
+    const { fetchAllTemples } = await import("./temples.server");
+    const temples = await fetchAllTemples();
+    for (const t of temples) {
+      const slug =
+        CITIES.find((c) => c.en.toLowerCase() === t.source.city.toLowerCase())?.slug ??
+        BAY_AREA.slug;
+      for (const a of t.announcements.slice(0, 4)) {
+        const dedupe = keyFor(slug, `${t.source.name} ${a.title}`);
+        rows.push({
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: today,
+          kind: "temple",
+          city_slug: slug,
+          title: `${a.title} — ${t.source.name}`,
+          summary: `${t.source.name}, ${t.source.city}. ${a.date ? `Listed for ${a.date}. ` : ""}Confirm timings with the temple before publishing.`,
+          source: t.source.name,
+          source_url: a.url || t.source.site,
+          published_at: null,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind: "temple",
+            citySlug: slug,
+            title: `${a.title} — ${t.source.name}`,
+            summary: `${t.source.name}, ${t.source.city}.`,
+            source: t.source.name,
+            sourceUrl: a.url || t.source.site,
+            ...(a.date ? { when: a.date } : {}),
+            venue: t.source.name,
+            collectedAt: today,
+          },
+        } as CollectedItem);
+      }
+    }
+  } catch (e) {
+    lastDiag.notes.push(`temple pull failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+
+
 
 
   const seen = new Set<string>();
