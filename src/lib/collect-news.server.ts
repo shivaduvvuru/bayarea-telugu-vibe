@@ -400,6 +400,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   lastDiag.raw = 0;
   lastDiag.kept = 0;
   lastDiag.images = 0;
+  lastDiag.duplicates = 0;
   lastDiag.notes = [];
 
 
