@@ -107,17 +107,7 @@ function ArticlePage() {
             <LangBadge article={article} />
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            <span>
-              Source:{" "}
-              <a
-                href={`https://bayarea.telugutimes.net/${article.slug}/`}
-                target="_blank"
-                rel="noreferrer"
-                className="font-semibold text-primary"
-              >
-                Bay Area Telugu Times newsroom
-              </a>
-            </span>
+            <span className="font-semibold text-ink">Bay Area Telugu Times newsroom</span>
             {article.category === "community" && (
               <span className="border border-border px-1.5 py-0.5 font-semibold">
                 Community submission

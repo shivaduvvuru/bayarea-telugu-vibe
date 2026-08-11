@@ -42,7 +42,7 @@ function HealthPage() {
   });
 
   const report = query.data;
-  const groups = ["Syndication", "Temples", "Politics"] as const;
+  const groups = ["Temples", "Politics"] as const;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

@@ -1,5 +1,5 @@
 /**
- * Political news sources. Independent of WordPress: each entry is a Google
+ * Political news sources. Each entry is a Google
  * News RSS query, so city-hall coverage and Indian political news arrive
  * straight from the publishers rather than through the parent site.
  */

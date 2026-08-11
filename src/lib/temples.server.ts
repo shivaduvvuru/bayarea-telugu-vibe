@@ -1,6 +1,6 @@
 /**
  * Server-only scraper that reads announcements straight from each Bay Area
- * temple's own website. Nothing here touches WordPress.
+ * temple's own website.
  */
 import { TEMPLE_SOURCES, type TempleSource } from "./temple-sources";
 

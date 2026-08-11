@@ -20,7 +20,7 @@ export type DirectoryClaim = {
 export const CLAIM_COLUMNS =
   "id, listing_id, listing_title, city, address, hours, website, phone, status, created_at";
 
-/** Public view of an approved correction, applied over the WordPress record. */
+/** Public view of an approved correction, applied over the stored listing. */
 export type ClaimOverride = {
   listing_id: number;
   city: string | null;

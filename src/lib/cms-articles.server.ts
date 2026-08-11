@@ -1,8 +1,7 @@
 /**
  * Reads the site's own content store (Lovable Cloud) as Article DTOs.
  *
- * This is the primary content source: WordPress is only a syndication feed
- * that tops the list up, and the committed snapshot is the offline floor.
+ * This is the only content source: the site has no external publisher feed.
  */
 import type { Article } from "./content";
 import { categoryBySlug } from "./content";

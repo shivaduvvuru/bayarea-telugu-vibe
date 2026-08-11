@@ -128,7 +128,7 @@ export function AdRail() {
 }
 
 /**
- * Retail sponsor strip. The WordPress site ran grocery ads (Whole Foods,
+ * Retail sponsor strip. The legacy site ran grocery ads (Whole Foods,
  * Grocery Outlet, Safeway, Trader Joe's) — this is the equivalent surface,
  * pointing at the store listings in our own directory.
  */
