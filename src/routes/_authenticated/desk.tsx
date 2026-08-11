@@ -276,7 +276,7 @@ function DeskPage() {
           </select>
         </div>
 
-        {view === "pending" && visible.length > 0 && (
+        {(view === "pending" || view === "all") && visible.length > 0 && (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => bulk("approved")}>
               <Check /> Approve all shown
