@@ -429,6 +429,44 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
     rows.push(...collected.flat());
   }
 
+  // Region-wide NRI, community-event and temple items.
+  const topicRows = await Promise.all(
+    TOPIC_GROUPS.map(async (group) => {
+      const items = await fetchTopics(group);
+      const summaries = await summarize(BAY_AREA, items, apiKey);
+      return items.map((it, i) => {
+        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        return {
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+          kind: group.kind,
+          city_slug: BAY_AREA.slug,
+          title: it.title,
+          summary: summaries[i] ?? "",
+          source: it.source,
+          source_url: it.link,
+          published_at: it.published,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind: group.kind,
+            citySlug: BAY_AREA.slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source,
+            sourceUrl: it.link,
+            image: it.image,
+            collectedAt: today,
+          },
+        } satisfies CollectedItem;
+      });
+    }),
+  );
+  rows.push(...topicRows.flat());
+
+
+
   const seen = new Set<string>();
   return rows.filter((r) => (seen.has(r.dedupe_key) ? false : (seen.add(r.dedupe_key), true)));
 }
