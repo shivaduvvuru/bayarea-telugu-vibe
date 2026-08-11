@@ -325,6 +325,19 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
     ],
     match: /h 1b|h1b|green card|visa|immigrat|nri|india|indian|telugu|telangana|andhra|consulate|diaspora/,
   },
+  // Indian cinema: Telugu (Tollywood) and Hindi (Bollywood) releases, reviews,
+  // box office and theatre listings that Bay Area readers follow.
+  {
+    kind: "news",
+    queries: [
+      "Telugu cinema Tollywood movie news release box office",
+      "Bollywood Hindi movie news release review box office",
+      "Telugu OR Hindi movie US premiere theatres Bay Area California",
+      "Tollywood OR Bollywood actor film shooting update",
+    ],
+    match:
+      /tollywood|bollywood|telugu (?:film|movie|cinema)|hindi (?:film|movie|cinema)|box office|teaser|trailer|first look|premiere|movie review|actor|actress|director|ott release/,
+  },
 ];
 
 const TOPIC_MAX = 8;
