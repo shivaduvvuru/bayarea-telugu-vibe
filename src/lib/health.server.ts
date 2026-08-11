@@ -9,7 +9,7 @@ import templeSnapshot from "@/content/temple-snapshot.json";
 export type Probe = {
   id: string;
   name: string;
-  group: "Temples" | "Politics" | "Syndication";
+  group: "Temples" | "Politics";
   url: string;
   ok: boolean;
   status: number | null;

@@ -17,7 +17,7 @@ const HOME_URL = canonical("/");
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
-  queryFn: () => listPosts({ data: { perPage: 40, instant: true, compact: true } }),
+  queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
 
