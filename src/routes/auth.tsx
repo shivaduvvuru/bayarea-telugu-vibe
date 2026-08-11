@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,25 @@ function AuthPage() {
     }
   }
 
+  async function onGoogle() {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error(result.error.message ?? "Google sign in failed");
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/admin" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-16">
       <div>
@@ -97,6 +117,14 @@ function AuthPage() {
           {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        or
+        <span className="h-px flex-1 bg-border" />
+      </div>
+      <Button type="button" variant="outline" disabled={busy} onClick={onGoogle}>
+        Continue with Google
+      </Button>
       <button
         type="button"
         className="text-sm text-primary underline-offset-4 hover:underline"
