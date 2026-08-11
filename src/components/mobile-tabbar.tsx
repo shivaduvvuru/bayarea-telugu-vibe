@@ -87,7 +87,7 @@ export function MobileTabBar() {
       >
         {open && (
           <ul className="grid grid-cols-3 gap-px border-b border-border bg-border">
-            {MORE.map((item) => (
+            {sheetItems.map((item) => (
               <li key={item.label} className="bg-background">
                 <Link
                   to={item.to}
