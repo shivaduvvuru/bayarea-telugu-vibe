@@ -22,6 +22,7 @@ export function deskRowToIngest(row: Row): IngestRow {
     title: String(row["title"] ?? ""),
     summary: str(row["summary"]) ?? str(payload["summary"]),
     link_url: str(row["source_url"]) ?? str(payload["sourceUrl"]),
+    image_url: str(payload["image"]),
     city,
     region: citySlug ? (cityBySlug(citySlug)?.region ?? null) : null,
     category: kind === "temple" ? "temples" : kind === "event" ? "events" : "news",

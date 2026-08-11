@@ -62,7 +62,100 @@ function tag(block: string, name: string) {
   return m ? decodeEntities(m[1]!) : "";
 }
 
-type RawItem = { title: string; link: string; source: string; published: string | null };
+type RawItem = {
+  title: string;
+  link: string;
+  source: string;
+  published: string | null;
+  image: string | null;
+};
+
+/** Pulls a usable image URL out of an RSS <item> block. */
+/** Numeric/named entities appear inside feed-embedded URLs. */
+function cleanUrl(raw: string): string | null {
+  const url = raw
+    .trim()
+    .replace(/&(?:amp|#0*38);/gi, "&")
+    .replace(/&#0*58;/g, ":")
+    .replace(/&#0*47;/g, "/");
+  if (!/^https?:\/\//.test(url)) return null;
+  return url;
+}
+
+function imageFrom(block: string): string | null {
+  const patterns = [
+    /<media:content[^>]+url="([^"]+)"/i,
+    /<media:thumbnail[^>]+url="([^"]+)"/i,
+    /<enclosure[^>]+url="([^"]+)"[^>]*type="image/i,
+    /<enclosure[^>]+type="image[^"]*"[^>]*url="([^"]+)"/i,
+    /<image[^>]*>[\s\S]*?<url>([^<]+)<\/url>/i,
+    /&lt;img[^&]*?src=(?:&quot;|")([^"&]+)/i,
+    /<img[^>]+src="([^"]+)"/i,
+  ];
+  for (const re of patterns) {
+    const m = block.match(re);
+    const url = m?.[1] ? cleanUrl(m[1]) : null;
+    if (url) return url;
+  }
+  return null;
+}
+
+/** MSN renders client-side; its detail API exposes the artwork and origin link. */
+async function msnImage(link: string): Promise<string | null> {
+  const id = link.match(/\/ar-([A-Za-z0-9]+)/)?.[1];
+  if (!id) return null;
+  try {
+    const res = await fetch(`https://assets.msn.com/content/view/v2/Detail/en-us/${id}`, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { imageResources?: { url?: string; width?: number }[] };
+    const best = (json.imageResources ?? [])
+      .filter((i) => typeof i.url === "string")
+      .sort((a, b) => (b.width ?? 0) - (a.width ?? 0))[0];
+    return best?.url ? cleanUrl(best.url) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Reads the article page and returns its og:image / twitter:image, if any. */
+async function ogImage(link: string): Promise<string | null> {
+  try {
+    const res = await fetch(link, {
+      headers: { "User-Agent": UA, Accept: "text/html,*/*" },
+      redirect: "follow",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const html = (await res.text()).slice(0, 200_000);
+    const m =
+      html.match(/<meta[^>]+property="og:image(?::secure_url)?"[^>]+content="([^"]+)"/i) ??
+      html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i) ??
+      html.match(/<meta[^>]+name="twitter:image(?::src)?"[^>]+content="([^"]+)"/i) ??
+      html.match(/<link[^>]+rel="image_src"[^>]+href="([^"]+)"/i) ??
+      html.match(/<img[^>]+src="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
+    const raw = m?.[1]?.trim();
+    if (!raw) return null;
+    const abs = raw.startsWith("//") ? `https:${raw}` : new URL(raw, res.url || link).toString();
+    return cleanUrl(abs);
+  } catch {
+    return null;
+  }
+}
+
+/** Search feeds wrap the real article URL in a redirect; unwrap when possible. */
+function unwrapLink(link: string): string {
+  try {
+    const u = new URL(link);
+    const inner = u.searchParams.get("url") ?? u.searchParams.get("u");
+    if (inner && /^https?:\/\//.test(inner)) return inner;
+  } catch {
+    /* keep original */
+  }
+  return link;
+}
 
 function parseRss(xml: string): RawItem[] {
   const out: RawItem[] = [];
@@ -75,9 +168,10 @@ function parseRss(xml: string): RawItem[] {
     const pub = tag(b, "pubDate");
     out.push({
       title,
-      link: tag(b, "link"),
+      link: unwrapLink(tag(b, "link")),
       source,
       published: pub ? new Date(pub).toISOString() : null,
+      image: imageFrom(b),
     });
   }
   return out;
@@ -111,13 +205,16 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   ];
   const results = await Promise.all(
     queries.map(async (q) => {
-      // Google News first; if the host blocks the server, fall back to Bing News.
+      // Bing News first: its items link straight to the publisher, so we can read
+      // the article artwork. Google News is the fallback but hides the real URL.
       let parsed = await fetchFeed(
-        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+        `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
       );
       if (!parsed?.length) {
         parsed =
-          (await fetchFeed(`https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS`)) ?? parsed;
+          (await fetchFeed(
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+          )) ?? parsed;
       }
       if (!parsed) return [];
       lastDiag.fetched += 1;
@@ -147,6 +244,17 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
+  // Feeds rarely carry artwork, so read og:image from the article page itself.
+  await Promise.all(
+    merged.map(async (item) => {
+      // Aggregator stub links can't be scraped; only try real publisher URLs.
+      if (item.image || !item.link || /news\.google\.com/.test(item.link)) return;
+      item.image = /(?:^|\.)msn\.com$/.test(new URL(item.link).hostname)
+        ? await msnImage(item.link)
+        : await ogImage(item.link);
+    }),
+  );
+
   lastDiag.kept += merged.length;
   return merged;
 
@@ -230,6 +338,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
               summary: summaries[i] ?? "",
               source: it.source,
               sourceUrl: it.link,
+              image: it.image,
               collectedAt: today,
             },
           } satisfies CollectedItem;
