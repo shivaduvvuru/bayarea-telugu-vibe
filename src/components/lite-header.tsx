@@ -132,7 +132,7 @@ function MoreMenu() {
         >
 
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            {MORE_GROUPS.map((group) => (
+            {(signedIn ? [...MORE_GROUPS, STAFF_GROUP] : MORE_GROUPS).map((group) => (
               <div key={group.heading}>
                 <p className="mb-1.5 border-b border-border pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {group.heading}
