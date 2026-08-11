@@ -75,26 +75,34 @@ export function useReviewQueue(itemIds: string[], version: string) {
         await load();
         throw error;
       }
+      // Approving is publishing: push straight into the newsroom so readers
+      // see every approved story without a second manual step.
+      if (status === "approved") {
+        try {
+          const res = await publishApproved({ data: { itemIds: ids } });
+          if (res.error) console.error("auto-publish failed", res.error);
+        } catch (e) {
+          console.error("auto-publish failed", e);
+        }
+      }
+      await load();
     },
-    [load],
+    [load, publishApproved],
   );
 
-  /** Push every approved-but-unpublished item into the newsroom. */
+  /** Safety net: push every approved-but-unpublished item into the newsroom. */
   const processQueue = useCallback(async () => {
     setBusy(true);
     try {
-      const pending = Object.values(rows).filter(
-        (r) => r.status === "approved" && r.upload_status !== "sent",
-      );
-      if (!pending.length) return 0;
-      const res = await publishApproved({ data: { itemIds: pending.map((r) => r.item_id) } });
+      const res = await publishApproved({ data: {} });
       await load();
       if (res.error) throw new Error(res.error);
       return res.sent;
     } finally {
       setBusy(false);
     }
-  }, [rows, load, publishApproved]);
+  }, [load, publishApproved]);
+
 
   const statusOf = (id: string): ItemStatus => rows[id]?.status ?? "pending";
   const uploadOf = (id: string): UploadState => rows[id]?.upload_status ?? "none";
