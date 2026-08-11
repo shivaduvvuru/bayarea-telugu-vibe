@@ -5,8 +5,8 @@ import { type Article, articleLang, categoryBySlug, formatDate } from "@/lib/con
 import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 
-const FALLBACK =
-  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=70";
+
+
 
 /** Rough reading time from the WP HTML body. */
 function readingTime(html: string) {
