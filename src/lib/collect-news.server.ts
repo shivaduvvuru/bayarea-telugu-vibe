@@ -181,6 +181,11 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
 export async function collectAll(apiKey: string | undefined): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows: CollectedItem[] = [];
+  lastDiag.fetched = 0;
+  lastDiag.raw = 0;
+  lastDiag.kept = 0;
+  lastDiag.notes = [];
+
 
   for (let b = 0; b < CITIES.length; b += 4) {
     const batch = CITIES.slice(b, b + 4);
