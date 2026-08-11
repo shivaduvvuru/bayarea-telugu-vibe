@@ -62,6 +62,25 @@ function AuthPage() {
     }
   }
 
+  async function onGoogle() {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error(result.error.message ?? "Google sign in failed");
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/admin" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-16">
       <div>
