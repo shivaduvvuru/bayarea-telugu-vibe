@@ -168,8 +168,17 @@ function MoreMenu() {
 }
 
 export function LiteHeader() {
+  const signedIn = useSignedIn();
+  const navigate = useNavigate();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    void navigate({ to: "/auth", replace: true });
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
+
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
         <Link to="/" className="shrink-0" aria-label="Bay Area Telugu Times home">
           <img
