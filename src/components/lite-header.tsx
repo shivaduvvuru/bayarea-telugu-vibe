@@ -57,10 +57,35 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   },
 ];
 
+/** Shown only to signed-in users: the editorial tools. */
+const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
+  heading: "Editorial",
+  items: [
+    { to: "/desk", label: "Review desk" },
+    { to: "/admin", label: "Newsroom CMS" },
+  ],
+};
+
 function MoreMenu() {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(0);
+  const [signedIn, setSignedIn] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setSignedIn(Boolean(data.session));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(Boolean(session)),
+    );
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
 
   useEffect(() => {
     if (!open) return;
