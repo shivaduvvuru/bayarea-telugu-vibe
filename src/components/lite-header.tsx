@@ -66,12 +66,9 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
   ],
 };
 
-function MoreMenu() {
-  const [open, setOpen] = useState(false);
-  const [top, setTop] = useState(0);
+/** Shared session flag for the header (sign-in link + staff menu). */
+function useSignedIn() {
   const [signedIn, setSignedIn] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     let active = true;
     void supabase.auth.getSession().then(({ data }) => {
@@ -85,6 +82,16 @@ function MoreMenu() {
       sub.subscription.unsubscribe();
     };
   }, []);
+  return signedIn;
+}
+
+function MoreMenu() {
+  const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
+  const signedIn = useSignedIn();
+  const wrap = useRef<HTMLDivElement>(null);
+
+
 
 
   useEffect(() => {
