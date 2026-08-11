@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Search as SearchIcon } from "lucide-react";
-import { searchPosts } from "@/lib/wp.functions";
+import { searchPosts } from "@/lib/content.functions";
 import { StoryCard } from "@/components/news";
 import { useLang } from "@/lib/language";
 

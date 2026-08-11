@@ -1,10 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { listDirectory } from "@/lib/wp.functions";
+import { listDirectory } from "@/lib/content.functions";
 import { listClaimOverrides } from "@/lib/claims.functions";
 import { listThreads } from "@/lib/forum.functions";
 import { listTempleAnnouncements } from "@/lib/temples.functions";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 import { resolveCity, regionOf } from "@/lib/directory-city";
 import { upcomingEvents } from "@/lib/news-data";
 import { EventStrip } from "@/components/events";

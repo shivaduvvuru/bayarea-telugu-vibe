@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { submitClaim } from "@/lib/claims.functions";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 const ALL_CITIES = CITY_REGIONS.flatMap((r) => r.cities.map((c) => c.en));
 

@@ -1,4 +1,4 @@
-import type { Article, DirectoryEntry } from "./wp";
+import type { Article, DirectoryEntry } from "./content";
 import sanitize from "sanitize-html";
 
 export type Embedded = {

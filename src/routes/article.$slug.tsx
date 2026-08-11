@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { articleLang, formatDate } from "@/lib/wp";
-import { getPostBySlug, listPosts } from "@/lib/wp.functions";
+import { articleLang, formatDate } from "@/lib/content";
+import { getPostBySlug, listPosts } from "@/lib/content.functions";
 import { CategoryTag, LangBadge, ListRow, SectionHeading } from "@/components/news";
 
 const articleQuery = (slug: string) =>

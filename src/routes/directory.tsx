@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { listDirectory } from "@/lib/wp.functions";
+import { listDirectory } from "@/lib/content.functions";
 import { listClaimOverrides } from "@/lib/claims.functions";
 import { ClaimForm } from "@/components/claim-form";
-import type { DirectoryEntry } from "@/lib/wp";
+import type { DirectoryEntry } from "@/lib/content";
 import { CommunityAppeal } from "@/components/ads";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 import { regionOf, resolveCity } from "@/lib/directory-city";
 import {
   COMMUNITY_EMAIL,

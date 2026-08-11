@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { categoryBySlug } from "@/lib/wp";
-import { listPosts } from "@/lib/wp.functions";
+import { categoryBySlug } from "@/lib/content";
+import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard } from "@/components/news";
 
 const postsQuery = (category: string) =>

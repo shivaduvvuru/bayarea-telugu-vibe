@@ -1,4 +1,4 @@
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 /**
  * Directory listings arrive from WordPress with the city buried in the

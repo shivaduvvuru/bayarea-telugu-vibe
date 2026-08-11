@@ -5,7 +5,7 @@
  * verify (phone, hours, photos, events) are intentionally left out rather than
  * guessed — the UI omits any section without data.
  */
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 export type TempleRegion = "South Bay" | "East Bay" | "Peninsula" | "San Francisco";
 

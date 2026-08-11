@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { clearWpCache, REFRESH_CATEGORIES } from "@/lib/wp-cache";
-import { listDirectory, listPosts } from "@/lib/wp.functions";
+import { listDirectory, listPosts } from "@/lib/content.functions";
 import { clearTempleCache, listTempleAnnouncements } from "@/lib/temples.functions";
 import { clearPoliticsCache, listPolitics } from "@/lib/politics.functions";
 import type { IngestRow } from "@/lib/cms.server";

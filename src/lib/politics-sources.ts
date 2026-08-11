@@ -3,7 +3,7 @@
  * News RSS query, so city-hall coverage and Indian political news arrive
  * straight from the publishers rather than through the parent site.
  */
-import { CITY_REGIONS } from "./wp";
+import { CITY_REGIONS } from "./content";
 
 export type PoliticsSource = {
   id: string;

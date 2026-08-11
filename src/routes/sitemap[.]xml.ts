@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { ALL_CATEGORIES } from "@/lib/wp";
+import { ALL_CATEGORIES } from "@/lib/content";
 import { TEMPLES, CITY_SLUGS, REGION_SLUGS } from "@/lib/temple-directory";
 import { SITE_ORIGIN, BASE_PATH } from "@/lib/site";
 

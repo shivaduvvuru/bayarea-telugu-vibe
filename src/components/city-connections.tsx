@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { listDirectory } from "@/lib/wp.functions";
+import { listDirectory } from "@/lib/content.functions";
 import { listClaimOverrides } from "@/lib/claims.functions";
 import { resolveCity, regionOf } from "@/lib/directory-city";
 import { upcomingEvents } from "@/lib/news-data";
 import { eventDate } from "@/lib/news-data";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 const slugOf = (city: string) =>
   CITY_REGIONS.flatMap((r) => r.cities).find((c) => c.en === city)?.slug ?? null;

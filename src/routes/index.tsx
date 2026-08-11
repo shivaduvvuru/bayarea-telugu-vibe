@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { listPosts } from "@/lib/wp.functions";
+import { listPosts } from "@/lib/content.functions";
 import { listTempleAnnouncements } from "@/lib/temples.functions";
 import { listPolitics } from "@/lib/politics.functions";
 import { listCommunityItems } from "@/lib/cms.functions";
 import { upcomingEvents } from "@/lib/news-data";
-import { formatDate, isLocal, type Article } from "@/lib/wp";
+import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 
