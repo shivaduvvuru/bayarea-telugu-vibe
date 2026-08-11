@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Home,
@@ -11,9 +11,13 @@ import {
   BookOpen,
   Megaphone,
   Vote,
+  ClipboardCheck,
+  Settings,
   Menu,
   X,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
 
 /** Four core destinations — everything else lives behind More. */
 const ICON_TABS = [
@@ -38,15 +42,39 @@ const MORE = [
   { to: "/contact", icon: Megaphone, label: "Advertise" },
 ] as const;
 
+/** Editorial tools — only for signed-in staff. */
+const STAFF = [
+  { to: "/desk", icon: ClipboardCheck, label: "Review desk" },
+  { to: "/admin", icon: Settings, label: "Newsroom" },
+] as const;
+
 const tabClass =
   "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-muted-foreground";
 
 export function MobileTabBar() {
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setSignedIn(Boolean(data.session));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(Boolean(session)),
+    );
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const sheetItems = signedIn ? [...MORE, ...STAFF] : MORE;
 
   return (
     <>
       {open && (
+
         <div
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={() => setOpen(false)}
@@ -59,7 +87,7 @@ export function MobileTabBar() {
       >
         {open && (
           <ul className="grid grid-cols-3 gap-px border-b border-border bg-border">
-            {MORE.map((item) => (
+            {sheetItems.map((item) => (
               <li key={item.label} className="bg-background">
                 <Link
                   to={item.to}
