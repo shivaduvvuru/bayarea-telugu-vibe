@@ -100,18 +100,19 @@ function DeskPage() {
   const [kind, setKind] = useState<ItemKind | "all">("all");
   const [region, setRegion] = useState<string>("all");
   const [city, setCity] = useState<string>("all");
-  const [view, setView] = useState<ItemStatus>("pending");
+  const [view, setView] = useState<ItemStatus | "all">("all");
 
   const items: DeskItem[] = base.map((i) => ({ ...i, status: queue.statusOf(i.id) }));
 
   const counts = {
+    all: items.length,
     pending: items.filter((i) => i.status === "pending").length,
     approved: items.filter((i) => i.status === "approved").length,
     rejected: items.filter((i) => i.status === "rejected").length,
   };
 
   const visible = items.filter((i) => {
-    if (i.status !== view) return false;
+    if (view !== "all" && i.status !== view) return false;
     if (kind !== "all" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
@@ -208,8 +209,8 @@ function DeskPage() {
             </Button>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {(["pending", "approved", "rejected"] as const).map((s) => (
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {(["all", "pending", "approved", "rejected"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setView(s)}
@@ -275,7 +276,7 @@ function DeskPage() {
           </select>
         </div>
 
-        {view === "pending" && visible.length > 0 && (
+        {(view === "pending" || view === "all") && visible.length > 0 && (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => bulk("approved")}>
               <Check /> Approve all shown
@@ -308,6 +309,12 @@ function DeskPage() {
                         <MapPin className="size-3" /> {c?.en ?? item.citySlug}
                       </Badge>
                       <span className="text-xs text-muted-foreground">{c?.region}</span>
+                      <Badge
+                        variant={item.status === "approved" ? "default" : "outline"}
+                        className="ml-auto capitalize"
+                      >
+                        {item.status}
+                      </Badge>
                     </div>
                     <h2 className="text-base font-semibold leading-snug text-foreground">
                       {item.title}

@@ -1,4 +1,4 @@
-import { CITIES, type City } from "./desk-cities";
+import { BAY_AREA, CITIES, type City } from "./desk-cities";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
@@ -178,7 +178,7 @@ function parseRss(xml: string): RawItem[] {
 }
 
 /** Diagnostics for the last collect run, surfaced by the collect endpoint. */
-export const lastDiag = { fetched: 0, raw: 0, kept: 0, notes: [] as string[] };
+export const lastDiag = { fetched: 0, raw: 0, kept: 0, images: 0, notes: [] as string[] };
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -244,20 +244,105 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
-  // Feeds rarely carry artwork, so read og:image from the article page itself.
-  await Promise.all(
-    merged.map(async (item) => {
-      // Aggregator stub links can't be scraped; only try real publisher URLs.
-      if (item.image || !item.link || /news\.google\.com/.test(item.link)) return;
-      item.image = /(?:^|\.)msn\.com$/.test(new URL(item.link).hostname)
-        ? await msnImage(item.link)
-        : await ogImage(item.link);
-    }),
-  );
+  await addImages(merged);
 
   lastDiag.kept += merged.length;
   return merged;
 
+}
+
+/** Feeds rarely carry artwork, so read the article page for og:image. */
+async function addImages(items: RawItem[]): Promise<void> {
+  await Promise.all(
+    items.map(async (item) => {
+      if (!item.image && item.link) {
+        try {
+          const host = new URL(item.link).hostname;
+          item.image = /(?:^|\.)msn\.com$/.test(host)
+            ? ((await msnImage(item.link)) ?? (await ogImage(item.link)))
+            : await ogImage(item.link);
+        } catch {
+          /* unusable link */
+        }
+      }
+      if (item.image) lastDiag.images += 1;
+      else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
+    }),
+  );
+}
+
+/**
+ * Region-wide topics Bay Area Telugu readers care about: NRI/immigration and
+ * India-US news, Telugu community events, and temple announcements.
+ */
+const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: RegExp }[] = [
+  // Temple first: a story that reads as both temple and event should file as temple.
+  {
+    kind: "temple",
+    queries: [
+      "Hindu temple Bay Area California event OR festival",
+      "Shiva Vishnu Temple Livermore OR Fremont Hindu temple news",
+      "Balaji OR Venkateswara temple California utsavam OR abhishekam",
+    ],
+    match: /temple|mandir|hindu|puja|pooja|abhishek|utsav|balaji|venkateswara|swami|devotee/,
+  },
+  {
+    kind: "event",
+    queries: [
+      "Telugu OR Indian community event Bay Area California",
+      "TANA OR ATA OR NATS Telugu association event",
+      "Ugadi OR Diwali OR Sankranti OR Kuchipudi event Bay Area",
+    ],
+    match: /telugu|indian|india|ugadi|diwali|sankranti|kuchipudi|carnatic|tana|nats|event|festival|concert/,
+  },
+  {
+    kind: "news",
+    queries: [
+      "H-1B visa OR green card backlog Indian immigrants news",
+      "NRI India US news Telugu community California",
+      "Indian consulate San Francisco OR OCI OR India visa news",
+      "Telangana OR Andhra Pradesh news United States diaspora",
+    ],
+    match: /h 1b|h1b|green card|visa|immigrat|nri|india|indian|telugu|telangana|andhra|consulate|diaspora/,
+  },
+];
+
+const TOPIC_MAX = 8;
+
+async function fetchTopics(
+  group: (typeof TOPIC_GROUPS)[number],
+): Promise<RawItem[]> {
+  const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
+  const results = await Promise.all(
+    group.queries.map(async (q) => {
+      let parsed = await fetchFeed(
+        `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      );
+      if (!parsed?.length) {
+        parsed =
+          (await fetchFeed(
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+          )) ?? parsed;
+      }
+      if (!parsed) return [];
+      lastDiag.fetched += 1;
+      lastDiag.raw += parsed.length;
+      return parsed;
+    }),
+  );
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of results.flat()) {
+    const hay = normalize(`${item.title} ${item.source}`);
+    const k = normalize(item.title);
+    if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
+    seen.add(k);
+    merged.push(item);
+    if (merged.length >= TOPIC_MAX) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+  return merged;
 }
 
 export let lastAiError: string | null = null;
@@ -306,6 +391,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   lastDiag.fetched = 0;
   lastDiag.raw = 0;
   lastDiag.kept = 0;
+  lastDiag.images = 0;
   lastDiag.notes = [];
 
 
@@ -347,6 +433,88 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
     );
     rows.push(...collected.flat());
   }
+
+  // Region-wide NRI, community-event and temple items.
+  const topicRows = await Promise.all(
+    TOPIC_GROUPS.map(async (group) => {
+      const items = await fetchTopics(group);
+      const summaries = await summarize(BAY_AREA, items, apiKey);
+      return items.map((it, i) => {
+        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        return {
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+          kind: group.kind,
+          city_slug: BAY_AREA.slug,
+          title: it.title,
+          summary: summaries[i] ?? "",
+          source: it.source,
+          source_url: it.link,
+          published_at: it.published,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind: group.kind,
+            citySlug: BAY_AREA.slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source,
+            sourceUrl: it.link,
+            image: it.image,
+            collectedAt: today,
+          },
+        } satisfies CollectedItem;
+      });
+    }),
+  );
+  rows.push(...topicRows.flat());
+
+  // Temple announcements come from each temple's own website, not news search —
+  // news feeds almost never carry seva / utsavam notices.
+  try {
+    const { fetchAllTemples } = await import("./temples.server");
+    const temples = await fetchAllTemples();
+    for (const t of temples) {
+      const slug =
+        CITIES.find((c) => c.en.toLowerCase() === t.source.city.toLowerCase())?.slug ??
+        BAY_AREA.slug;
+      for (const a of t.announcements.slice(0, 4)) {
+        const dedupe = keyFor(slug, `${t.source.name} ${a.title}`);
+        rows.push({
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: today,
+          kind: "temple",
+          city_slug: slug,
+          title: `${a.title} — ${t.source.name}`,
+          summary: `${t.source.name}, ${t.source.city}. ${a.date ? `Listed for ${a.date}. ` : ""}Confirm timings with the temple before publishing.`,
+          source: t.source.name,
+          source_url: a.url || t.source.site,
+          published_at: null,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind: "temple",
+            citySlug: slug,
+            title: `${a.title} — ${t.source.name}`,
+            summary: `${t.source.name}, ${t.source.city}.`,
+            source: t.source.name,
+            sourceUrl: a.url || t.source.site,
+            ...(a.date ? { when: a.date } : {}),
+            venue: t.source.name,
+            collectedAt: today,
+          },
+        } as CollectedItem);
+      }
+    }
+  } catch (e) {
+    lastDiag.notes.push(`temple pull failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+
+
+
 
   const seen = new Set<string>();
   return rows.filter((r) => (seen.has(r.dedupe_key) ? false : (seen.add(r.dedupe_key), true)));

@@ -46,4 +46,13 @@ export const CITIES: City[] = CITY_REGIONS.flatMap((r) =>
   r.cities.map((c) => ({ ...c, region: r.en })),
 );
 
-export const cityBySlug = (slug: string) => CITIES.find((c) => c.slug === slug);
+/** Region-wide bucket for NRI / community / temple items that aren't city-specific. */
+export const BAY_AREA: City = {
+  slug: "bay-area",
+  en: "Bay Area",
+  te: "బే ఏరియా",
+  region: "Bay Area",
+};
+
+export const cityBySlug = (slug: string) =>
+  [...CITIES, BAY_AREA].find((c) => c.slug === slug);
