@@ -215,6 +215,24 @@ export function LiteHeader() {
           >
             <Search className="h-4 w-4" />
           </Link>
+          {signedIn ? (
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
       <nav
