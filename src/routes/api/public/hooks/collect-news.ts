@@ -40,8 +40,8 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const cutoff = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
           await supabaseAdmin.from("digest_queue").delete().lt("digest_date", cutoff);
 
-          const { lastAiError } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, collected: rows.length, aiError: lastAiError, at: new Date().toISOString() });
+          const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
+          return Response.json({ ok: true, collected: rows.length, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);

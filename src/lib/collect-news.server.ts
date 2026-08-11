@@ -83,6 +83,27 @@ function parseRss(xml: string): RawItem[] {
   return out;
 }
 
+/** Diagnostics for the last collect run, surfaced by the collect endpoint. */
+export const lastDiag = { fetched: 0, raw: 0, kept: 0, notes: [] as string[] };
+
+const UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+async function fetchFeed(url: string): Promise<RawItem[] | null> {
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" } });
+    if (!res.ok) {
+      if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
+      return null;
+    }
+    return parseRss(await res.text());
+  } catch (e) {
+    if (lastDiag.notes.length < 6)
+      lastDiag.notes.push(`${new URL(url).host}: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
+}
+
 async function fetchCity(city: City): Promise<RawItem[]> {
   const queries = [
     `"${city.en}" California city news`,
@@ -90,14 +111,18 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   ];
   const results = await Promise.all(
     queries.map(async (q) => {
-      try {
-        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`;
-        const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; BayAreaDigest/1.0)" } });
-        if (!res.ok) return [];
-        return parseRss(await res.text());
-      } catch {
-        return [];
+      // Google News first; if the host blocks the server, fall back to Bing News.
+      let parsed = await fetchFeed(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+      );
+      if (!parsed?.length) {
+        parsed =
+          (await fetchFeed(`https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS`)) ?? parsed;
       }
+      if (!parsed) return [];
+      lastDiag.fetched += 1;
+      lastDiag.raw += parsed.length;
+      return parsed;
     }),
   );
   const LOCAL_SOURCES =
@@ -122,6 +147,7 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
+  lastDiag.kept += merged.length;
   return merged;
 
 }
@@ -169,6 +195,11 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
 export async function collectAll(apiKey: string | undefined): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows: CollectedItem[] = [];
+  lastDiag.fetched = 0;
+  lastDiag.raw = 0;
+  lastDiag.kept = 0;
+  lastDiag.notes = [];
+
 
   for (let b = 0; b < CITIES.length; b += 4) {
     const batch = CITIES.slice(b, b + 4);

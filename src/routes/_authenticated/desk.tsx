@@ -143,10 +143,23 @@ function DeskPage() {
         },
         body: "{}",
       });
-      const json = (await res.json()) as { collected?: number; error?: string };
+      const json = (await res.json()) as {
+        collected?: number;
+        error?: string;
+        diag?: { fetched?: number; raw?: number; notes?: string[] };
+      };
       if (!res.ok) throw new Error(json.error ?? "Collection failed");
       await loadItems();
-      toast.success(`Collected ${json.collected ?? 0} items from live sources`);
+      if (!json.collected) {
+        const note = json.diag?.notes?.[0];
+        toast.warning(
+          note
+            ? `No new items — sources unreachable (${note})`
+            : `No new items right now (${json.diag?.raw ?? 0} headlines scanned)`,
+        );
+      } else {
+        toast.success(`Collected ${json.collected} items from live sources`);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not refresh news");
     } finally {
