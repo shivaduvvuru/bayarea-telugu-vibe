@@ -100,6 +100,26 @@ function imageFrom(block: string): string | null {
   return null;
 }
 
+/** MSN renders client-side; its detail API exposes the artwork and origin link. */
+async function msnImage(link: string): Promise<string | null> {
+  const id = link.match(/\/ar-([A-Za-z0-9]+)/)?.[1];
+  if (!id) return null;
+  try {
+    const res = await fetch(`https://assets.msn.com/content/view/v2/Detail/en-us/${id}`, {
+      headers: { "User-Agent": UA, Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { imageResources?: { url?: string; width?: number }[] };
+    const best = (json.imageResources ?? [])
+      .filter((i) => typeof i.url === "string")
+      .sort((a, b) => (b.width ?? 0) - (a.width ?? 0))[0];
+    return best?.url ? cleanUrl(best.url) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Reads the article page and returns its og:image / twitter:image, if any. */
 async function ogImage(link: string): Promise<string | null> {
   try {
@@ -228,8 +248,10 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   await Promise.all(
     merged.map(async (item) => {
       // Aggregator stub links can't be scraped; only try real publisher URLs.
-      if (!item.image && item.link && !/news\.google\.com/.test(item.link))
-        item.image = await ogImage(item.link);
+      if (item.image || !item.link || /news\.google\.com/.test(item.link)) return;
+      item.image = /(?:^|\.)msn\.com$/.test(new URL(item.link).hostname)
+        ? await msnImage(item.link)
+        : await ogImage(item.link);
     }),
   );
 
