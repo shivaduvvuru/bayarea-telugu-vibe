@@ -31,17 +31,34 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         try {
           const collected = await collectAll(process.env["LOVABLE_API_KEY"]);
 
-          // Drop stories already stored on earlier days (same headline or article URL).
-          const { data: stored } = await supabaseAdmin
-            .from("digest_queue")
-            .select("dedupe_key, title, source_url")
-            .limit(5000);
-          const storedKeys = new Set((stored ?? []).map((r) => r.dedupe_key ?? ""));
+          // Drop stories already stored on earlier days (same headline or article URL)
+          // and anything already published to the newsroom.
+          const [{ data: stored }, { data: published }] = await Promise.all([
+            supabaseAdmin.from("digest_queue").select("dedupe_key, title, source_url").limit(5000),
+            supabaseAdmin
+              .from("content_items")
+              .select("title, link_url, source_ref, dedupe_key")
+              .limit(5000),
+          ]);
+          const storedKeys = new Set([
+            ...(stored ?? []).map((r) => r.dedupe_key ?? ""),
+            ...(published ?? []).map((r) => r.dedupe_key ?? ""),
+            // desk rows publish as source_ref "editorial-desk:<item_id>"
+            ...(published ?? []).map((r) => (r.source_ref ?? "").replace(/^editorial-desk:/, "")),
+          ]);
           const rows = dedupeCollected(
-            collected.filter((r) => !storedKeys.has(r.dedupe_key)),
+            collected.filter(
+              (r) => !storedKeys.has(r.dedupe_key) && !storedKeys.has(String(r.item_id ?? "")),
+            ),
             {
-              titles: (stored ?? []).map((r) => dedupeKey(r.title ?? "")),
-              urls: (stored ?? []).map((r) => (r.source_url ? urlKey(r.source_url) : "")),
+              titles: [
+                ...(stored ?? []).map((r) => dedupeKey(r.title ?? "")),
+                ...(published ?? []).map((r) => dedupeKey(r.title ?? "")),
+              ],
+              urls: [
+                ...(stored ?? []).map((r) => (r.source_url ? urlKey(r.source_url) : "")),
+                ...(published ?? []).map((r) => (r.link_url ? urlKey(r.link_url) : "")),
+              ],
             },
           );
 
