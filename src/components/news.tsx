@@ -123,6 +123,13 @@ function Meta({ article }: { article: Article }) {
   );
 }
 
+/** Stable hue per story so text-only cards never look like duplicates. */
+function hueOf(seed: string) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) % 360;
+  return h;
+}
+
 function Thumb({
   article,
   priority = false,
@@ -132,9 +139,31 @@ function Thumb({
   priority?: boolean;
   sizes?: string;
 }) {
+  if (!article.image) {
+    // No stock photo: a typographic tile keyed to the story keeps the grid
+    // distinct instead of repeating one generic image everywhere.
+    const hue = hueOf(article.slug || article.title);
+    const label = (article.categoryName || article.category || "News").toUpperCase();
+    return (
+      <div
+        className="flex aspect-video w-full items-end p-3"
+        style={{
+          background: `linear-gradient(135deg, hsl(${hue} 45% 92%), hsl(${(hue + 40) % 360} 40% 84%))`,
+        }}
+        aria-hidden
+      >
+        <span
+          className="text-[11px] font-semibold uppercase tracking-[0.18em]"
+          style={{ color: `hsl(${hue} 45% 28%)` }}
+        >
+          {label}
+        </span>
+      </div>
+    );
+  }
   return (
     <img
-      src={article.image ?? FALLBACK}
+      src={article.image}
       alt={article.title}
       width={1200}
       height={675}
@@ -145,6 +174,7 @@ function Thumb({
     />
   );
 }
+
 
 /** Headline gets the Telugu font only when the headline is actually Telugu. */
 function headlineClass(article: Article, extra: string) {
