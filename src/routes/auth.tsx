@@ -97,6 +97,14 @@ function AuthPage() {
           {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        or
+        <span className="h-px flex-1 bg-border" />
+      </div>
+      <Button type="button" variant="outline" disabled={busy} onClick={onGoogle}>
+        Continue with Google
+      </Button>
       <button
         type="button"
         className="text-sm text-primary underline-offset-4 hover:underline"
