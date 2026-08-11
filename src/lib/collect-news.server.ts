@@ -390,6 +390,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   lastDiag.fetched = 0;
   lastDiag.raw = 0;
   lastDiag.kept = 0;
+  lastDiag.images = 0;
   lastDiag.notes = [];
 
 
