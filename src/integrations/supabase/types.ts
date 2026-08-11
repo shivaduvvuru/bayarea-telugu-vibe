@@ -132,6 +132,69 @@ export type Database = {
           },
         ]
       }
+      digest_queue: {
+        Row: {
+          city_slug: string
+          created_at: string
+          dedupe_key: string | null
+          digest_date: string
+          error: string | null
+          item_id: string
+          kind: string
+          origin: string
+          payload: Json
+          published_at: string | null
+          source: string | null
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          summary: string | null
+          title: string
+          updated_at: string
+          upload_status: Database["public"]["Enums"]["upload_state"]
+          uploaded_at: string | null
+        }
+        Insert: {
+          city_slug: string
+          created_at?: string
+          dedupe_key?: string | null
+          digest_date: string
+          error?: string | null
+          item_id: string
+          kind?: string
+          origin?: string
+          payload?: Json
+          published_at?: string | null
+          source?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          summary?: string | null
+          title: string
+          updated_at?: string
+          upload_status?: Database["public"]["Enums"]["upload_state"]
+          uploaded_at?: string | null
+        }
+        Update: {
+          city_slug?: string
+          created_at?: string
+          dedupe_key?: string | null
+          digest_date?: string
+          error?: string | null
+          item_id?: string
+          kind?: string
+          origin?: string
+          payload?: Json
+          published_at?: string | null
+          source?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          upload_status?: Database["public"]["Enums"]["upload_state"]
+          uploaded_at?: string | null
+        }
+        Relationships: []
+      }
       digest_subscribers: {
         Row: {
           city: string
@@ -410,6 +473,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor"
+      review_status: "pending" | "approved" | "rejected"
+      upload_state: "none" | "queued" | "sent" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -538,6 +603,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor"],
+      review_status: ["pending", "approved", "rejected"],
+      upload_state: ["none", "queued", "sent", "failed"],
     },
   },
 } as const

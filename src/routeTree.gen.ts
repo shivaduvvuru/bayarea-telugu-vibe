@@ -30,6 +30,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as TemplesRouteImport } from './routes/temples'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDeskRouteImport } from './routes/_authenticated/desk'
 import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated/health'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
@@ -40,6 +41,7 @@ import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
+import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -146,6 +148,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeskRoute = AuthenticatedDeskRouteImport.update({
+  id: '/desk',
+  path: '/desk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHealthRoute = AuthenticatedHealthRouteImport.update({
   id: '/health',
   path: '/health',
@@ -196,6 +203,12 @@ const TemplesTempleSlugRoute = TemplesTempleSlugRouteImport.update({
   path: '/temple/$slug',
   getParentRoute: () => TemplesRoute,
 } as any)
+const ApiPublicHooksCollectNewsRoute =
+  ApiPublicHooksCollectNewsRouteImport.update({
+    id: '/api/public/hooks/collect-news',
+    path: '/api/public/hooks/collect-news',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
   id: '/api/public/media/$',
   path: '/api/public/media/$',
@@ -223,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/submit': typeof SubmitRoute
   '/temples': typeof TemplesRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
+  '/desk': typeof AuthenticatedDeskRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -233,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
@@ -255,6 +270,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/desk': typeof AuthenticatedDeskRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -265,6 +281,7 @@ export interface FileRoutesByTo {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
@@ -290,6 +307,7 @@ export interface FileRoutesById {
   '/submit': typeof SubmitRoute
   '/temples': typeof TemplesRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/desk': typeof AuthenticatedDeskRoute
   '/_authenticated/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -300,6 +318,7 @@ export interface FileRoutesById {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
@@ -325,6 +344,7 @@ export interface FileRouteTypes {
     | '/submit'
     | '/temples'
     | '/admin'
+    | '/desk'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
@@ -335,6 +355,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -357,6 +378,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/submit'
     | '/admin'
+    | '/desk'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
@@ -367,6 +389,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   id:
     | '__root__'
@@ -391,6 +414,7 @@ export interface FileRouteTypes {
     | '/submit'
     | '/temples'
     | '/_authenticated/admin'
+    | '/_authenticated/desk'
     | '/_authenticated/health'
     | '/article/$slug'
     | '/category/$category'
@@ -401,6 +425,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
@@ -431,6 +456,7 @@ export interface RootRouteChildren {
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
+  ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
@@ -583,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/desk': {
+      id: '/_authenticated/desk'
+      path: '/desk'
+      fullPath: '/desk'
+      preLoaderRoute: typeof AuthenticatedDeskRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/health': {
       id: '/_authenticated/health'
       path: '/health'
@@ -653,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplesTempleSlugRouteImport
       parentRoute: typeof TemplesRoute
     }
+    '/api/public/hooks/collect-news': {
+      id: '/api/public/hooks/collect-news'
+      path: '/api/public/hooks/collect-news'
+      fullPath: '/api/public/hooks/collect-news'
+      preLoaderRoute: typeof ApiPublicHooksCollectNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$': {
       id: '/api/public/media/$'
       path: '/api/public/media/$'
@@ -665,11 +705,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedDeskRoute: typeof AuthenticatedDeskRoute
   AuthenticatedHealthRoute: typeof AuthenticatedHealthRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedDeskRoute: AuthenticatedDeskRoute,
   AuthenticatedHealthRoute: AuthenticatedHealthRoute,
 }
 
@@ -718,18 +760,9 @@ const rootRouteChildren: RootRouteChildren = {
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
+  ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
