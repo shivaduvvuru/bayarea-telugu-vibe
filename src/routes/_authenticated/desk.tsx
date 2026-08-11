@@ -209,8 +209,8 @@ function DeskPage() {
             </Button>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            {(["pending", "approved", "rejected"] as const).map((s) => (
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {(["all", "pending", "approved", "rejected"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setView(s)}
