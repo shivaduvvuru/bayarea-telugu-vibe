@@ -59,7 +59,7 @@ function toArticle(row: Row): Article {
     html: sanitizeHtml(row.body ?? (text ? `<p>${text}</p>` : "")),
     date: row.published_at ?? row.created_at,
     author: "Bay Area Telugu Times",
-    image: row.image_url,
+    image: usableImage(row.image_url),
     category: slug,
     categoryName: cat?.en ?? "Community",
   };
