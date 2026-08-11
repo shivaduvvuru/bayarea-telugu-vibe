@@ -1,4 +1,5 @@
 import { BAY_AREA, CITIES, type City } from "./desk-cities";
+import { dedupeKey } from "./dedupe";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
@@ -178,7 +179,14 @@ function parseRss(xml: string): RawItem[] {
 }
 
 /** Diagnostics for the last collect run, surfaced by the collect endpoint. */
-export const lastDiag = { fetched: 0, raw: 0, kept: 0, images: 0, notes: [] as string[] };
+export const lastDiag = {
+  fetched: 0,
+  raw: 0,
+  kept: 0,
+  images: 0,
+  duplicates: 0,
+  notes: [] as string[],
+};
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -392,6 +400,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   lastDiag.raw = 0;
   lastDiag.kept = 0;
   lastDiag.images = 0;
+  lastDiag.duplicates = 0;
   lastDiag.notes = [];
 
 
@@ -514,8 +523,43 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
 
 
+  return dedupeCollected(rows);
+}
 
+/** Canonical form of an article URL: no protocol, www, query string or trailing slash. */
+export function urlKey(raw: string): string {
+  try {
+    const u = new URL(raw);
+    return `${u.hostname.replace(/^www\./, "")}${u.pathname.replace(/\/+$/, "")}`.toLowerCase();
+  } catch {
+    return raw.trim().toLowerCase();
+  }
+}
 
-  const seen = new Set<string>();
-  return rows.filter((r) => (seen.has(r.dedupe_key) ? false : (seen.add(r.dedupe_key), true)));
+/**
+ * Collapses the same story appearing under several cities, feeds or slightly
+ * different headlines. `existing` carries title/url keys already stored from
+ * previous days so a re-published headline never lands twice.
+ */
+export function dedupeCollected(
+  rows: CollectedItem[],
+  existing?: { titles?: Iterable<string>; urls?: Iterable<string> },
+): CollectedItem[] {
+  const seenKey = new Set<string>();
+  const seenTitle = new Set(existing?.titles ?? []);
+  const seenUrl = new Set(existing?.urls ?? []);
+  const unique: CollectedItem[] = [];
+  for (const r of rows) {
+    const tk = dedupeKey(r.title);
+    const uk = r.source_url ? urlKey(r.source_url) : "";
+    if (seenKey.has(r.dedupe_key) || (tk && seenTitle.has(tk)) || (uk && seenUrl.has(uk))) {
+      lastDiag.duplicates += 1;
+      continue;
+    }
+    seenKey.add(r.dedupe_key);
+    if (tk) seenTitle.add(tk);
+    if (uk) seenUrl.add(uk);
+    unique.push(r);
+  }
+  return unique;
 }

@@ -24,11 +24,27 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           });
         }
 
-        const { collectAll } = await import("@/lib/collect-news.server");
+        const { collectAll, dedupeCollected, urlKey } = await import("@/lib/collect-news.server");
+        const { dedupeKey } = await import("@/lib/dedupe");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         try {
-          const rows = await collectAll(process.env["LOVABLE_API_KEY"]);
+          const collected = await collectAll(process.env["LOVABLE_API_KEY"]);
+
+          // Drop stories already stored on earlier days (same headline or article URL).
+          const { data: stored } = await supabaseAdmin
+            .from("digest_queue")
+            .select("dedupe_key, title, source_url")
+            .limit(5000);
+          const storedKeys = new Set((stored ?? []).map((r) => r.dedupe_key ?? ""));
+          const rows = dedupeCollected(
+            collected.filter((r) => !storedKeys.has(r.dedupe_key)),
+            {
+              titles: (stored ?? []).map((r) => dedupeKey(r.title ?? "")),
+              urls: (stored ?? []).map((r) => (r.source_url ? urlKey(r.source_url) : "")),
+            },
+          );
+
           if (rows.length) {
             const { error } = await supabaseAdmin
               .from("digest_queue")
