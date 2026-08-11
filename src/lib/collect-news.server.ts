@@ -167,7 +167,11 @@ function parseRss(xml: string): RawItem[] {
     const rawTitle = tag(b, "title");
     if (!rawTitle) continue;
     const source = tag(b, "source") || rawTitle.split(" - ").slice(-1)[0] || "Web";
-    const title = rawTitle.replace(new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "");
+    const title = rawTitle
+      .replace(new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "")
+      // Aggregator newsletter prefixes ("Patch AM:", "SF:") add nothing.
+      .replace(/^(?:patch\s*(?:am|pm)|sf|sj|nyc)\s*:\s*/i, "")
+      .trim();
     const pub = tag(b, "pubDate");
     out.push({
       title,
