@@ -133,6 +133,7 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
+  lastDiag.kept += merged.length;
   return merged;
 
 }
