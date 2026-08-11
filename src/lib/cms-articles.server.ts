@@ -4,7 +4,7 @@
  * This is the only content source: the site has no external publisher feed.
  */
 import type { Article } from "./content";
-import { categoryBySlug } from "./content";
+import { categoryBySlug, CITY_CATEGORIES } from "./content";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 
@@ -36,8 +36,19 @@ type Row = {
 const COLUMNS =
   "id, title, summary, body, image_url, link_url, city, category, published_at, created_at";
 
+/** City rows store the display name ("San Jose"); pages address them by slug. */
+function citySlugOf(city: string | null): string | undefined {
+  if (!city) return undefined;
+  const needle = city.trim().toLowerCase();
+  return CITY_CATEGORIES.find((c) => c.en.toLowerCase() === needle || c.slug === needle)?.slug;
+}
+
+function cityNameOf(slug: string): string | undefined {
+  return CITY_CATEGORIES.find((c) => c.slug === slug)?.en;
+}
+
 function toArticle(row: Row): Article {
-  const slug = row.category ?? row.city ?? "community";
+  const slug = citySlugOf(row.city) ?? row.category ?? "community";
   const cat = categoryBySlug(slug);
   const text = row.summary ?? "";
   return {
@@ -66,7 +77,14 @@ function base() {
 /** Published stories for a category/city slug (or everything when omitted). */
 export async function cmsPosts(category: string | undefined, limit: number): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
-  if (category) q = q.or(`category.eq.${category},city.eq.${category}`);
+  if (category === "city-news") {
+    q = q.not("city", "is", null);
+  } else if (category) {
+    const cityName = cityNameOf(category);
+    const clauses = [`category.eq.${category}`, `city.eq.${category}`];
+    if (cityName) clauses.push(`city.eq.${cityName}`);
+    q = q.or(clauses.join(","));
+  }
   const { data, error } = await q;
   if (error) throw error;
   return ((data ?? []) as unknown as Row[]).map(toArticle);
