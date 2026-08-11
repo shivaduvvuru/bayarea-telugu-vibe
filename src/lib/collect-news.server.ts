@@ -167,7 +167,11 @@ function parseRss(xml: string): RawItem[] {
     const rawTitle = tag(b, "title");
     if (!rawTitle) continue;
     const source = tag(b, "source") || rawTitle.split(" - ").slice(-1)[0] || "Web";
-    const title = rawTitle.replace(new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "");
+    const title = rawTitle
+      .replace(new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "")
+      // Aggregator newsletter prefixes ("Patch AM:", "SF:") add nothing.
+      .replace(/^(?:patch\s*(?:am|pm)|sf|sj|nyc)\s*:\s*/i, "")
+      .trim();
     const pub = tag(b, "pubDate");
     out.push({
       title,
@@ -265,6 +269,12 @@ async function fetchCity(city: City): Promise<RawItem[]> {
 async function addImages(items: RawItem[]): Promise<void> {
   await Promise.all(
     items.map(async (item) => {
+      // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
+      // and let the story render as a typographic card.
+      if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
+        item.image = null;
+        return;
+      }
       if (!item.image && item.link) {
         try {
           const host = new URL(item.link).hostname;
@@ -314,6 +324,19 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Telangana OR Andhra Pradesh news United States diaspora",
     ],
     match: /h 1b|h1b|green card|visa|immigrat|nri|india|indian|telugu|telangana|andhra|consulate|diaspora/,
+  },
+  // Indian cinema: Telugu (Tollywood) and Hindi (Bollywood) releases, reviews,
+  // box office and theatre listings that Bay Area readers follow.
+  {
+    kind: "news",
+    queries: [
+      "Telugu cinema Tollywood movie news release box office",
+      "Bollywood Hindi movie news release review box office",
+      "Telugu OR Hindi movie US premiere theatres Bay Area California",
+      "Tollywood OR Bollywood actor film shooting update",
+    ],
+    match:
+      /tollywood|bollywood|telugu (?:film|movie|cinema)|hindi (?:film|movie|cinema)|box office|teaser|trailer|first look|premiere|movie review|actor|actress|director|ott release/,
   },
 ];
 

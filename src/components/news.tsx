@@ -146,7 +146,7 @@ function Thumb({
     const label = (article.categoryName || article.category || "News").toUpperCase();
     return (
       <div
-        className="flex aspect-video w-full items-end p-3"
+        className="flex aspect-video w-full flex-col justify-between gap-2 p-3"
         style={{
           background: `linear-gradient(135deg, hsl(${hue} 45% 92%), hsl(${(hue + 40) % 360} 40% 84%))`,
         }}
@@ -157,6 +157,12 @@ function Thumb({
           style={{ color: `hsl(${hue} 45% 28%)` }}
         >
           {label}
+        </span>
+        <span
+          className="line-clamp-3 text-sm font-semibold leading-snug"
+          style={{ color: `hsl(${hue} 45% 22%)` }}
+        >
+          {article.title}
         </span>
       </div>
     );
