@@ -128,7 +128,10 @@ export type DirectoryEntry = {
 };
 
 export function formatDate(iso: string) {
-  const d = new Date(iso);
+  // Timezone-less strings ("2026-08-15T17:00") parse as *local* time, which makes
+  // the server and browser disagree. Pin those to UTC so both render the same day.
+  const pinned = /^\d{4}-\d{2}-\d{2}T[\d:.]+$/.test(iso) ? `${iso}Z` : iso;
+  const d = new Date(pinned);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString("en-US", {
     timeZone: "UTC",
