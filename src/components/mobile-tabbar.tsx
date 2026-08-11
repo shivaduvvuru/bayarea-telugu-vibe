@@ -69,7 +69,9 @@ export function MobileTabBar() {
     };
   }, []);
 
-  const sheetItems = signedIn ? [...MORE, ...STAFF] : MORE;
+  const sheetItems = signedIn
+    ? [...MORE, ...STAFF]
+    : [...MORE, { to: "/auth", icon: LogIn, label: "Sign in" } as const];
 
   return (
     <>
