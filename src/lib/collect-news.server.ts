@@ -112,6 +112,18 @@ async function ogImage(link: string): Promise<string | null> {
   }
 }
 
+/** Search feeds wrap the real article URL in a redirect; unwrap when possible. */
+function unwrapLink(link: string): string {
+  try {
+    const u = new URL(link);
+    const inner = u.searchParams.get("url") ?? u.searchParams.get("u");
+    if (inner && /^https?:\/\//.test(inner)) return inner;
+  } catch {
+    /* keep original */
+  }
+  return link;
+}
+
 function parseRss(xml: string): RawItem[] {
   const out: RawItem[] = [];
   const blocks = xml.match(/<item>[\s\S]*?<\/item>/gi) ?? [];
@@ -123,7 +135,7 @@ function parseRss(xml: string): RawItem[] {
     const pub = tag(b, "pubDate");
     out.push({
       title,
-      link: tag(b, "link"),
+      link: unwrapLink(tag(b, "link")),
       source,
       published: pub ? new Date(pub).toISOString() : null,
       image: imageFrom(b),
@@ -160,13 +172,16 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   ];
   const results = await Promise.all(
     queries.map(async (q) => {
-      // Google News first; if the host blocks the server, fall back to Bing News.
+      // Bing News first: its items link straight to the publisher, so we can read
+      // the article artwork. Google News is the fallback but hides the real URL.
       let parsed = await fetchFeed(
-        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+        `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
       );
       if (!parsed?.length) {
         parsed =
-          (await fetchFeed(`https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS`)) ?? parsed;
+          (await fetchFeed(
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+          )) ?? parsed;
       }
       if (!parsed) return [];
       lastDiag.fetched += 1;
@@ -199,7 +214,9 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   // Feeds rarely carry artwork, so read og:image from the article page itself.
   await Promise.all(
     merged.map(async (item) => {
-      if (!item.image && item.link) item.image = await ogImage(item.link);
+      // Aggregator stub links can't be scraped; only try real publisher URLs.
+      if (!item.image && item.link && !/news\.google\.com/.test(item.link))
+        item.image = await ogImage(item.link);
     }),
   );
 
