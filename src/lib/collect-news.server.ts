@@ -244,20 +244,101 @@ async function fetchCity(city: City): Promise<RawItem[]> {
     merged.push(item);
     if (merged.length >= MAX_PER_CITY) break;
   }
-  // Feeds rarely carry artwork, so read og:image from the article page itself.
-  await Promise.all(
-    merged.map(async (item) => {
-      // Aggregator stub links can't be scraped; only try real publisher URLs.
-      if (item.image || !item.link || /news\.google\.com/.test(item.link)) return;
-      item.image = /(?:^|\.)msn\.com$/.test(new URL(item.link).hostname)
-        ? await msnImage(item.link)
-        : await ogImage(item.link);
-    }),
-  );
+  await addImages(merged);
 
   lastDiag.kept += merged.length;
   return merged;
 
+}
+
+/** Feeds rarely carry artwork, so read the article page for og:image. */
+async function addImages(items: RawItem[]): Promise<void> {
+  await Promise.all(
+    items.map(async (item) => {
+      if (item.image || !item.link) return;
+      try {
+        const host = new URL(item.link).hostname;
+        item.image = /(?:^|\.)msn\.com$/.test(host)
+          ? await msnImage(item.link)
+          : await ogImage(item.link);
+      } catch {
+        /* unusable link */
+      }
+    }),
+  );
+}
+
+/**
+ * Region-wide topics Bay Area Telugu readers care about: NRI/immigration and
+ * India-US news, Telugu community events, and temple announcements.
+ */
+const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: RegExp }[] = [
+  {
+    kind: "news",
+    queries: [
+      "H-1B visa OR green card backlog Indian immigrants news",
+      "NRI India US news Telugu community California",
+      "Indian consulate San Francisco OR OCI OR India visa news",
+      "Telangana OR Andhra Pradesh news United States diaspora",
+    ],
+    match: /h 1b|h1b|green card|visa|immigrat|nri|india|indian|telugu|telangana|andhra|consulate|diaspora/,
+  },
+  {
+    kind: "event",
+    queries: [
+      "Telugu OR Indian community event Bay Area California",
+      "TANA OR ATA OR NATS Telugu association event",
+      "Ugadi OR Diwali OR Sankranti OR Kuchipudi event Bay Area",
+    ],
+    match: /telugu|indian|india|ugadi|diwali|sankranti|kuchipudi|carnatic|tana|ata|nats|event|festival|concert/,
+  },
+  {
+    kind: "temple",
+    queries: [
+      "Hindu temple Bay Area California event OR festival",
+      "Shiva Vishnu Temple Livermore OR Fremont Hindu temple news",
+      "Balaji OR Venkateswara temple California utsavam OR abhishekam",
+    ],
+    match: /temple|mandir|hindu|puja|pooja|abhishek|utsav|balaji|venkateswara|swami|devotee/,
+  },
+];
+
+const TOPIC_MAX = 8;
+
+async function fetchTopics(
+  group: (typeof TOPIC_GROUPS)[number],
+): Promise<RawItem[]> {
+  const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
+  const results = await Promise.all(
+    group.queries.map(async (q) => {
+      let parsed = await fetchFeed(
+        `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      );
+      if (!parsed?.length) {
+        parsed =
+          (await fetchFeed(
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+          )) ?? parsed;
+      }
+      if (!parsed) return [];
+      lastDiag.fetched += 1;
+      lastDiag.raw += parsed.length;
+      return parsed;
+    }),
+  );
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of results.flat()) {
+    const hay = normalize(`${item.title} ${item.source}`);
+    const k = normalize(item.title);
+    if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
+    seen.add(k);
+    merged.push(item);
+    if (merged.length >= TOPIC_MAX) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+  return merged;
 }
 
 export let lastAiError: string | null = null;
