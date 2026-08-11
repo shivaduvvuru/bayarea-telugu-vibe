@@ -80,7 +80,8 @@ function cleanUrl(raw: string): string | null {
     .replace(/&#0*58;/g, ":")
     .replace(/&#0*47;/g, "/");
   if (!/^https?:\/\//.test(url)) return null;
-  return url;
+  // Patch only serves its own logo as artwork; skip so cards use their tile.
+  return usableImage(url);
 }
 
 function imageFrom(block: string): string | null {
