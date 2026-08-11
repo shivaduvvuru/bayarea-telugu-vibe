@@ -276,6 +276,25 @@ async function addImages(items: RawItem[]): Promise<void> {
  * India-US news, Telugu community events, and temple announcements.
  */
 const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: RegExp }[] = [
+  // Temple first: a story that reads as both temple and event should file as temple.
+  {
+    kind: "temple",
+    queries: [
+      "Hindu temple Bay Area California event OR festival",
+      "Shiva Vishnu Temple Livermore OR Fremont Hindu temple news",
+      "Balaji OR Venkateswara temple California utsavam OR abhishekam",
+    ],
+    match: /temple|mandir|hindu|puja|pooja|abhishek|utsav|balaji|venkateswara|swami|devotee/,
+  },
+  {
+    kind: "event",
+    queries: [
+      "Telugu OR Indian community event Bay Area California",
+      "TANA OR ATA OR NATS Telugu association event",
+      "Ugadi OR Diwali OR Sankranti OR Kuchipudi event Bay Area",
+    ],
+    match: /telugu|indian|india|ugadi|diwali|sankranti|kuchipudi|carnatic|tana|nats|event|festival|concert/,
+  },
   {
     kind: "news",
     queries: [
@@ -285,24 +304,6 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Telangana OR Andhra Pradesh news United States diaspora",
     ],
     match: /h 1b|h1b|green card|visa|immigrat|nri|india|indian|telugu|telangana|andhra|consulate|diaspora/,
-  },
-  {
-    kind: "event",
-    queries: [
-      "Telugu OR Indian community event Bay Area California",
-      "TANA OR ATA OR NATS Telugu association event",
-      "Ugadi OR Diwali OR Sankranti OR Kuchipudi event Bay Area",
-    ],
-    match: /telugu|indian|india|ugadi|diwali|sankranti|kuchipudi|carnatic|tana|ata|nats|event|festival|concert/,
-  },
-  {
-    kind: "temple",
-    queries: [
-      "Hindu temple Bay Area California event OR festival",
-      "Shiva Vishnu Temple Livermore OR Fremont Hindu temple news",
-      "Balaji OR Venkateswara temple California utsavam OR abhishekam",
-    ],
-    match: /temple|mandir|hindu|puja|pooja|abhishek|utsav|balaji|venkateswara|swami|devotee/,
   },
 ];
 
