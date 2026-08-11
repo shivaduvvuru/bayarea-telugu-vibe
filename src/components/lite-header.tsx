@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, Search, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ChevronDown, LogIn, LogOut, Search, X } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,12 +66,9 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
   ],
 };
 
-function MoreMenu() {
-  const [open, setOpen] = useState(false);
-  const [top, setTop] = useState(0);
+/** Shared session flag for the header (sign-in link + staff menu). */
+function useSignedIn() {
   const [signedIn, setSignedIn] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     let active = true;
     void supabase.auth.getSession().then(({ data }) => {
@@ -85,6 +82,16 @@ function MoreMenu() {
       sub.subscription.unsubscribe();
     };
   }, []);
+  return signedIn;
+}
+
+function MoreMenu() {
+  const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
+  const signedIn = useSignedIn();
+  const wrap = useRef<HTMLDivElement>(null);
+
+
 
 
   useEffect(() => {
@@ -161,8 +168,17 @@ function MoreMenu() {
 }
 
 export function LiteHeader() {
+  const signedIn = useSignedIn();
+  const navigate = useNavigate();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    void navigate({ to: "/auth", replace: true });
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
+
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
         <Link to="/" className="shrink-0" aria-label="Bay Area Telugu Times home">
           <img
@@ -199,6 +215,24 @@ export function LiteHeader() {
           >
             <Search className="h-4 w-4" />
           </Link>
+          {signedIn ? (
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
       <nav
