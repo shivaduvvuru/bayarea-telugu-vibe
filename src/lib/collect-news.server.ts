@@ -255,15 +255,18 @@ async function fetchCity(city: City): Promise<RawItem[]> {
 async function addImages(items: RawItem[]): Promise<void> {
   await Promise.all(
     items.map(async (item) => {
-      if (item.image || !item.link) return;
-      try {
-        const host = new URL(item.link).hostname;
-        item.image = /(?:^|\.)msn\.com$/.test(host)
-          ? await msnImage(item.link)
-          : await ogImage(item.link);
-      } catch {
-        /* unusable link */
+      if (!item.image && item.link) {
+        try {
+          const host = new URL(item.link).hostname;
+          item.image = /(?:^|\.)msn\.com$/.test(host)
+            ? ((await msnImage(item.link)) ?? (await ogImage(item.link)))
+            : await ogImage(item.link);
+        } catch {
+          /* unusable link */
+        }
       }
+      if (item.image) lastDiag.images += 1;
+      else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
     }),
   );
 }
