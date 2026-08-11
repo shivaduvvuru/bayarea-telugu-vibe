@@ -1,4 +1,4 @@
-import { CITIES, type City } from "./desk-cities";
+import { BAY_AREA, CITIES, type City } from "./desk-cities";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
