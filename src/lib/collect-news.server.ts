@@ -71,6 +71,17 @@ type RawItem = {
 };
 
 /** Pulls a usable image URL out of an RSS <item> block. */
+/** Numeric/named entities appear inside feed-embedded URLs. */
+function cleanUrl(raw: string): string | null {
+  const url = raw
+    .trim()
+    .replace(/&(?:amp|#0*38);/gi, "&")
+    .replace(/&#0*58;/g, ":")
+    .replace(/&#0*47;/g, "/");
+  if (!/^https?:\/\//.test(url)) return null;
+  return url;
+}
+
 function imageFrom(block: string): string | null {
   const patterns = [
     /<media:content[^>]+url="([^"]+)"/i,
@@ -83,8 +94,8 @@ function imageFrom(block: string): string | null {
   ];
   for (const re of patterns) {
     const m = block.match(re);
-    const url = m?.[1]?.trim();
-    if (url && /^https?:\/\//.test(url)) return url.replace(/&amp;/g, "&");
+    const url = m?.[1] ? cleanUrl(m[1]) : null;
+    if (url) return url;
   }
   return null;
 }
@@ -95,18 +106,20 @@ async function ogImage(link: string): Promise<string | null> {
     const res = await fetch(link, {
       headers: { "User-Agent": UA, Accept: "text/html,*/*" },
       redirect: "follow",
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const html = (await res.text()).slice(0, 200_000);
     const m =
       html.match(/<meta[^>]+property="og:image(?::secure_url)?"[^>]+content="([^"]+)"/i) ??
       html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i) ??
-      html.match(/<meta[^>]+name="twitter:image"[^>]+content="([^"]+)"/i);
-    const url = m?.[1]?.trim();
-    if (!url) return null;
-    const abs = url.startsWith("//") ? `https:${url}` : new URL(url, res.url || link).toString();
-    return /^https?:\/\//.test(abs) ? abs : null;
+      html.match(/<meta[^>]+name="twitter:image(?::src)?"[^>]+content="([^"]+)"/i) ??
+      html.match(/<link[^>]+rel="image_src"[^>]+href="([^"]+)"/i) ??
+      html.match(/<img[^>]+src="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
+    const raw = m?.[1]?.trim();
+    if (!raw) return null;
+    const abs = raw.startsWith("//") ? `https:${raw}` : new URL(raw, res.url || link).toString();
+    return cleanUrl(abs);
   } catch {
     return null;
   }
