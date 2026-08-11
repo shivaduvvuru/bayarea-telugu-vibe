@@ -178,7 +178,7 @@ function parseRss(xml: string): RawItem[] {
 }
 
 /** Diagnostics for the last collect run, surfaced by the collect endpoint. */
-export const lastDiag = { fetched: 0, raw: 0, kept: 0, notes: [] as string[] };
+export const lastDiag = { fetched: 0, raw: 0, kept: 0, images: 0, notes: [] as string[] };
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
