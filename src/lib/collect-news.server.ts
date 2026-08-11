@@ -83,6 +83,9 @@ function parseRss(xml: string): RawItem[] {
   return out;
 }
 
+/** Diagnostics for the last collect run, surfaced by the collect endpoint. */
+export const lastDiag = { fetched: 0, raw: 0, kept: 0, notes: [] as string[] };
+
 async function fetchCity(city: City): Promise<RawItem[]> {
   const queries = [
     `"${city.en}" California city news`,
@@ -93,9 +96,17 @@ async function fetchCity(city: City): Promise<RawItem[]> {
       try {
         const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`;
         const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; BayAreaDigest/1.0)" } });
-        if (!res.ok) return [];
-        return parseRss(await res.text());
-      } catch {
+        if (!res.ok) {
+          if (lastDiag.notes.length < 5) lastDiag.notes.push(`${city.slug}: HTTP ${res.status}`);
+          return [];
+        }
+        const parsed = parseRss(await res.text());
+        lastDiag.fetched += 1;
+        lastDiag.raw += parsed.length;
+        return parsed;
+      } catch (e) {
+        if (lastDiag.notes.length < 5)
+          lastDiag.notes.push(`${city.slug}: ${e instanceof Error ? e.message : String(e)}`);
         return [];
       }
     }),
