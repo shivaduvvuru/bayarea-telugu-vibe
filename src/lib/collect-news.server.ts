@@ -265,6 +265,12 @@ async function fetchCity(city: City): Promise<RawItem[]> {
 async function addImages(items: RawItem[]): Promise<void> {
   await Promise.all(
     items.map(async (item) => {
+      // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
+      // and let the story render as a typographic card.
+      if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
+        item.image = null;
+        return;
+      }
       if (!item.image && item.link) {
         try {
           const host = new URL(item.link).hostname;
