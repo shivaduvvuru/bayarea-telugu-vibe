@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { ChevronDown, Search, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ChevronDown, LogIn, LogOut, Search, X } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { supabase } from "@/integrations/supabase/client";
