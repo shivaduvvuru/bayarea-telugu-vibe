@@ -13,7 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
-import { CATEGORIES, CITY_REGIONS } from "@/lib/wp";
+import { CATEGORIES, CITY_REGIONS } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { onOpenMobileMenu } from "@/lib/ui-menu";
 

@@ -1,59 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { clearWpCache, REFRESH_CATEGORIES } from "@/lib/wp-cache";
-import { listDirectory, listPosts } from "@/lib/wp.functions";
 import { clearTempleCache, listTempleAnnouncements } from "@/lib/temples.functions";
 import { clearPoliticsCache, listPolitics } from "@/lib/politics.functions";
 import type { IngestRow } from "@/lib/cms.server";
 
 /**
  * Scheduled content pull (run twice daily by an external scheduler):
- * clears the cache, then re-pulls Bay Area city news, temples, community
- * events and the directory from WordPress so the next visitor gets fresh
- * data with no cold-fetch latency.
+ * re-pulls temple announcements and political headlines into the site's own
+ * content store so the next visitor gets fresh data with no cold-fetch
+ * latency. Articles and the directory live entirely in the own store.
  *
  *   POST /api/public/refresh-content
  *   Authorization: Bearer <CONTENT_REFRESH_SECRET>
  */
 async function refresh() {
-  const cleared = clearWpCache();
   const results: Record<string, number> = {};
   const { ingest } = await import("@/lib/cms.server");
   const queued: IngestRow[] = [];
 
-  for (const category of REFRESH_CATEGORIES) {
-    try {
-      const posts = await listPosts({ data: { category, perPage: 40 } });
-      results[category] = posts.length;
-      for (const p of posts) {
-        queued.push({
-          source: "wordpress",
-          source_ref: `wp:${p.id}`,
-          kind: "news",
-          title: p.title,
-          summary: p.excerpt ?? null,
-          link_url: `/article/${p.slug}`,
-          image_url: p.image ?? null,
-          category,
-          published_at: p.date ?? null,
-        });
-      }
-    } catch (err) {
-      console.error(`refresh-content: ${category} failed`, err);
-      results[category] = -1;
-    }
-  }
-
-  try {
-    const latest = await listPosts({ data: { perPage: 40 } });
-    results["latest"] = latest.length;
-    const dir = await listDirectory();
-    results["directory"] = dir.length;
-  } catch (err) {
-    console.error("refresh-content: latest/directory failed", err);
-  }
-
-  // Temple announcements are scraped from each temple's own website,
-  // independent of WordPress.
+  // Temple announcements are scraped from each temple's own website.
   clearTempleCache();
   try {
     const temples = await listTempleAnnouncements();
@@ -117,7 +81,7 @@ async function refresh() {
     results["cms_new_items"] = -1;
   }
 
-  return { ok: true, cleared, refreshedAt: new Date().toISOString(), results };
+  return { ok: true, refreshedAt: new Date().toISOString(), results };
 }
 
 

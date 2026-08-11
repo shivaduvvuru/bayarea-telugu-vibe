@@ -1,7 +1,7 @@
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 /**
- * Directory listings arrive from WordPress with the city buried in the
+ * Directory listings often have the city buried in the
  * address line, so we resolve each listing to one of the 16 Bay Area cities
  * and to its region. Aliases cover neighbourhoods and common spellings.
  */

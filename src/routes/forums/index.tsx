@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { MessageSquare, ShieldCheck } from "lucide-react";
 import { createThread, listThreads } from "@/lib/forum.functions";
 import { FORUM_CATEGORIES, categoryLabel } from "@/lib/forum";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 import { RelativeDate } from "@/components/news";
 import { supabase } from "@/integrations/supabase/client";
 

@@ -166,7 +166,7 @@ function AdminPage() {
   );
 }
 
-/** Business owners claiming their WordPress listing and fixing city/hours. */
+/** Business owners claiming their directory listing and fixing city/hours. */
 function DirectoryClaims() {
   const qc = useQueryClient();
   const list = useServerFn(listClaims);

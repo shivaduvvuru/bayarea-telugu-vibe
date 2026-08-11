@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { listPosts } from "@/lib/wp.functions";
+import { listPosts } from "@/lib/content.functions";
 import { listTempleAnnouncements } from "@/lib/temples.functions";
 import { listPolitics } from "@/lib/politics.functions";
 import { listCommunityItems } from "@/lib/cms.functions";
 import { upcomingEvents } from "@/lib/news-data";
-import { formatDate, isLocal, type Article } from "@/lib/wp";
+import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 
@@ -17,7 +17,7 @@ const HOME_URL = canonical("/");
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
-  queryFn: () => listPosts({ data: { perPage: 40, instant: true, compact: true } }),
+  queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
 

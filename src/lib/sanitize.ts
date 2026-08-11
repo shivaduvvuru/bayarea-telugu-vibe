@@ -1,4 +1,4 @@
-import type { Article, DirectoryEntry } from "./wp";
+import type { Article, DirectoryEntry } from "./content";
 import sanitize from "sanitize-html";
 
 export type Embedded = {
@@ -35,7 +35,7 @@ export function decode(html: string) {
 }
 
 /**
- * Server-side allowlist sanitizer for WordPress HTML, backed by a real HTML
+ * Server-side allowlist sanitizer for editor-supplied HTML, backed by a real HTML
  * parser (sanitize-html) rather than regex filtering. Only a small set of
  * formatting tags/attributes survive, and URLs must be http(s)/mailto/tel.
  */

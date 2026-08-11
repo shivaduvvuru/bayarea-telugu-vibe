@@ -62,7 +62,7 @@ export const CITY_REGIONS: CityRegion[] = [
 
 export const CITY_CATEGORIES: Category[] = CITY_REGIONS.flatMap((r) => r.cities);
 
-/** Mirrors the live WordPress taxonomy on bayarea.telugutimes.net */
+/** Section taxonomy for the site. */
 export const CATEGORIES: Category[] = [
   {
     slug: "city-news",
@@ -101,7 +101,7 @@ export function categoryBySlug(slug: string): Category | undefined {
   return ALL_CATEGORIES.find((c) => c.slug === slug);
 }
 
-/** DTO returned by the WordPress server functions. */
+/** DTO returned by the content server functions. */
 export type Article = {
   id: number;
   slug: string;
@@ -121,7 +121,7 @@ export type DirectoryEntry = {
   title: string;
   excerpt: string;
   image: string | null;
-  /** Directory taxonomy term from WordPress, e.g. "Super Markets". */
+  /** Directory category, e.g. "Super Markets". */
   category: string | null;
   /** Other listings for the same business that were collapsed into this one. */
   duplicates?: string[];

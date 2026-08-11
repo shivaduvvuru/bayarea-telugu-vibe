@@ -54,7 +54,7 @@ export const submitClaim = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-/** Approved corrections, keyed by WordPress listing id. Public + SSR safe. */
+/** Approved corrections, keyed by listing id. Public + SSR safe. */
 export const listClaimOverrides = createServerFn({ method: "GET" }).handler(
   async (): Promise<ClaimOverride[]> => {
     try {

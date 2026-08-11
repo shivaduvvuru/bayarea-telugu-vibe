@@ -1,13 +1,12 @@
 /**
  * Reads the site's own content store (Lovable Cloud) as Article DTOs.
  *
- * This is the primary content source: WordPress is only a syndication feed
- * that tops the list up, and the committed snapshot is the offline floor.
+ * This is the only content source: the site has no external publisher feed.
  */
-import type { Article } from "./wp";
-import { categoryBySlug } from "./wp";
+import type { Article } from "./content";
+import { categoryBySlug } from "./content";
 import { publicClient } from "./cms.server";
-import { sanitizeHtml } from "./wp-transform";
+import { sanitizeHtml } from "./sanitize";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {

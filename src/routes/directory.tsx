@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { listDirectory } from "@/lib/wp.functions";
+import { listDirectory } from "@/lib/content.functions";
 import { listClaimOverrides } from "@/lib/claims.functions";
 import { ClaimForm } from "@/components/claim-form";
-import type { DirectoryEntry } from "@/lib/wp";
+import type { DirectoryEntry } from "@/lib/content";
 import { CommunityAppeal } from "@/components/ads";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 import { regionOf, resolveCity } from "@/lib/directory-city";
 import {
   COMMUNITY_EMAIL,
@@ -59,7 +59,7 @@ function DirectoryPage() {
   const [city, setCity] = useState<string | null>(null);
   const [claiming, setClaiming] = useState<number | null>(null);
 
-  // Verified owner corrections win over whatever we could parse from WordPress.
+  // Verified owner corrections win over the stored listing details.
   const byListing = useMemo(() => {
     const map = new Map<number, (typeof overrides)[number]>();
     for (const o of overrides) map.set(o.listing_id, o);
@@ -77,11 +77,11 @@ function DirectoryPage() {
     }
     return map;
   }, [entries, byListing]);
-  // Category buttons prefer the real WordPress taxonomy term and fall back to
+  // Category buttons prefer the stored category term and fall back to
   // a text match, so grocery listings land under Super Markets either way.
   const inCategory = (e: DirectoryEntry, term: string) => {
     // Tolerate plural/singular differences between our labels ("Restaurants")
-    // and the WordPress terms ("Restaurant").
+    // and the stored terms ("Restaurant").
     const t = term.toLowerCase().split(" /")[0]!.replace(/s$/, "");
     return e.category ? e.category.toLowerCase().includes(t) : text(e).includes(t);
   };

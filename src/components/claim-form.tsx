@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { submitClaim } from "@/lib/claims.functions";
-import { CITY_REGIONS } from "@/lib/wp";
+import { CITY_REGIONS } from "@/lib/content";
 
 const ALL_CITIES = CITY_REGIONS.flatMap((r) => r.cities.map((c) => c.en));
 
 const field = "mt-1 w-full border border-border bg-background px-3 py-2 text-sm text-foreground";
 
 /**
- * Lets a business owner claim a WordPress listing and correct the details we
+ * Lets a business owner claim a directory listing and correct the details we
  * could not read from the imported address line — above all the city.
  */
 export function ClaimForm({

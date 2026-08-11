@@ -1,6 +1,6 @@
 import { TT_LINKS } from "@/lib/network-links";
 import { Link } from "@tanstack/react-router";
-import { CATEGORIES } from "@/lib/wp";
+import { CATEGORIES } from "@/lib/content";
 import { useLang } from "@/lib/language";
 
 const COMMUNITY = [

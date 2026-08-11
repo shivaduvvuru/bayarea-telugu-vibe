@@ -2,7 +2,7 @@
  * Temple announcement sources.
  *
  * These are pulled directly from each temple's own website — no dependency on
- * the WordPress backend. Adding a temple is a one-line change here.
+ * any external CMS. Adding a temple is a one-line change here.
  */
 export type TempleSource = {
   /** Stable id used as a cache key and React key. */

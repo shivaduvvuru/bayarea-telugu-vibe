@@ -4,13 +4,12 @@
  */
 import { TEMPLE_SOURCES } from "@/lib/temple-sources";
 import { POLITICS_SOURCES } from "@/lib/politics-sources";
-import { snapshot as wpSnapshot } from "@/lib/wp-snapshot";
 import templeSnapshot from "@/content/temple-snapshot.json";
 
 export type Probe = {
   id: string;
   name: string;
-  group: "Temples" | "Politics" | "Syndication";
+  group: "Temples" | "Politics";
   url: string;
   ok: boolean;
   status: number | null;
@@ -80,12 +79,6 @@ async function probe(
 /** Runs every probe in parallel and reads snapshot + store freshness. */
 export async function buildHealthReport(): Promise<HealthReport> {
   const tasks: Promise<Probe>[] = [
-    probe(
-      "wp",
-      "WordPress syndication",
-      "Syndication",
-      "https://bayarea.telugutimes.net/wp-json/wp/v2/posts?per_page=1",
-    ),
     ...TEMPLE_SOURCES.map((t) =>
       probe(t.id, `${t.name} — ${t.city}`, "Temples", t.feeds[0]?.url ?? t.site),
     ),
@@ -103,12 +96,6 @@ export async function buildHealthReport(): Promise<HealthReport> {
       label: "Temple announcements snapshot",
       generatedAt: temples.generatedAt ?? null,
       items: temples.temples.reduce((n, t) => n + t.announcements.length, 0),
-    },
-    {
-      id: "wp",
-      label: "Article + directory snapshot",
-      generatedAt: wpSnapshot.generatedAt ?? null,
-      items: wpSnapshot.posts.length + wpSnapshot.directory.length,
     },
   ];
 

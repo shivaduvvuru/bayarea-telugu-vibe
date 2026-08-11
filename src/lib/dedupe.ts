@@ -1,6 +1,6 @@
 /**
  * Shared duplicate detection for automatically pulled and submitted content.
- * WordPress carries several near-identical listings (SAFEWAY x5, Trader Joe's
+ * Imports can carry several near-identical listings (SAFEWAY x5, Trader Joe's
  * x3), and news feeds re-publish the same headline, so every ingest path
  * normalises the title the same way and reports what it collapsed.
  */
