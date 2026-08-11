@@ -100,18 +100,19 @@ function DeskPage() {
   const [kind, setKind] = useState<ItemKind | "all">("all");
   const [region, setRegion] = useState<string>("all");
   const [city, setCity] = useState<string>("all");
-  const [view, setView] = useState<ItemStatus>("pending");
+  const [view, setView] = useState<ItemStatus | "all">("all");
 
   const items: DeskItem[] = base.map((i) => ({ ...i, status: queue.statusOf(i.id) }));
 
   const counts = {
+    all: items.length,
     pending: items.filter((i) => i.status === "pending").length,
     approved: items.filter((i) => i.status === "approved").length,
     rejected: items.filter((i) => i.status === "rejected").length,
   };
 
   const visible = items.filter((i) => {
-    if (i.status !== view) return false;
+    if (view !== "all" && i.status !== view) return false;
     if (kind !== "all" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
