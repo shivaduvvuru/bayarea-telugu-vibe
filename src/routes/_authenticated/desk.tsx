@@ -64,6 +64,7 @@ function DeskPage() {
       .from("digest_queue")
       .select("item_id,digest_date,kind,city_slug,title,summary,source,source_url,payload")
       .gte("digest_date", since)
+      .neq("upload_status", "sent")
       .order("digest_date", { ascending: false })
       .limit(600);
     if (error) throw error;
