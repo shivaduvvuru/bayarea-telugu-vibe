@@ -145,6 +145,7 @@ function AuthPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={busy}
           />
         </div>
         <div className="space-y-2">
@@ -156,24 +157,68 @@ function AuthPage() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={busy}
           />
         </div>
-        <Button type="submit" disabled={busy || !ready}>
-          {busy || !ready ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+        <Button type="submit" disabled={busy || !ready} className="gap-2">
+          {!ready ? (
+            "Loading page…"
+          ) : busy ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {mode === "signin" ? "Signing in…" : "Creating account…"}
+            </>
+          ) : mode === "signin" ? (
+            "Sign in"
+          ) : (
+            "Create account"
+          )}
         </Button>
       </form>
+
+      {status.type !== "idle" ? (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-md border px-3 py-2 text-sm",
+            status.type === "loading" && "border-border bg-muted/50 text-foreground",
+            status.type === "success" && "border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-950/50 dark:text-green-100",
+            status.type === "error" && "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-100",
+          )}
+          role="status"
+          aria-live="polite"
+        >
+          {status.type === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
+          {status.type === "success" && <span aria-hidden="true">✓</span>}
+          {status.type === "error" && <span aria-hidden="true">✕</span>}
+          <span>{status.message}</span>
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
         or
         <span className="h-px flex-1 bg-border" />
       </div>
-      <Button type="button" variant="outline" disabled={busy || !ready} onClick={onGoogle}>
-        Continue with Google
+      <Button type="button" variant="outline" disabled={busy || !ready} onClick={onGoogle} className="gap-2">
+        {!ready ? (
+          "Loading page…"
+        ) : busy ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            "Opening Google…"
+          </>
+        ) : (
+          "Continue with Google"
+        )}
       </Button>
       <button
         type="button"
         className="text-sm text-primary underline-offset-4 hover:underline"
-        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+        onClick={() => {
+          setMode(mode === "signin" ? "signup" : "signin");
+          setStatus({ type: "idle" });
+        }}
+        disabled={busy}
       >
         {mode === "signin"
           ? "Need an editor account? Create one"
