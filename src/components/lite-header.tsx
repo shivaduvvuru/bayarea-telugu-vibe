@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, LogIn, LogOut, Search, X } from "lucide-react";
+import { ChevronDown, ClipboardCheck, LogIn, LogOut, Search, X } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { supabase } from "@/integrations/supabase/client";
@@ -191,11 +191,20 @@ export function LiteHeader() {
           />
         </Link>
         <div className="ml-auto flex items-center gap-1.5">
+          {signedIn ? (
+            <Link
+              to="/desk"
+              className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+            >
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              Desk
+            </Link>
+          ) : null}
           <a
             href={TT_LINKS.epaper}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
+            className="hidden rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline-block"
           >
             E-Paper
           </a>
@@ -203,10 +212,11 @@ export function LiteHeader() {
             href={TT_LINKS.site}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
+            className="hidden rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline-block"
           >
             TeluguTimes.net
           </a>
+
           <Link
             to="/search"
             search={{ q: "" }}
