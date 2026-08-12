@@ -70,8 +70,8 @@ function AuthPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
+    setStatus({ type: "loading", message: mode === "signup" ? "Creating account…" : "Signing in…" });
     try {
-
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -80,16 +80,21 @@ function AuthPage() {
         });
         if (error) throw error;
         if (!data.session) {
+          setStatus({ type: "success", message: "Check your email to confirm your account." });
           toast.success("Check your email to confirm your account.");
           return;
         }
+        setStatus({ type: "success", message: "Account created. Opening desk…" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        setStatus({ type: "success", message: "Signed in. Opening desk…" });
       }
       navigate({ to: "/desk" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Sign in failed");
+      const message = err instanceof Error ? err.message : "Sign in failed";
+      setStatus({ type: "error", message });
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -97,18 +102,26 @@ function AuthPage() {
 
   async function onGoogle() {
     setBusy(true);
+    setStatus({ type: "loading", message: "Opening Google sign-in…" });
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
+        setStatus({ type: "error", message: result.error.message ?? "Google sign in failed" });
         toast.error(result.error.message ?? "Google sign in failed");
         return;
       }
-      if (result.redirected) return;
+      if (result.redirected) {
+        setStatus({ type: "loading", message: "Waiting for Google…" });
+        return;
+      }
+      setStatus({ type: "success", message: "Signed in. Opening desk…" });
       navigate({ to: "/desk" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign in failed");
+      const message = err instanceof Error ? err.message : "Google sign in failed";
+      setStatus({ type: "error", message });
+      toast.error(message);
     } finally {
       setBusy(false);
     }
