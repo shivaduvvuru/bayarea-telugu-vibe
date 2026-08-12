@@ -35,11 +35,31 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  // Until React has hydrated, a click submits the form natively and reloads the
+  // page — which looked like sign-in "hanging". Gate the button on this flag.
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+    let active = true;
+    // Already signed in (or a session lands mid-page, e.g. after OAuth): go in.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/admin", replace: true });
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) navigate({ to: "/admin", replace: true });
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
+
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
