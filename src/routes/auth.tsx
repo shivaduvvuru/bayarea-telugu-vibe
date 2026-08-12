@@ -133,8 +133,8 @@ function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={busy}>
-          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+        <Button type="submit" disabled={busy || !ready}>
+          {busy || !ready ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
       <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
@@ -142,7 +142,7 @@ function AuthPage() {
         or
         <span className="h-px flex-1 bg-border" />
       </div>
-      <Button type="button" variant="outline" disabled={busy} onClick={onGoogle}>
+      <Button type="button" variant="outline" disabled={busy || !ready} onClick={onGoogle}>
         Continue with Google
       </Button>
       <button
