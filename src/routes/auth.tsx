@@ -37,6 +37,10 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{
+    type: "idle" | "loading" | "success" | "error";
+    message?: string;
+  }>({ type: "idle" });
   // Until React has hydrated, a click submits the form natively and reloads the
   // page — which looked like sign-in "hanging". Gate the button on this flag.
   const [ready, setReady] = useState(false);
@@ -46,10 +50,16 @@ function AuthPage() {
     let active = true;
     // Already signed in (or a session lands mid-page, e.g. after OAuth): go in.
     void supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ to: "/desk", replace: true });
+      if (active && data.session) {
+        setStatus({ type: "success", message: "Signed in. Opening desk…" });
+        navigate({ to: "/desk", replace: true });
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/desk", replace: true });
+      if (session) {
+        setStatus({ type: "success", message: "Signed in. Opening desk…" });
+        navigate({ to: "/desk", replace: true });
+      }
     });
     return () => {
       active = false;
