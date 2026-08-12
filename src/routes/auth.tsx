@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,11 +35,31 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  // Until React has hydrated, a click submits the form natively and reloads the
+  // page — which looked like sign-in "hanging". Gate the button on this flag.
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+    let active = true;
+    // Already signed in (or a session lands mid-page, e.g. after OAuth): go in.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active && data.session) navigate({ to: "/admin", replace: true });
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) navigate({ to: "/admin", replace: true });
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
+
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -113,8 +133,8 @@ function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={busy}>
-          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+        <Button type="submit" disabled={busy || !ready}>
+          {busy || !ready ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
       </form>
       <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
@@ -122,7 +142,7 @@ function AuthPage() {
         or
         <span className="h-px flex-1 bg-border" />
       </div>
-      <Button type="button" variant="outline" disabled={busy} onClick={onGoogle}>
+      <Button type="button" variant="outline" disabled={busy || !ready} onClick={onGoogle}>
         Continue with Google
       </Button>
       <button
