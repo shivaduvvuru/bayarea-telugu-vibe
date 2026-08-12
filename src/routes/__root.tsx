@@ -164,6 +164,30 @@ function RootComponent() {
     select: (s) => s.location.pathname === "/" || s.location.pathname.startsWith("/lite"),
   });
 
+  // A stale cached bundle makes lazy route chunks fail to import, which looks
+  // like navigation (e.g. sign-in → desk) "hanging". Recover once per session.
+  useEffect(() => {
+    const KEY = "chunk-reload-at";
+    const onFail = (message: string) => {
+      if (!/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(message))
+        return;
+      const last = Number(sessionStorage.getItem(KEY) ?? 0);
+      if (Date.now() - last < 30_000) return;
+      sessionStorage.setItem(KEY, String(Date.now()));
+      window.location.reload();
+    };
+    const onRejection = (e: PromiseRejectionEvent) =>
+      onFail(String((e.reason as { message?: string } | undefined)?.message ?? e.reason ?? ""));
+    const onError = (e: ErrorEvent) => onFail(e.message ?? "");
+    window.addEventListener("unhandledrejection", onRejection);
+    window.addEventListener("error", onError);
+    return () => {
+      window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("error", onError);
+    };
+  }, []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>

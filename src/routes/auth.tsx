@@ -44,10 +44,10 @@ function AuthPage() {
     let active = true;
     // Already signed in (or a session lands mid-page, e.g. after OAuth): go in.
     void supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ to: "/admin", replace: true });
+      if (active && data.session) navigate({ to: "/desk", replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/admin", replace: true });
+      if (session) navigate({ to: "/desk", replace: true });
     });
     return () => {
       active = false;
@@ -75,7 +75,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: "/admin" });
+      navigate({ to: "/desk" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign in failed");
     } finally {
@@ -94,7 +94,7 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
-      navigate({ to: "/admin" });
+      navigate({ to: "/desk" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign in failed");
     } finally {
