@@ -240,6 +240,15 @@ export function LiteHeader() {
         className="overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
+          {signedIn ? (
+            <Link
+              to="/desk"
+              activeProps={{ className: "underline" }}
+              className="whitespace-nowrap rounded-sm bg-primary px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-primary-foreground"
+            >
+              Desk
+            </Link>
+          ) : null}
           {RAIL.map((item) => (
             <Link
               key={item.label}
