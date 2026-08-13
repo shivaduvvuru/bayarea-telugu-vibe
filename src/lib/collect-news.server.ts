@@ -1,6 +1,7 @@
 import { BAY_AREA, CITIES, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
+import { resolveGoogleNewsUrls } from "./google-news.server";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
@@ -204,7 +205,11 @@ async function fetchFeed(url: string): Promise<RawItem[] | null> {
       if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
       return null;
     }
-    return parseRss(await res.text());
+    const items = parseRss(await res.text());
+    // Google News wraps the publisher URL; unwrapped links show a Google
+    // interstitial instead of the story, so resolve them before storing.
+    const map = await resolveGoogleNewsUrls(items.map((i) => i.link));
+    return map.size ? items.map((i) => ({ ...i, link: map.get(i.link) ?? i.link })) : items;
   } catch (e) {
     if (lastDiag.notes.length < 6)
       lastDiag.notes.push(`${new URL(url).host}: ${e instanceof Error ? e.message : String(e)}`);
