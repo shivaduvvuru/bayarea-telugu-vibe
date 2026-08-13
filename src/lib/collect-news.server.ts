@@ -463,7 +463,20 @@ const PUBLISHER_FEEDS: {
   },
   // Star / photo desks — these feed the Gallery picture grid.
   {
+    name: "123Telugu Gallery",
+    url: "https://www.123telugu.com/gallery/feed",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Heroine galleries",
+    url: "https://news.google.com/rss/search?q=(%22actress+gallery%22+OR+%22heroine+photos%22+OR+%22latest+stills%22+OR+%22photo+gallery%22)+(Telugu+OR+Tollywood+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
     name: "Tollywood stars",
+
     url: "https://news.google.com/rss/search?q=(Tollywood+OR+%22Telugu+actress%22+OR+%22Telugu+heroine%22)+(photos+OR+stills+OR+glamour+OR+%22new+look%22+OR+%22photo+shoot%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 6,
