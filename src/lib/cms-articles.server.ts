@@ -99,6 +99,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     // Gallery is the picture desk: every published story that carries usable
     // publisher artwork, newest first, credited to its source.
     q = q.not("image_url", "is", null);
+  } else if (category === "cinema") {
+    // Older film stories were stored as plain "news"; pull both and let the
+    // classifier decide.
+    q = base()
+      .order("published_at", { ascending: false })
+      .limit(limit * 4)
+      .in("category", ["cinema", "news"]);
   } else if (category === "india-news") {
     q = q.in("category", [...INDIA_SLUGS]);
   } else if (category) {
@@ -109,7 +116,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   }
   const { data, error } = await q;
   if (error) throw error;
-  return ((data ?? []) as unknown as Row[]).map(toArticle);
+  const articles = ((data ?? []) as unknown as Row[]).map(toArticle);
+  if (category === "cinema") {
+    return articles.filter((a) => a.category === "cinema").slice(0, limit);
+  }
+  if (category === "gallery") return articles.filter((a) => a.image).slice(0, limit);
+  return articles;
+
 }
 
 export async function cmsPost(slug: string): Promise<Article | null> {
