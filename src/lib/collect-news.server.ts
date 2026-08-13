@@ -471,6 +471,26 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 5,
   },
+  // Telugu-language cinema and star coverage (Telugu script headlines).
+  {
+    name: "తెలుగు సినిమా",
+    url: "https://news.google.com/rss/search?q=%E0%B0%B8%E0%B0%BF%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BE+OR+%E0%B0%9F%E0%B0%BE%E0%B0%B2%E0%B1%80%E0%B0%B5%E0%B1%81%E0%B0%A1%E0%B1%8D+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "తెలుగు హీరోయిన్లు",
+    url: "https://news.google.com/rss/search?q=%E0%B0%B9%E0%B1%80%E0%B0%B0%E0%B1%8B%E0%B0%AF%E0%B0%BF%E0%B0%A8%E0%B1%8D+OR+%E0%B0%A8%E0%B0%9F%E0%B0%BF+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "ఓటీటీ",
+    url: "https://news.google.com/rss/search?q=%E0%B0%92%E0%B0%9F%E0%B1%80%E0%B0%9F%E0%B1%80+%E0%B0%B8%E0%B0%BF%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BE+OR+%E0%B0%B5%E0%B1%86%E0%B0%AC%E0%B1%8D+%E0%B0%B8%E0%B0%BF%E0%B0%B0%E0%B0%BF%E0%B0%B8%E0%B1%8D+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 5,
+  },
+
 
   {
     name: "Consulate General of India, San Francisco",
