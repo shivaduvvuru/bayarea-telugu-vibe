@@ -9,7 +9,8 @@
 export const CINEMA_SLUG = "cinema";
 
 const CINEMA_TEXT =
-  /tollywood|bollywood|kollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b/i;
+  /tollywood|bollywood|kollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్/i;
+
 
 /** Well-known film-trade publishers whose whole feed is cinema. */
 const CINEMA_HOSTS =
