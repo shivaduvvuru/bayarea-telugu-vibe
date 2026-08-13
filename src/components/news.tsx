@@ -111,6 +111,7 @@ export function LangBadge({ article }: { article: Article }) {
 function Meta({ article }: { article: Article }) {
   return (
     <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+      <SourceChip article={article} />
       <RelativeDate iso={article.date} />
       <span aria-hidden>·</span>
       <span className="inline-flex items-center gap-1">
