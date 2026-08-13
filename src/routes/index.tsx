@@ -224,16 +224,21 @@ function LinkRow({
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
     <figure className="m-0">
-      <button type="button" onClick={onOpen} className="block w-full text-left">
-        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
-        <figcaption className="mt-1.5">
+      <div className="relative">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
+          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
+        </button>
+        <PhotoActions article={article} tone="light" className="absolute right-1.5 top-1.5" />
+      </div>
+      <figcaption className="mt-1.5">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
           <p className="line-clamp-2 text-xs font-semibold leading-snug text-ink">{article.title}</p>
-          <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-            <SourceChip article={article} />
-            <RelativeDate iso={article.date} />
-          </span>
-        </figcaption>
-      </button>
+        </button>
+        <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+          <SourceChip article={article} />
+          <RelativeDate iso={article.date} />
+        </span>
+      </figcaption>
     </figure>
   );
 }
