@@ -16,7 +16,8 @@ import {
   Menu,
   X,
   Utensils,
-  Clapperboard,
+  Clapperboard,,
+  Heart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +43,7 @@ const MORE = [
     icon: BookOpen,
     label: "Readers",
   },
+  { to: "/favorites", icon: Heart, label: "Saved photos" },
   { to: "/contact", icon: Megaphone, label: "Advertise" },
 ] as const;
 
