@@ -11,14 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
 const RAIL = [
-  { to: "/", label: "Home" },
+  { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
-  { to: "/category/$category", params: { category: "india-news" }, label: "India" },
-  { to: "/politics", label: "Political" },
-  { to: "/directory", label: "Directory" },
-  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/forums", label: "Forums" },
 ] as const;
 

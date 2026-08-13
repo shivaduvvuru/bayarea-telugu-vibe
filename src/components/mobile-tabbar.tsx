@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Home,
   Newspaper,
   CalendarDays,
   Store,
@@ -16,24 +15,27 @@ import {
   Settings,
   Menu,
   X,
+  Utensils,
+  Clapperboard,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 
 /** Four core destinations — everything else lives behind More. */
 const ICON_TABS = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/category/$category", params: { category: "city-news" }, icon: Newspaper, label: "News" },
+  { to: "/category/$category", params: { category: "city-news" }, icon: Newspaper, label: "City News" },
   { to: "/events", icon: CalendarDays, label: "Events" },
-  { to: "/forums", icon: MessagesSquare, label: "Forums" },
+  { to: "/temples", icon: Landmark, label: "Temples" },
+  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
 ] as const;
 
 /** Secondary sections, shown in the More sheet instead of a dense strip. */
 const MORE = [
-  { to: "/directory", icon: Store, label: "Directory" },
-  { to: "/temples", icon: Landmark, label: "Temples" },
-  { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
+  { to: "/category/$category", params: { category: "cinema" }, icon: Clapperboard, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, icon: Image, label: "Gallery" },
+  { to: "/forums", icon: MessagesSquare, label: "Forums" },
+  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
   {
     to: "/category/$category",
     params: { category: "readers-column" },
