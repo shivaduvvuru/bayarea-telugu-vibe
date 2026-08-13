@@ -136,10 +136,13 @@ export function Thumb({
   article,
   priority = false,
   sizes,
+  /** Portrait tiles (photo galleries) keep faces in frame. */
+  ratio = "aspect-video",
 }: {
   article: Article;
   priority?: boolean;
   sizes?: string;
+  ratio?: string;
 }) {
   if (!article.image) {
     // No stock photo: a typographic tile keyed to the story keeps the grid
@@ -148,7 +151,7 @@ export function Thumb({
     const label = (article.categoryName || article.category || "News").toUpperCase();
     return (
       <div
-        className="flex aspect-video w-full flex-col justify-between gap-2 p-3"
+        className={`flex ${ratio} w-full flex-col justify-between gap-2 p-3`}
         style={{
           background: `linear-gradient(135deg, hsl(${hue} 45% 92%), hsl(${(hue + 40) % 360} 40% 84%))`,
         }}
@@ -180,7 +183,7 @@ export function Thumb({
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         referrerPolicy="no-referrer-when-downgrade"
-        className="aspect-video w-full bg-surface-tint object-cover"
+        className={`${ratio} w-full bg-surface-tint object-cover object-top`}
       />
       {article.sourceName && (
         <figcaption className="mt-1 text-[11px] text-muted-foreground">

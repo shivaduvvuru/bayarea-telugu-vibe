@@ -12,7 +12,7 @@ function GalleryTile({ article }: { article: Article }) {
   return (
     <figure className="m-0">
       <RouterLink to="/article/$slug" params={{ slug: article.slug }} className="block">
-        <Thumb article={article} sizes="(max-width: 768px) 50vw, 33vw" />
+        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
         <figcaption className="mt-2">
           <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
             {article.title}
