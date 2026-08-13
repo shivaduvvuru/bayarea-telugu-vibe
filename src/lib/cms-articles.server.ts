@@ -120,12 +120,18 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   }
   const { data, error } = await q;
   if (error) throw error;
-  const articles = ((data ?? []) as unknown as Row[]).map(toArticle);
+  const rows = (data ?? []) as unknown as Row[];
+  if (category === "gallery") {
+    return rows
+      .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
+      .map(toArticle)
+      .slice(0, limit);
+  }
+  const articles = rows.map(toArticle);
   if (category === "cinema") {
     return articles.filter((a) => a.category === "cinema").slice(0, limit);
   }
-  if (category === "gallery")
-    return articles.filter((a) => a.image && a.category === CINEMA_SLUG).slice(0, limit);
+
   return articles;
 
 
