@@ -9,6 +9,7 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
+import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
@@ -19,6 +20,41 @@ const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
   "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
+
+function contentKeys(item: {
+  title?: string | null;
+  sourceUrl?: string | null;
+  url?: string | null;
+  link_url?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+}) {
+  const title = dedupeKey(item.title ?? "");
+  const url = item.sourceUrl ?? item.link_url ?? item.url;
+  const image = usableImage(item.image ?? item.image_url);
+  return [
+    title ? `t:${title}` : "",
+    url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
+    image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
+  ].filter(Boolean);
+}
+
+/** Reserves every headline, source URL and image once across the whole homepage. */
+function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
+  items: T[],
+  seen: Set<string>,
+  limit = items.length,
+) {
+  const result: T[] = [];
+  for (const item of items) {
+    const keys = contentKeys(item);
+    if (keys.some((key) => seen.has(key))) continue;
+    keys.forEach((key) => seen.add(key));
+    result.push(item);
+    if (result.length >= limit) break;
+  }
+  return result;
+}
 
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
@@ -278,7 +314,8 @@ function Home() {
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
-  const local = cityNews.length ? cityNews : articles.filter(isLocal);
+  const homepageSeen = new Set<string>();
+  const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
   const lead = local[0] ?? articles[0];
 
   if (!lead) {
@@ -289,9 +326,14 @@ function Home() {
     );
   }
 
+  // The lead has already been reserved by the local pass. Every later section
+  // uses the same set, preventing a renamed/cross-posted story or reused photo
+  // from appearing again under More news, Community, Events or Gallery.
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
-  const shown = new Set([lead.slug, ...localRest.map((a) => a.slug)]);
-  const more = articles.filter((a) => !shown.has(a.slug)).slice(0, 12);
+  takeUnique([lead, ...localRest], homepageSeen);
+  const uniqueGallery = takeUnique(galleryItems, homepageSeen, 6);
+  const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
+  const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
   const events = upcomingEvents().slice(0, 5);
   // Feeds sometimes repeat the same link (or point at the site root), which both
@@ -313,6 +355,10 @@ function Home() {
     politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
     (s) => s.title,
   ).slice(0, 6);
+  const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
+  const uniquePolitics = takeUnique(politics, homepageSeen, 6);
+  const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
+  const more = takeUnique(articles, homepageSeen, 12);
 
   return (
     <div className="mx-auto max-w-6xl px-3 py-3">
@@ -342,11 +388,11 @@ function Home() {
 
         <section>
           <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
-          {galleryItems.length === 0 ? (
+          {uniqueGallery.length === 0 ? (
             <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              {galleryItems.map((a, i) => (
+              {uniqueGallery.map((a, i) => (
                 <GalleryTile key={a.slug} article={a} onOpen={() => setViewerIndex(i)} />
               ))}
             </div>
@@ -354,9 +400,9 @@ function Home() {
         </section>
       </div>
 
-      {galleryItems.length > 0 && viewerIndex !== null && (
+      {uniqueGallery.length > 0 && viewerIndex !== null && (
         <GalleryLightbox
-          items={galleryItems}
+          items={uniqueGallery}
           index={viewerIndex}
           onIndexChange={setViewerIndex}
           onClose={() => setViewerIndex(null)}
@@ -364,10 +410,10 @@ function Home() {
       )}
 
       <div className="mx-auto max-w-3xl">
-        {communityItems.length > 0 && (
+        {uniqueCommunity.length > 0 && (
           <section className="mt-5">
             <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
-            {communityItems.map((item) => (
+            {uniqueCommunity.map((item) => (
               <LinkRow
                 key={item.id}
                 href={item.link_url ?? "/connect"}
@@ -380,11 +426,11 @@ function Home() {
           </section>
         )}
 
-        {(cmsEvents.length > 0 || events.length > 0) && (
+        {(uniqueCmsEvents.length > 0 || events.length > 0) && (
           <section className="mt-5">
             <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-            {cmsEvents.length > 0
-              ? cmsEvents.map((e) => (
+            {uniqueCmsEvents.length > 0
+              ? uniqueCmsEvents.map((e) => (
                   <LinkRow
                     key={e.id}
                     href={e.link_url && !e.link_url.startsWith("/") ? e.link_url : "/events"}
@@ -396,7 +442,7 @@ function Home() {
                       .join(" · ")}
                   />
                 ))
-              : events.map((e) => (
+              : uniqueFallbackEvents.map((e) => (
                   <LinkRow
                     key={e.id}
                     href="/events"
@@ -408,19 +454,19 @@ function Home() {
           </section>
         )}
 
-        {templeNews.length > 0 && (
+        {uniqueTemples.length > 0 && (
           <section className="mt-5">
             <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
-            {templeNews.map((a, i) => (
+            {uniqueTemples.map((a, i) => (
               <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
             ))}
           </section>
         )}
 
-        {politics.length > 0 && (
+        {uniquePolitics.length > 0 && (
           <section className="mt-5">
             <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
-            {politics.map((s, i) => (
+            {uniquePolitics.map((s, i) => (
               <LinkRow
                 key={`${s.url}-${i}`}
                 href={s.url}
