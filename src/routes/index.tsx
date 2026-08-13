@@ -112,8 +112,11 @@ function Lead({ a }: { a: Article }) {
       ) : null}
       <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
-      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-        {a.categoryName} · {formatDate(a.date)}
+      <p className="mt-1.5 flex flex-wrap items-center gap-2">
+        <SourceChip article={a} />
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          {a.categoryName} · {formatDate(a.date)}
+        </span>
       </p>
     </Link>
   );
@@ -130,8 +133,11 @@ function Row({ a }: { a: Article }) {
         <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">
           {a.title}
         </h3>
-        <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-          {a.categoryName} · {formatDate(a.date)}
+        <p className="mt-1 flex flex-wrap items-center gap-2">
+          <SourceChip article={a} />
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            {a.categoryName} · {formatDate(a.date)}
+          </span>
         </p>
       </div>
       {a.image ? (
