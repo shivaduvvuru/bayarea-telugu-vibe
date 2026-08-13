@@ -154,6 +154,20 @@ function ArticlePage() {
           className="wp-content mt-6 space-y-4 text-[17px] leading-relaxed text-foreground"
           dangerouslySetInnerHTML={{ __html: article.html }}
         />
+        {article.sourceUrl && (
+          <p className="mt-6 border-t border-border pt-3 text-sm text-muted-foreground">
+            Source:{" "}
+            <a
+              href={article.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="font-semibold text-primary"
+            >
+              {article.sourceName ?? "Read the original report"}
+            </a>
+            . Summary and artwork credited to the original publisher.
+          </p>
+        )}
         <Link
           to="/category/$category"
           params={{ category: article.category }}
