@@ -508,14 +508,9 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
   // Glamour / social-media picture desks feeding the Gallery grid.
-  {
-    name: "IndiaGlitz Telugu",
-    url: "https://www.indiaglitz.com/rss/telugu-news.xml",
-    kind: "news",
-    limit: 6,
-  },
-  { name: "CineJosh", url: "https://www.cinejosh.com/rss/telugu-news.xml", kind: "news", limit: 5 },
-  { name: "FilmiBeat Telugu", url: "https://telugu.filmibeat.com/rss/news-fb.xml", kind: "news", limit: 5 },
+  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 6 },
+  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 5 },
+  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 5 },
   {
     name: "Glamour shoots",
     url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
