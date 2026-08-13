@@ -41,6 +41,7 @@ import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
+import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
@@ -203,6 +204,12 @@ const TemplesTempleSlugRoute = TemplesTempleSlugRouteImport.update({
   path: '/temple/$slug',
   getParentRoute: () => TemplesRoute,
 } as any)
+const ApiPublicHooksBackfillImagesRoute =
+  ApiPublicHooksBackfillImagesRouteImport.update({
+    id: '/api/public/hooks/backfill-images',
+    path: '/api/public/hooks/backfill-images',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCollectNewsRoute =
   ApiPublicHooksCollectNewsRouteImport.update({
     id: '/api/public/hooks/collect-news',
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
@@ -318,6 +327,7 @@ export interface FileRoutesById {
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   id:
@@ -425,6 +437,7 @@ export interface FileRouteTypes {
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
+    | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
@@ -456,6 +469,7 @@ export interface RootRouteChildren {
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
+  ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
@@ -686,6 +700,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplesTempleSlugRouteImport
       parentRoute: typeof TemplesRoute
     }
+    '/api/public/hooks/backfill-images': {
+      id: '/api/public/hooks/backfill-images'
+      path: '/api/public/hooks/backfill-images'
+      fullPath: '/api/public/hooks/backfill-images'
+      preLoaderRoute: typeof ApiPublicHooksBackfillImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/collect-news': {
       id: '/api/public/hooks/collect-news'
       path: '/api/public/hooks/collect-news'
@@ -760,6 +781,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
+  ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }

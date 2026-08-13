@@ -120,19 +120,54 @@ function ArticlePage() {
           </p>
         </div>
         {article.image && (
-          <img
-            src={article.image}
-            alt={article.title}
-            width={1200}
-            height={675}
-            decoding="async"
-            className="mt-5 aspect-[16/9] w-full object-cover"
-          />
+          <figure className="mt-5">
+            <img
+              src={article.image}
+              alt={article.title}
+              width={1200}
+              height={675}
+              decoding="async"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="aspect-[16/9] w-full object-cover"
+            />
+            {article.sourceName && (
+              <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                Photo: {article.sourceName}
+                {article.sourceUrl && (
+                  <>
+                    {" — "}
+                    <a
+                      href={article.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="font-semibold text-primary"
+                    >
+                      view original
+                    </a>
+                  </>
+                )}
+              </figcaption>
+            )}
+          </figure>
         )}
         <div
           className="wp-content mt-6 space-y-4 text-[17px] leading-relaxed text-foreground"
           dangerouslySetInnerHTML={{ __html: article.html }}
         />
+        {article.sourceUrl && (
+          <p className="mt-6 border-t border-border pt-3 text-sm text-muted-foreground">
+            Source:{" "}
+            <a
+              href={article.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="font-semibold text-primary"
+            >
+              {article.sourceName ?? "Read the original report"}
+            </a>
+            . Summary and artwork credited to the original publisher.
+          </p>
+        )}
         <Link
           to="/category/$category"
           params={{ category: article.category }}

@@ -168,16 +168,24 @@ function Thumb({
     );
   }
   return (
-    <img
-      src={article.image}
-      alt={article.title}
-      width={1200}
-      height={675}
-      sizes={sizes}
-      loading={priority ? "eager" : "lazy"}
-      decoding="async"
-      className="aspect-video w-full bg-surface-tint object-cover"
-    />
+    <figure className="m-0">
+      <img
+        src={article.image}
+        alt={article.title}
+        width={1200}
+        height={675}
+        sizes={sizes}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="aspect-video w-full bg-surface-tint object-cover"
+      />
+      {article.sourceName && (
+        <figcaption className="mt-1 text-[11px] text-muted-foreground">
+          Photo: {article.sourceName}
+        </figcaption>
+      )}
+    </figure>
   );
 }
 
