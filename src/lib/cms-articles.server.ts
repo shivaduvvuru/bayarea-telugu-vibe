@@ -201,12 +201,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     // Rows already filed to an India section are excluded by their stored
     // category; generic rows are classified from their text. First-party
     // newsroom posts (our own WordPress site) are always local.
-    const firstParty = (r: Row) => (r.link_url ?? "").includes("bayarea.telugutimes.net");
     return dedupeArticles(
       rows
         .filter((r) => {
           if (r.category === CINEMA_SLUG) return false;
-          if (firstParty(r)) return !isStarGallery(r.title, r.summary, r.link_url);
+          const own = ownSiteSection(r.link_url);
+          if (own !== null) return own !== "cinema" && own !== "gallery";
+
           if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
           const generic = !r.category || r.category === "news";
           if (generic && classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
