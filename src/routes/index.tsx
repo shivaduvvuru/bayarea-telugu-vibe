@@ -55,7 +55,12 @@ const politicsQuery = queryOptions({
 
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(homeQuery),
+      context.queryClient.ensureQueryData(cityNewsQuery),
+    ]);
+  },
   head: () => ({
     meta: [
       { title: TITLE },
