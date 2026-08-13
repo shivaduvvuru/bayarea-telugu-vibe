@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { listPosts } from "@/lib/content.functions";
@@ -64,7 +64,22 @@ function CategoryPage() {
       <h1 className="text-3xl font-bold text-ink">{cat.en}</h1>
       <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
       <DigestNote className="mt-2 max-w-2xl" />
+      {cat.children?.length ? (
+        <nav className="mt-3 flex flex-wrap gap-2" aria-label={`${cat.en} sections`}>
+          {cat.children.map((c) => (
+            <Link
+              key={c.slug}
+              to="/category/$category"
+              params={{ category: c.slug }}
+              className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-ink hover:border-primary"
+            >
+              {c.en}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       <div className="mt-6">
+
         <SectionHeading te="కథనాలు" en="Stories" />
         {articles.length === 0 ? (
           <p className="text-muted-foreground">No stories published in this section yet.</p>

@@ -14,6 +14,7 @@ const RAIL = [
   { to: "/", label: "Home" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
+  { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/politics", label: "Political" },
   { to: "/directory", label: "Directory" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
@@ -29,6 +30,10 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     heading: "Sections",
     items: [
       { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+      { to: "/category/$category", params: { category: "india-immigration" }, label: "Immigration & Visa" },
+      { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
+      { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
+      { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
       { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
       { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
       { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },

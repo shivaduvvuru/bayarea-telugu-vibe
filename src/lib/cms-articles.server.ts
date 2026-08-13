@@ -8,6 +8,7 @@ import { categoryBySlug, CITY_CATEGORIES } from "./content";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
+import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
@@ -49,7 +50,13 @@ function cityNameOf(slug: string): string | undefined {
 }
 
 function toArticle(row: Row): Article {
-  const slug = citySlugOf(row.city) ?? row.category ?? "community";
+  // Rows published before the India sections existed carry a plain "news"
+  // category; label them from their text so cards read correctly.
+  const stored =
+    row.category === "news" || !row.category
+      ? (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
+      : row.category;
+  const slug = citySlugOf(row.city) ?? stored ?? "community";
   const cat = categoryBySlug(slug);
   const text = row.summary ?? "";
   return {
@@ -82,6 +89,8 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   let q = base().order("published_at", { ascending: false }).limit(limit);
   if (category === "city-news") {
     q = q.not("city", "is", null);
+  } else if (category === "india-news") {
+    q = q.in("category", [...INDIA_SLUGS]);
   } else if (category) {
     const cityName = cityNameOf(category);
     const clauses = [`category.eq.${category}`, `city.eq.${category}`];

@@ -1,5 +1,7 @@
 import type { IngestRow } from "@/lib/cms.server";
-import { cityBySlug } from "@/lib/desk-cities";
+import { CITIES, cityBySlug } from "@/lib/desk-cities";
+import { classifyIndia } from "@/lib/india-topics";
+
 
 type Row = Record<string, unknown>;
 
@@ -15,19 +17,31 @@ export function deskRowToIngest(row: Row): IngestRow {
   const city = citySlug ? (cityBySlug(citySlug)?.en ?? citySlug) : null;
   const kind = String(row["kind"] ?? "news");
 
+  const title = String(row["title"] ?? "");
+  const summary = str(row["summary"]) ?? str(payload["summary"]);
+  const linkUrl = str(row["source_url"]) ?? str(payload["sourceUrl"]);
+  // Bay Area city rows stay local; everything else gets an India section when it
+  // reads as India / immigration / diaspora coverage.
+  const indiaSlug =
+    kind === "news" && !CITIES.some((c) => c.slug === citySlug)
+      ? classifyIndia(title, summary, linkUrl)
+      : null;
+
   return {
     source: `editorial-desk:${str(row["source"]) ?? str(payload["source"]) ?? "desk"}`,
     source_ref: `editorial-desk:${itemId}`,
     kind: kind === "temple" ? "announcement" : kind,
-    title: String(row["title"] ?? ""),
-    summary: str(row["summary"]) ?? str(payload["summary"]),
-    link_url: str(row["source_url"]) ?? str(payload["sourceUrl"]),
+    title,
+    summary,
+    link_url: linkUrl,
     image_url: str(payload["image"]),
     city,
     region: citySlug ? (cityBySlug(citySlug)?.region ?? null) : null,
-    category: kind === "temple" ? "temples" : kind === "event" ? "events" : "news",
+    category:
+      kind === "temple" ? "temples" : kind === "event" ? "events" : (indiaSlug ?? "news"),
     published_at:
       str(row["published_at"]) ??
       (str(row["digest_date"]) ? `${str(row["digest_date"])}T00:00:00Z` : null),
   };
 }
+
