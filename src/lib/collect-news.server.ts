@@ -464,7 +464,7 @@ const PUBLISHER_FEEDS: {
   // Star / photo desks — these feed the Gallery picture grid.
   {
     name: "123Telugu Gallery",
-    url: "https://www.123telugu.com/gallery/feed",
+    url: "https://www.123telugu.com/category/gallery/feed",
     kind: "news",
     limit: 8,
   },
