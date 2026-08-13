@@ -52,6 +52,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   {
     heading: "More from us",
     items: [
+      { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
       { to: "/submit", label: "Submit a Story" },
       { to: "/about", label: "About Us" },

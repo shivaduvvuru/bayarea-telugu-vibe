@@ -14,6 +14,7 @@ export type AnalyticsEvent =
   | "directory_click"
   | "share"
   | "save"
+  | "photo_favorite"
   | "newsletter_signup"
   | "poll_vote"
   | "language_switch"

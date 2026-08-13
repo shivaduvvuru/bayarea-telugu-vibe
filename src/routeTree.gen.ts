@@ -21,6 +21,7 @@ import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as LiteRouteImport } from './routes/lite'
 import { Route as PeopleRouteImport } from './routes/people'
@@ -102,6 +103,11 @@ const EventsRoute = EventsRouteImport.update({
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoundationIconsRoute = FoundationIconsRouteImport.update({
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRoute
   '/explore': typeof ExploreRoute
+  '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/events'
     | '/explore'
+    | '/favorites'
     | '/foundation-icons'
     | '/lite'
     | '/people'
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/events'
     | '/explore'
+    | '/favorites'
     | '/foundation-icons'
     | '/lite'
     | '/people'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/events'
     | '/explore'
+    | '/favorites'
     | '/foundation-icons'
     | '/lite'
     | '/people'
@@ -455,6 +467,7 @@ export interface RootRouteChildren {
   EpaperRoute: typeof EpaperRoute
   EventsRoute: typeof EventsRoute
   ExploreRoute: typeof ExploreRoute
+  FavoritesRoute: typeof FavoritesRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
   LiteRoute: typeof LiteRoute
   PeopleRoute: typeof PeopleRoute
@@ -558,6 +571,13 @@ declare module '@tanstack/react-router' {
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/foundation-icons': {
@@ -767,6 +787,7 @@ const rootRouteChildren: RootRouteChildren = {
   EpaperRoute: EpaperRoute,
   EventsRoute: EventsRoute,
   ExploreRoute: ExploreRoute,
+  FavoritesRoute: FavoritesRoute,
   FoundationIconsRoute: FoundationIconsRoute,
   LiteRoute: LiteRoute,
   PeopleRoute: PeopleRoute,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
@@ -6,24 +7,30 @@ import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
+import { PhotoActions } from "@/components/photo-actions";
 import type { Article } from "@/lib/content";
 
 /** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
     <figure className="m-0">
-      <button type="button" onClick={onOpen} className="block w-full text-left">
-        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
-        <figcaption className="mt-2">
+      <div className="relative">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
+          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
+        </button>
+        <PhotoActions article={article} tone="light" className="absolute right-2 top-2" />
+      </div>
+      <figcaption className="mt-2">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
           <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
             {article.title}
           </p>
-          <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <SourceChip article={article} />
-            <RelativeDate iso={article.date} />
-          </span>
-        </figcaption>
-      </button>
+        </button>
+        <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <SourceChip article={article} />
+          <RelativeDate iso={article.date} />
+        </span>
+      </figcaption>
     </figure>
   );
 }
@@ -88,6 +95,14 @@ function CategoryPage() {
       <h1 className="text-3xl font-bold text-ink">{cat.en}</h1>
       <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
       <DigestNote className="mt-2 max-w-2xl" />
+      {cat.slug === "gallery" ? (
+        <Link
+          to="/favorites"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold text-ink hover:border-primary hover:text-primary"
+        >
+          <Heart className="h-3.5 w-3.5" aria-hidden /> Saved photos
+        </Link>
+      ) : null}
       {cat.children?.length ? (
         <nav className="mt-3 flex flex-wrap gap-2" aria-label={`${cat.en} sections`}>
           {cat.children.map((c) => (
