@@ -80,14 +80,17 @@ export function GalleryLightbox({
         <span className="text-xs font-semibold tabular-nums">
           {index + 1} / {items.length}
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close picture viewer"
-          className="rounded-full p-2 hover:bg-white/10"
-        >
-          <X className="h-5 w-5" aria-hidden />
-        </button>
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <PhotoActions article={article} tone="light" />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close picture viewer"
+            className="rounded-full p-2 hover:bg-white/10"
+          >
+            <X className="h-5 w-5" aria-hidden />
+          </button>
+        </div>
       </div>
 
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-2">
