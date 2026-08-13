@@ -50,7 +50,7 @@ const STAFF = [
 ] as const;
 
 const tabClass =
-  "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-muted-foreground";
+  "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-primary-foreground";
 
 export function MobileTabBar() {
   const [open, setOpen] = useState(false);
