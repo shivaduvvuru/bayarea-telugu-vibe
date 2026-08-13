@@ -10,6 +10,29 @@ import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
+import { dedupeKey } from "./dedupe";
+
+/**
+ * Last line of defence against duplicates reaching a reader: collapse articles
+ * that share a normalised headline, a link or a lead image. Applied to every
+ * read path so no section (home, city news, cinema, gallery) can show a story
+ * twice even if the store still holds a near-copy.
+ */
+function dedupeArticles(items: Article[]): Article[] {
+  const seen = new Set<string>();
+  const out: Article[] = [];
+  for (const a of items) {
+    const keys = [
+      dedupeKey(a.title ?? ""),
+      a.sourceUrl ? `u:${a.sourceUrl.split("?")[0]!.replace(/\/$/, "").toLowerCase()}` : "",
+      a.image ? `i:${a.image.split("?")[0]!.toLowerCase()}` : "",
+    ].filter(Boolean);
+    if (keys.some((k) => seen.has(k))) continue;
+    for (const k of keys) seen.add(k);
+    out.push(a);
+  }
+  return out;
+}
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
@@ -122,12 +145,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (error) throw error;
   const rows = (data ?? []) as unknown as Row[];
   if (category === "gallery") {
-    return rows
-      .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
-      .map(toArticle)
-      .slice(0, limit);
+    return dedupeArticles(
+      rows
+        .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
+        .map(toArticle),
+    ).slice(0, limit);
   }
-  const articles = rows.map(toArticle);
+  const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
     return articles.filter((a) => a.category === "cinema").slice(0, limit);
   }
@@ -152,5 +176,5 @@ export async function cmsSearch(q: string, limit = 20): Promise<Article[]> {
     .order("published_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return ((data ?? []) as unknown as Row[]).map(toArticle);
+  return dedupeArticles(((data ?? []) as unknown as Row[]).map(toArticle));
 }

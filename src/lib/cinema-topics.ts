@@ -31,9 +31,6 @@ export function isCinema(
  * Gallery is a star picture desk, not a headline feed: it only carries
  * photo-led coverage of Telugu / Hindi / OTT heroines and stars.
  */
-const STAR_PERSON =
-  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార/i;
-
 const PHOTO_LED =
   /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics)|instagram|insta (?:post|story|reel)|social media|reel|selfie|beach (?:look|photos)|bikini|glam(?:orous)? (?:photos|look)|sizzling|dazzling|hot (?:photos|pics|look)|bold look|album)\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్|ఇన్‌స్టా|సోషల్ మీడియా|రీల్స్|సెల్ఫీ/i;
 
