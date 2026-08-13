@@ -241,10 +241,17 @@ export const lastDiag = {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-async function fetchFeed(url: string): Promise<RawItem[] | null> {
+async function fetchFeed(url: string, attempt = 0): Promise<RawItem[] | null> {
   try {
     const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" } });
     if (!res.ok) {
+      // Google/Bing throttle bursts with 429/503 — back off briefly and retry
+      // instead of losing a whole feed (this used to silently drop the
+      // glamour / picture searches on busy runs).
+      if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        return fetchFeed(url, attempt + 1);
+      }
       if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
       return null;
     }
@@ -739,8 +746,10 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
   // Named publishers read directly: Indian-American papers, Indian dailies and
   // magazines, and official immigration sources.
+  const publisherBatches: CollectedItem[][] = [];
+  for (let b = 0; b < PUBLISHER_FEEDS.length; b += 8) {
   const publisherRows = await Promise.all(
-    PUBLISHER_FEEDS.map(async (feed) => {
+    PUBLISHER_FEEDS.slice(b, b + 8).map(async (feed) => {
       const items = await fetchPublisher(feed);
       const summaries = await summarize(BAY_AREA, items, apiKey);
       return items.map((it, i) => {
@@ -773,7 +782,9 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
       });
     }),
   );
-  rows.push(...publisherRows.flat());
+    publisherBatches.push(publisherRows.flat());
+  }
+  rows.push(...publisherBatches.flat());
 
 
   // Temple announcements come from each temple's own website, not news search —
