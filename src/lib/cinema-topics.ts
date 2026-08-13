@@ -32,10 +32,10 @@ export function isCinema(
  * photo-led coverage of Telugu / Hindi / OTT heroines and stars.
  */
 const STAR_PERSON =
-  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b/i;
+  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార/i;
 
 const PHOTO_LED =
-  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b/i;
+  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్/i;
 
 /** True for heroine / star photo features that belong in the Gallery grid. */
 export function isStarGallery(
