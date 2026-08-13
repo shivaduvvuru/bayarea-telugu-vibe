@@ -63,6 +63,8 @@ function toArticle(row: Row): Article {
     image: usableImage(row.image_url),
     category: slug,
     categoryName: cat?.en ?? "Community",
+    sourceName: sourceLabel(row.link_url),
+    sourceUrl: row.link_url,
   };
 }
 
