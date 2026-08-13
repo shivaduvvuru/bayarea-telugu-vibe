@@ -62,7 +62,7 @@ function DeskPage() {
   const doLock = useServerFn(lockDesk);
 
   useEffect(() => {
-    doCheck({ data: {} })
+    doCheck()
       .then((res) => setUnlocked(res.unlocked))
       .catch(() => setUnlocked(false));
   }, [doCheck]);
