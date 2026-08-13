@@ -96,13 +96,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "city-news") {
     q = q.not("city", "is", null);
   } else if (category === "gallery") {
-    // Gallery is the cinema picture desk: photo-led Telugu / Hindi / OTT film
-    // stories only, newest first, credited to their publisher.
+    // Gallery is a star picture desk: heroine / star photo features from
+    // Telugu, Hindi and OTT cinema — not the cinema headline feed.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(limit * 6)
-      .in("category", ["cinema", "news"])
+      .limit(400)
       .not("image_url", "is", null);
+
   } else if (category === "cinema") {
     // Older film stories were stored as plain "news"; pull both and let the
     // classifier decide.
