@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const Route = createFileRoute("/_authenticated/desk")({
+export const Route = createFileRoute("/desk")({
   head: () => ({
     meta: [
       { title: "Editorial review desk — Bay Area Telugu Times" },
