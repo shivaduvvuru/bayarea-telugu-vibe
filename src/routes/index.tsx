@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/content.functions";
@@ -10,6 +11,7 @@ import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { Thumb } from "@/components/news";
+import { GalleryLightbox } from "@/components/gallery-lightbox";
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
