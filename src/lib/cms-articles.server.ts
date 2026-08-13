@@ -174,20 +174,29 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "city-news") {
     // Local Bay Area reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
+    // Rows already filed to an India section are excluded by their stored
+    // category; generic rows are classified from their text. First-party
+    // newsroom posts (our own WordPress site) are always local.
+    const firstParty = (r: Row) => (r.link_url ?? "").includes("bayarea.telugutimes.net");
     return dedupeArticles(
       rows
-        .filter(
-          (r) =>
-            classifyIndia(r.title, r.summary, r.link_url) === null &&
-            r.category !== CINEMA_SLUG &&
+        .filter((r) => {
+          if (r.category === CINEMA_SLUG) return false;
+          if (firstParty(r)) return !isStarGallery(r.title, r.summary, r.link_url);
+          if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
+          const generic = !r.category || r.category === "news";
+          if (generic && classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
+          return (
             !isCinema(r.title, r.summary, r.link_url) &&
-            !isStarGallery(r.title, r.summary, r.link_url),
-        )
+            !isStarGallery(r.title, r.summary, r.link_url)
+          );
+        })
         .map(toArticle),
     )
       .filter((a) => a.category !== CINEMA_SLUG)
       .slice(0, limit);
   }
+
 
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
