@@ -22,6 +22,16 @@ const homeQuery = queryOptions({
   staleTime: 30 * 60 * 1000,
 });
 
+/**
+ * Same feed the City News section shows, so the home digest and /category/city-news
+ * always carry the identical stories and pictures.
+ */
+const cityNewsQuery = queryOptions({
+  queryKey: ["wp", "posts", "city-news"],
+  queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
+  staleTime: 30 * 60 * 1000,
+});
+
 /** Community-submitted and editor-published items from the newsroom CMS. */
 const communityQuery = queryOptions({
   queryKey: ["cms", "community", "home"],
