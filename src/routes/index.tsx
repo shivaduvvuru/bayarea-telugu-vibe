@@ -35,6 +35,13 @@ const cityNewsQuery = queryOptions({
   staleTime: 30 * 60 * 1000,
 });
 
+/** Picture desk for the home page — same Gallery grid used in /category/gallery. */
+const galleryQuery = queryOptions({
+  queryKey: ["wp", "posts", "gallery"],
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 6, compact: true } }),
+  staleTime: 30 * 60 * 1000,
+});
+
 /** Community-submitted and editor-published items from the newsroom CMS. */
 const communityQuery = queryOptions({
   queryKey: ["cms", "community", "home"],
