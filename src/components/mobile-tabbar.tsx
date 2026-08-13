@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import {
   CalendarDays,
   Store,
+  Landmark,
   BookOpen,
   Megaphone,
   Vote,
