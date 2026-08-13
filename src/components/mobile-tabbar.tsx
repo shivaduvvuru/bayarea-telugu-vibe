@@ -6,7 +6,6 @@ import {
   Landmark,
   BookOpen,
   Megaphone,
-  Vote,
   ClipboardCheck,
   LogIn,
   Settings,
@@ -16,12 +15,9 @@ import {
   Heart,
   Tag,
   PartyPopper,
-  Home,
   Newspaper,
-  Clapperboard,
-  Images,
-  MessagesSquare,
 } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 
 
