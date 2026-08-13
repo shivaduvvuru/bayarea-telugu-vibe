@@ -23,11 +23,16 @@ export function deskRowToIngest(row: Row): IngestRow {
   const linkUrl = str(row["source_url"]) ?? str(payload["sourceUrl"]);
   // Bay Area city rows stay local; everything else gets an India section when it
   // reads as India / immigration / diaspora coverage.
-  const cinema = kind === "news" && isCinema(title, summary, linkUrl);
+  // Our own WordPress newsroom is first-party local reporting: it is additive to
+  // the aggregated digest and must never be reclassified into an India section.
+  const source = `${str(row["source"]) ?? str(payload["source"]) ?? ""}`.toLowerCase();
+  const firstParty = source.includes("wordpress") || source.includes("telugu times");
+  const cinema = kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
   const indiaSlug =
-    !cinema && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
+    !cinema && !firstParty && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
       ? classifyIndia(title, summary, linkUrl)
       : null;
+
 
   return {
     source: `editorial-desk:${str(row["source"]) ?? str(payload["source"]) ?? "desk"}`,
