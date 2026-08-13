@@ -82,6 +82,12 @@ export function SiteFooter() {
             <a href={TT_LINKS.site} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
               TeluguTimes.net
             </a>
+            <a href={TT_LINKS.bayarea} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
+              Bay Area edition
+            </a>
+            <a href={TT_LINKS.epaper} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
+              E-Paper
+            </a>
             <a href={TT_LINKS.instagram} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
               Instagram
             </a>
