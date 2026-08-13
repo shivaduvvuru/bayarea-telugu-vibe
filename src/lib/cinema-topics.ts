@@ -9,7 +9,8 @@
 export const CINEMA_SLUG = "cinema";
 
 const CINEMA_TEXT =
-  /tollywood|bollywood|kollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b/i;
+  /tollywood|bollywood|kollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్/i;
+
 
 /** Well-known film-trade publishers whose whole feed is cinema. */
 const CINEMA_HOSTS =
@@ -31,10 +32,10 @@ export function isCinema(
  * photo-led coverage of Telugu / Hindi / OTT heroines and stars.
  */
 const STAR_PERSON =
-  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b/i;
+  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార/i;
 
 const PHOTO_LED =
-  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b/i;
+  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్/i;
 
 /** True for heroine / star photo features that belong in the Gallery grid. */
 export function isStarGallery(
