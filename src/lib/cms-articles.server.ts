@@ -122,10 +122,14 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   let q = base().order("published_at", { ascending: false }).limit(limit);
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
+    // The pool has to be wide: most rows filed to a Bay Area city are India or
+    // cinema syndication, so a small window would crowd out local reporting and
+    // our own newsroom posts.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(limit * 4)
+      .limit(400)
       .not("city", "is", null);
+
   } else if (category === "gallery") {
     // Gallery is a star picture desk: heroine / star photo features from
     // Telugu, Hindi and OTT cinema — not the cinema headline feed.
