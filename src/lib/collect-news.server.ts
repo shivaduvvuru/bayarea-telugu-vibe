@@ -877,6 +877,83 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   return dedupeCollected(rows);
 }
 
+/** Picture desks that feed the Gallery grid. */
+const GALLERY_FEED_NAMES = [
+  "123Telugu Gallery",
+  "Heroine galleries",
+  "Tollywood stars",
+  "Bollywood stars",
+  "OTT stars gallery",
+  "Glamour shoots",
+  "Instagram buzz",
+  "Red carpet & events",
+  "గ్లామర్ ఫోటోలు",
+  "Pinkvilla",
+  "Bollywood Hungama",
+  "M9 News",
+  "Mirchi9",
+];
+
+/**
+ * Gallery-only pass: re-reads the star / photo desks with a wider limit so the
+ * Cinema Gallery keeps filling up between the full collection runs.
+ */
+export async function collectGallery(apiKey: string | undefined): Promise<CollectedItem[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
+    ...f,
+    limit: Math.max(f.limit ?? 6, 12),
+  }));
+  const rows: CollectedItem[] = [];
+  for (let b = 0; b < feeds.length; b += 6) {
+    const batches = await Promise.all(
+      feeds.slice(b, b + 6).map(async (feed) => {
+        const items = await fetchPublisher(feed);
+        const summaries = await summarize(BAY_AREA, items, apiKey);
+        return items.map((it, i) => {
+          const dedupe = keyFor(BAY_AREA.slug, it.title);
+          const kind = classify(it.title);
+          return {
+            dedupe_key: dedupe,
+            item_id: dedupe,
+            digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+            kind,
+            city_slug: BAY_AREA.slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source || feed.name,
+            source_url: it.link,
+            published_at: it.published,
+            origin: "feed" as const,
+            payload: {
+              id: dedupe,
+              kind,
+              citySlug: BAY_AREA.slug,
+              title: it.title,
+              summary: summaries[i] ?? "",
+              source: it.source || feed.name,
+              sourceUrl: it.link,
+              image: it.image,
+              collectedAt: today,
+            },
+          } satisfies CollectedItem;
+        });
+      }),
+    );
+    rows.push(...batches.flat());
+  }
+  // Only picture-led star stories belong in this pass.
+  const { isStarGallery } = await import("./cinema-topics");
+  return dedupeCollected(
+    rows.filter(
+      (r) =>
+        !!(r.payload as { image?: string | null } | undefined)?.image &&
+        isStarGallery(r.title, r.summary, r.source_url ?? ""),
+    ),
+  );
+}
+
+
 /** Canonical form of an article URL: no protocol, www, query string or trailing slash. */
 export function urlKey(raw: string): string {
   try {

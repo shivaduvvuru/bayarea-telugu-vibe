@@ -24,12 +24,19 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           });
         }
 
-        const { collectAll, dedupeCollected, urlKey } = await import("@/lib/collect-news.server");
+        const { collectAll, collectGallery, dedupeCollected, urlKey } = await import(
+          "@/lib/collect-news.server"
+        );
+        // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
+        const body = (await request.json().catch(() => ({}))) as { mode?: string };
+        const galleryOnly = body?.mode === "gallery";
         const { dedupeKey } = await import("@/lib/dedupe");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         try {
-          const collected = await collectAll(process.env["LOVABLE_API_KEY"]);
+          const collected = galleryOnly
+            ? await collectGallery(process.env["LOVABLE_API_KEY"])
+            : await collectAll(process.env["LOVABLE_API_KEY"]);
 
           // Drop stories already stored on earlier days (same headline or article URL)
           // and anything already published to the newsroom.
@@ -138,7 +145,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
