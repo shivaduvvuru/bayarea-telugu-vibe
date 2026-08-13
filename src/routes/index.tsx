@@ -24,12 +24,13 @@ const HOME_URL = canonical("/");
 function contentKeys(item: {
   title?: string | null;
   sourceUrl?: string | null;
+  url?: string | null;
   link_url?: string | null;
   image?: string | null;
   image_url?: string | null;
 }) {
   const title = dedupeKey(item.title ?? "");
-  const url = item.sourceUrl ?? item.link_url;
+  const url = item.sourceUrl ?? item.link_url ?? item.url;
   const image = usableImage(item.image ?? item.image_url);
   return [
     title ? `t:${title}` : "",
@@ -314,7 +315,7 @@ function Home() {
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
   const homepageSeen = new Set<string>();
-  const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), homepageSeen);
+  const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
   const lead = local[0] ?? articles[0];
 
   if (!lead) {
@@ -329,6 +330,7 @@ function Home() {
   // uses the same set, preventing a renamed/cross-posted story or reused photo
   // from appearing again under More news, Community, Events or Gallery.
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+  takeUnique([lead, ...localRest], homepageSeen);
   const uniqueGallery = takeUnique(galleryItems, homepageSeen, 6);
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
@@ -355,6 +357,7 @@ function Home() {
   ).slice(0, 6);
   const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
   const uniquePolitics = takeUnique(politics, homepageSeen, 6);
+  const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
@@ -439,7 +442,7 @@ function Home() {
                       .join(" · ")}
                   />
                 ))
-              : events.map((e) => (
+              : uniqueFallbackEvents.map((e) => (
                   <LinkRow
                     key={e.id}
                     href="/events"
