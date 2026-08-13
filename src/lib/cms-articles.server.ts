@@ -117,7 +117,11 @@ function base() {
 export async function cmsPosts(category: string | undefined, limit: number): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
   if (category === "city-news") {
-    q = q.not("city", "is", null);
+    // Bay Area local reporting only — India coverage lives under /category/india-news.
+    q = base()
+      .order("published_at", { ascending: false })
+      .limit(limit * 4)
+      .not("city", "is", null);
   } else if (category === "gallery") {
     // Gallery is a star picture desk: heroine / star photo features from
     // Telugu, Hindi and OTT cinema — not the cinema headline feed.
@@ -134,7 +138,12 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .limit(limit * 4)
       .in("category", ["cinema", "news"]);
   } else if (category === "india-news") {
-    q = q.in("category", [...INDIA_SLUGS]);
+    // Explicit India sections plus anything the classifier recognises as
+    // India coverage that was filed under a generic bucket.
+    q = base()
+      .order("published_at", { ascending: false })
+      .limit(limit * 6)
+      .in("category", [...INDIA_SLUGS, "news", "political"]);
   } else if (category) {
     const cityName = cityNameOf(category);
     const clauses = [`category.eq.${category}`, `city.eq.${category}`];
@@ -149,6 +158,22 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       rows
         .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
         .map(toArticle),
+    ).slice(0, limit);
+  }
+  if (category === "india-news") {
+    return dedupeArticles(
+      rows
+        .filter(
+          (r) =>
+            INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number]) ||
+            classifyIndia(r.title, r.summary, r.link_url) !== null,
+        )
+        .map(toArticle),
+    ).slice(0, limit);
+  }
+  if (category === "city-news") {
+    return dedupeArticles(
+      rows.filter((r) => classifyIndia(r.title, r.summary, r.link_url) === null).map(toArticle),
     ).slice(0, limit);
   }
   const articles = dedupeArticles(rows.map(toArticle));
