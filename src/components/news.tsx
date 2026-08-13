@@ -4,6 +4,7 @@ import { ChevronRight, Clock } from "lucide-react";
 import { type Article, articleLang, categoryBySlug, formatDate } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
+import { SourceChip } from "@/components/source-credit";
 
 
 
