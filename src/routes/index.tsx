@@ -212,12 +212,14 @@ function LinkRow({
 
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
+  // Identical feed to /category/city-news so both screens carry the same stories.
+  const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
-  const local = articles.filter(isLocal);
+  const local = cityNews.length ? cityNews : articles.filter(isLocal);
   const lead = local[0] ?? articles[0];
 
   if (!lead) {
@@ -228,9 +230,9 @@ function Home() {
     );
   }
 
-  const rest = articles.filter((a) => a.slug !== lead.slug);
-  const localRest = rest.filter(isLocal).slice(0, 8);
-  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
+  const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+  const shown = new Set([lead.slug, ...localRest.map((a) => a.slug)]);
+  const more = articles.filter((a) => !shown.has(a.slug)).slice(0, 12);
 
   const events = upcomingEvents().slice(0, 5);
   // Feeds sometimes repeat the same link (or point at the site root), which both
