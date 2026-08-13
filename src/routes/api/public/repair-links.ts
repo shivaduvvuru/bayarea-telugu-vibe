@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/public/repair-links")({
         for (const row of items ?? []) {
           const real = await resolveGoogleNewsUrl(row.link_url as string);
           if (real && real !== row.link_url) {
-            await supabaseAdmin.from("content_items").update({ link_url: real }).eq("item_id", row.item_id);
+            await supabaseAdmin.from("content_items").update({ link_url: real }).eq("id", row.id);
             fixed += 1;
           } else failed += 1;
         }
