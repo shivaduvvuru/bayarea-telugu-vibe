@@ -9,6 +9,7 @@ import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
+import { isCinema, CINEMA_SLUG } from "./cinema-topics";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
@@ -54,9 +55,14 @@ function toArticle(row: Row): Article {
   // category; label them from their text so cards read correctly.
   const stored =
     row.category === "news" || !row.category
-      ? (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
+      ? isCinema(row.title, row.summary, row.link_url)
+        ? CINEMA_SLUG
+        : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
       : row.category;
-  const slug = citySlugOf(row.city) ?? stored ?? "community";
+  // Cinema is a topic, not a place: a film story filed to a city still belongs
+  // in Cinema.
+  const slug =
+    stored === CINEMA_SLUG ? CINEMA_SLUG : (citySlugOf(row.city) ?? stored ?? "community");
   const cat = categoryBySlug(slug);
   const text = row.summary ?? "";
   return {
@@ -89,6 +95,10 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   let q = base().order("published_at", { ascending: false }).limit(limit);
   if (category === "city-news") {
     q = q.not("city", "is", null);
+  } else if (category === "gallery") {
+    // Gallery is the picture desk: every published story that carries usable
+    // publisher artwork, newest first, credited to its source.
+    q = q.not("image_url", "is", null);
   } else if (category === "india-news") {
     q = q.in("category", [...INDIA_SLUGS]);
   } else if (category) {
