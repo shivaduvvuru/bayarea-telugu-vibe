@@ -14,9 +14,10 @@ import {
   Utensils,
   Heart,
   Tag,
-  PartyPopper,
+  Home,
   Newspaper,
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 
