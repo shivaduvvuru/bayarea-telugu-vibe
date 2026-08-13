@@ -75,13 +75,17 @@ function cityNameOf(slug: string): string | undefined {
 
 function toArticle(row: Row): Article {
   // Rows published before the India sections existed carry a plain "news"
-  // category; label them from their text so cards read correctly.
+  // category; label them from their text so cards read correctly. Our own
+  // WordPress newsroom is first-party local reporting and is never relabelled
+  // into an India section.
+  const ownSite = (row.link_url ?? "").includes("bayarea.telugutimes.net");
   const stored =
-    row.category === "news" || !row.category
+    !ownSite && (row.category === "news" || !row.category)
       ? isCinema(row.title, row.summary, row.link_url)
         ? CINEMA_SLUG
         : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
       : row.category;
+
   // Cinema is a topic, not a place: a film story filed to a city still belongs
   // in Cinema.
   const slug =
