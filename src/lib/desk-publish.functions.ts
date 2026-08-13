@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Input = { itemIds?: string[] };
 
@@ -8,13 +7,11 @@ type Input = { itemIds?: string[] };
  * the outcome on the queue row (queued -> sent, or failed + error).
  */
 export const publishApproved = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: Input) => ({
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 500).map(String) : undefined,
   }))
-  .handler(async ({ data, context }) => {
-    const { assertStaff, ingest, admin } = await import("@/lib/cms.server");
-    await assertStaff(context.supabase, context.userId);
+  .handler(async ({ data }) => {
+    const { ingest, admin } = await import("@/lib/cms.server");
     const { deskRowToIngest } = await import("@/lib/desk-publish.server");
     const db = await admin();
 
