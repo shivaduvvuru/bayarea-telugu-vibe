@@ -445,6 +445,33 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
+  // Star / photo desks — these feed the Gallery picture grid.
+  {
+    name: "Tollywood stars",
+    url: "https://news.google.com/rss/search?q=(Tollywood+OR+%22Telugu+actress%22+OR+%22Telugu+heroine%22)+(photos+OR+stills+OR+glamour+OR+%22new+look%22+OR+%22photo+shoot%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Bollywood stars",
+    url: "https://news.google.com/rss/search?q=(Bollywood+actress+OR+%22Hindi+film+actress%22)+(photos+OR+stills+OR+%22red+carpet%22+OR+%22new+look%22+OR+%22photo+shoot%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "OTT & streaming",
+    url: "https://news.google.com/rss/search?q=(OTT+OR+Netflix+OR+%22Prime+Video%22+OR+Aha+OR+Hotstar)+(Telugu+OR+Hindi)+(web+series+OR+film+OR+release+OR+trailer)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
+  {
+    name: "Bollywood Hungama",
+    url: "https://www.bollywoodhungama.com/feed/",
+    kind: "news",
+    limit: 5,
+  },
+
   {
     name: "Consulate General of India, San Francisco",
     url: "https://news.google.com/rss/search?q=%22Consulate+General+of+India%22+San+Francisco+OR+%22Indian+consulate%22+OCI+OR+passport+OR+visa+when:14d&hl=en-US&gl=US&ceid=US:en",

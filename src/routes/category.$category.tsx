@@ -103,11 +103,16 @@ function CategoryPage() {
       <div className="mt-6">
 
         <SectionHeading
-          te={cat.slug === "gallery" ? "ఫొటోలు" : "కథనాలు"}
-          en={cat.slug === "gallery" ? "Pictures" : "Stories"}
+          te={cat.slug === "gallery" ? "సినిమా ఫొటోలు" : "కథనాలు"}
+          en={cat.slug === "gallery" ? "Cinema pictures" : "Stories"}
         />
         {articles.length === 0 ? (
-          <p className="text-muted-foreground">No stories published in this section yet.</p>
+          <p className="text-muted-foreground">
+            {cat.slug === "gallery"
+              ? "No cinema pictures in the digest yet."
+              : "No stories published in this section yet."}
+          </p>
+
         ) : (
           <div
             className={

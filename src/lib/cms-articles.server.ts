@@ -96,9 +96,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "city-news") {
     q = q.not("city", "is", null);
   } else if (category === "gallery") {
-    // Gallery is the picture desk: every published story that carries usable
-    // publisher artwork, newest first, credited to its source.
-    q = q.not("image_url", "is", null);
+    // Gallery is the cinema picture desk: photo-led Telugu / Hindi / OTT film
+    // stories only, newest first, credited to their publisher.
+    q = base()
+      .order("published_at", { ascending: false })
+      .limit(limit * 6)
+      .in("category", ["cinema", "news"])
+      .not("image_url", "is", null);
   } else if (category === "cinema") {
     // Older film stories were stored as plain "news"; pull both and let the
     // classifier decide.
@@ -120,8 +124,10 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "cinema") {
     return articles.filter((a) => a.category === "cinema").slice(0, limit);
   }
-  if (category === "gallery") return articles.filter((a) => a.image).slice(0, limit);
+  if (category === "gallery")
+    return articles.filter((a) => a.image && a.category === CINEMA_SLUG).slice(0, limit);
   return articles;
+
 
 }
 
