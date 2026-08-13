@@ -89,15 +89,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             .filter((r) => r.status === "approved")
             .map((r) => String((r as { item_id?: string }).item_id ?? ""))
             .filter(Boolean);
-          if (autoIds.length) {
+          {
             const { deskRowToIngest } = await import("@/lib/desk-publish.server");
             const { ingest } = await import("@/lib/cms.server");
+            // Every approved row that has not gone out yet — the ones just
+            // auto-approved plus anything an editor approved in the desk.
             const { data: queued } = await supabaseAdmin
               .from("digest_queue")
               .select("*")
-              .in("item_id", autoIds)
               .eq("status", "approved")
-              .neq("upload_status", "sent");
+              .neq("upload_status", "sent")
+              .limit(500);
             const batch = (queued ?? []) as unknown as Record<string, unknown>[];
             if (batch.length) {
               try {
