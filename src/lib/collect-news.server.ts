@@ -787,6 +787,49 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   rows.push(...publisherBatches.flat());
 
 
+  // First-party newsroom: our own WordPress site (bayarea.telugutimes.net).
+  try {
+    const { fetchWordPressPosts, WP_SOURCE_NAME } = await import("./wp-source.server");
+    const posts = await fetchWordPressPosts(20);
+    lastDiag.notes.push(`wordpress: ${posts.length} posts`);
+    for (const p of posts) {
+      const kind =
+        p.categorySlug === "events"
+          ? ("event" as const)
+          : p.categorySlug === "temples"
+            ? ("temple" as const)
+            : classify(p.title);
+      const dedupe = keyFor(BAY_AREA.slug, p.title);
+      rows.push({
+        dedupe_key: dedupe,
+        item_id: dedupe,
+        digest_date: (p.published ?? `${today}T00:00:00Z`).slice(0, 10),
+        kind,
+        city_slug: BAY_AREA.slug,
+        title: p.title,
+        summary: p.summary,
+        source: WP_SOURCE_NAME,
+        source_url: p.link,
+        published_at: p.published,
+        origin: "feed" as const,
+        payload: {
+          id: dedupe,
+          kind,
+          citySlug: BAY_AREA.slug,
+          title: p.title,
+          summary: p.summary,
+          source: WP_SOURCE_NAME,
+          sourceUrl: p.link,
+          image: p.image,
+          category: p.categorySlug,
+          collectedAt: today,
+        },
+      } satisfies CollectedItem);
+    }
+  } catch (e) {
+    lastDiag.notes.push(`wordpress pull failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
   // Temple announcements come from each temple's own website, not news search —
   // news feeds almost never carry seva / utsavam notices.
   try {
