@@ -8,10 +8,11 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
+import { DigestNote, SourceChip } from "@/components/source-credit";
 
-const TITLE = "Bay Area Telugu Times — Local Telugu news, events & community";
+const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
-  "A fast, story-first edition of Bay Area Telugu Times: local news, events and community for the San Francisco Bay Area.";
+  "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
 
 /** Single snapshot read — no database, temple, politics or RSS calls. */
@@ -112,8 +113,11 @@ function Lead({ a }: { a: Article }) {
       ) : null}
       <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
-      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-        {a.categoryName} · {formatDate(a.date)}
+      <p className="mt-1.5 flex flex-wrap items-center gap-2">
+        <SourceChip article={a} />
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          {a.categoryName} · {formatDate(a.date)}
+        </span>
       </p>
     </Link>
   );
@@ -130,8 +134,11 @@ function Row({ a }: { a: Article }) {
         <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">
           {a.title}
         </h3>
-        <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-          {a.categoryName} · {formatDate(a.date)}
+        <p className="mt-1 flex flex-wrap items-center gap-2">
+          <SourceChip article={a} />
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            {a.categoryName} · {formatDate(a.date)}
+          </span>
         </p>
       </div>
       {a.image ? (
@@ -246,12 +253,19 @@ function Home() {
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
-      <h1 className="sr-only">Bay Area Telugu Times</h1>
-      
+      <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+
+      <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+          Digest from sources
+        </p>
+        <DigestNote className="mt-0.5" />
+      </div>
+
       <HousingHero />
 
       <section className="mt-6">
-        <Head>Bay Area</Head>
+        <Head>Bay Area digest</Head>
         <Lead a={lead} />
         <div className="mt-4">
           {localRest.map((a) => (

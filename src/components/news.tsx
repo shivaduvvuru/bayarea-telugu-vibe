@@ -4,6 +4,7 @@ import { ChevronRight, Clock } from "lucide-react";
 import { type Article, articleLang, categoryBySlug, formatDate } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
+import { SourceChip } from "@/components/source-credit";
 
 
 
@@ -111,6 +112,7 @@ export function LangBadge({ article }: { article: Article }) {
 function Meta({ article }: { article: Article }) {
   return (
     <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+      <SourceChip article={article} />
       <RelativeDate iso={article.date} />
       <span aria-hidden>·</span>
       <span className="inline-flex items-center gap-1">
