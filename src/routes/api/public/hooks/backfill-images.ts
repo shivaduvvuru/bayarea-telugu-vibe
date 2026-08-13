@@ -62,12 +62,12 @@ export const Route = createFileRoute("/api/public/hooks/backfill-images")({
         let queueUpdated = 0;
         for (const row of queued ?? []) {
           const payload = (row.payload ?? {}) as Record<string, unknown>;
-          if (payload["image_url"]) continue;
+          if (payload["image"] || payload["image_url"]) continue;
           const image = row.source_url ? await fetchArticleImage(row.source_url) : null;
           if (!image) continue;
           const res = await supabaseAdmin
             .from("digest_queue")
-            .update({ payload: { ...payload, image_url: image } })
+            .update({ payload: { ...payload, image: image, image_url: image } })
             .eq("item_id", row.item_id);
           if (!res.error) queueUpdated += 1;
         }
