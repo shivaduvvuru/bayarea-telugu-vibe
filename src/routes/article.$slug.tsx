@@ -97,6 +97,26 @@ function ArticlePage() {
         >
           {article.title}
         </h1>
+        {article.sourceName && (
+          <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <span className="rounded-sm bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+              Digest
+            </span>
+            <span className="text-muted-foreground">Reported by</span>
+            {article.sourceUrl ? (
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="font-bold text-primary underline"
+              >
+                {article.sourceName}
+              </a>
+            ) : (
+              <span className="font-bold text-ink">{article.sourceName}</span>
+            )}
+          </p>
+        )}
         <div className="mt-4 border-y border-border py-3 text-sm text-muted-foreground">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-semibold text-ink">{article.author}</span>
