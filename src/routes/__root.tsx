@@ -191,7 +191,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <div className="flex min-h-dvh flex-col pb-16 md:pb-0">
+        <div className="flex min-h-dvh flex-col pb-32 md:pb-0">
           {isLite ? <LiteHeader /> : <SiteHeader />}
           <main className="flex-1">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
