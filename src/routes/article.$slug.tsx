@@ -148,11 +148,7 @@ function ArticlePage() {
               height={675}
               decoding="async"
               referrerPolicy="no-referrer-when-downgrade"
-              className={
-                article.category === "gallery"
-                  ? "max-h-[80vh] w-full bg-surface-tint object-contain"
-                  : "aspect-[16/9] w-full object-cover"
-              }
+              className="max-h-[80vh] w-full bg-surface-tint object-contain"
             />
             {article.sourceName && (
               <figcaption className="mt-1.5 text-xs text-muted-foreground">
