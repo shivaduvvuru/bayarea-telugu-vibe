@@ -9,7 +9,7 @@ import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
-import { isCinema, CINEMA_SLUG } from "./cinema-topics";
+import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
@@ -96,13 +96,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "city-news") {
     q = q.not("city", "is", null);
   } else if (category === "gallery") {
-    // Gallery is the cinema picture desk: photo-led Telugu / Hindi / OTT film
-    // stories only, newest first, credited to their publisher.
+    // Gallery is a star picture desk: heroine / star photo features from
+    // Telugu, Hindi and OTT cinema — not the cinema headline feed.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(limit * 6)
-      .in("category", ["cinema", "news"])
+      .limit(400)
       .not("image_url", "is", null);
+
   } else if (category === "cinema") {
     // Older film stories were stored as plain "news"; pull both and let the
     // classifier decide.
@@ -120,12 +120,18 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   }
   const { data, error } = await q;
   if (error) throw error;
-  const articles = ((data ?? []) as unknown as Row[]).map(toArticle);
+  const rows = (data ?? []) as unknown as Row[];
+  if (category === "gallery") {
+    return rows
+      .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
+      .map(toArticle)
+      .slice(0, limit);
+  }
+  const articles = rows.map(toArticle);
   if (category === "cinema") {
     return articles.filter((a) => a.category === "cinema").slice(0, limit);
   }
-  if (category === "gallery")
-    return articles.filter((a) => a.image && a.category === CINEMA_SLUG).slice(0, limit);
+
   return articles;
 
 
