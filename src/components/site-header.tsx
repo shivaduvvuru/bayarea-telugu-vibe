@@ -107,11 +107,9 @@ const MENU_ROW_1 = [
 
 /** Second row of the two-line desktop navigation. */
 const MENU_ROW_2 = [
-  { en: "Political", cat: "political" },
   { en: "Temples", to: "/temples" },
   { en: "Gallery", cat: "gallery" },
   { en: "Events", to: "/events" },
-  { en: "Readers", cat: "readers-column" },
   { en: "Advertise", to: "/contact" },
 ] as const;
 
