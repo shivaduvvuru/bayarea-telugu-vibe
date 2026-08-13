@@ -84,7 +84,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           }
 
           // Push the freshly approved rows straight onto the site.
-          let published = 0;
+          let publishedCount = 0;
           const autoIds = marked
             .filter((r) => r.status === "approved")
             .map((r) => String((r as { item_id?: string }).item_id ?? ""))
@@ -113,7 +113,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
                     "item_id",
                     batch.map((r) => String(r["item_id"])),
                   );
-                published = batch.length;
+                publishedCount = batch.length;
               } catch (e) {
                 const message = e instanceof Error ? e.message : String(e);
                 await supabaseAdmin
@@ -136,7 +136,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, collected: rows.length, published, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          return Response.json({ ok: true, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
