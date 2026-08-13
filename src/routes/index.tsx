@@ -9,6 +9,7 @@ import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
+import { Thumb } from "@/components/news";
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
@@ -19,6 +20,16 @@ const HOME_URL = canonical("/");
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
   queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
+  staleTime: 30 * 60 * 1000,
+});
+
+/**
+ * Same feed the City News section shows, so the home digest and /category/city-news
+ * always carry the identical stories and pictures.
+ */
+const cityNewsQuery = queryOptions({
+  queryKey: ["wp", "posts", "city-news"],
+  queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
 
@@ -45,7 +56,12 @@ const politicsQuery = queryOptions({
 
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(homeQuery),
+      context.queryClient.ensureQueryData(cityNewsQuery),
+    ]);
+  },
   head: () => ({
     meta: [
       { title: TITLE },
@@ -100,17 +116,9 @@ export const Route = createFileRoute("/")({
 function Lead({ a }: { a: Article }) {
   return (
     <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
-      {a.image ? (
-        <img
-          src={a.image}
-          alt=""
-          width={960}
-          height={540}
-          fetchPriority="high"
-          decoding="async"
-          className="aspect-[16/9] w-full rounded-md object-cover"
-        />
-      ) : null}
+      <div className="overflow-hidden rounded-md">
+        <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
+      </div>
       <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
       <p className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -141,17 +149,11 @@ function Row({ a }: { a: Article }) {
           </span>
         </p>
       </div>
-      {a.image ? (
-        <img
-          src={a.image}
-          alt=""
-          width={112}
-          height={84}
-          loading="lazy"
-          decoding="async"
-          className="h-[72px] w-[104px] shrink-0 rounded object-cover"
-        />
-      ) : null}
+      {/* Same picture treatment as City News: photo when we have one,
+          otherwise the typographic tile — never an empty slot. */}
+      <div className="w-[104px] shrink-0 overflow-hidden rounded [&_figcaption]:hidden">
+        <Thumb article={a} sizes="104px" />
+      </div>
     </Link>
   );
 }
@@ -210,12 +212,14 @@ function LinkRow({
 
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
+  // Identical feed to /category/city-news so both screens carry the same stories.
+  const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
-  const local = articles.filter(isLocal);
+  const local = cityNews.length ? cityNews : articles.filter(isLocal);
   const lead = local[0] ?? articles[0];
 
   if (!lead) {
@@ -226,9 +230,9 @@ function Home() {
     );
   }
 
-  const rest = articles.filter((a) => a.slug !== lead.slug);
-  const localRest = rest.filter(isLocal).slice(0, 8);
-  const more = rest.filter((a) => !localRest.includes(a)).slice(0, 12);
+  const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+  const shown = new Set([lead.slug, ...localRest.map((a) => a.slug)]);
+  const more = articles.filter((a) => !shown.has(a.slug)).slice(0, 12);
 
   const events = upcomingEvents().slice(0, 5);
   // Feeds sometimes repeat the same link (or point at the site root), which both
@@ -265,7 +269,7 @@ function Home() {
       <HousingHero />
 
       <section className="mt-6">
-        <Head>Bay Area digest</Head>
+        <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
         <Lead a={lead} />
         <div className="mt-4">
           {localRest.map((a) => (
