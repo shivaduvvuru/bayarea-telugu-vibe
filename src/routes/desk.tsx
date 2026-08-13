@@ -11,12 +11,15 @@ import {
   Landmark,
   ExternalLink,
   MapPin,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useReviewQueue } from "@/lib/desk-queue";
 import { CITIES, CITY_REGIONS, cityBySlug } from "@/lib/desk-cities";
 import { KIND_LABEL, todayISO, type DeskItem, type ItemKind, type ItemStatus } from "@/lib/desk";
+import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
