@@ -63,7 +63,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     heading: "More from us",
     items: [
       { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-      
+      { to: "/desk", label: "Review desk" },
 
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },

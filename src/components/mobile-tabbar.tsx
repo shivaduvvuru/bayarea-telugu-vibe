@@ -16,6 +16,7 @@ import {
   Tag,
   Home,
   Newspaper,
+  Lock,
 } from "lucide-react";
 
 
@@ -41,6 +42,7 @@ const ICON_TABS = [
 
 /** Everything that is not in the top mobile rail or bottom bars. */
 const MORE = [
+  { to: "/desk", icon: Lock, label: "Review desk" },
   { to: "/favorites", icon: Heart, label: "Saved photos" },
   { to: "/people", icon: BookOpen, label: "People" },
   { to: "/epaper", icon: Newspaper, label: "E-Paper" },

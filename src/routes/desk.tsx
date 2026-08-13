@@ -11,12 +11,15 @@ import {
   Landmark,
   ExternalLink,
   MapPin,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useReviewQueue } from "@/lib/desk-queue";
 import { CITIES, CITY_REGIONS, cityBySlug } from "@/lib/desk-cities";
 import { KIND_LABEL, todayISO, type DeskItem, type ItemKind, type ItemStatus } from "@/lib/desk";
+import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -53,6 +56,88 @@ const KIND_ICON: Record<ItemKind, typeof Newspaper> = {
 const WINDOW_DAYS = 7;
 
 function DeskPage() {
+  const [unlocked, setUnlocked] = useState<boolean | null>(null);
+  const doCheck = useServerFn(checkDesk);
+  const doUnlock = useServerFn(unlockDesk);
+  const doLock = useServerFn(lockDesk);
+
+  useEffect(() => {
+    doCheck()
+      .then((res) => setUnlocked(res.unlocked))
+      .catch(() => setUnlocked(false));
+  }, [doCheck]);
+
+  const onUnlock = async (passcode: string) => {
+    const res = await doUnlock({ data: { passcode } });
+    setUnlocked(res.ok);
+    return res.ok;
+  };
+
+  const onLock = async () => {
+    await doLock();
+    setUnlocked(false);
+  };
+
+  if (unlocked === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Loading desk…</p>
+      </div>
+    );
+  }
+
+  if (!unlocked) {
+    return <DeskPasscodeForm onUnlock={onUnlock} />;
+  }
+
+  return <DeskWorkspace onLock={onLock} />;
+}
+
+function DeskPasscodeForm({ onUnlock }: { onUnlock: (passcode: string) => Promise<boolean> }) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(false);
+    const ok = await onUnlock(value);
+    setBusy(false);
+    if (!ok) setError(true);
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-sm p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <Lock className="size-5 text-primary" />
+          <h1 className="text-lg font-semibold text-foreground">Editorial desk</h1>
+        </div>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Enter the editor passcode to review and publish stories.
+        </p>
+        <form onSubmit={submit} className="space-y-3">
+          <input
+            name="passcode"
+            type="password"
+            autoComplete="current-password"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Passcode"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+          />
+          {error && <p className="text-sm text-destructive">Incorrect passcode.</p>}
+          <Button type="submit" className="w-full" disabled={busy || !value}>
+            {busy ? "Checking…" : "Unlock desk"}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
   const date = todayISO();
   const [base, setBase] = useState<DeskItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -207,6 +292,9 @@ function DeskPage() {
             </Button>
             <Button size="sm" variant="ghost" asChild>
               <Link to="/admin">Newsroom CMS</Link>
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => void onLock()}>
+              <Lock className="size-3" /> Lock
             </Button>
           </div>
 
