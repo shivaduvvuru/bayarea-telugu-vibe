@@ -113,6 +113,10 @@ export type Article = {
   image: string | null;
   category: string;
   categoryName: string;
+  /** Original publisher, credited next to the story and its artwork. */
+  sourceName?: string | null;
+  /** Canonical publisher URL for the story. */
+  sourceUrl?: string | null;
 };
 
 export type DirectoryEntry = {
