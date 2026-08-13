@@ -11,6 +11,8 @@ import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
+import { PrimeHero } from "@/components/prime-hero";
+import { isPrimeBannerFresh } from "@/lib/prime-story";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
@@ -329,6 +331,9 @@ function Home() {
   // The lead has already been reserved by the local pass. Every later section
   // uses the same set, preventing a renamed/cross-posted story or reused photo
   // from appearing again under More news, Community, Events or Gallery.
+  // Prime slot: the hand-built banner holds it only while fresh; past its age
+  // threshold the newest local story is promoted instead.
+  const bannerFresh = isPrimeBannerFresh();
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
   takeUnique([lead, ...localRest], homepageSeen);
   const uniqueGallery = takeUnique(galleryItems, homepageSeen, 6);
@@ -372,14 +377,14 @@ function Home() {
           <DigestNote className="mt-0.5" />
         </div>
 
-        <HousingHero />
+        {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
-          <Lead a={lead} />
-          <div className="mt-4">
+          {bannerFresh ? <Lead a={lead} /> : null}
+          <div className={bannerFresh ? "mt-4" : ""}>
             {localRest.map((a) => (
               <Row key={a.slug} a={a} />
             ))}
