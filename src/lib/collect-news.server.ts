@@ -241,10 +241,17 @@ export const lastDiag = {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-async function fetchFeed(url: string): Promise<RawItem[] | null> {
+async function fetchFeed(url: string, attempt = 0): Promise<RawItem[] | null> {
   try {
     const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" } });
     if (!res.ok) {
+      // Google/Bing throttle bursts with 429/503 — back off briefly and retry
+      // instead of losing a whole feed (this used to silently drop the
+      // glamour / picture searches on busy runs).
+      if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        return fetchFeed(url, attempt + 1);
+      }
       if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
       return null;
     }
@@ -507,6 +514,40 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
+  // Glamour / social-media picture desks feeding the Gallery grid.
+  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 6 },
+  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 5 },
+  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 5 },
+  {
+    name: "Glamour shoots",
+    url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Instagram buzz",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(Instagram+OR+%22social+media%22+OR+%22Insta+post%22+OR+%22viral+photos%22+OR+%22breaks+the+internet%22)+(Telugu+OR+Tollywood+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Red carpet & events",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22red+carpet%22+OR+%22ramp+walk%22+OR+%22magazine+cover%22+OR+%22pre-release+event+photos%22+OR+%22award+function+photos%22)+(Telugu+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "OTT stars gallery",
+    url: "https://news.google.com/rss/search?q=(%22web+series+actress%22+OR+%22OTT+actress%22+OR+%22Aha+heroine%22)+(photos+OR+stills+OR+gallery+OR+photoshoot)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 5,
+  },
+  {
+    name: "గ్లామర్ ఫోటోలు",
+    url: "https://news.google.com/rss/search?q=%E0%B0%97%E0%B1%8D%E0%B0%B2%E0%B0%BE%E0%B0%AE%E0%B0%B0%E0%B1%8D+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%85%E0%B0%82%E0%B0%A6%E0%B0%BE%E0%B0%B2+%E0%B0%A4%E0%B0%BE%E0%B0%B0+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
   { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
   {
     name: "Bollywood Hungama",
@@ -705,8 +746,10 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
   // Named publishers read directly: Indian-American papers, Indian dailies and
   // magazines, and official immigration sources.
+  const publisherBatches: CollectedItem[][] = [];
+  for (let b = 0; b < PUBLISHER_FEEDS.length; b += 8) {
   const publisherRows = await Promise.all(
-    PUBLISHER_FEEDS.map(async (feed) => {
+    PUBLISHER_FEEDS.slice(b, b + 8).map(async (feed) => {
       const items = await fetchPublisher(feed);
       const summaries = await summarize(BAY_AREA, items, apiKey);
       return items.map((it, i) => {
@@ -739,7 +782,9 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
       });
     }),
   );
-  rows.push(...publisherRows.flat());
+    publisherBatches.push(publisherRows.flat());
+  }
+  rows.push(...publisherBatches.flat());
 
 
   // Temple announcements come from each temple's own website, not news search —
