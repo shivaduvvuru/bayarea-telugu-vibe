@@ -29,6 +29,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     heading: "Sections",
     items: [
       { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+      { to: "/category/$category", params: { category: "india-news" }, label: "India News" },
       { to: "/category/$category", params: { category: "india-immigration" }, label: "Immigration & Visa" },
       { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },

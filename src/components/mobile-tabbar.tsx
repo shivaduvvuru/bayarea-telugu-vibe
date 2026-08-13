@@ -18,6 +18,7 @@ import {
   Utensils,
   Clapperboard,
   Heart,
+  Globe2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,6 +33,7 @@ const ICON_TABS = [
 
 /** Secondary sections, shown in the More sheet instead of a dense strip. */
 const MORE = [
+  { to: "/category/$category", params: { category: "india-news" }, icon: Globe2, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, icon: Clapperboard, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, icon: Image, label: "Gallery" },
   { to: "/forums", icon: MessagesSquare, label: "Forums" },
