@@ -27,7 +27,7 @@ const SOCIAL = [
 
 function SocialRow({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center gap-1.5 ${className}`}>
       {SOCIAL.map(({ href, label, icon: Icon }) => (
         <a
           key={label}
@@ -35,9 +35,9 @@ function SocialRow({ className = "" }: { className?: string }) {
           target="_blank"
           rel="noreferrer"
           aria-label={`Telugu Times on ${label}`}
-          className="flex h-9 w-9 items-center justify-center rounded-sm text-nav-foreground/85 transition-colors hover:bg-nav-hover"
+          className="flex h-10 w-10 items-center justify-center rounded-sm text-nav-foreground/85 transition-colors hover:bg-nav-hover"
         >
-          <Icon className="h-4 w-4" />
+          <Icon className="h-5 w-5" />
         </a>
       ))}
     </div>
