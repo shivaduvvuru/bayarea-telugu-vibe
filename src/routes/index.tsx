@@ -269,7 +269,7 @@ function Home() {
       <HousingHero />
 
       <section className="mt-6">
-        <Head>Bay Area digest</Head>
+        <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
         <Lead a={lead} />
         <div className="mt-4">
           {localRest.map((a) => (
