@@ -8,10 +8,11 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
+import { DigestNote, SourceChip } from "@/components/source-credit";
 
-const TITLE = "Bay Area Telugu Times — Local Telugu news, events & community";
+const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
-  "A fast, story-first edition of Bay Area Telugu Times: local news, events and community for the San Francisco Bay Area.";
+  "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
 
 /** Single snapshot read — no database, temple, politics or RSS calls. */
