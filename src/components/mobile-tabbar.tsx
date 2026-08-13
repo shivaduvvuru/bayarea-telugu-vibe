@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Newspaper,
   CalendarDays,
   Store,
-  MessagesSquare,
-  Landmark,
-  Image,
   BookOpen,
   Megaphone,
   Vote,
@@ -16,9 +12,9 @@ import {
   Menu,
   X,
   Utensils,
-  Clapperboard,
   Heart,
-  Globe2,
+  Tag,
+  PartyPopper,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
