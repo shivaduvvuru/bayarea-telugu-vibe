@@ -396,6 +396,85 @@ async function fetchTopics(
   return merged;
 }
 
+/**
+ * Named publishers we read directly rather than through a news search:
+ * Indian-American papers, national Indian dailies and magazines, plus official
+ * immigration sources (USCIS newsroom, Murthy Law Firm, Immigration.com).
+ * Publishers without a working RSS feed are read through a site: news search.
+ */
+const PUBLISHER_FEEDS: {
+  name: string;
+  url: string;
+  kind: CollectedItem["kind"];
+  limit?: number;
+  match?: RegExp;
+}[] = [
+  // Indian-American press
+  { name: "New India Abroad", url: "https://news.google.com/rss/search?q=site:newindiaabroad.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
+  { name: "India West", url: "https://news.google.com/rss/search?q=site:indiawest.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
+  { name: "The American Bazaar", url: "https://americanbazaaronline.com/feed/", kind: "news", limit: 5 },
+  // Indian national dailies and magazines
+  { name: "The Times of India (NRI)", url: "https://timesofindia.indiatimes.com/rssfeeds/7098551.cms", kind: "news", limit: 5 },
+  { name: "NDTV India", url: "https://feeds.feedburner.com/ndtvnews-india-news", kind: "news", limit: 4 },
+  { name: "The Hindu", url: "https://www.thehindu.com/news/national/feeder/default.rss", kind: "news", limit: 4 },
+  {
+    name: "Indian magazines",
+    url: "https://news.google.com/rss/search?q=(site:frontline.thehindu.com+OR+site:indiatoday.in+OR+site:outlookindia.com+OR+site:theweek.in)+India+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 4,
+  },
+  // Immigration and consular
+  {
+    name: "USCIS",
+    url: "https://www.uscis.gov/news/rss-feed/59144",
+    kind: "news",
+    limit: 6,
+    match: /visa|green card|h 1b|h1b|immigrat|citizenship|naturaliz|form i|uscis|fee|eb 2|eb 3|opt|status/,
+  },
+  { name: "Murthy Law Firm", url: "https://www.murthy.com/feed/", kind: "news", limit: 5 },
+  { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
+  {
+    name: "Consulate General of India, San Francisco",
+    url: "https://news.google.com/rss/search?q=%22Consulate+General+of+India%22+San+Francisco+OR+%22Indian+consulate%22+OCI+OR+passport+OR+visa+when:14d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 4,
+  },
+];
+
+/** Anything older than this is stale for a daily digest. */
+const MAX_AGE_DAYS = 12;
+
+function recent(published: string | null): boolean {
+  if (!published) return true;
+  const t = Date.parse(published);
+  if (Number.isNaN(t)) return true;
+  return Date.now() - t <= MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+}
+
+async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<RawItem[]> {
+  const parsed = await fetchFeed(feed.url);
+  if (!parsed?.length) return [];
+  lastDiag.fetched += 1;
+  lastDiag.raw += parsed.length;
+  // A publisher's own feed carries no <source> tag, so parseRss falls back to the
+  // headline — always label those with the configured publisher name instead.
+  const aggregated = /news\.google\.com|bing\.com/.test(feed.url);
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of parsed) {
+    const k = normalize(item.title);
+    const hay = normalize(`${item.title} ${item.source}`);
+    if (!k || seen.has(k) || !recent(item.published)) continue;
+    if (feed.match && !feed.match.test(hay)) continue;
+    seen.add(k);
+    merged.push({ ...item, source: aggregated ? item.source || feed.name : feed.name });
+    if (merged.length >= (feed.limit ?? 4)) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+  return merged;
+}
+
 export let lastAiError: string | null = null;
 
 async function summarize(city: City, items: RawItem[], apiKey: string | undefined): Promise<string[]> {
@@ -521,6 +600,45 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
     }),
   );
   rows.push(...topicRows.flat());
+
+  // Named publishers read directly: Indian-American papers, Indian dailies and
+  // magazines, and official immigration sources.
+  const publisherRows = await Promise.all(
+    PUBLISHER_FEEDS.map(async (feed) => {
+      const items = await fetchPublisher(feed);
+      const summaries = await summarize(BAY_AREA, items, apiKey);
+      return items.map((it, i) => {
+        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        const kind = feed.kind === "news" ? classify(it.title) : feed.kind;
+        return {
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+          kind,
+          city_slug: BAY_AREA.slug,
+          title: it.title,
+          summary: summaries[i] ?? "",
+          source: it.source || feed.name,
+          source_url: it.link,
+          published_at: it.published,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind,
+            citySlug: BAY_AREA.slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source || feed.name,
+            sourceUrl: it.link,
+            image: it.image,
+            collectedAt: today,
+          },
+        } satisfies CollectedItem;
+      });
+    }),
+  );
+  rows.push(...publisherRows.flat());
+
 
   // Temple announcements come from each temple's own website, not news search —
   // news feeds almost never carry seva / utsavam notices.
