@@ -6,6 +6,7 @@ import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
+import { PhotoActions } from "@/components/photo-actions";
 import type { Article } from "@/lib/content";
 
 /** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
