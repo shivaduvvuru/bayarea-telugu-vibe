@@ -115,17 +115,9 @@ export const Route = createFileRoute("/")({
 function Lead({ a }: { a: Article }) {
   return (
     <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
-      {a.image ? (
-        <img
-          src={a.image}
-          alt=""
-          width={960}
-          height={540}
-          fetchPriority="high"
-          decoding="async"
-          className="aspect-[16/9] w-full rounded-md object-cover"
-        />
-      ) : null}
+      <div className="overflow-hidden rounded-md">
+        <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
+      </div>
       <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
       <p className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -156,17 +148,11 @@ function Row({ a }: { a: Article }) {
           </span>
         </p>
       </div>
-      {a.image ? (
-        <img
-          src={a.image}
-          alt=""
-          width={112}
-          height={84}
-          loading="lazy"
-          decoding="async"
-          className="h-[72px] w-[104px] shrink-0 rounded object-cover"
-        />
-      ) : null}
+      {/* Same picture treatment as City News: photo when we have one,
+          otherwise the typographic tile — never an empty slot. */}
+      <div className="w-[104px] shrink-0 overflow-hidden rounded [&_figcaption]:hidden">
+        <Thumb article={a} sizes="104px" />
+      </div>
     </Link>
   );
 }
