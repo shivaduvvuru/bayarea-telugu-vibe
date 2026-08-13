@@ -7,10 +7,18 @@ const BLOCKED =
   /(?:^|\.)patch\.com$|patch\.com|patchcdn|patch-?(?:am|logo)|logo|sprite|favicon|placeholder|default[-_]?(?:image|thumb)|avatar|blank\.|1x1|spacer|watermark/i;
 
 
+/** Tiny thumbnails and crops: skip them so tiles get a real photo. */
+const TOO_SMALL = /-\d{2,3}x\d{2,3}\.|\b(?:thumb(?:nail)?s?|small|icon|mini|75x75|150x150)\b|[?&](?:w|width)=(?:\d{1,2}|[12]\d\d)\b/i;
+
+export function looksHighRes(url: string | null | undefined): boolean {
+  if (!url) return false;
+  return !TOO_SMALL.test(url);
+}
+
 export function usableImage(url: string | null | undefined): string | null {
   if (!url) return null;
   const raw = url.trim();
-  if (!raw || BLOCKED.test(raw)) return null;
+  if (!raw || BLOCKED.test(raw) || TOO_SMALL.test(raw)) return null;
   return raw;
 }
 
