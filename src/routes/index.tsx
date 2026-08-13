@@ -253,12 +253,19 @@ function Home() {
 
   return (
     <div className="mx-auto max-w-3xl px-3 py-3">
-      <h1 className="sr-only">Bay Area Telugu Times</h1>
-      
+      <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+
+      <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+          Digest from sources
+        </p>
+        <DigestNote className="mt-0.5" />
+      </div>
+
       <HousingHero />
 
       <section className="mt-6">
-        <Head>Bay Area</Head>
+        <Head>Bay Area digest</Head>
         <Lead a={lead} />
         <div className="mt-4">
           {localRest.map((a) => (
