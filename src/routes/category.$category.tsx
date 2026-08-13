@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard } from "@/components/news";
+import { DigestNote } from "@/components/source-credit";
 
 const postsQuery = (category: string) =>
   queryOptions({
