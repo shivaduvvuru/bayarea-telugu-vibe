@@ -132,7 +132,7 @@ function hueOf(seed: string) {
   return h;
 }
 
-function Thumb({
+export function Thumb({
   article,
   priority = false,
   sizes,
