@@ -11,6 +11,5 @@ export const TT_LINKS = {
   youtube: "https://www.youtube.com/@telugutimesdigital",
   instagram: "https://www.instagram.com/telugutimesdigital/",
   facebook: "https://www.facebook.com/TeluguTimesDigital/",
-  x: "https://x.com/telugutimes",
-  whatsapp: "https://whatsapp.com/channel/telugutimes",
+
 } as const;
