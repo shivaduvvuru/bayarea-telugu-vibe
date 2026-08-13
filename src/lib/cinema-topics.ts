@@ -25,3 +25,25 @@ export function isCinema(
   if (CINEMA_TEXT.test(text)) return true;
   return CINEMA_HOSTS.test((sourceUrl ?? "").toLowerCase());
 }
+
+/**
+ * Gallery is a star picture desk, not a headline feed: it only carries
+ * photo-led coverage of Telugu / Hindi / OTT heroines and stars.
+ */
+const STAR_PERSON =
+  /\b(?:actress|heroine|star(?:let)?|glam(?:our|orous)?|beauty|diva|model|hero(?:ine)?s)\b/i;
+
+const PHOTO_LED =
+  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b/i;
+
+/** True for heroine / star photo features that belong in the Gallery grid. */
+export function isStarGallery(
+  title: string | null | undefined,
+  summary?: string | null,
+  sourceUrl?: string | null,
+): boolean {
+  const text = `${title ?? ""} ${summary ?? ""}`;
+  if (!isCinema(title, summary, sourceUrl) && !STAR_PERSON.test(text)) return false;
+  return STAR_PERSON.test(text) && PHOTO_LED.test(text);
+}
+
