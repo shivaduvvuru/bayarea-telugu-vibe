@@ -42,8 +42,6 @@ const ICON_TABS = [
 /** Everything that is not in the top mobile rail or bottom bars. */
 const MORE = [
   { to: "/favorites", icon: Heart, label: "Saved photos" },
-  { to: "/category/$category", params: { category: "political" }, icon: Landmark, label: "Political" },
-  { to: "/category/$category", params: { category: "readers-column" }, icon: BookOpen, label: "Readers" },
   { to: "/people", icon: BookOpen, label: "People" },
   { to: "/epaper", icon: Newspaper, label: "E-Paper" },
   { to: "/submit", icon: Megaphone, label: "Submit a Story" },

@@ -47,7 +47,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
       { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
       { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
-      { to: "/category/$category", params: { category: "political" }, label: "Political" },
+      
     ],
   },
   {
@@ -63,7 +63,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     heading: "More from us",
     items: [
       { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-      { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
+      
 
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
