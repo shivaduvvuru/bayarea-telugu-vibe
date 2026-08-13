@@ -39,7 +39,6 @@ import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
-import { Route as ApiPublicRepairLinksRouteImport } from './routes/api/public/repair-links'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
@@ -194,11 +193,6 @@ const ApiPublicRefreshContentRoute = ApiPublicRefreshContentRouteImport.update({
   path: '/api/public/refresh-content',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicRepairLinksRoute = ApiPublicRepairLinksRouteImport.update({
-  id: '/api/public/repair-links',
-  path: '/api/public/repair-links',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ForumsThreadThreadIdRoute = ForumsThreadThreadIdRouteImport.update({
   id: '/forums/thread/$threadId',
   path: '/forums/thread/$threadId',
@@ -251,7 +245,6 @@ export interface FileRoutesByFullPath {
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
-  '/api/public/repair-links': typeof ApiPublicRepairLinksRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
@@ -286,7 +279,6 @@ export interface FileRoutesByTo {
   '/forums': typeof ForumsIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
-  '/api/public/repair-links': typeof ApiPublicRepairLinksRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
@@ -324,7 +316,6 @@ export interface FileRoutesById {
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
-  '/api/public/repair-links': typeof ApiPublicRepairLinksRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
@@ -362,7 +353,6 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
-    | '/api/public/repair-links'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
     | '/api/public/hooks/collect-news'
@@ -397,7 +387,6 @@ export interface FileRouteTypes {
     | '/forums'
     | '/temples'
     | '/api/public/refresh-content'
-    | '/api/public/repair-links'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
     | '/api/public/hooks/collect-news'
@@ -434,7 +423,6 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
-    | '/api/public/repair-links'
     | '/forums/thread/$threadId'
     | '/temples/temple/$slug'
     | '/api/public/hooks/collect-news'
@@ -467,7 +455,6 @@ export interface RootRouteChildren {
   CityCityRoute: typeof CityCityRoute
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
-  ApiPublicRepairLinksRoute: typeof ApiPublicRepairLinksRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
@@ -685,13 +672,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRefreshContentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/repair-links': {
-      id: '/api/public/repair-links'
-      path: '/api/public/repair-links'
-      fullPath: '/api/public/repair-links'
-      preLoaderRoute: typeof ApiPublicRepairLinksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/forums/thread/$threadId': {
       id: '/forums/thread/$threadId'
       path: '/forums/thread/$threadId'
@@ -779,7 +759,6 @@ const rootRouteChildren: RootRouteChildren = {
   CityCityRoute: CityCityRoute,
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
-  ApiPublicRepairLinksRoute: ApiPublicRepairLinksRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
