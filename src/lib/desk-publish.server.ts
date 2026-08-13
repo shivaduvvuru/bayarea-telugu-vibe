@@ -1,5 +1,5 @@
 import type { IngestRow } from "@/lib/cms.server";
-import { cityBySlug } from "@/lib/desk-cities";
+import { CITIES, cityBySlug } from "@/lib/desk-cities";
 import { classifyIndia } from "@/lib/india-topics";
 
 
@@ -23,7 +23,7 @@ export function deskRowToIngest(row: Row): IngestRow {
   // Bay Area city rows stay local; everything else gets an India section when it
   // reads as India / immigration / diaspora coverage.
   const indiaSlug =
-    kind === "news" && !cityBySlug(citySlug ?? "")?.region
+    kind === "news" && !CITIES.some((c) => c.slug === citySlug)
       ? classifyIndia(title, summary, linkUrl)
       : null;
 
