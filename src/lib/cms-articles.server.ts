@@ -73,18 +73,34 @@ function cityNameOf(slug: string): string | undefined {
   return CITY_CATEGORIES.find((c) => c.slug === slug)?.en;
 }
 
+/** First-party newsroom posts carry their section in the permalink path. */
+function ownSiteSection(link: string | null): string | null {
+  if (!link || !link.includes("bayarea.telugutimes.net")) return null;
+  try {
+    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
+    return seg ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function toArticle(row: Row): Article {
   // Rows published before the India sections existed carry a plain "news"
   // category; label them from their text so cards read correctly. Our own
-  // WordPress newsroom is first-party local reporting and is never relabelled
-  // into an India section.
-  const ownSite = (row.link_url ?? "").includes("bayarea.telugutimes.net");
+  // WordPress newsroom is first-party local reporting: it keeps the section
+  // from its own permalink and is never relabelled into an India section.
+  const own = ownSiteSection(row.link_url);
   const stored =
-    !ownSite && (row.category === "news" || !row.category)
-      ? isCinema(row.title, row.summary, row.link_url)
+    own !== null
+      ? own === "cinema"
         ? CINEMA_SLUG
-        : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
-      : row.category;
+        : (row.category === "news" || !row.category ? (own === "temples" ? "temples" : own === "events" ? "events" : row.category) : row.category)
+      : row.category === "news" || !row.category
+        ? isCinema(row.title, row.summary, row.link_url)
+          ? CINEMA_SLUG
+          : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
+        : row.category;
+
 
   // Cinema is a topic, not a place: a film story filed to a city still belongs
   // in Cinema.
