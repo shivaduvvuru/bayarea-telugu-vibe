@@ -220,6 +220,24 @@ function LinkRow({
   );
 }
 
+/** Picture tile that opens the swipeable home gallery viewer. */
+function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
+  return (
+    <figure className="m-0">
+      <button type="button" onClick={onOpen} className="block w-full text-left">
+        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
+        <figcaption className="mt-1.5">
+          <p className="line-clamp-2 text-xs font-semibold leading-snug text-ink">{article.title}</p>
+          <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            <SourceChip article={article} />
+            <RelativeDate iso={article.date} />
+          </span>
+        </figcaption>
+      </button>
+    </figure>
+  );
+}
+
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
