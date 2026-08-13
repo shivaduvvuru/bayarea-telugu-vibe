@@ -60,7 +60,8 @@ export function isStarGallery(
     PHOTO_LED.test(text) || /gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url);
   if (!photoLed) return false;
   if (!FEMALE_SUBJECT.test(text)) return false;
-  if (MALE_SUBJECT.test(text) && !STAR_PERSON.test(text)) return false;
+  // Strictly no men in Gallery: any male-subject cue disqualifies the post.
+  if (MALE_SUBJECT.test(text)) return false;
   return true;
 }
 

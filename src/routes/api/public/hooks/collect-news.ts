@@ -73,8 +73,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const cutoff = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
           await supabaseAdmin.from("digest_queue").delete().lt("digest_date", cutoff);
 
+          // Regular duplicate sweep across the published site.
+          const { sweepDuplicates } = await import("@/lib/dedupe-sweep.server");
+          const hidden = await sweepDuplicates(supabaseAdmin as never);
+
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, collected: rows.length, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          return Response.json({ ok: true, collected: rows.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
