@@ -242,6 +242,9 @@ function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
+  // Same picture desk used in /category/gallery.
+  const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
@@ -257,6 +260,145 @@ function Home() {
       </div>
     );
   }
+
+  const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+  const shown = new Set([lead.slug, ...localRest.map((a) => a.slug)]);
+  const more = articles.filter((a) => !shown.has(a.slug)).slice(0, 12);
+
+  const events = upcomingEvents().slice(0, 5);
+  // Feeds sometimes repeat the same link (or point at the site root), which both
+  // duplicated rows and tripped React's key warning.
+  const uniqueBy = <T,>(list: T[], key: (item: T) => string) => {
+    const seen = new Set<string>();
+    return list.filter((item) => {
+      const k = key(item);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+  const templeNews = uniqueBy(
+    templeFeeds.flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name }))),
+    (a) => `${a.temple}|${a.title}`,
+  ).slice(0, 6);
+  const politics = uniqueBy(
+    politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
+    (s) => s.title,
+  ).slice(0, 6);
+
+  return (
+    <div className="mx-auto max-w-6xl px-3 py-3">
+      <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+            Digest from sources
+          </p>
+          <DigestNote className="mt-0.5" />
+        </div>
+
+        <HousingHero />
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+        <section>
+          <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
+          <Lead a={lead} />
+          <div className="mt-4">
+            {localRest.map((a) => (
+              <Row key={a.slug} a={a} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
+          {galleryItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {galleryItems.map((a, i) => (
+                <GalleryTile key={a.slug} article={a} onOpen={() => setViewerIndex(i)} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {galleryItems.length > 0 && viewerIndex !== null && (
+        <GalleryLightbox
+          items={galleryItems}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
+
+      <div className="mx-auto max-w-3xl">
+        {communityItems.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
+            {communityItems.map((item) => (
+              <LinkRow
+                key={item.id}
+                href={item.link_url ?? "/connect"}
+                internal={!item.link_url || item.link_url.startsWith("/")}
+                title={item.title}
+                meta={[item.city, item.kind].filter(Boolean).join(" · ")}
+              />
+            ))}
+          </section>
+        )}
+
+        {events.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
+            {events.map((e) => (
+              <LinkRow
+                key={e.id}
+                href="/events"
+                internal
+                title={e.title}
+                meta={`${e.city} · ${formatDate(e.start)}`}
+              />
+            ))}
+          </section>
+        )}
+
+        {templeNews.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
+            {templeNews.map((a, i) => (
+              <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
+            ))}
+          </section>
+        )}
+
+        {politics.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
+            {politics.map((s, i) => (
+              <LinkRow
+                key={`${s.url}-${i}`}
+                href={s.url}
+                title={s.title}
+                meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
+              />
+            ))}
+          </section>
+        )}
+
+        <section className="mt-5">
+          <Head>More news</Head>
+          {more.map((a) => (
+            <Row key={a.slug} a={a} />
+          ))}
+        </section>
+      </div>
+    </div>
+  );
+}
 
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
   const shown = new Set([lead.slug, ...localRest.map((a) => a.slug)]);
