@@ -147,10 +147,14 @@ function Row({ a }: { a: Article }) {
     <Link
       to="/article/$slug"
       params={{ slug: a.slug }}
-      className="flex gap-3 border-b border-border py-3 last:border-0"
+      className="block border-b border-border py-3 last:border-0"
     >
-      <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">
+      {/* Bigger picture first, then the story text underneath. */}
+      <div className="overflow-hidden rounded">
+        <Thumb article={a} sizes="(max-width: 768px) 100vw, 720px" />
+      </div>
+      <div className="mt-2">
+        <h3 className="line-clamp-3 text-[16px] font-semibold leading-snug text-ink">
           {a.title}
         </h3>
         <p className="mt-1 flex flex-wrap items-center gap-2">
@@ -159,11 +163,6 @@ function Row({ a }: { a: Article }) {
             {a.categoryName} · {formatDate(a.date)}
           </span>
         </p>
-      </div>
-      {/* Same picture treatment as City News: photo when we have one,
-          otherwise the typographic tile — never an empty slot. */}
-      <div className="w-[104px] shrink-0 overflow-hidden rounded [&_figcaption]:hidden">
-        <Thumb article={a} sizes="104px" />
       </div>
     </Link>
   );
