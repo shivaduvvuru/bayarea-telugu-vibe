@@ -50,6 +50,14 @@ const communityQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
 });
 
+/** Published events from the newsroom CMS — these carry pictures. */
+const cmsEventsQuery = queryOptions({
+  queryKey: ["cms", "events", "home"],
+  queryFn: () => listCommunityItems({ data: { kind: "event", limit: 8 } }),
+  staleTime: 5 * 60 * 1000,
+});
+
+
 /** Pulled straight from temple websites — independent of the newsroom feed. */
 const templeQuery = queryOptions({
   queryKey: ["temples", "announcements"],
