@@ -8,6 +8,7 @@ import { listCommunityItems } from "@/lib/cms.functions";
 import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
+import { usableImage } from "@/lib/story-image";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
@@ -49,6 +50,14 @@ const communityQuery = queryOptions({
   queryFn: () => listCommunityItems({ data: { limit: 8 } }),
   staleTime: 5 * 60 * 1000,
 });
+
+/** Published events from the newsroom CMS — these carry pictures. */
+const cmsEventsQuery = queryOptions({
+  queryKey: ["cms", "events", "home"],
+  queryFn: () => listCommunityItems({ data: { kind: "event", limit: 8 } }),
+  staleTime: 5 * 60 * 1000,
+});
+
 
 /** Pulled straight from temple websites — independent of the newsroom feed. */
 const templeQuery = queryOptions({
@@ -194,14 +203,26 @@ function LinkRow({
   title,
   meta,
   internal,
+  image,
 }: {
   href: string;
   title: string;
   meta?: string;
   internal?: boolean;
+  image?: string | null;
 }) {
+  const picture = usableImage(image);
   const body = (
     <>
+      {picture ? (
+        <img
+          src={picture}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="mb-2 aspect-[16/9] w-full rounded-md border border-border object-cover object-top"
+        />
+      ) : null}
       <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">{title}</h3>
       {meta ? (
         <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{meta}</p>
@@ -219,6 +240,7 @@ function LinkRow({
     </a>
   );
 }
+
 
 /** Picture tile that opens the swipeable home gallery viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
@@ -252,6 +274,7 @@ function Home() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
+  const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
@@ -350,24 +373,38 @@ function Home() {
                 href={item.link_url ?? "/connect"}
                 internal={!item.link_url || item.link_url.startsWith("/")}
                 title={item.title}
+                image={item.image_url}
                 meta={[item.city, item.kind].filter(Boolean).join(" · ")}
               />
             ))}
           </section>
         )}
 
-        {events.length > 0 && (
+        {(cmsEvents.length > 0 || events.length > 0) && (
           <section className="mt-5">
             <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-            {events.map((e) => (
-              <LinkRow
-                key={e.id}
-                href="/events"
-                internal
-                title={e.title}
-                meta={`${e.city} · ${formatDate(e.start)}`}
-              />
-            ))}
+            {cmsEvents.length > 0
+              ? cmsEvents.map((e) => (
+                  <LinkRow
+                    key={e.id}
+                    href={e.link_url && !e.link_url.startsWith("/") ? e.link_url : "/events"}
+                    internal={!e.link_url || e.link_url.startsWith("/")}
+                    title={e.title}
+                    image={e.image_url}
+                    meta={[e.city, e.event_start ? formatDate(e.event_start) : e.venue]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  />
+                ))
+              : events.map((e) => (
+                  <LinkRow
+                    key={e.id}
+                    href="/events"
+                    internal
+                    title={e.title}
+                    meta={`${e.city} · ${formatDate(e.start)}`}
+                  />
+                ))}
           </section>
         )}
 
