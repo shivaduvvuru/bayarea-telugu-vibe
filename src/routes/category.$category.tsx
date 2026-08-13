@@ -94,6 +94,14 @@ function CategoryPage() {
       <h1 className="text-3xl font-bold text-ink">{cat.en}</h1>
       <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
       <DigestNote className="mt-2 max-w-2xl" />
+      {cat.slug === "gallery" ? (
+        <Link
+          to="/favorites"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold text-ink hover:border-primary hover:text-primary"
+        >
+          <Heart className="h-3.5 w-3.5" aria-hidden /> Saved photos
+        </Link>
+      ) : null}
       {cat.children?.length ? (
         <nav className="mt-3 flex flex-wrap gap-2" aria-label={`${cat.en} sections`}>
           {cat.children.map((c) => (
