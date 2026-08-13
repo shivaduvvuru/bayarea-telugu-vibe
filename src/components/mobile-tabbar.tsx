@@ -24,14 +24,14 @@ import { supabase } from "@/integrations/supabase/client";
 /** Red text rail at the bottom — utilities, no overlap with the top rail. */
 const TEXT_TABS = [
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-  { to: "/category/$category", params: { category: "political" }, label: "Political" },
-  { to: "/category/$category", params: { category: "readers-column" }, label: "Readers" },
-  { to: "/contact", label: "Advertise" },
+  { to: "/directory", label: "Directory" },
+  { to: "/associations", label: "Associations" },
+  { to: "/connect", label: "Community" },
 ] as const;
 
 /** White icon strip below the red rail — local, practical destinations. */
 const ICON_TABS = [
-  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/", icon: Home, label: "Home" },
   { to: "/events", icon: CalendarDays, label: "Events" },
   { to: "/temples", icon: Landmark, label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
@@ -41,11 +41,14 @@ const ICON_TABS = [
 /** Everything that is not in the top mobile rail or bottom bars. */
 const MORE = [
   { to: "/favorites", icon: Heart, label: "Saved photos" },
-  { to: "/associations", icon: PartyPopper, label: "Associations" },
+  { to: "/category/$category", params: { category: "political" }, icon: Landmark, label: "Political" },
+  { to: "/category/$category", params: { category: "readers-column" }, icon: BookOpen, label: "Readers" },
   { to: "/people", icon: BookOpen, label: "People" },
   { to: "/epaper", icon: Newspaper, label: "E-Paper" },
   { to: "/submit", icon: Megaphone, label: "Submit a Story" },
+  { to: "/contact", icon: Store, label: "Advertise" },
 ] as const;
+
 
 /** Editorial tools — only for signed-in staff. */
 const STAFF = [
