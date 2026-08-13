@@ -19,21 +19,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 
-/** Four core destinations — everything else lives behind More. */
+/** Bottom tab bar destinations — red menu at the foot of the screen. */
 const ICON_TABS = [
-  { to: "/category/$category", params: { category: "city-news" }, icon: Newspaper, label: "City News" },
+  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/category/$category", params: { category: "classifieds" }, icon: Tag, label: "Classifieds" },
   { to: "/events", icon: CalendarDays, label: "Events" },
   { to: "/temples", icon: Landmark, label: "Temples" },
-  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
+  { to: "/category/$category", params: { category: "fun-zone" }, icon: PartyPopper, label: "Fun Zone" },
 ] as const;
 
-/** Secondary sections, shown in the More sheet instead of a dense strip. */
+/** Everything that is not in the top mobile rail or bottom tab bar. */
 const MORE = [
-  { to: "/category/$category", params: { category: "india-news" }, icon: Globe2, label: "India" },
-  { to: "/category/$category", params: { category: "cinema" }, icon: Clapperboard, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, icon: Image, label: "Gallery" },
-  { to: "/forums", icon: MessagesSquare, label: "Forums" },
-  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
   { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
   {
     to: "/category/$category",
