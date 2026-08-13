@@ -274,6 +274,7 @@ function Home() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
+  const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
@@ -372,24 +373,38 @@ function Home() {
                 href={item.link_url ?? "/connect"}
                 internal={!item.link_url || item.link_url.startsWith("/")}
                 title={item.title}
+                image={item.image_url}
                 meta={[item.city, item.kind].filter(Boolean).join(" · ")}
               />
             ))}
           </section>
         )}
 
-        {events.length > 0 && (
+        {(cmsEvents.length > 0 || events.length > 0) && (
           <section className="mt-5">
             <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-            {events.map((e) => (
-              <LinkRow
-                key={e.id}
-                href="/events"
-                internal
-                title={e.title}
-                meta={`${e.city} · ${formatDate(e.start)}`}
-              />
-            ))}
+            {cmsEvents.length > 0
+              ? cmsEvents.map((e) => (
+                  <LinkRow
+                    key={e.id}
+                    href={e.link_url && !e.link_url.startsWith("/") ? e.link_url : "/events"}
+                    internal={!e.link_url || e.link_url.startsWith("/")}
+                    title={e.title}
+                    image={e.image_url}
+                    meta={[e.city, e.event_start ? formatDate(e.event_start) : e.venue]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  />
+                ))
+              : events.map((e) => (
+                  <LinkRow
+                    key={e.id}
+                    href="/events"
+                    internal
+                    title={e.title}
+                    meta={`${e.city} · ${formatDate(e.start)}`}
+                  />
+                ))}
           </section>
         )}
 
