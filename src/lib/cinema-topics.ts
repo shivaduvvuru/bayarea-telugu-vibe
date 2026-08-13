@@ -37,7 +37,18 @@ const STAR_PERSON =
 const PHOTO_LED =
   /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics))\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్/i;
 
-/** True for heroine / star photo features that belong in the Gallery grid. */
+/** Male-subject cues: those photo posts stay in Cinema, not the Gallery. */
+const MALE_SUBJECT =
+  /\b(?:actor|hero|director|producer|comedian|singer|megastar|power star|young tiger|mass maharaja|natural star|rebel star|superstar (?:rajinikanth|mahesh)|nandamuri|jr\.? ?ntr|ntr|pawan kalyan|allu arjun|mahesh babu|prabhas|ram charan|nani|vijay deverakonda|ravi teja|nithiin|sharwanand|bellamkonda|akhil|varun tej|sai (?:dharam )?tej|naga chaitanya|nagarjuna|balakrishna|chiranjeevi|venkatesh|shah ?rukh|salman|aamir|hrithik|ranbir|ranveer|ajay devgn|akshay|kartik aaryan|vicky kaushal|allu sirish|siddhu|teja sajja|rajinikanth|vijay|dhanush|suriya|yash|rishab shetty)\b|హీరో\b|నటుడు|దర్శకుడు/i;
+
+/** Female star cues, including headline-only names from film desks. */
+const FEMALE_SUBJECT =
+  /\b(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she\b|her\b|model|samantha|rashmika|pooja hegde|sreeleela|anupama|keerthy suresh|kajal|tamannaah|nabha natesh|krithi shetty|nidhhi agerwal|raashi khanna|rakul|shraddha|katrina|deepika|alia|janhvi|kiara|ananya|tripti dimri|mrunal thakur|sai pallavi|nayanthara|trisha|malavika mohanan|meenakshi chaudhary|payal rajput|faria abdullah|shriya|hansika|regina|ashu reddy|bhagyashri|divi vadthya|priyanka|kriti sanon|tara sutaria|disha patani|urvashi|nora fatehi|avika gor|lavanya|ketika sharma|shivani|apsara rani|ruhani sharma|sanjana|amrutha|preity mukhundhan|kushitha|nuveksha|rashi singh|yukti thareja|neha shetty|anikha|aishwarya|madhuri|nithya menen|niharika)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార|సుందరి/i;
+
+/**
+ * True for heroine / female-star photo features that belong in Gallery.
+ * Photo posts about male actors are deliberately excluded.
+ */
 export function isStarGallery(
   title: string | null | undefined,
   summary?: string | null,
@@ -45,13 +56,13 @@ export function isStarGallery(
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
   const url = (sourceUrl ?? "").toLowerCase();
-  // Dedicated picture desks (e.g. gallery.123telugu.com slideshows) are galleries.
-  if (/gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url)) return true;
-  if (!PHOTO_LED.test(text)) return false;
-  // "Latest Photos : <name>" style posts from film desks name the star, not the
-  // word "actress" — accept photo-led posts from cinema publishers directly.
-  if (STAR_PERSON.test(text)) return true;
-  return isCinema(title, summary, sourceUrl);
+  const photoLed =
+    PHOTO_LED.test(text) || /gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url);
+  if (!photoLed) return false;
+  if (!FEMALE_SUBJECT.test(text)) return false;
+  if (MALE_SUBJECT.test(text) && !STAR_PERSON.test(text)) return false;
+  return true;
 }
+
 
 
