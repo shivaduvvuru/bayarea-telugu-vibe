@@ -140,7 +140,6 @@ export function MobileTabBar() {
               <li key={item.label} className="bg-background">
                 <Link
                   to={item.to}
-                  {...("params" in item ? { params: item.params } : {})}
                   onClick={() => setOpen(false)}
 
 
