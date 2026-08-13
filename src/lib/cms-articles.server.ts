@@ -7,7 +7,7 @@ import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
-import { usableImage } from "./story-image";
+import { sourceLabel, usableImage } from "./story-image";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
