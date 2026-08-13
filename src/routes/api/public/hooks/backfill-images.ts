@@ -51,7 +51,35 @@ export const Route = createFileRoute("/api/public/hooks/backfill-images")({
           if (!res.error) updated += 1;
         }
 
-        return Response.json({ ok: true, scanned: (data ?? []).length, updated });
+        // Also fill artwork on queue rows still awaiting review, so approved
+        // picture stories publish with their photo attached.
+        const { data: queued } = await supabaseAdmin
+          .from("digest_queue")
+          .select("item_id, source_url, payload")
+          .eq("status", "pending")
+          .not("source_url", "is", null)
+          .limit(80);
+        let queueUpdated = 0;
+        for (const row of queued ?? []) {
+          const payload = (row.payload ?? {}) as Record<string, unknown>;
+          if (payload["image"] || payload["image_url"]) continue;
+          const image = row.source_url ? await fetchArticleImage(row.source_url) : null;
+          if (!image) continue;
+          const res = await supabaseAdmin
+            .from("digest_queue")
+            .update({ payload: { ...payload, image: image, image_url: image } })
+            .eq("item_id", row.item_id);
+          if (!res.error) queueUpdated += 1;
+        }
+
+        return Response.json({
+          ok: true,
+          scanned: (data ?? []).length,
+          updated,
+          queueScanned: (queued ?? []).length,
+          queueUpdated,
+        });
+
       },
     },
   },

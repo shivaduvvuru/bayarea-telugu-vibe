@@ -36,7 +36,7 @@ export function deskRowToIngest(row: Row): IngestRow {
     title,
     summary,
     link_url: linkUrl,
-    image_url: str(payload["image"]),
+    image_url: str(payload["image"]) ?? str(payload["image_url"]),
     city,
     region: citySlug ? (cityBySlug(citySlug)?.region ?? null) : null,
     category:

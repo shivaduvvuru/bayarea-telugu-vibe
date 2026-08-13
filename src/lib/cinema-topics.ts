@@ -44,7 +44,14 @@ export function isStarGallery(
   sourceUrl?: string | null,
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
-  if (!isCinema(title, summary, sourceUrl) && !STAR_PERSON.test(text)) return false;
-  return STAR_PERSON.test(text) && PHOTO_LED.test(text);
+  const url = (sourceUrl ?? "").toLowerCase();
+  // Dedicated picture desks (e.g. gallery.123telugu.com slideshows) are galleries.
+  if (/gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url)) return true;
+  if (!PHOTO_LED.test(text)) return false;
+  // "Latest Photos : <name>" style posts from film desks name the star, not the
+  // word "actress" — accept photo-led posts from cinema publishers directly.
+  if (STAR_PERSON.test(text)) return true;
+  return isCinema(title, summary, sourceUrl);
 }
+
 
