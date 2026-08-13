@@ -16,6 +16,7 @@ import {
   Tag,
   Home,
   Newspaper,
+  Lock,
 } from "lucide-react";
 
 
