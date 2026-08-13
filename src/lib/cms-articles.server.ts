@@ -73,15 +73,35 @@ function cityNameOf(slug: string): string | undefined {
   return CITY_CATEGORIES.find((c) => c.slug === slug)?.en;
 }
 
+/** First-party newsroom posts carry their section in the permalink path. */
+function ownSiteSection(link: string | null): string | null {
+  if (!link || !link.includes("bayarea.telugutimes.net")) return null;
+  try {
+    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
+    return seg ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function toArticle(row: Row): Article {
   // Rows published before the India sections existed carry a plain "news"
-  // category; label them from their text so cards read correctly.
+  // category; label them from their text so cards read correctly. Our own
+  // WordPress newsroom is first-party local reporting: it keeps the section
+  // from its own permalink and is never relabelled into an India section.
+  const own = ownSiteSection(row.link_url);
   const stored =
-    row.category === "news" || !row.category
-      ? isCinema(row.title, row.summary, row.link_url)
+    own !== null
+      ? own === "cinema"
         ? CINEMA_SLUG
-        : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
-      : row.category;
+        : (row.category === "news" || !row.category ? (own === "temples" ? "temples" : own === "events" ? "events" : row.category) : row.category)
+      : row.category === "news" || !row.category
+        ? isCinema(row.title, row.summary, row.link_url)
+          ? CINEMA_SLUG
+          : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
+        : row.category;
+
+
   // Cinema is a topic, not a place: a film story filed to a city still belongs
   // in Cinema.
   const slug =
@@ -118,10 +138,14 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   let q = base().order("published_at", { ascending: false }).limit(limit);
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
+    // The pool has to be wide: most rows filed to a Bay Area city are India or
+    // cinema syndication, so a small window would crowd out local reporting and
+    // our own newsroom posts.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(limit * 4)
+      .limit(400)
       .not("city", "is", null);
+
   } else if (category === "gallery") {
     // Gallery is a star picture desk: heroine / star photo features from
     // Telugu, Hindi and OTT cinema — not the cinema headline feed.
@@ -174,20 +198,30 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "city-news") {
     // Local Bay Area reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
+    // Rows already filed to an India section are excluded by their stored
+    // category; generic rows are classified from their text. First-party
+    // newsroom posts (our own WordPress site) are always local.
     return dedupeArticles(
       rows
-        .filter(
-          (r) =>
-            classifyIndia(r.title, r.summary, r.link_url) === null &&
-            r.category !== CINEMA_SLUG &&
+        .filter((r) => {
+          if (r.category === CINEMA_SLUG) return false;
+          const own = ownSiteSection(r.link_url);
+          if (own !== null) return own !== "cinema" && own !== "gallery";
+
+          if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
+          const generic = !r.category || r.category === "news";
+          if (generic && classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
+          return (
             !isCinema(r.title, r.summary, r.link_url) &&
-            !isStarGallery(r.title, r.summary, r.link_url),
-        )
+            !isStarGallery(r.title, r.summary, r.link_url)
+          );
+        })
         .map(toArticle),
     )
       .filter((a) => a.category !== CINEMA_SLUG)
       .slice(0, limit);
   }
+
 
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
