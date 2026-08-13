@@ -293,6 +293,9 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
             <Button size="sm" variant="ghost" asChild>
               <Link to="/admin">Newsroom CMS</Link>
             </Button>
+            <Button size="sm" variant="ghost" onClick={() => void onLock()}>
+              <Lock className="size-3" /> Lock
+            </Button>
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2">
