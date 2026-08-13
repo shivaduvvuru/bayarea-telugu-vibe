@@ -10,20 +10,21 @@ import { supabase } from "@/integrations/supabase/client";
  * Economic-Times-style lean header: one identity row, one category rail.
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
-/** Full desktop rail — every section stays reachable in one row. */
+/** Full desktop rail — every major section stays reachable in one row. */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
-  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/forums", label: "Forums" },
 ] as const;
 
-/** Mobile top rail — the half of the menu that lives above the fold. */
+/** Mobile top rail — news sections; utilities live in the bottom bars. */
 const MOBILE_RAIL = [
+  { to: "/", label: "Home" },
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
@@ -33,26 +34,22 @@ const MOBILE_RAIL = [
 
 type MoreItem = { to: string; params?: { category: string }; label: string };
 
-/** Everything else from the full site menu, grouped so the panel scans fast. */
+/** Everything not already on a rail, grouped so the panel scans fast. */
 const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreItem> }> = [
   {
-    heading: "Sections",
+    heading: "India",
     items: [
-      { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
-      { to: "/category/$category", params: { category: "india-news" }, label: "India News" },
       { to: "/category/$category", params: { category: "india-immigration" }, label: "Immigration & Visa" },
       { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
       { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
-      { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
-      { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-      { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
+      { to: "/category/$category", params: { category: "political" }, label: "Political" },
     ],
   },
   {
     heading: "Community",
     items: [
+      { to: "/directory", label: "Directory" },
       { to: "/associations", label: "Associations" },
       { to: "/people", label: "People" },
       { to: "/foundation-icons", label: "Foundation Icons" },
@@ -64,6 +61,9 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   {
     heading: "More from us",
     items: [
+      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
+      { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
+      { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
       { to: "/submit", label: "Submit a Story" },
@@ -72,6 +72,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     ],
   },
 ];
+
 
 /** Shown only to signed-in users: the editorial tools. */
 const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {

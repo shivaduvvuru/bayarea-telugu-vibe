@@ -25,36 +25,30 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 
-/** Red text rail at the bottom — same visual style as the top rail. */
+/** Red text rail at the bottom — utilities, no overlap with the top rail. */
 const TEXT_TABS = [
-  { to: "/directory", label: "Directory" },
-  { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-  { to: "/events", label: "Events" },
-  { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
+  { to: "/category/$category", params: { category: "political" }, label: "Political" },
+  { to: "/category/$category", params: { category: "readers-column" }, label: "Readers" },
+  { to: "/contact", label: "Advertise" },
 ] as const;
 
-/** White icon strip below the red rail — complements the top rail with icons. */
+/** White icon strip below the red rail — local, practical destinations. */
 const ICON_TABS = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/category/$category", params: { category: "india-news" }, icon: Newspaper, label: "India" },
-  { to: "/category/$category", params: { category: "cinema" }, icon: Clapperboard, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, icon: Images, label: "Gallery" },
-  { to: "/forums", icon: MessagesSquare, label: "Forums" },
+  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/events", icon: CalendarDays, label: "Events" },
+  { to: "/temples", icon: Landmark, label: "Temples" },
+  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
+  { to: "/category/$category", params: { category: "classifieds" }, icon: Tag, label: "Classifieds" },
 ] as const;
 
 /** Everything that is not in the top mobile rail or bottom bars. */
 const MORE = [
-  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
-  { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
-  {
-    to: "/category/$category",
-    params: { category: "readers-column" },
-    icon: BookOpen,
-    label: "Readers",
-  },
   { to: "/favorites", icon: Heart, label: "Saved photos" },
-  { to: "/contact", icon: Megaphone, label: "Advertise" },
+  { to: "/associations", icon: PartyPopper, label: "Associations" },
+  { to: "/people", icon: BookOpen, label: "People" },
+  { to: "/epaper", icon: Newspaper, label: "E-Paper" },
+  { to: "/submit", icon: Megaphone, label: "Submit a Story" },
 ] as const;
 
 /** Editorial tools — only for signed-in staff. */
@@ -62,6 +56,7 @@ const STAFF = [
   { to: "/desk", icon: ClipboardCheck, label: "Review desk" },
   { to: "/admin", icon: Settings, label: "Newsroom" },
 ] as const;
+
 
 const textLinkClass =
   "flex h-full items-center whitespace-nowrap px-2.5 py-2 text-[11px] font-semibold uppercase tracking-tight text-nav-foreground transition-colors hover:bg-nav-hover";
