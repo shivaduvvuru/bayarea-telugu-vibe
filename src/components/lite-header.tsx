@@ -10,12 +10,22 @@ import { supabase } from "@/integrations/supabase/client";
  * Economic-Times-style lean header: one identity row, one category rail.
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
+/** Full desktop rail — every section stays reachable in one row. */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/forums", label: "Forums" },
+] as const;
+
+/** Mobile top rail — the half of the menu that lives above the fold. */
+const MOBILE_RAIL = [
+  { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/forums", label: "Forums" },
