@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Article } from "@/lib/content";
+import { PhotoActions } from "@/components/photo-actions";
 
 /**
  * Full-screen picture viewer for the Gallery grid.
