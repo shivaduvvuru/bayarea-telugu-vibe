@@ -124,6 +124,19 @@ async function msnImage(link: string): Promise<string | null> {
   }
 }
 
+/** Best artwork for a publisher URL (MSN needs its detail API). */
+export async function fetchArticleImage(link: string): Promise<string | null> {
+  try {
+    const host = new URL(link).hostname;
+    const found = /(?:^|\.)msn\.com$/.test(host)
+      ? ((await msnImage(link)) ?? (await ogImage(link)))
+      : await ogImage(link);
+    return usableImage(found);
+  } catch {
+    return null;
+  }
+}
+
 /** Reads the article page and returns its og:image / twitter:image, if any. */
 async function ogImage(link: string): Promise<string | null> {
   try {
