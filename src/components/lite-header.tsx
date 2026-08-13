@@ -10,12 +10,22 @@ import { supabase } from "@/integrations/supabase/client";
  * Economic-Times-style lean header: one identity row, one category rail.
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
+/** Full desktop rail — every section stays reachable in one row. */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/forums", label: "Forums" },
+] as const;
+
+/** Mobile top rail — the half of the menu that lives above the fold. */
+const MOBILE_RAIL = [
+  { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/forums", label: "Forums" },
@@ -251,9 +261,10 @@ export function LiteHeader() {
           )}
         </div>
       </div>
+      {/* Desktop rail — full section list. */}
       <nav
         aria-label="Sections"
-        className="overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="hidden md:flex overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
           {signedIn ? (
@@ -266,6 +277,29 @@ export function LiteHeader() {
             </Link>
           ) : null}
           {RAIL.map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              // @ts-expect-error — params only present on dynamic entries
+              params={item.params}
+              activeProps={{ className: "underline" }}
+              className="whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          <MoreMenu />
+        </div>
+      </nav>
+
+      {/* Mobile top rail — paired with the bottom tab bar. */}
+      <nav
+        aria-label="Sections"
+        className="flex md:hidden overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
+          {MOBILE_RAIL.map((item) => (
             <Link
               key={item.label}
               to={item.to}

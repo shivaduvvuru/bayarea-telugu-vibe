@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Newspaper,
   CalendarDays,
   Store,
-  MessagesSquare,
   Landmark,
-  Image,
   BookOpen,
   Megaphone,
   Vote,
@@ -16,28 +13,25 @@ import {
   Menu,
   X,
   Utensils,
-  Clapperboard,
   Heart,
-  Globe2,
+  Tag,
+  PartyPopper,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 
-/** Four core destinations — everything else lives behind More. */
+/** Bottom tab bar destinations — red menu at the foot of the screen. */
 const ICON_TABS = [
-  { to: "/category/$category", params: { category: "city-news" }, icon: Newspaper, label: "City News" },
+  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/category/$category", params: { category: "classifieds" }, icon: Tag, label: "Classifieds" },
   { to: "/events", icon: CalendarDays, label: "Events" },
   { to: "/temples", icon: Landmark, label: "Temples" },
-  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
+  { to: "/category/$category", params: { category: "fun-zone" }, icon: PartyPopper, label: "Fun Zone" },
 ] as const;
 
-/** Secondary sections, shown in the More sheet instead of a dense strip. */
+/** Everything that is not in the top mobile rail or bottom tab bar. */
 const MORE = [
-  { to: "/category/$category", params: { category: "india-news" }, icon: Globe2, label: "India" },
-  { to: "/category/$category", params: { category: "cinema" }, icon: Clapperboard, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, icon: Image, label: "Gallery" },
-  { to: "/forums", icon: MessagesSquare, label: "Forums" },
-  { to: "/directory", icon: Store, label: "Directory" },
+  { to: "/category/$category", params: { category: "restaurants" }, icon: Utensils, label: "Food" },
   { to: "/category/$category", params: { category: "political" }, icon: Vote, label: "Political" },
   {
     to: "/category/$category",
@@ -56,7 +50,7 @@ const STAFF = [
 ] as const;
 
 const tabClass =
-  "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-muted-foreground";
+  "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-primary-foreground";
 
 export function MobileTabBar() {
   const [open, setOpen] = useState(false);
@@ -91,11 +85,11 @@ export function MobileTabBar() {
         />
       )}
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-foreground/20 bg-primary pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="Mobile navigation"
       >
         {open && (
-          <ul className="grid grid-cols-3 gap-px border-b border-border bg-border">
+          <ul className="grid grid-cols-3 gap-px border-b border-primary-foreground/20 bg-primary-foreground/10">
             {sheetItems.map((item) => (
               <li key={item.label} className="bg-background">
                 <Link
@@ -111,7 +105,7 @@ export function MobileTabBar() {
             ))}
           </ul>
         )}
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {ICON_TABS.map((item) => (
             <li key={item.label}>
               <Link
@@ -119,7 +113,7 @@ export function MobileTabBar() {
                 {...("params" in item ? { params: item.params } : {})}
                 onClick={() => setOpen(false)}
                 className={tabClass}
-                activeProps={{ className: "text-primary" }}
+                activeProps={{ className: "text-white bg-primary-foreground/10" }}
                 activeOptions={"params" in item ? { exact: false } : { exact: true }}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
@@ -132,7 +126,7 @@ export function MobileTabBar() {
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
-              className={`${tabClass} ${open ? "text-primary" : ""}`}
+              className={`${tabClass} ${open ? "text-white bg-primary-foreground/10" : ""}`}
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               <span>{open ? "Close" : "More"}</span>
