@@ -85,11 +85,11 @@ export function MobileTabBar() {
         />
       )}
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-primary-foreground/20 bg-primary pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="Mobile navigation"
       >
         {open && (
-          <ul className="grid grid-cols-3 gap-px border-b border-border bg-border">
+          <ul className="grid grid-cols-3 gap-px border-b border-primary-foreground/20 bg-primary-foreground/10">
             {sheetItems.map((item) => (
               <li key={item.label} className="bg-background">
                 <Link
@@ -105,7 +105,7 @@ export function MobileTabBar() {
             ))}
           </ul>
         )}
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {ICON_TABS.map((item) => (
             <li key={item.label}>
               <Link
@@ -113,7 +113,7 @@ export function MobileTabBar() {
                 {...("params" in item ? { params: item.params } : {})}
                 onClick={() => setOpen(false)}
                 className={tabClass}
-                activeProps={{ className: "text-primary" }}
+                activeProps={{ className: "text-white bg-primary-foreground/10" }}
                 activeOptions={"params" in item ? { exact: false } : { exact: true }}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
@@ -126,7 +126,7 @@ export function MobileTabBar() {
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
-              className={`${tabClass} ${open ? "text-primary" : ""}`}
+              className={`${tabClass} ${open ? "text-white bg-primary-foreground/10" : ""}`}
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               <span>{open ? "Close" : "More"}</span>
