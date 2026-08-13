@@ -9,6 +9,7 @@ import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
+import { Thumb } from "@/components/news";
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
