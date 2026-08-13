@@ -35,12 +35,12 @@ function stripHtml(html: string): string {
 
 /** First usable image from the embedded featured media or the post body. */
 function imageOf(post: Record<string, any>): string | null {
-  const media = post?._embedded?.["wp:featuredmedia"]?.[0];
+  const media = post["_embedded"]?.["wp:featuredmedia"]?.[0];
   const candidates: string[] = [
     media?.source_url,
     media?.media_details?.sizes?.large?.source_url,
     media?.media_details?.sizes?.full?.source_url,
-    (String(post?.content?.rendered ?? "").match(/<img[^>]+src="([^"]+)"/i)?.[1] ?? ""),
+    (String(post["content"]?.rendered ?? "").match(/<img[^>]+src="([^"]+)"/i)?.[1] ?? ""),
   ].filter(Boolean);
   for (const c of candidates) {
     const ok = usableImage(c);
@@ -69,15 +69,15 @@ export async function fetchWordPressPosts(limit = 20): Promise<WpPost[]> {
   const posts = (await res.json()) as Record<string, any>[];
   const out: WpPost[] = [];
   for (const p of Array.isArray(posts) ? posts : []) {
-    const title = stripHtml(String(p?.title?.rendered ?? ""));
-    const link = String(p?.link ?? "");
+    const title = stripHtml(String(p["title"]?.rendered ?? ""));
+    const link = String(p["link"] ?? "");
     if (!title || !link) continue;
     out.push({
       title,
       link,
-      summary: stripHtml(String(p?.excerpt?.rendered ?? "")).slice(0, 300),
+      summary: stripHtml(String(p["excerpt"]?.rendered ?? "")).slice(0, 300),
       image: imageOf(p),
-      published: p?.date_gmt ? `${String(p.date_gmt).replace(/Z?$/, "")}Z` : null,
+      published: p["date_gmt"] ? `${String(p["date_gmt"]).replace(/Z?$/, "")}Z` : null,
       categorySlug: categoryOf(link),
     });
   }
