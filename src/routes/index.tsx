@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/content.functions";
@@ -9,7 +10,8 @@ import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { HousingHero } from "@/components/housing-hero";
 import { DigestNote, SourceChip } from "@/components/source-credit";
-import { Thumb } from "@/components/news";
+import { RelativeDate, Thumb } from "@/components/news";
+import { GalleryLightbox } from "@/components/gallery-lightbox";
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
@@ -30,6 +32,13 @@ const homeQuery = queryOptions({
 const cityNewsQuery = queryOptions({
   queryKey: ["wp", "posts", "city-news"],
   queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
+  staleTime: 30 * 60 * 1000,
+});
+
+/** Picture desk for the home page — same Gallery grid used in /category/gallery. */
+const galleryQuery = queryOptions({
+  queryKey: ["wp", "posts", "gallery"],
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 6, compact: true } }),
   staleTime: 30 * 60 * 1000,
 });
 
@@ -60,6 +69,7 @@ export const Route = createFileRoute("/")({
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
+      context.queryClient.ensureQueryData(galleryQuery),
     ]);
   },
   head: () => ({
@@ -210,10 +220,31 @@ function LinkRow({
   );
 }
 
+/** Picture tile that opens the swipeable home gallery viewer. */
+function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
+  return (
+    <figure className="m-0">
+      <button type="button" onClick={onOpen} className="block w-full text-left">
+        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
+        <figcaption className="mt-1.5">
+          <p className="line-clamp-2 text-xs font-semibold leading-snug text-ink">{article.title}</p>
+          <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            <SourceChip article={article} />
+            <RelativeDate iso={article.date} />
+          </span>
+        </figcaption>
+      </button>
+    </figure>
+  );
+}
+
 function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
+  // Same picture desk used in /category/gallery.
+  const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
@@ -256,89 +287,116 @@ function Home() {
   ).slice(0, 6);
 
   return (
-    <div className="mx-auto max-w-3xl px-3 py-3">
+    <div className="mx-auto max-w-6xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
 
-      <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-          Digest from sources
-        </p>
-        <DigestNote className="mt-0.5" />
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+            Digest from sources
+          </p>
+          <DigestNote className="mt-0.5" />
+        </div>
+
+        <HousingHero />
       </div>
 
-      <HousingHero />
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
+        <section>
+          <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
+          <Lead a={lead} />
+          <div className="mt-4">
+            {localRest.map((a) => (
+              <Row key={a.slug} a={a} />
+            ))}
+          </div>
+        </section>
 
-      <section className="mt-6">
-        <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
-        <Lead a={lead} />
-        <div className="mt-4">
-          {localRest.map((a) => (
+        <section>
+          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
+          {galleryItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {galleryItems.map((a, i) => (
+                <GalleryTile key={a.slug} article={a} onOpen={() => setViewerIndex(i)} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {galleryItems.length > 0 && viewerIndex !== null && (
+        <GalleryLightbox
+          items={galleryItems}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
+
+      <div className="mx-auto max-w-3xl">
+        {communityItems.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
+            {communityItems.map((item) => (
+              <LinkRow
+                key={item.id}
+                href={item.link_url ?? "/connect"}
+                internal={!item.link_url || item.link_url.startsWith("/")}
+                title={item.title}
+                meta={[item.city, item.kind].filter(Boolean).join(" · ")}
+              />
+            ))}
+          </section>
+        )}
+
+        {events.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
+            {events.map((e) => (
+              <LinkRow
+                key={e.id}
+                href="/events"
+                internal
+                title={e.title}
+                meta={`${e.city} · ${formatDate(e.start)}`}
+              />
+            ))}
+          </section>
+        )}
+
+        {templeNews.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
+            {templeNews.map((a, i) => (
+              <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
+            ))}
+          </section>
+        )}
+
+        {politics.length > 0 && (
+          <section className="mt-5">
+            <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
+            {politics.map((s, i) => (
+              <LinkRow
+                key={`${s.url}-${i}`}
+                href={s.url}
+                title={s.title}
+                meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
+              />
+            ))}
+          </section>
+        )}
+
+        <section className="mt-5">
+          <Head>More news</Head>
+          {more.map((a) => (
             <Row key={a.slug} a={a} />
           ))}
-        </div>
-      </section>
-
-      {communityItems.length > 0 && (
-        <section className="mt-5">
-          <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
-          {communityItems.map((item) => (
-            <LinkRow
-              key={item.id}
-              href={item.link_url ?? "/connect"}
-              internal={!item.link_url || item.link_url.startsWith("/")}
-              title={item.title}
-              meta={[item.city, item.kind].filter(Boolean).join(" · ")}
-            />
-          ))}
         </section>
-      )}
-
-      {events.length > 0 && (
-        <section className="mt-5">
-          <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-          {events.map((e) => (
-            <LinkRow
-              key={e.id}
-              href="/events"
-              internal
-              title={e.title}
-              meta={`${e.city} · ${formatDate(e.start)}`}
-            />
-          ))}
-        </section>
-      )}
-
-      {templeNews.length > 0 && (
-        <section className="mt-5">
-          <Head more={<MoreTo to="/temples" label="All temples" />}>Temple announcements</Head>
-          {templeNews.map((a, i) => (
-            <LinkRow key={`${a.url}-${i}`} href={a.url} title={a.title} meta={a.temple} />
-          ))}
-        </section>
-      )}
-
-      {politics.length > 0 && (
-        <section className="mt-5">
-          <Head more={<MoreTo to="/politics" label="More politics" />}>Politics</Head>
-          {politics.map((s, i) => (
-            <LinkRow
-              key={`${s.url}-${i}`}
-              href={s.url}
-              title={s.title}
-              meta={[s.publisher, s.date ? formatDate(s.date) : ""].filter(Boolean).join(" · ")}
-            />
-          ))}
-        </section>
-      )}
-
-
-      <section className="mt-5">
-        <Head>More news</Head>
-        {more.map((a) => (
-          <Row key={a.slug} a={a} />
-        ))}
-      </section>
+      </div>
     </div>
   );
-
 }
+
