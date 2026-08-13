@@ -1,17 +1,18 @@
+import { useState } from "react";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
 import { DigestNote, SourceChip } from "@/components/source-credit";
-import { Link as RouterLink } from "@tanstack/react-router";
+import { GalleryLightbox } from "@/components/gallery-lightbox";
 import type { Article } from "@/lib/content";
 
-/** Picture-desk tile used by the Gallery section — image first, source credited. */
-function GalleryTile({ article }: { article: Article }) {
+/** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
+function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
     <figure className="m-0">
-      <RouterLink to="/article/$slug" params={{ slug: article.slug }} className="block">
+      <button type="button" onClick={onOpen} className="block w-full text-left">
         <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
         <figcaption className="mt-2">
           <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
@@ -22,7 +23,7 @@ function GalleryTile({ article }: { article: Article }) {
             <RelativeDate iso={article.date} />
           </span>
         </figcaption>
-      </RouterLink>
+      </button>
     </figure>
   );
 }
@@ -81,6 +82,7 @@ export const Route = createFileRoute("/category/$category")({
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
   const { data: articles } = useSuspenseQuery(postsQuery(cat.slug));
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-3xl font-bold text-ink">{cat.en}</h1>
@@ -121,9 +123,9 @@ function CategoryPage() {
                 : "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
             }
           >
-            {articles.map((a) =>
+            {articles.map((a, i) =>
               cat.slug === "gallery" ? (
-                <GalleryTile key={a.id} article={a} />
+                <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
               ) : (
                 <StoryCard key={a.id} article={a} />
               ),
@@ -131,6 +133,14 @@ function CategoryPage() {
           </div>
         )}
       </div>
+      {cat.slug === "gallery" && viewerIndex !== null && (
+        <GalleryLightbox
+          items={articles}
+          index={viewerIndex}
+          onIndexChange={setViewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
     </div>
   );
 }
