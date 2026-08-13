@@ -53,21 +53,18 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   {
     heading: "Community",
     items: [
-      { to: "/directory", label: "Directory" },
-      { to: "/associations", label: "Associations" },
       { to: "/people", label: "People" },
       { to: "/foundation-icons", label: "Foundation Icons" },
       { to: "/bay-area-icons", label: "Bay Area Icons" },
       { to: "/explore", label: "Explore" },
-      { to: "/connect", label: "Connect" },
     ],
   },
   {
     heading: "More from us",
     items: [
       { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
-      { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
       { to: "/category/$category", params: { category: "readers-column" }, label: "Readers' Column" },
+
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
       { to: "/submit", label: "Submit a Story" },
