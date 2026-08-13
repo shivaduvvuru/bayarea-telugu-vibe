@@ -507,6 +507,45 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
+  // Glamour / social-media picture desks feeding the Gallery grid.
+  {
+    name: "IndiaGlitz Telugu",
+    url: "https://www.indiaglitz.com/rss/telugu-news.xml",
+    kind: "news",
+    limit: 6,
+  },
+  { name: "CineJosh", url: "https://www.cinejosh.com/rss/telugu-news.xml", kind: "news", limit: 5 },
+  { name: "FilmiBeat Telugu", url: "https://telugu.filmibeat.com/rss/news-fb.xml", kind: "news", limit: 5 },
+  {
+    name: "Glamour shoots",
+    url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Instagram buzz",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(Instagram+OR+%22social+media%22+OR+%22Insta+post%22+OR+%22viral+photos%22+OR+%22breaks+the+internet%22)+(Telugu+OR+Tollywood+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Red carpet & events",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22red+carpet%22+OR+%22ramp+walk%22+OR+%22magazine+cover%22+OR+%22pre-release+event+photos%22+OR+%22award+function+photos%22)+(Telugu+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "OTT stars gallery",
+    url: "https://news.google.com/rss/search?q=(%22web+series+actress%22+OR+%22OTT+actress%22+OR+%22Aha+heroine%22)+(photos+OR+stills+OR+gallery+OR+photoshoot)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 5,
+  },
+  {
+    name: "గ్లామర్ ఫోటోలు",
+    url: "https://news.google.com/rss/search?q=%E0%B0%97%E0%B1%8D%E0%B0%B2%E0%B0%BE%E0%B0%AE%E0%B0%B0%E0%B1%8D+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%85%E0%B0%82%E0%B0%A6%E0%B0%BE%E0%B0%B2+%E0%B0%A4%E0%B0%BE%E0%B0%B0+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
   { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
   {
     name: "Bollywood Hungama",
