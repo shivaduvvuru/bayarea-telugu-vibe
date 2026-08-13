@@ -202,14 +202,26 @@ function LinkRow({
   title,
   meta,
   internal,
+  image,
 }: {
   href: string;
   title: string;
   meta?: string;
   internal?: boolean;
+  image?: string | null;
 }) {
+  const picture = usableImage(image);
   const body = (
     <>
+      {picture ? (
+        <img
+          src={picture}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="mb-2 aspect-[16/9] w-full rounded-md border border-border object-cover object-top"
+        />
+      ) : null}
       <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug text-ink">{title}</h3>
       {meta ? (
         <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{meta}</p>
@@ -227,6 +239,7 @@ function LinkRow({
     </a>
   );
 }
+
 
 /** Picture tile that opens the swipeable home gallery viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
