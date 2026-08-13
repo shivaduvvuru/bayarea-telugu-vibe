@@ -172,10 +172,23 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     ).slice(0, limit);
   }
   if (category === "city-news") {
+    // Local Bay Area reporting only: no India coverage and no film/gallery
+    // stories (cinema is a topic of its own, even when filed to a city).
     return dedupeArticles(
-      rows.filter((r) => classifyIndia(r.title, r.summary, r.link_url) === null).map(toArticle),
-    ).slice(0, limit);
+      rows
+        .filter(
+          (r) =>
+            classifyIndia(r.title, r.summary, r.link_url) === null &&
+            r.category !== CINEMA_SLUG &&
+            !isCinema(r.title, r.summary, r.link_url) &&
+            !isStarGallery(r.title, r.summary, r.link_url),
+        )
+        .map(toArticle),
+    )
+      .filter((a) => a.category !== CINEMA_SLUG)
+      .slice(0, limit);
   }
+
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
     return articles.filter((a) => a.category === "cinema").slice(0, limit);
