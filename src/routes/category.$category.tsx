@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
