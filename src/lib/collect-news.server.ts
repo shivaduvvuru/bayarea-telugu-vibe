@@ -162,16 +162,30 @@ async function ogImage(link: string): Promise<string | null> {
       if (m[1]) candidates.push(m[1]);
       if (candidates.length > 20) break;
     }
+    // Prefer the biggest / most editorial-looking candidate over the first hit.
+    const scored: { url: string; score: number }[] = [];
     for (const raw of candidates) {
       const trimmed = raw.trim();
       if (!trimmed) continue;
-      const abs = trimmed.startsWith("//")
-        ? `https:${trimmed}`
-        : new URL(trimmed, res.url || link).toString();
+      let abs: string;
+      try {
+        abs = trimmed.startsWith("//")
+          ? `https:${trimmed}`
+          : new URL(trimmed, res.url || link).toString();
+      } catch {
+        continue;
+      }
       const usable = cleanUrl(abs);
-      if (usable) return usable;
+      if (!usable) continue;
+      let score = 0;
+      if (/(?:large|full|original|1200|1080|orig|hd)/i.test(usable)) score += 3;
+      if (/\/(?:images?|photos?|uploads?|gallery)\//i.test(usable)) score += 1;
+      if (/\.(?:jpg|jpeg)(?:$|\?)/i.test(usable)) score += 1;
+      if (candidates[0] === raw) score += 2; // og:image is usually the lead art
+      scored.push({ url: usable, score });
     }
-    return null;
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0]?.url ?? null;
   } catch {
     return null;
   }
