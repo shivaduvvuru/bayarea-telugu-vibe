@@ -9,7 +9,7 @@ import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
-import { isCinema, CINEMA_SLUG } from "./cinema-topics";
+import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
