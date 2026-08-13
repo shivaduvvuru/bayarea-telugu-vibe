@@ -4,7 +4,7 @@
  * card fall back to its typographic tile instead.
  */
 const BLOCKED =
-  /(?:^|\.)patch\.com$|patch\.com|patchcdn|patch-?(?:am|logo)|logo|sprite|favicon|placeholder|default[-_]?(?:image|thumb)|avatar|blank\.|1x1|spacer|watermark|/i;
+  /(?:^|\.)patch\.com$|patch\.com|patchcdn|patch-?(?:am|logo)|logo|sprite|favicon|placeholder|default[-_]?(?:image|thumb)|avatar|blank\.|1x1|spacer|watermark/i;
 
 
 export function usableImage(url: string | null | undefined): string | null {
