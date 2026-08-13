@@ -74,7 +74,7 @@ function DeskPage() {
   };
 
   const onLock = async () => {
-    await doLock({ data: {} });
+    await doLock();
     setUnlocked(false);
   };
 
