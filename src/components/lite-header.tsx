@@ -10,27 +10,31 @@ import { supabase } from "@/integrations/supabase/client";
  * Economic-Times-style lean header: one identity row, one category rail.
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
-/** Full desktop rail — every major section stays reachable in one row. */
+/** Full desktop rail — mirrors the mobile split: news first, then utilities. */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/forums", label: "Forums" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
-  { to: "/forums", label: "Forums" },
+  { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
+  { to: "/directory", label: "Directory" },
+  { to: "/associations", label: "Associations" },
+  { to: "/connect", label: "Community" },
 ] as const;
 
 /** Mobile top rail — news sections; utilities live in the bottom bars. */
 const MOBILE_RAIL = [
-  { to: "/", label: "Home" },
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
   { to: "/forums", label: "Forums" },
 ] as const;
+
 
 type MoreItem = { to: string; params?: { category: string }; label: string };
 
