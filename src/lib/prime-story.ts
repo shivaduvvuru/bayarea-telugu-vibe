@@ -11,8 +11,8 @@
 /** When the current hand-built prime feature was published (ISO date). */
 export const PRIME_BANNER_PUBLISHED_AT = "2026-08-13T00:00:00.000Z";
 
-/** How long a prime story may hold the slot before it is rotated out. */
-export const PRIME_MAX_AGE_DAYS = 3;
+/** How long a prime story may hold the slot before it is rotated out (half a day). */
+export const PRIME_MAX_AGE_DAYS = 0.5;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
