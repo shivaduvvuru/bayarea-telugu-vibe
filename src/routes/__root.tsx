@@ -4,7 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useRouterState,
+  
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { SiteHeader } from "../components/site-header";
+
 import { LiteHeader } from "../components/lite-header";
 import { SiteFooter } from "../components/site-footer";
 import { MobileTabBar } from "../components/mobile-tabbar";
@@ -159,10 +159,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  // The lite edition is now the homepage: it renders its own minimal chrome.
-  const isLite = useRouterState({
-    select: (s) => s.location.pathname === "/" || s.location.pathname.startsWith("/lite"),
-  });
 
   // A stale cached bundle makes lazy route chunks fail to import, which looks
   // like navigation (e.g. sign-in → desk) "hanging". Recover once per session.
@@ -192,7 +188,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <div className="flex min-h-dvh flex-col pb-32 md:pb-0">
-          {isLite ? <LiteHeader /> : <SiteHeader />}
+          <LiteHeader />
           <main className="flex-1">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
