@@ -69,6 +69,7 @@ export const Route = createFileRoute("/")({
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
+      context.queryClient.ensureQueryData(galleryQuery),
     ]);
   },
   head: () => ({
