@@ -82,8 +82,21 @@ export const CATEGORIES: Category[] = [
       { slug: "others", te: "ఇతరాలు", en: "Others" },
     ],
   },
+  {
+    slug: "india-news",
+    te: "ఇండియా న్యూస్",
+    en: "India News",
+    children: [
+      { slug: "india-national", te: "జాతీయం", en: "National" },
+      { slug: "india-telangana", te: "తెలంగాణ", en: "Telangana" },
+      { slug: "india-andhra", te: "ఆంధ్రప్రదేశ్", en: "Andhra Pradesh" },
+      { slug: "india-immigration", te: "ఇమిగ్రేషన్", en: "Immigration & Visa" },
+      { slug: "india-nri", te: "ఎన్ఆర్ఐ", en: "NRI & Diaspora" },
+    ],
+  },
   { slug: "cinema", te: "సినిమా", en: "Cinema" },
   { slug: "political", te: "పొలిటికల్", en: "Political" },
+
   { slug: "temples", te: "దేవాలయాలు", en: "Temples" },
   { slug: "restaurants", te: "రెస్టారెంట్లు", en: "Restaurants" },
   { slug: "gallery", te: "గ్యాలరీ", en: "Gallery" },
