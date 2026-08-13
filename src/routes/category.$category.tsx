@@ -12,18 +12,23 @@ import type { Article } from "@/lib/content";
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
     <figure className="m-0">
-      <button type="button" onClick={onOpen} className="block w-full text-left">
-        <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
-        <figcaption className="mt-2">
+      <div className="relative">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
+          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
+        </button>
+        <PhotoActions article={article} tone="light" className="absolute right-2 top-2" />
+      </div>
+      <figcaption className="mt-2">
+        <button type="button" onClick={onOpen} className="block w-full text-left">
           <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
             {article.title}
           </p>
-          <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <SourceChip article={article} />
-            <RelativeDate iso={article.date} />
-          </span>
-        </figcaption>
-      </button>
+        </button>
+        <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <SourceChip article={article} />
+          <RelativeDate iso={article.date} />
+        </span>
+      </figcaption>
     </figure>
   );
 }
