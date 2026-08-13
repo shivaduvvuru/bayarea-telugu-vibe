@@ -2,8 +2,30 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { listPosts } from "@/lib/content.functions";
-import { SectionHeading, StoryCard } from "@/components/news";
-import { DigestNote } from "@/components/source-credit";
+import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
+import { DigestNote, SourceChip } from "@/components/source-credit";
+import { Link as RouterLink } from "@tanstack/react-router";
+import type { Article } from "@/lib/content";
+
+/** Picture-desk tile used by the Gallery section — image first, source credited. */
+function GalleryTile({ article }: { article: Article }) {
+  return (
+    <figure className="m-0">
+      <RouterLink to="/article/$slug" params={{ slug: article.slug }} className="block">
+        <Thumb article={article} sizes="(max-width: 768px) 50vw, 33vw" />
+        <figcaption className="mt-2">
+          <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
+            {article.title}
+          </p>
+          <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <SourceChip article={article} />
+            <RelativeDate iso={article.date} />
+          </span>
+        </figcaption>
+      </RouterLink>
+    </figure>
+  );
+}
 
 const postsQuery = (category: string) =>
   queryOptions({
@@ -80,14 +102,27 @@ function CategoryPage() {
       ) : null}
       <div className="mt-6">
 
-        <SectionHeading te="కథనాలు" en="Stories" />
+        <SectionHeading
+          te={cat.slug === "gallery" ? "ఫొటోలు" : "కథనాలు"}
+          en={cat.slug === "gallery" ? "Pictures" : "Stories"}
+        />
         {articles.length === 0 ? (
           <p className="text-muted-foreground">No stories published in this section yet.</p>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {articles.map((a) => (
-              <StoryCard key={a.id} article={a} />
-            ))}
+          <div
+            className={
+              cat.slug === "gallery"
+                ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                : "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+            }
+          >
+            {articles.map((a) =>
+              cat.slug === "gallery" ? (
+                <GalleryTile key={a.id} article={a} />
+              ) : (
+                <StoryCard key={a.id} article={a} />
+              ),
+            )}
           </div>
         )}
       </div>

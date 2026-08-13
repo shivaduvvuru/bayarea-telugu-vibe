@@ -349,6 +349,7 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
     kind: "news",
     queries: [
       "Telugu cinema Tollywood movie news release box office",
+      "Tollywood Telugu movie review OTT release update",
       "Bollywood Hindi movie news release review box office",
       "Telugu OR Hindi movie US premiere theatres Bay Area California",
       "Tollywood OR Bollywood actor film shooting update",
@@ -433,6 +434,17 @@ const PUBLISHER_FEEDS: {
   },
   { name: "Murthy Law Firm", url: "https://www.murthy.com/feed/", kind: "news", limit: 5 },
   { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
+  // Telugu cinema trade desks — filed under Cinema, photo-led stories also
+  // surface in Gallery.
+  { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 6 },
+  { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 5 },
+  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 5 },
+  {
+    name: "Telugu cinema",
+    url: "https://news.google.com/rss/search?q=Telugu+cinema+OR+Tollywood+movie+news+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
   {
     name: "Consulate General of India, San Francisco",
     url: "https://news.google.com/rss/search?q=%22Consulate+General+of+India%22+San+Francisco+OR+%22Indian+consulate%22+OCI+OR+passport+OR+visa+when:14d&hl=en-US&gl=US&ceid=US:en",
