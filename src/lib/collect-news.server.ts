@@ -137,7 +137,11 @@ export async function fetchArticleImage(link: string): Promise<string | null> {
   }
 }
 
-/** Reads the article page and returns its og:image / twitter:image, if any. */
+/**
+ * Reads the article page and returns its lead artwork. Meta tags first, then
+ * in-body <img> candidates (photo galleries such as 123telugu's slideshows
+ * publish no og:image and serve the picture through a relative path).
+ */
 async function ogImage(link: string): Promise<string | null> {
   try {
     const res = await fetch(link, {
@@ -147,20 +151,32 @@ async function ogImage(link: string): Promise<string | null> {
     });
     if (!res.ok) return null;
     const html = (await res.text()).slice(0, 200_000);
-    const m =
+    const candidates: string[] = [];
+    const meta =
       html.match(/<meta[^>]+property="og:image(?::secure_url)?"[^>]+content="([^"]+)"/i) ??
       html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i) ??
       html.match(/<meta[^>]+name="twitter:image(?::src)?"[^>]+content="([^"]+)"/i) ??
-      html.match(/<link[^>]+rel="image_src"[^>]+href="([^"]+)"/i) ??
-      html.match(/<img[^>]+src="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
-    const raw = m?.[1]?.trim();
-    if (!raw) return null;
-    const abs = raw.startsWith("//") ? `https:${raw}` : new URL(raw, res.url || link).toString();
-    return cleanUrl(abs);
+      html.match(/<link[^>]+rel="image_src"[^>]+href="([^"]+)"/i);
+    if (meta?.[1]) candidates.push(meta[1]);
+    for (const m of html.matchAll(/<img[^>]+src="([^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi)) {
+      if (m[1]) candidates.push(m[1]);
+      if (candidates.length > 20) break;
+    }
+    for (const raw of candidates) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      const abs = trimmed.startsWith("//")
+        ? `https:${trimmed}`
+        : new URL(trimmed, res.url || link).toString();
+      const usable = cleanUrl(abs);
+      if (usable) return usable;
+    }
+    return null;
   } catch {
     return null;
   }
 }
+
 
 /** Search feeds wrap the real article URL in a redirect; unwrap when possible. */
 function unwrapLink(link: string): string {
