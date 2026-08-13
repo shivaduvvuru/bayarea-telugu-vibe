@@ -456,6 +456,9 @@ async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<R
   if (!parsed?.length) return [];
   lastDiag.fetched += 1;
   lastDiag.raw += parsed.length;
+  // A publisher's own feed carries no <source> tag, so parseRss falls back to the
+  // headline — always label those with the configured publisher name instead.
+  const aggregated = /news\.google\.com|bing\.com/.test(feed.url);
   const seen = new Set<string>();
   const merged: RawItem[] = [];
   for (const item of parsed) {
@@ -464,7 +467,7 @@ async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<R
     if (!k || seen.has(k) || !recent(item.published)) continue;
     if (feed.match && !feed.match.test(hay)) continue;
     seen.add(k);
-    merged.push({ ...item, source: item.source || feed.name });
+    merged.push({ ...item, source: aggregated ? item.source || feed.name : feed.name });
     if (merged.length >= (feed.limit ?? 4)) break;
   }
   await addImages(merged);
