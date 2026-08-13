@@ -62,11 +62,71 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             },
           );
 
-          if (rows.length) {
+          // Temple notices, events and ordinary news publish without an editor.
+          // Only sensitive news stays pending in the review desk.
+          const { canAutoPublish } = await import("@/lib/auto-publish");
+          const marked = rows.map((r) => ({
+            ...r,
+            status: canAutoPublish(
+              String((r as { kind?: string }).kind ?? "news"),
+              (r as { title?: string }).title,
+              (r as { summary?: string }).summary,
+            )
+              ? "approved"
+              : "pending",
+          }));
+
+          if (marked.length) {
             const { error } = await supabaseAdmin
               .from("digest_queue")
-              .upsert(rows as never, { onConflict: "dedupe_key", ignoreDuplicates: false });
+              .upsert(marked as never, { onConflict: "dedupe_key", ignoreDuplicates: false });
             if (error) throw error;
+          }
+
+          // Push the freshly approved rows straight onto the site.
+          let publishedCount = 0;
+          const autoIds = marked
+            .filter((r) => r.status === "approved")
+            .map((r) => String((r as { item_id?: string }).item_id ?? ""))
+            .filter(Boolean);
+          {
+            const { deskRowToIngest } = await import("@/lib/desk-publish.server");
+            const { ingest } = await import("@/lib/cms.server");
+            // Every approved row that has not gone out yet — the ones just
+            // auto-approved plus anything an editor approved in the desk.
+            const { data: queued } = await supabaseAdmin
+              .from("digest_queue")
+              .select("*")
+              .eq("status", "approved")
+              .neq("upload_status", "sent")
+              .limit(500);
+            const batch = (queued ?? []) as unknown as Record<string, unknown>[];
+            if (batch.length) {
+              try {
+                await ingest(batch.map(deskRowToIngest));
+                await supabaseAdmin
+                  .from("digest_queue")
+                  .update({
+                    upload_status: "sent",
+                    uploaded_at: new Date().toISOString(),
+                    error: null,
+                  })
+                  .in(
+                    "item_id",
+                    batch.map((r) => String(r["item_id"])),
+                  );
+                publishedCount = batch.length;
+              } catch (e) {
+                const message = e instanceof Error ? e.message : String(e);
+                await supabaseAdmin
+                  .from("digest_queue")
+                  .update({ upload_status: "failed", error: message })
+                  .in(
+                    "item_id",
+                    batch.map((r) => String(r["item_id"])),
+                  );
+              }
+            }
           }
 
           // 7-day rolling window
@@ -78,7 +138,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, collected: rows.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          return Response.json({ ok: true, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
