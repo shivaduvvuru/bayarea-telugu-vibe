@@ -209,8 +209,10 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
           if (own !== null) return own !== "cinema" && own !== "gallery";
 
           if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
-          const generic = !r.category || r.category === "news";
-          if (generic && classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
+          // India coverage never belongs in the Bay Area feed, whatever bucket
+          // it was filed under (a Punjab story collected by the temple pass is
+          // still India news).
+          if (classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
           return (
             !isCinema(r.title, r.summary, r.link_url) &&
             !isStarGallery(r.title, r.summary, r.link_url)
@@ -220,6 +222,7 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     )
       .filter((a) => a.category !== CINEMA_SLUG)
       .slice(0, limit);
+
   }
 
 
