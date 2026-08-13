@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
  */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
