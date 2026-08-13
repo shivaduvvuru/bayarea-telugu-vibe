@@ -301,7 +301,7 @@ function Home() {
         <HousingHero />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           <Lead a={lead} />
