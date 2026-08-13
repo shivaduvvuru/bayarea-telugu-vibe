@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, ClipboardCheck, LogIn, LogOut, Search, X } from "lucide-react";
+import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, X, Youtube } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,6 +103,42 @@ function useSignedIn() {
   return signedIn;
 }
 
+/** Telugu Times network: site, e-paper and social profiles. */
+const NETWORK = [
+  { href: TT_LINKS.site, label: "TeluguTimes.net", icon: Globe },
+  { href: TT_LINKS.bayarea, label: "Bay Area edition", icon: Globe },
+  { href: TT_LINKS.epaper, label: "E-Paper", icon: Newspaper },
+  { href: TT_LINKS.youtube, label: "YouTube", icon: Youtube },
+  { href: TT_LINKS.instagram, label: "Instagram", icon: Instagram },
+  { href: TT_LINKS.facebook, label: "Facebook", icon: Facebook },
+] as const;
+
+/** Compact icon row of social profiles, shown in the identity row. */
+function SocialIcons() {
+  const items = [
+    { href: TT_LINKS.youtube, label: "Telugu Times on YouTube", icon: Youtube },
+    { href: TT_LINKS.instagram, label: "Telugu Times on Instagram", icon: Instagram },
+    { href: TT_LINKS.facebook, label: "Telugu Times on Facebook", icon: Facebook },
+  ] as const;
+  return (
+    <div className="flex items-center gap-1">
+      {items.map(({ href, label, icon: Icon }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={label}
+          title={label}
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink hover:border-primary hover:text-primary"
+        >
+          <Icon className="h-4 w-4" aria-hidden />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function MoreMenu() {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(0);
@@ -179,6 +215,27 @@ function MoreMenu() {
               </div>
             ))}
           </div>
+
+          <div className="mx-auto mt-4 max-w-6xl border-t border-border pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Telugu Times network
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {NETWORK.map(({ href, label, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12px] font-semibold text-ink hover:border-primary hover:text-primary"
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
@@ -235,6 +292,7 @@ export function LiteHeader() {
             TeluguTimes.net
           </a>
 
+          <SocialIcons />
           <Link
             to="/search"
             search={{ q: "" }}
