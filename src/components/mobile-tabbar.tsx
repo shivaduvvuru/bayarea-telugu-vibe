@@ -142,8 +142,8 @@ export function MobileTabBar() {
               <li key={item.label} className="bg-background">
                 <Link
                   to={item.to}
-                  {...("params" in item ? { params: item.params } : {})}
                   onClick={() => setOpen(false)}
+
                   className="flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold text-ink"
                 >
                   <item.icon className="h-5 w-5 shrink-0 text-primary" />
