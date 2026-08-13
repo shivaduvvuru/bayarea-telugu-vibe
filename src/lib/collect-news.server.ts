@@ -598,6 +598,45 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   );
   rows.push(...topicRows.flat());
 
+  // Named publishers read directly: Indian-American papers, Indian dailies and
+  // magazines, and official immigration sources.
+  const publisherRows = await Promise.all(
+    PUBLISHER_FEEDS.map(async (feed) => {
+      const items = await fetchPublisher(feed);
+      const summaries = await summarize(BAY_AREA, items, apiKey);
+      return items.map((it, i) => {
+        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        const kind = feed.kind === "news" ? classify(it.title) : feed.kind;
+        return {
+          dedupe_key: dedupe,
+          item_id: dedupe,
+          digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+          kind,
+          city_slug: BAY_AREA.slug,
+          title: it.title,
+          summary: summaries[i] ?? "",
+          source: it.source || feed.name,
+          source_url: it.link,
+          published_at: it.published,
+          origin: "feed" as const,
+          payload: {
+            id: dedupe,
+            kind,
+            citySlug: BAY_AREA.slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source || feed.name,
+            sourceUrl: it.link,
+            image: it.image,
+            collectedAt: today,
+          },
+        } satisfies CollectedItem;
+      });
+    }),
+  );
+  rows.push(...publisherRows.flat());
+
+
   // Temple announcements come from each temple's own website, not news search —
   // news feeds almost never carry seva / utsavam notices.
   try {
