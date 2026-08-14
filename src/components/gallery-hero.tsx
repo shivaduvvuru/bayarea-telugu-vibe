@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Images } from "lucide-react";
 import type { Article } from "@/lib/content";
-import { SourceChip } from "@/components/source-chip";
+import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
-import { storyImage } from "@/lib/story-image";
+import { usableImage } from "@/lib/story-image";
 
 /** A new picture takes the slot every quarter hour. */
 const ROTATE_MS = 15 * 60 * 1000;
@@ -37,12 +37,12 @@ export function GalleryHero({
     return () => window.clearInterval(id);
   }, [items.length]);
 
-  const withPictures = items.filter((a) => storyImage(a));
+  const withPictures = items.filter((a) => usableImage(a.image));
   if (withPictures.length === 0) return null;
 
   const index = ((slot % withPictures.length) + withPictures.length) % withPictures.length;
   const article = withPictures[index]!;
-  const picture = storyImage(article)!;
+  const picture = usableImage(article.image)!;
   const position = items.findIndex((a) => a.slug === article.slug);
 
   return (
@@ -62,7 +62,7 @@ export function GalleryHero({
             alt={article.title}
             loading="lazy"
             decoding="async"
-            className="aspect-[16/9] w-full animate-fade-in object-cover object-top"
+            className="aspect-[16/9] w-full object-cover object-top"
           />
         </button>
         <PhotoActions article={article} tone="light" className="absolute right-2 top-2" />
@@ -79,7 +79,8 @@ export function GalleryHero({
           </span>
         </span>
         <Link
-          to="/category/gallery"
+          to="/category/$category"
+          params={{ category: "gallery" }}
           className="shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-primary"
         >
           Gallery
