@@ -52,3 +52,41 @@ export const setQueueStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { updated: data.itemIds.length };
   });
+
+type DeskQueueRow = {
+  item_id: string;
+  digest_date: string;
+  kind: string;
+  city_slug: string;
+  title: string;
+  summary: string | null;
+  source: string | null;
+  source_url: string | null;
+  payload: Record<string, unknown> | null;
+};
+
+/**
+ * Lists the review-desk backlog. The digest queue is staff-only under RLS, so
+ * the passcode-gated desk must read it through this server function rather
+ * than the browser client (which sees zero rows when nobody is signed in).
+ */
+export const listDeskItems = createServerFn({ method: "POST" })
+  .inputValidator((data: { days?: number }) => ({
+    days: Math.min(Math.max(Number(data?.days) || 7, 1), 30),
+  }))
+  .handler(async ({ data }): Promise<DeskQueueRow[]> => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk();
+    const { admin } = await import("@/lib/cms.server");
+    const db = await admin();
+    const since = new Date(Date.now() - data.days * 86400000).toISOString().slice(0, 10);
+    const { data: rows, error } = await db
+      .from("digest_queue")
+      .select("item_id,digest_date,kind,city_slug,title,summary,source,source_url,payload")
+      .gte("digest_date", since)
+      .neq("upload_status", "sent")
+      .order("digest_date", { ascending: false })
+      .limit(600);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as unknown as DeskQueueRow[];
+  });
