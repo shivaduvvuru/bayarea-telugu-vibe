@@ -741,6 +741,36 @@ const PUBLISHER_FEEDS: {
   },
 
   {
+    name: "Heroine photo galleries (wide)",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(photos+OR+pics+OR+gallery+OR+photoshoot)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Ragalahari galleries",
+    url: "https://news.google.com/rss/search?q=site:ragalahari.com+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "TeluguStop photos",
+    url: "https://news.google.com/rss/search?q=site:telugustop.com+(photos+OR+gallery+OR+stills)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Pinkvilla photos",
+    url: "https://news.google.com/rss/search?q=site:pinkvilla.com+(photos+OR+pics+OR+look)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Heroine latest looks",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(stuns+OR+latest+look+OR+saree+OR+traditional+look+OR+viral+photos)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
     name: "Bollywood Hungama",
     url: "https://www.bollywoodhungama.com/feed/",
     kind: "news",
@@ -1355,7 +1385,12 @@ const GALLERY_FEED_NAMES = [
   "TOI entertainment photos",
   "Telugu heroine photos (Telugu)",
   "Telugu360",
-
+  "Heroine photo galleries (wide)",
+  "Ragalahari galleries",
+  "TeluguStop photos",
+  "Pinkvilla photos",
+  "Heroine latest looks",
+  "తెలుగు హీరోయిన్లు",
 ];
 
 /**
@@ -1366,7 +1401,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
-    limit: Math.max(f.limit ?? 6, 12),
+    limit: Math.max(f.limit ?? 6, 20),
   }));
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
