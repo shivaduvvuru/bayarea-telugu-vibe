@@ -39,8 +39,14 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
 
 const postsQuery = (category: string) =>
   queryOptions({
+    // Gallery is a picture desk: show a much deeper set so repeat visits keep
+    // finding different photos instead of the same newest handful.
     queryKey: ["wp", "posts", category],
-    queryFn: () => listPosts({ data: { category, perPage: 24 } }),
+    queryFn: () =>
+      listPosts({ data: { category, perPage: category === "gallery" ? 60 : 24 } }),
+    ...(category === "gallery"
+      ? { staleTime: 60_000, refetchOnMount: "always" as const }
+      : {}),
   });
 
 export const Route = createFileRoute("/category/$category")({

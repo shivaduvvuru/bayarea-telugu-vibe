@@ -8,7 +8,14 @@ import { toast } from "sonner";
  * tiles so newly collected star photos appear without waiting for the
  * 3-hourly job or the query cache.
  */
-export function RefreshGalleryButton({ className = "" }: { className?: string }) {
+export function RefreshGalleryButton({
+  className = "",
+  onRefreshed,
+}: {
+  className?: string;
+  /** Lets a grid advance its rotating window so the tiles visibly change. */
+  onRefreshed?: (added: number) => void;
+}) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
 
@@ -32,7 +39,12 @@ export function RefreshGalleryButton({ className = "" }: { className?: string })
       await qc.invalidateQueries({ queryKey: ["wp", "posts", "gallery"] });
       await qc.refetchQueries({ queryKey: ["wp", "posts", "gallery"] });
       const added = json.published ?? json.collected ?? 0;
-      toast.success(added ? `${added} new pictures added` : "Gallery is already up to date");
+      onRefreshed?.(added);
+      toast.success(
+        added
+          ? `${added} new pictures added`
+          : "No new photos from the sources yet — showing more from the archive",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not refresh the gallery");
     } finally {

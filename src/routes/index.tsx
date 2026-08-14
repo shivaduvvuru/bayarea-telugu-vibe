@@ -83,8 +83,10 @@ const cityNewsQuery = queryOptions({
  * instead of sitting behind a half-hour snapshot.
  */
 const galleryQuery = queryOptions({
-  queryKey: ["wp", "posts", "gallery"],
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 12, compact: true } }),
+  queryKey: ["wp", "posts", "gallery", "home"],
+  // Deep pool: the home column shows a rotating window of six, so tapping
+  // "Refresh gallery" always moves on to different photos.
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
   staleTime: 60 * 1000,
   refetchOnMount: "always",
 });
@@ -317,6 +319,7 @@ function Home() {
   // Same picture desk used in /category/gallery.
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [galleryPage, setGalleryPage] = useState(0);
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
@@ -343,7 +346,12 @@ function Home() {
   const bannerFresh = isPrimeBannerFresh();
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
   takeUnique([lead, ...localRest], homepageSeen);
-  const uniqueGallery = takeUnique(galleryItems, homepageSeen, 6);
+  // Rotating window over the picture pool: the sources only publish a handful of
+  // new photo sets a day, so a fixed "newest six" looks unchanged after a
+  // refresh. Each refresh advances the window instead.
+  const galleryPool = takeUnique(galleryItems, homepageSeen, 48);
+  const start = galleryPool.length ? (galleryPage * 6) % galleryPool.length : 0;
+  const uniqueGallery = [...galleryPool.slice(start), ...galleryPool.slice(0, start)].slice(0, 6);
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
@@ -401,7 +409,7 @@ function Home() {
         <section>
           <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
           <div className="mb-3">
-            <RefreshGalleryButton />
+            <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
           </div>
 
           {uniqueGallery.length === 0 ? (
