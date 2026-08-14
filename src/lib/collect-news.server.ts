@@ -1,7 +1,11 @@
 import { BAY_AREA, CITIES, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
-import { resolveGoogleNewsUrls } from "./google-news.server";
+import {
+  resolveGoogleNewsUrls,
+  resolveGoogleNewsUrl,
+  isGoogleNewsUrl,
+} from "./google-news.server";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
@@ -124,18 +128,25 @@ async function msnImage(link: string): Promise<string | null> {
   }
 }
 
-/** Best artwork for a publisher URL (MSN needs its detail API). */
+/**
+ * Best artwork for a publisher URL. Google News wrappers serve an interstitial
+ * with no artwork, so resolve those to the publisher page first (this is why
+ * several city stories ended up with no picture). MSN needs its detail API.
+ */
 export async function fetchArticleImage(link: string): Promise<string | null> {
   try {
-    const host = new URL(link).hostname;
+    const target = await resolveGoogleNewsUrl(link);
+    if (isGoogleNewsUrl(target)) return null;
+    const host = new URL(target).hostname;
     const found = /(?:^|\.)msn\.com$/.test(host)
-      ? ((await msnImage(link)) ?? (await ogImage(link)))
-      : await ogImage(link);
+      ? ((await msnImage(target)) ?? (await ogImage(target)))
+      : await ogImage(target);
     return usableImage(found);
   } catch {
     return null;
   }
 }
+
 
 /**
  * Reads the article page and returns its lead artwork. Meta tags first, then
@@ -330,7 +341,13 @@ async function addImages(items: RawItem[]): Promise<void> {
         item.image = null;
         return;
       }
-      if (!item.image && item.link) {
+      if (item.link && isGoogleNewsUrl(item.link)) {
+        // Feed-level resolution can miss some wrappers; retry per item so the
+        // stored link (and its artwork) points at the publisher.
+        const real = await resolveGoogleNewsUrl(item.link);
+        if (real && real !== item.link) item.link = real;
+      }
+      if (!item.image && item.link && !isGoogleNewsUrl(item.link)) {
         try {
           const host = new URL(item.link).hostname;
           item.image = /(?:^|\.)msn\.com$/.test(host)
@@ -340,6 +357,8 @@ async function addImages(items: RawItem[]): Promise<void> {
           /* unusable link */
         }
       }
+      item.image = usableImage(item.image);
+
       if (item.image) lastDiag.images += 1;
       else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
     }),

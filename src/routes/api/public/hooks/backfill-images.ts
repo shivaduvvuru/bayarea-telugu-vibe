@@ -27,6 +27,9 @@ export const Route = createFileRoute("/api/public/hooks/backfill-images")({
         }
 
         const { fetchArticleImage } = await import("@/lib/collect-news.server");
+        const { resolveGoogleNewsUrl, isGoogleNewsUrl } = await import(
+          "@/lib/google-news.server"
+        );
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data, error } = await supabaseAdmin
@@ -42,14 +45,24 @@ export const Route = createFileRoute("/api/public/hooks/backfill-images")({
 
         let updated = 0;
         for (const row of data ?? []) {
-          const image = row.link_url ? await fetchArticleImage(row.link_url) : null;
-          if (!image) continue;
+          if (!row.link_url) continue;
+          // Google News wrappers have no artwork; resolve to the publisher first
+          // and store that link so future reads work too.
+          const link = isGoogleNewsUrl(row.link_url)
+            ? await resolveGoogleNewsUrl(row.link_url)
+            : row.link_url;
+          const image = await fetchArticleImage(link);
+          const patch: Record<string, string> = {};
+          if (link !== row.link_url) patch["link_url"] = link;
+          if (image) patch["image_url"] = image;
+          if (!Object.keys(patch).length) continue;
           const res = await supabaseAdmin
             .from("content_items")
-            .update({ image_url: image })
+            .update(patch as never)
             .eq("id", row.id);
-          if (!res.error) updated += 1;
+          if (!res.error && image) updated += 1;
         }
+
 
         // Also fill artwork on queue rows still awaiting review, so approved
         // picture stories publish with their photo attached.
