@@ -809,7 +809,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   // First-party newsroom: our own WordPress site (bayarea.telugutimes.net).
   try {
     const { fetchWordPressPosts, WP_SOURCE_NAME } = await import("./wp-source.server");
-    const posts = await fetchWordPressPosts(20);
+    const posts = await fetchWordPressPosts(300);
     lastDiag.notes.push(`wordpress: ${posts.length} posts`);
     for (const p of posts) {
       const kind =
