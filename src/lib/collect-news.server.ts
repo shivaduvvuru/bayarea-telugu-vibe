@@ -1,4 +1,4 @@
-import { BAY_AREA, CITIES, type City } from "./desk-cities";
+import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
 import {
@@ -732,6 +732,178 @@ async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<R
   return merged;
 }
 
+/**
+ * City activity guides and municipal calendars (Redwood City's activity guide,
+ * Milpitas / Dublin recreation calendars, and the equivalent page on each other
+ * city site). Cities run these on CivicPlus / Granicus, so we read the calendar
+ * and news RSS where it exists and fall back to a news search for the city's
+ * "activity guide" so classes, camps and park programmes for the month still
+ * reach the desk. Items that read like a programme file as events; the rest as
+ * city news.
+ */
+const CITY_GUIDE_FEEDS: { citySlug: string; label: string; urls: string[] }[] = [
+  {
+    citySlug: "milpitas",
+    label: "City of Milpitas",
+    urls: [
+      "https://www.milpitas.gov/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.milpitas.gov/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+  {
+    citySlug: "dublin",
+    label: "City of Dublin",
+    urls: [
+      "https://www.dublin.ca.gov/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.dublin.ca.gov/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+  {
+    citySlug: "union-city",
+    label: "City of Union City",
+    urls: ["https://www.unioncity.org/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "fremont",
+    label: "City of Fremont",
+    urls: ["https://www.fremont.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "santa-clara",
+    label: "City of Santa Clara",
+    urls: ["https://www.santaclaraca.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "sunnyvale",
+    label: "City of Sunnyvale",
+    urls: ["https://www.sunnyvale.ca.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "cupertino",
+    label: "City of Cupertino",
+    urls: ["https://www.cupertino.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "palo-alto",
+    label: "City of Palo Alto",
+    urls: ["https://www.cityofpaloalto.org/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    citySlug: "mountain-view",
+    label: "City of Mountain View",
+    urls: ["https://www.mountainview.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+  },
+  {
+    // Redwood City is on the Peninsula but not a tracked city slug, so its
+    // activity guide files under the region-wide bucket.
+    citySlug: BAY_AREA.slug,
+    label: "City of Redwood City",
+    urls: [
+      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+];
+
+/** Cities whose guides we only reach through a news search. */
+const GUIDE_SEARCH_CITIES = [
+  ...CITIES.map((c) => ({ citySlug: c.slug, name: c.en })),
+  { citySlug: BAY_AREA.slug, name: "Redwood City" },
+];
+
+const GUIDE_WORDS =
+  /activity guide|recreation|rec guide|parks and rec|class(?:es)?|camp|program|programme|registration|enroll|swim|library|storytime|summer|fall|winter|spring|senior center|community center|workshop|clinic|league/i;
+
+/** Keep items dated inside this month or the following six weeks. */
+function inGuideWindow(published: string | null): boolean {
+  if (!published) return true;
+  const t = Date.parse(published);
+  if (Number.isNaN(t)) return true;
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const ahead = Date.now() + 45 * 24 * 60 * 60 * 1000;
+  return t >= monthStart && t <= ahead;
+}
+
+const GUIDE_MAX = 6;
+
+/** City-site boilerplate that is not an activity or a story. */
+const GUIDE_JUNK =
+  /public notice|agenda|minutes|commission|council meeting|election|bid|rfp|request for proposal|job|employment|vacan|budget hearing|surplus|ordinance|volunteer opportunit|staff report|permit|utility bill/i;
+
+async function fetchCityGuide(entry: {
+  citySlug: string;
+  label: string;
+  urls: string[];
+}): Promise<RawItem[]> {
+  const results = await Promise.all(
+    entry.urls.map(async (url) => {
+      const parsed = await fetchFeed(url);
+      if (!parsed?.length) return [];
+      lastDiag.fetched += 1;
+      lastDiag.raw += parsed.length;
+      return parsed.map((i) => ({ ...i, source: entry.label }));
+    }),
+  );
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of results.flat()) {
+    const k = normalize(item.title);
+    if (!k || seen.has(k) || !inGuideWindow(item.published)) continue;
+    // City feeds mix programme listings with procedural notices; keep the
+    // activities and drop the administrivia.
+    if (GUIDE_JUNK.test(item.title)) continue;
+    if (!GUIDE_WORDS.test(item.title) && !EVENT_WORDS.test(item.title)) continue;
+    seen.add(k);
+    // Bare page titles ("Lap Swim Schedule") need the city for context.
+    merged.push({ ...item, title: `${item.title} — ${entry.label}` });
+    if (merged.length >= GUIDE_MAX) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+
+  return merged;
+}
+
+async function fetchGuideSearch(city: { citySlug: string; name: string }): Promise<RawItem[]> {
+  const q = `"${city.name}" California ("activity guide" OR "parks and recreation" OR "community center") classes OR camps OR events OR registration`;
+  let parsed = await fetchFeed(
+    `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+  );
+  if (!parsed?.length) {
+    parsed = await fetchFeed(
+      `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:14d&hl=en-US&gl=US&ceid=US:en`,
+    );
+  }
+  if (!parsed?.length) return [];
+  lastDiag.fetched += 1;
+  lastDiag.raw += parsed.length;
+  const cityWords = normalize(city.name);
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of parsed) {
+    const hay = normalize(`${item.title} ${item.source}`);
+    const k = normalize(item.title);
+    if (!k || seen.has(k)) continue;
+    if (!hay.includes(cityWords) || !GUIDE_WORDS.test(hay)) continue;
+    if (!inGuideWindow(item.published)) continue;
+    seen.add(k);
+    merged.push(item);
+    if (merged.length >= 4) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+  return merged;
+}
+
+/** Programme-style listings belong in Events; announcements read as news. */
+function guideKind(title: string): CollectedItem["kind"] {
+  if (TEMPLE_WORDS.test(title)) return "temple";
+  if (EVENT_WORDS.test(title) || GUIDE_WORDS.test(title)) return "event";
+  return "news";
+}
+
+
 export let lastAiError: string | null = null;
 
 async function summarize(city: City, items: RawItem[], apiKey: string | undefined): Promise<string[]> {
@@ -820,6 +992,52 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
       }),
     );
     rows.push(...collected.flat());
+  }
+
+  // City activity guides and municipal recreation calendars for the month.
+  const guideEntries = [
+    ...CITY_GUIDE_FEEDS.map((e) => ({ kind: "feed" as const, entry: e })),
+    ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "search" as const, entry: c })),
+  ];
+  for (let b = 0; b < guideEntries.length; b += 5) {
+    const guideRows = await Promise.all(
+      guideEntries.slice(b, b + 5).map(async (g) => {
+        const items =
+          g.kind === "feed" ? await fetchCityGuide(g.entry) : await fetchGuideSearch(g.entry);
+        const slug = g.entry.citySlug;
+        const city = cityBySlug(slug) ?? BAY_AREA;
+        const summaries = await summarize(city, items, apiKey);
+        return items.map((it, i) => {
+          const kind = guideKind(it.title);
+          const dedupe = keyFor(slug, it.title);
+          return {
+            dedupe_key: dedupe,
+            item_id: dedupe,
+            digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+            kind,
+            city_slug: slug,
+            title: it.title,
+            summary: summaries[i] ?? "",
+            source: it.source,
+            source_url: it.link,
+            published_at: it.published,
+            origin: "feed" as const,
+            payload: {
+              id: dedupe,
+              kind,
+              citySlug: slug,
+              title: it.title,
+              summary: summaries[i] ?? "",
+              source: it.source,
+              sourceUrl: it.link,
+              image: it.image,
+              collectedAt: today,
+            },
+          } satisfies CollectedItem;
+        });
+      }),
+    );
+    rows.push(...guideRows.flat());
   }
 
   // Region-wide NRI, community-event and temple items.
