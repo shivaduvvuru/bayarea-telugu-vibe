@@ -841,6 +841,19 @@ const PUBLISHER_FEEDS: {
     limit: 5,
   },
 
+  // Direct picture-desk feeds. The Google News search feeds above answer 503 on
+  // many gallery queries, which starved Glamourie, so the pool now leans on
+  // publisher RSS that always answers. Every row still passes the photo /
+  // female-star / portrait-quality gates before it reaches the desk.
+  { name: "NDTV Movies photos", url: "https://feeds.feedburner.com/ndtvmovies-latest", kind: "news", limit: 40 },
+  { name: "Koimoi", url: "https://www.koimoi.com/feed/", kind: "news", limit: 20 },
+  { name: "India Today Movies", url: "https://www.indiatoday.in/rss/1206614", kind: "news", limit: 20 },
+  { name: "eTimes photos", url: "https://timesofindia.indiatimes.com/rssfeeds/-2128672765.cms", kind: "news", limit: 20 },
+  { name: "eTimes Telugu", url: "https://timesofindia.indiatimes.com/rssfeeds/2886704.cms", kind: "news", limit: 20 },
+  { name: "The Hindu Movies", url: "https://www.thehindu.com/entertainment/movies/feeder/default.rss", kind: "news", limit: 30 },
+  { name: "Free Press Entertainment", url: "https://www.freepressjournal.in/stories.rss?section=entertainment", kind: "news", limit: 20 },
+  { name: "Deccan Chronicle Entertainment", url: "https://www.deccanchronicle.com/google_feeds.xml", kind: "news", limit: 30 },
+
 
   {
     name: "Consulate General of India, San Francisco",
