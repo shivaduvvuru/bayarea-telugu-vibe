@@ -64,7 +64,7 @@ function FavoritesPage() {
             params={{ category: "gallery" }}
             className="font-semibold underline"
           >
-            Cinema gallery
+            <em className="italic">Glamourie</em>
           </Link>
           .
         </p>

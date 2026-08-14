@@ -259,7 +259,7 @@ function Snippet({ a }: { a: Article }) {
 }
 
 
-function Head({ children, more }: { children: string; more?: React.ReactNode }) {
+function Head({ children, more }: { children: React.ReactNode; more?: React.ReactNode }) {
   return (
     <h2 className="mb-1 flex items-baseline justify-between gap-2 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
       <span>{children}</span>
