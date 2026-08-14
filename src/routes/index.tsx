@@ -447,11 +447,24 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
-            {localRest.map((a) => (
+            {localRest.filter((a) => a.image).map((a) => (
               <Row key={a.slug} a={a} />
             ))}
           </div>
+          {localRest.some((a) => !a.image) ? (
+            <div className="mt-4 border-t border-border pt-3">
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                In brief
+              </p>
+              <ul>
+                {localRest.filter((a) => !a.image).map((a) => (
+                  <Snippet key={a.slug} a={a} />
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
+
 
         <section>
           <Head more={<MoreTo to="/category/india-news" label="All India news" />}>
