@@ -125,13 +125,16 @@ function CategoryPage() {
       ) : null}
 
       {cat.children?.length ? (
-        <nav className="mt-3 flex flex-wrap gap-2" aria-label={`${cat.en} sections`}>
+        <nav
+          className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible"
+          aria-label={`${cat.en} sections`}
+        >
           {cat.children.map((c) => (
             <Link
               key={c.slug}
               to="/category/$category"
               params={{ category: c.slug }}
-              className="rounded-full border border-border px-3 py-1 text-xs font-semibold text-ink hover:border-primary"
+              className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold text-ink hover:border-primary"
             >
               {c.en}
             </Link>
