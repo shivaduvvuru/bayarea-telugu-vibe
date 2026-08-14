@@ -478,9 +478,16 @@ function DeskWorkspace({
         )}
 
         {loadingItems || queue.loading ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Loading desk…</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground">
+            {retryNote || "Loading desk…"}
+          </Card>
         ) : loadError ? (
-          <Card className="p-8 text-center text-sm text-destructive">{loadError}</Card>
+          <Card className="p-8 text-center text-sm text-destructive">
+            <p>{loadError}</p>
+            <Button variant="outline" className="mt-3" onClick={() => void reload()}>
+              <RotateCcw className="mr-2 size-4" /> Try again
+            </Button>
+          </Card>
         ) : visible.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             Nothing here. Switch tab or filter, or use “Collect now” to pull fresh items.
