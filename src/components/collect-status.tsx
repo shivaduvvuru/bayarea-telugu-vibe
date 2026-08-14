@@ -101,11 +101,11 @@ export function CollectStatus({
   return (
     <span
       className={`${base} border-border text-muted-foreground`}
-      title={`${run.trigger === "manual" ? "Manual refresh" : "Scheduled job (${cadence})"} finished ${new Date(run.finished_at).toLocaleString()} · ${run.collected} collected, ${run.published} published, ${run.held} held for review, ${run.duplicates_hidden} duplicates removed`}
+      title={`${run.trigger === "manual" ? "Manual refresh" : `Scheduled job (${cadence})`} finished ${new Date(run.finished_at).toLocaleString()} · ${run.collected} collected, ${run.published} published, ${run.held} held for review, ${run.duplicates_hidden} duplicates removed`}
     >
       <CheckCircle2 className="h-3 w-3 text-primary" aria-hidden />
       Updated {ago(run.finished_at)} · {added} item{added === 1 ? "" : "s"}
-      <span className="hidden sm:inline">  · {cadenceShort}</span>
+      <span className="hidden sm:inline"> · {cadenceShort}</span>
     </span>
   );
 }
