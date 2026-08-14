@@ -59,27 +59,92 @@ function categoryOf(link: string): string | null {
   }
 }
 
-/** Latest published posts from the WordPress site. */
-export async function fetchWordPressPosts(limit = 20): Promise<WpPost[]> {
-  const url = `${WP_SITE}/wp-json/wp/v2/posts?per_page=${Math.min(limit, 50)}&status=publish&_embed=wp:featuredmedia`;
-  const res = await fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "BayAreaTeluguTimes/1.0" },
-  });
-  if (!res.ok) throw new Error(`WordPress ${res.status}`);
-  const posts = (await res.json()) as Record<string, any>[];
-  const out: WpPost[] = [];
-  for (const p of Array.isArray(posts) ? posts : []) {
-    const title = stripHtml(String(p["title"]?.rendered ?? ""));
-    const link = String(p["link"] ?? "");
-    if (!title || !link) continue;
-    out.push({
-      title,
-      link,
-      summary: stripHtml(String(p["excerpt"]?.rendered ?? "")).slice(0, 300),
-      image: imageOf(p),
-      published: p["date_gmt"] ? `${String(p["date_gmt"]).replace(/Z?$/, "")}Z` : null,
-      categorySlug: categoryOf(link),
-    });
-  }
-  return out;
+function toPost(p: Record<string, any>): WpPost | null {
+  const title = stripHtml(String(p["title"]?.rendered ?? ""));
+  const link = String(p["link"] ?? "");
+  if (!title || !link) return null;
+  return {
+    title,
+    link,
+    summary: stripHtml(String(p["excerpt"]?.rendered ?? "")).slice(0, 300),
+    image: imageOf(p),
+    published: p["date_gmt"] ? `${String(p["date_gmt"]).replace(/Z?$/, "")}Z` : null,
+    categorySlug: categoryOf(link),
+  };
 }
+
+/**
+ * Every published post on the WordPress site, walking the REST pagination.
+ * The site mirrors WordPress exactly, so we read the whole catalogue rather
+ * than only the newest page.
+ */
+export async function fetchWordPressPosts(limit = 300): Promise<WpPost[]> {
+  const out: WpPost[] = [];
+  const perPage = 50;
+  for (let page = 1; page <= Math.ceil(limit / perPage); page += 1) {
+    const url = `${WP_SITE}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&status=publish&_embed=wp:featuredmedia`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json", "User-Agent": "BayAreaTeluguTimes/1.0" },
+    });
+    if (res.status === 400) break; // past the last page
+    if (!res.ok) {
+      if (page === 1) throw new Error(`WordPress ${res.status}`);
+      break;
+    }
+    const posts = (await res.json()) as Record<string, any>[];
+    if (!Array.isArray(posts) || posts.length === 0) break;
+    for (const p of posts) {
+      const post = toPost(p);
+      if (post) out.push(post);
+    }
+    if (posts.length < perPage) break;
+  }
+  return out.slice(0, limit);
+}
+
+/**
+ * Retires stories that no longer exist on the WordPress site.
+ *
+ * The Bay Area edition mirrors bayarea.telugutimes.net, so when the newsroom
+ * unpublishes or deletes a post there it must vanish here at the same time.
+ * Anything we ingested from the WP site whose URL is missing from the live post
+ * list gets hidden (kept for audit, never shown).
+ */
+export async function syncWordPressRemovals(
+  admin: { from: (t: string) => any },
+  livePosts: WpPost[],
+): Promise<number> {
+  const norm = (u: string) => u.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+  const live = new Set(livePosts.map((p) => norm(p.link)));
+  if (live.size === 0) return 0; // never mass-hide on a failed pull
+
+  const { data } = await admin
+    .from("content_items")
+    .select("id, link_url")
+    .neq("placement", "hidden")
+    .ilike("link_url", `%bayarea.telugutimes.net%`)
+    .limit(2000);
+
+  const gone = ((data ?? []) as { id: string; link_url: string | null }[])
+    .filter((r) => r.link_url && !live.has(norm(r.link_url)))
+    .map((r) => r.id);
+
+  for (let i = 0; i < gone.length; i += 200) {
+    await admin
+      .from("content_items")
+      .update({ placement: "hidden", status: "removed" })
+      .in("id", gone.slice(i, i + 200));
+  }
+
+  // Keep the review queue in step too, so a removed post is not re-published.
+  if (gone.length) {
+    await admin
+      .from("digest_queue")
+      .update({ status: "rejected" })
+      .ilike("source_url", "%bayarea.telugutimes.net%")
+      .not("source_url", "in", `(${[...live].map((u) => `"https://${u}"`).join(",")})`);
+  }
+
+  return gone.length;
+}
+
