@@ -9,12 +9,12 @@
 export const CINEMA_SLUG = "cinema";
 
 const CINEMA_TEXT =
-  /tollywood|bollywood|kollywood|mollywood|sandalwood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|(?:tamil|malayalam|kannada) (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్/i;
+  /tollywood|bollywood|kollywood|mollywood|sandalwood|hollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|(?:tamil|malayalam|kannada) (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|academy award|oscar|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్|మూవీ|సినిమాలు|టాలీవుడ్/i;
 
 
 /** Well-known film-trade publishers whose whole feed is cinema. */
 const CINEMA_HOSTS =
-  /123telugu|gulte|greatandhra|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery/i;
+  /123telugu|gulte|greatandhra|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery|variety|deadline|hollywoodreporter|eonline|pagesix|justjared|tmz|entertainmenttonight|people\.com|vogue|elle|glamour\.com/i;
 
 
 /** True when a story reads as film / entertainment coverage. */
