@@ -442,6 +442,11 @@ function DeskWorkspace({
               <Lock className="size-3" /> Lock
             </Button>
           </div>
+          {refreshing && (
+            <p className="mt-2 text-xs font-medium text-primary" role="status">
+              {retryNote || "Checking News and Pictures intake before approval…"}
+            </p>
+          )}
 
           <div className="mt-4 grid grid-cols-4 gap-2">
             {(["all", "pending", "approved", "rejected"] as const).map((s) => (
