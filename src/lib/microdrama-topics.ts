@@ -12,10 +12,10 @@ export const MICRO_DRAMA_SLUG = "micro-drama";
 
 /** Format cues: the phrase itself, plus the named apps and studios. */
 const MICRO_TEXT =
-  /micro[- ]?drama|micro[- ]?dramas|microdrama|mini[- ]?drama|short[- ]?drama|vertical (?:drama|series|video series|micro)|snap[- ]?drama|quick[- ]?drama|\breelshort\b|\bdramabox\b|dramawave|goodshort|shortmax|moboreels|flickreels|holywater|my drama|\bkalos\b|melolo|pocket ?fm|kuku ?fm|flick ?tv|chai shots|bullet ?drama|duanju|短剧|మైక్రో డ్రామా|షార్ట్ డ్రామా/i;
+  /micro[- ]?drama|micro[- ]?dramas|microdrama|mini[- ]?drama|short[- ]?drama|vertical (?:drama|series|video series|micro)|snap[- ]?drama|quick[- ]?drama|\breelshort\b|\bdramabox\b|\bflickreels\b|dramawave|goodshort|shortmax|moboreels|flickreels|holywater|my drama|\bkalos\b|melolo|pocket ?fm|kuku ?fm|flick ?tv|chai shots|bullet ?drama|duanju|短剧|మైక్రో డ్రామా|షార్ట్ డ్రామా/i;
 
 /** Publishers and trade desks that cover the short-vertical business. */
-const MICRO_HOSTS = /reelshort|dramabox|flicktv|holywater|micro-?drama/i;
+const MICRO_HOSTS = /reelshort|dramabox|flickreels|flicktv|holywater|micro-?drama/i;
 
 /** True when a story is about the vertical micro-drama format or its players. */
 export function isMicroDrama(
