@@ -20,6 +20,7 @@ import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
+import { GalleryHero } from "@/components/gallery-hero";
 import { CollectStatus } from "@/components/collect-status";
 
 
@@ -470,8 +471,17 @@ function Home() {
           <div className={bannerFresh ? "mt-4" : ""}>
             {localRest
               .filter((a) => a.image)
-              .map((a) => (
-                <Row key={a.slug} a={a} />
+              .map((a, i) => (
+                <div key={a.slug}>
+                  <Row a={a} />
+                  {i === 1 || i === 5 ? (
+                    <GalleryHero
+                      items={uniqueGallery}
+                      onOpen={setViewerIndex}
+                      className="my-4"
+                    />
+                  ) : null}
+                </div>
               ))}
           </div>
           {localRest.some((a) => !a.image) ? (
