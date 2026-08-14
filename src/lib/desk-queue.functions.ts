@@ -62,7 +62,7 @@ type DeskQueueRow = {
   summary: string | null;
   source: string | null;
   source_url: string | null;
-  payload: Record<string, unknown> | null;
+  payload: Record<string, string | undefined> | null;
 };
 
 /**
