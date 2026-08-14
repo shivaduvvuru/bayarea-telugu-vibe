@@ -79,7 +79,9 @@ export function isStarGallery(
   if (MALE_SUBJECT.test(text)) return false;
   // Entertainment photo desks are galleries by construction; elsewhere we still
   // require a female-star cue so headline stories don't leak in.
-  if (!photoDesk && !FEMALE_SUBJECT.test(text)) return false;
+  // Photo-led posts already sitting on a film/entertainment publisher qualify;
+  // elsewhere we still require a female-star cue so headlines don't leak in.
+  if (!photoDesk && !CINEMA_HOSTS.test(url) && !FEMALE_SUBJECT.test(text)) return false;
   return true;
 
 
