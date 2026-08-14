@@ -28,6 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isStarGallery } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
+import { retryWithBackoff } from "@/lib/retry";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
