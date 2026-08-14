@@ -237,6 +237,27 @@ function Row({ a }: { a: Article }) {
   );
 }
 
+/** Text-only stories run as tight snippets so the feed stays picture-led. */
+function Snippet({ a }: { a: Article }) {
+  return (
+    <li className="border-b border-border py-2 last:border-0">
+      <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
+        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink">{a.title}</h3>
+        {a.excerpt ? (
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{a.excerpt}</p>
+        ) : null}
+        <p className="mt-1 flex flex-wrap items-center gap-2">
+          <SourceChip article={a} />
+          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            {formatDate(a.date)}
+          </span>
+        </p>
+      </Link>
+    </li>
+  );
+}
+
+
 function Head({ children, more }: { children: string; more?: React.ReactNode }) {
   return (
     <h2 className="mb-1 flex items-baseline justify-between gap-2 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
@@ -447,11 +468,24 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
-            {localRest.map((a) => (
+            {localRest.filter((a) => a.image).map((a) => (
               <Row key={a.slug} a={a} />
             ))}
           </div>
+          {localRest.some((a) => !a.image) ? (
+            <div className="mt-4 border-t border-border pt-3">
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+                In brief
+              </p>
+              <ul>
+                {localRest.filter((a) => !a.image).map((a) => (
+                  <Snippet key={a.slug} a={a} />
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
+
 
         <section>
           <Head more={<MoreTo to="/category/india-news" label="All India news" />}>
