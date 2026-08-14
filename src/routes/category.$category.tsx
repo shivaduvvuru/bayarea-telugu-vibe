@@ -7,6 +7,8 @@ import { listPosts } from "@/lib/content.functions";
 import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
+import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
+
 import { PhotoActions } from "@/components/photo-actions";
 import type { Article } from "@/lib/content";
 
