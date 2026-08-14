@@ -471,17 +471,8 @@ function Home() {
           <div className={bannerFresh ? "mt-4" : ""}>
             {localRest
               .filter((a) => a.image)
-              .map((a, i) => (
-                <div key={a.slug}>
-                  <Row a={a} />
-                  {i === 1 ? (
-                    <GalleryHero
-                      items={uniqueGallery}
-                      onOpen={setViewerIndex}
-                      className="my-4"
-                    />
-                  ) : null}
-                </div>
+              .map((a) => (
+                <Row key={a.slug} a={a} />
               ))}
           </div>
           {localRest.some((a) => !a.image) ? (
