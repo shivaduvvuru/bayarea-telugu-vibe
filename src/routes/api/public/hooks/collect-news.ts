@@ -162,7 +162,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
