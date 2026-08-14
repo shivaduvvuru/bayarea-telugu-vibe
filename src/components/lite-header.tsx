@@ -336,9 +336,9 @@ export function LiteHeader() {
               Desk
             </Link>
           ) : null}
-          {RAIL.map((item) => (
+          {RAIL.map((item, i) => (
             <Link
-              key={`${item.to}-${(item.params as { category?: string } | undefined)?.category ?? ""}`}
+              key={i}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}
@@ -359,9 +359,9 @@ export function LiteHeader() {
         className="flex md:hidden overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
-          {MOBILE_RAIL.map((item) => (
+          {MOBILE_RAIL.map((item, i) => (
             <Link
-              key={`${item.to}-${(item.params as { category?: string } | undefined)?.category ?? ""}`}
+              key={i}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}
