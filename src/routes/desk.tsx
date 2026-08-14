@@ -78,6 +78,7 @@ function DeskPage() {
   const doCheck = useServerFn(checkDesk);
   const doUnlock = useServerFn(unlockDesk);
   const doLock = useServerFn(lockDesk);
+  const onSessionExpired = useCallback(() => setUnlocked(false), []);
 
   useEffect(() => {
     doCheck()
@@ -120,7 +121,7 @@ function DeskPage() {
     return <DeskPasscodeForm onUnlock={onUnlock} sessionError={sessionError} />;
   }
 
-  return <DeskWorkspace onLock={onLock} onSessionExpired={() => setUnlocked(false)} />;
+  return <DeskWorkspace onLock={onLock} onSessionExpired={onSessionExpired} />;
 }
 
 function DeskPasscodeForm({
