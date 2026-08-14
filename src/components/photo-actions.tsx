@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Heart, Share2, Check, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 import { shareLink } from "@/lib/saved";
 import {
   useFavoritePhoto,
   useHiddenPhoto,
   type FavoritePhoto,
 } from "@/lib/photo-favorites";
+import { removeDislikedPhoto } from "@/lib/photo-moderation.functions";
 import type { Article } from "@/lib/content";
 import { cn } from "@/lib/utils";
+
 
 /**
  * Favorite + dislike + share controls for a cinema photo.
@@ -61,10 +64,21 @@ export function PhotoActions({
         className={btn}
         aria-pressed={hidden}
         aria-label={hidden ? "Undo dislike" : "Dislike photo"}
-        title={hidden ? "Undo dislike — photo will stay" : "Dislike — removed on next refresh"}
+        title={hidden ? "Undo dislike — photo will stay" : "Dislike — deleted for good"}
         onClick={(e) => {
           stop(e);
+          const wasHidden = hidden;
           toggleHidden();
+          if (wasHidden) return;
+          // Editors (desk unlocked) delete the picture site-wide so it cannot
+          // come back on a later refresh; readers just hide it locally.
+          void removeDislikedPhoto({ data: { slug: article.slug } })
+            .then((res) => {
+              if (res?.removed) toast.success("Photo deleted — it won't come back");
+            })
+            .catch(() => {
+              /* reader without desk access: local hide is enough */
+            });
         }}
       >
         <ThumbsDown
@@ -72,6 +86,7 @@ export function PhotoActions({
           aria-hidden
         />
       </button>
+
 
       <button
         type="button"
