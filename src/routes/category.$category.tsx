@@ -4,7 +4,7 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { listPosts } from "@/lib/content.functions";
-import { SectionHeading, StoryCard, Thumb, RelativeDate } from "@/components/news";
+import { SectionHeading, StoryCard, Thumb, RelativeDate, ListRow } from "@/components/news";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
