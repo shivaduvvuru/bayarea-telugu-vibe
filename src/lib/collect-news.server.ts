@@ -1452,6 +1452,18 @@ const GALLERY_FEED_NAMES = [
   "Pinkvilla photos",
   "Heroine latest looks",
   "తెలుగు హీరోయిన్లు",
+  "NDTV Movies photos",
+  "Koimoi",
+  "India Today Movies",
+  "eTimes photos",
+  "eTimes Telugu",
+  "The Hindu Movies",
+  "Free Press Entertainment",
+  "Deccan Chronicle Entertainment",
+  "123Telugu",
+  "Bollywood Hungama",
+  "Pinkvilla",
+
 ];
 
 /**
