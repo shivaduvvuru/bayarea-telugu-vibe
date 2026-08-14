@@ -4,7 +4,7 @@ import { Images } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
-import { usableImage } from "@/lib/story-image";
+import { galleryImage } from "@/lib/story-image";
 
 /** A new picture takes the slot every quarter hour. */
 const ROTATE_MS = 15 * 60 * 1000;
@@ -37,12 +37,12 @@ export function GalleryHero({
     return () => window.clearInterval(id);
   }, [items.length]);
 
-  const withPictures = items.filter((a) => usableImage(a.image));
+  const withPictures = items.filter((a) => galleryImage(a.image));
   if (withPictures.length === 0) return null;
 
   const index = ((slot % withPictures.length) + withPictures.length) % withPictures.length;
   const article = withPictures[index]!;
-  const picture = usableImage(article.image)!;
+  const picture = galleryImage(article.image)!;
   const position = items.findIndex((a) => a.slug === article.slug);
 
   return (

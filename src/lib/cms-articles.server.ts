@@ -7,7 +7,7 @@ import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
-import { sourceLabel, usableImage } from "./story-image";
+import { galleryImage, sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
@@ -200,7 +200,7 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (category === "gallery") {
     return dedupeArticles(
       rows
-        .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && usableImage(r.image_url))
+        .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url))
         .map(toArticle),
     ).slice(0, limit);
   }

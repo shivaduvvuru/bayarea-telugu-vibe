@@ -722,6 +722,24 @@ const PUBLISHER_FEEDS: {
     limit: 10,
   },
   {
+    name: "Heroine photoshoot wire",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(photoshoot+OR+%22photo+shoot%22+OR+%22new+stills%22+OR+%22latest+stills%22+OR+%22glam+photos%22+OR+%22photo+gallery%22)+when:5d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 14,
+  },
+  {
+    name: "South heroine pics daily",
+    url: "https://news.google.com/rss/search?q=(Telugu+OR+Tamil+OR+Malayalam+OR+Kannada)+(actress+OR+heroine)+(photos+OR+pics+OR+stills+OR+gallery)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 14,
+  },
+  {
+    name: "Bollywood heroine pics daily",
+    url: "https://news.google.com/rss/search?q=(Bollywood+OR+Hindi)+actress+(photos+OR+pics+OR+%22spotted%22+OR+%22red+carpet%22+OR+%22looks%22)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
     name: "Saree & ethnic looks",
     url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22saree+look%22+OR+%22ethnic+look%22+OR+%22traditional+look%22+OR+%22lehenga%22+OR+%22gown%22+OR+%22airport+look%22)+(photos+OR+pics+OR+stills)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
@@ -1382,6 +1400,9 @@ const GALLERY_FEED_NAMES = [
   "Social media buzz",
   "Star photo stories",
   "Saree & ethnic looks",
+  "Heroine photoshoot wire",
+  "South heroine pics daily",
+  "Bollywood heroine pics daily",
   "TOI entertainment photos",
   "Telugu heroine photos (Telugu)",
   "Telugu360",
@@ -1401,7 +1422,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
-    limit: Math.max(f.limit ?? 6, 20),
+    limit: Math.max(f.limit ?? 6, 40),
   }));
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
@@ -1443,10 +1464,13 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   }
   // Only picture-led star stories belong in this pass.
   const { isStarGallery } = await import("./cinema-topics");
+  const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
       (r) =>
-        !!(r.payload as { image?: string | null } | undefined)?.image &&
+        // Quality check: the attached picture must read as people photography,
+        // not stock nature / graphic filler.
+        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
         isStarGallery(r.title, r.summary, r.source_url ?? ""),
     ),
   );
