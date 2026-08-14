@@ -338,7 +338,7 @@ export function LiteHeader() {
           ) : null}
           {RAIL.map((item) => (
             <Link
-              key={item.label}
+              key={`${item.to}-${(item.params as { category?: string } | undefined)?.category ?? ""}`}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}
@@ -361,7 +361,7 @@ export function LiteHeader() {
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
           {MOBILE_RAIL.map((item) => (
             <Link
-              key={item.label}
+              key={`${item.to}-${(item.params as { category?: string } | undefined)?.category ?? ""}`}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}
