@@ -26,9 +26,15 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         try {
+          // A full pull also sweeps the picture desks, so Glamourie photos land
+          // in the review queue alongside the day's stories.
           const collected = galleryOnly
             ? await collectGallery(process.env["LOVABLE_API_KEY"])
-            : await collectAll(process.env["LOVABLE_API_KEY"]);
+            : [
+                ...(await collectAll(process.env["LOVABLE_API_KEY"])),
+                ...(await collectGallery(process.env["LOVABLE_API_KEY"])),
+              ];
+
 
           // Drop stories already stored on earlier days (same headline or article URL)
           // and anything already published to the newsroom.
@@ -64,16 +70,29 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Temple notices, events and ordinary news publish without an editor.
           // Only sensitive news stays pending in the review desk.
           const { canAutoPublish } = await import("@/lib/auto-publish");
+          const { isStarGallery } = await import("@/lib/cinema-topics");
+          const { galleryImage } = await import("@/lib/story-image");
+          /** Glamourie photo rows always wait for an editor's eye. */
+          const isPicture = (r: Record<string, unknown>) => {
+            const image = (r["payload"] as { image?: string | null } | undefined)?.image ?? null;
+            return (
+              !!galleryImage(image) &&
+              isStarGallery(String(r["title"] ?? ""), String(r["summary"] ?? ""), String(r["source_url"] ?? ""))
+            );
+          };
           const marked = rows.map((r) => ({
             ...r,
-            status: canAutoPublish(
-              String((r as { kind?: string }).kind ?? "news"),
-              (r as { title?: string }).title,
-              (r as { summary?: string }).summary,
-            )
-              ? "approved"
-              : "pending",
+            status:
+              !isPicture(r as unknown as Record<string, unknown>) &&
+              canAutoPublish(
+                String((r as { kind?: string }).kind ?? "news"),
+                (r as { title?: string }).title,
+                (r as { summary?: string }).summary,
+              )
+                ? "approved"
+                : "pending",
           }));
+
 
           if (marked.length) {
             const { error } = await supabaseAdmin
