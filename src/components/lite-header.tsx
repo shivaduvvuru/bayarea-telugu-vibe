@@ -15,7 +15,7 @@ const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
   { to: "/forums", label: "Forums" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
@@ -31,7 +31,7 @@ const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
   { to: "/forums", label: "Forums" },
 ] as const;
 

@@ -42,7 +42,7 @@ function FavoritesPage() {
     author: "",
     image: p.image,
     category: "gallery",
-    categoryName: "Gallery",
+    categoryName: "Glamourie",
     sourceName: p.sourceName ?? null,
     sourceUrl: p.sourceUrl ?? null,
   }));
