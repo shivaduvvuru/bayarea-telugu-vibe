@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Heart, Share2, Check, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 import { shareLink } from "@/lib/saved";
 import {
   useFavoritePhoto,
   useHiddenPhoto,
   type FavoritePhoto,
 } from "@/lib/photo-favorites";
+import { removeDislikedPhoto } from "@/lib/photo-moderation.functions";
 import type { Article } from "@/lib/content";
 import { cn } from "@/lib/utils";
+
 
 /**
  * Favorite + dislike + share controls for a cinema photo.
