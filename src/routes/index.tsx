@@ -398,6 +398,10 @@ function Home() {
 
         <section>
           <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
+          <div className="mb-3">
+            <RefreshGalleryButton />
+          </div>
+
           {uniqueGallery.length === 0 ? (
             <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
           ) : (
