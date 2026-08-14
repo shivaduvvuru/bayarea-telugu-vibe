@@ -475,6 +475,24 @@ export type Database = {
         }
         Relationships: []
       }
+      hook_tokens: {
+        Row: {
+          created_at: string
+          name: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          token?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -508,6 +526,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hook_token: { Args: { _name: string }; Returns: string }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

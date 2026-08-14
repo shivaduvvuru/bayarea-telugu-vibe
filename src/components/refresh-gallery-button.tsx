@@ -25,10 +25,8 @@ export function RefreshGalleryButton({
     try {
       const res = await fetch("/api/public/hooks/collect-news", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string,
-        },
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "gallery", trigger: "manual" }),
       });
       const json = (await res.json().catch(() => ({}))) as {
@@ -36,6 +34,8 @@ export function RefreshGalleryButton({
         published?: number;
         error?: string;
       };
+      if (res.status === 401)
+        throw new Error("Unlock the editorial desk to refresh the gallery");
       if (!res.ok) throw new Error(json.error ?? "Refresh failed");
       await qc.invalidateQueries({ queryKey: ["wp", "posts", "gallery"] });
       await qc.refetchQueries({ queryKey: ["wp", "posts", "gallery"] });

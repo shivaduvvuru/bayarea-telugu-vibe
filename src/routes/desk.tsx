@@ -224,10 +224,8 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
     try {
       const res = await fetch("/api/public/hooks/collect-news", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string,
-        },
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: "{}",
       });
       const json = (await res.json()) as {
@@ -235,6 +233,7 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
         error?: string;
         diag?: { fetched?: number; raw?: number; notes?: string[] };
       };
+      if (res.status === 401) throw new Error("Desk session expired — unlock again");
       if (!res.ok) throw new Error(json.error ?? "Collection failed");
       await loadItems();
       if (!json.collected) {
