@@ -159,12 +159,16 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
 
 
   } else if (category === "cinema") {
-    // Older film stories were stored as plain "news"; pull both and let the
-    // classifier decide.
+    // Cinema is a picture desk too: only film stories that carry a usable photo
+    // make the feed. Older film stories were stored as plain "news"; pull both
+    // and let the classifier decide. The pool stays wide because the image
+    // filter drops a lot of rows.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(limit * 4)
+      .limit(Math.max(limit * 12, 400))
+      .not("image_url", "is", null)
       .in("category", ["cinema", "news"]);
+
   } else if (category === "india-news") {
     // Explicit India sections plus anything the classifier recognises as
     // India coverage that was filed under a generic bucket.
