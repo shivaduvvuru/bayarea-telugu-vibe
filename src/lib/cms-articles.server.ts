@@ -10,6 +10,7 @@ import { sanitizeHtml } from "./sanitize";
 import { sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
+import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { dedupeKey } from "./dedupe";
 
 /**
@@ -96,7 +97,9 @@ function toArticle(row: Row): Article {
         ? CINEMA_SLUG
         : (row.category === "news" || !row.category ? (own === "temples" ? "temples" : own === "events" ? "events" : row.category) : row.category)
       : row.category === "news" || !row.category
-        ? isCinema(row.title, row.summary, row.link_url)
+        ? isMicroDrama(row.title, row.summary, row.link_url)
+          ? MICRO_DRAMA_SLUG
+          : isCinema(row.title, row.summary, row.link_url)
           ? CINEMA_SLUG
           : (classifyIndia(row.title, row.summary, row.link_url) ?? row.category)
         : row.category;
@@ -105,7 +108,9 @@ function toArticle(row: Row): Article {
   // Cinema is a topic, not a place: a film story filed to a city still belongs
   // in Cinema.
   const slug =
-    stored === CINEMA_SLUG ? CINEMA_SLUG : (citySlugOf(row.city) ?? stored ?? "community");
+    stored === CINEMA_SLUG || stored === MICRO_DRAMA_SLUG
+      ? stored
+      : (citySlugOf(row.city) ?? stored ?? "community");
   const cat = categoryBySlug(slug);
   const text = row.summary ?? "";
   return {
@@ -136,6 +141,16 @@ function base() {
 /** Published stories for a category/city slug (or everything when omitted). */
 export async function cmsPosts(category: string | undefined, limit: number): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
+  if (category === "micro-drama") {
+    return dedupeArticles(
+      rows
+        .filter(
+          (r) =>
+            r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
+        )
+        .map(toArticle),
+    ).slice(0, limit);
+  }
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
     // The pool has to be wide: most rows filed to a Bay Area city are India or
@@ -169,6 +184,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .not("image_url", "is", null)
       .in("category", ["cinema", "news"]);
 
+  } else if (category === "micro-drama") {
+    // Micro-drama is a young desk: pull a wide pool of film/OTT rows and let the
+    // format classifier pick the vertical short-drama coverage out of it.
+    q = base()
+      .order("published_at", { ascending: false })
+      .limit(Math.max(limit * 20, 600))
+      .in("category", [MICRO_DRAMA_SLUG, "cinema", "news"]);
   } else if (category === "india-news") {
     // Explicit India sections plus anything the classifier recognises as
     // India coverage that was filed under a generic bucket.
@@ -203,6 +225,16 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
         .map(toArticle),
     ).slice(0, limit);
   }
+  if (category === "micro-drama") {
+    return dedupeArticles(
+      rows
+        .filter(
+          (r) =>
+            r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
+        )
+        .map(toArticle),
+    ).slice(0, limit);
+  }
   if (category === "city-news") {
     // Local Bay Area reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
@@ -212,7 +244,8 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     return dedupeArticles(
       rows
         .filter((r) => {
-          if (r.category === CINEMA_SLUG) return false;
+          if (r.category === CINEMA_SLUG || r.category === MICRO_DRAMA_SLUG) return false;
+          if (isMicroDrama(r.title, r.summary, r.link_url)) return false;
           const own = ownSiteSection(r.link_url);
           if (own !== null) return own !== "cinema" && own !== "gallery";
 
@@ -237,7 +270,9 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
     // No picture, no cinema story — there is plenty of illustrated film news.
-    return articles.filter((a) => a.category === "cinema" && a.image).slice(0, limit);
+    return articles
+      .filter((a) => a.category === "cinema" && a.image && !isMicroDrama(a.title, a.excerpt, a.sourceUrl))
+      .slice(0, limit);
   }
 
   return articles;
