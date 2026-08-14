@@ -34,7 +34,21 @@ export function isCinema(
  * photo-led coverage of Telugu / Hindi / OTT heroines and stars.
  */
 const PHOTO_LED =
-  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|shoot|snaps?|clicks?|looks?|new look|latest look|saree|traditional look|red carpet|ramp walk|magazine cover|cover shoot|poses|stunning|gorgeous|viral (?:photos|pics)|instagram|insta (?:post|story|reel)|social media|reel|selfie|beach (?:look|photos)|bikini|glam(?:orous)? (?:photos|look)|sizzling|dazzling|hot (?:photos|pics|look)|bold look|album)\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్|ఇన్‌స్టా|సోషల్ మీడియా|రీల్స్|సెల్ఫీ/i;
+  /\b(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|photo shoot|photo dump|shoot|snaps?|snapped|clicks?|clicked|spotted|looks?|new look|latest look|saree|traditional look|ethnic look|red carpet|ramp walk|magazine cover|cover shoot|poses|posing|stunning|stuns|stunner|gorgeous|glams? up|charming|mesmeri[sz]|dazzl|radiant|beautiful|cute|viral (?:photos|pics|video)|goes viral|instagram|insta (?:post|story|reel)|social media|reels?|selfie|beach (?:look|photos)|bikini|swimsuit|glam(?:orous)?(?: photos| look)?|sizzl|hot (?:photos|pics|look)|bold look|album|latest clicks|breaks the internet|sets the internet)\b|ఫోటోలు|ఫొటోలు|ఫోటో షూట్|స్టిల్స్|గ్యాలరీ|లుక్|చిత్రాలు|షూట్|వైరల్|ఇన్‌స్టా|సోషల్ మీడియా|రీల్స్|సెల్ఫీ|అందాలు/i;
+
+/** Picture desks / photo sections whose posts are galleries by construction. */
+const PHOTO_DESK_URL =
+  /gallery\.|\/gallery|\/galleries|\/photos?|\/photo-gallery|\/photostory|photogallery|slideshow|ragalahari|telugustop|sitara|\/web-?stories/i;
+
+/** The photo section has to sit on an entertainment desk, not city/politics. */
+const ENTERTAINMENT_URL =
+  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|fashion|lifestyle|beauty/i;
+
+/** Hard news cues — never a glamour picture post, whatever the URL says. */
+const NEWSY =
+  /\b(?:arrest|police|court|case filed|fir\b|murder|rape|assault|dies|died|death|passes away|obituar|accident|crash|fire|flood|earthquake|protest|election|minister|politic|court order|traffic|weather|covid|scam|fraud|suicide|hospital|verdict|petition|bandh|strike|war|attack|shooting|backlash|slams|controvers|lawsuit|feud|apolog)\b|ట్రాఫిక్|అరెస్ట్|కేసు|మృతి|ప్రమాదం|ఎన్నికల/i;
+
+
 
 /** Male-subject cues: those photo posts stay in Cinema, not the Gallery. */
 const MALE_SUBJECT =
@@ -55,11 +69,18 @@ export function isStarGallery(
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
   const url = (sourceUrl ?? "").toLowerCase();
-  const photoLed =
-    PHOTO_LED.test(text) || /gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url);
+  // Hard news never belongs in a glamour grid.
+  if (NEWSY.test(text)) return false;
+  const photoDesk =
+    PHOTO_DESK_URL.test(url) && (CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url));
+  const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
-  if (!FEMALE_SUBJECT.test(text)) return false;
   // Strictly no men in Gallery: any male-subject cue disqualifies the post.
   if (MALE_SUBJECT.test(text)) return false;
+  // Entertainment photo desks are galleries by construction; elsewhere we still
+  // require a female-star cue so headline stories don't leak in.
+  if (!photoDesk && !FEMALE_SUBJECT.test(text)) return false;
   return true;
+
+
 }

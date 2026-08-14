@@ -698,6 +698,45 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
   { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
+  // Social-media picture desks: Instagram / X posts that publishers write up,
+  // plus photo-story sections. These keep Glamourie topped up between runs.
+  {
+    name: "Instagram photo dumps",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine+OR+%22model%22)+(%22photo+dump%22+OR+%22Instagram+post%22+OR+%22Instagram+story%22+OR+%22shares+photos%22+OR+%22drops+photos%22+OR+%22drops+pictures%22+OR+%22latest+Instagram%22)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Social media buzz",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22goes+viral%22+OR+%22breaks+the+internet%22+OR+%22sets+the+internet%22+OR+%22trending+on+Instagram%22+OR+%22fans+react%22)+(photos+OR+pics+OR+reel)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Star photo stories",
+    url: "https://news.google.com/rss/search?q=(%22photo+gallery%22+OR+photostory+OR+%22in+pics%22+OR+%22in+pictures%22+OR+%22web+stories%22)+(actress+OR+heroine+OR+Tollywood+OR+Bollywood+OR+Kollywood)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Saree & ethnic looks",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22saree+look%22+OR+%22ethnic+look%22+OR+%22traditional+look%22+OR+%22lehenga%22+OR+%22gown%22+OR+%22airport+look%22)+(photos+OR+pics+OR+stills)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "TOI entertainment photos",
+    url: "https://timesofindia.indiatimes.com/rssfeeds/1081479906.cms",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Telugu heroine photos (Telugu)",
+    url: "https://news.google.com/rss/search?q=%E0%B0%B9%E0%B1%80%E0%B0%B0%E0%B1%8B%E0%B0%AF%E0%B0%BF%E0%B0%A8%E0%B1%8D+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%A8%E0%B0%9F%E0%B0%BF+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%85%E0%B0%82%E0%B0%A6%E0%B0%BE%E0%B0%B2+%E0%B0%AC%E0%B1%8D%E0%B0%AF%E0%B1%82%E0%B0%9F%E0%B1%80+when:7d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 8,
+  },
+
   {
     name: "Bollywood Hungama",
     url: "https://www.bollywoodhungama.com/feed/",
@@ -1306,6 +1345,14 @@ const GALLERY_FEED_NAMES = [
   "Mollywood heroines",
   "Sandalwood heroines",
   "South stars glamour",
+  "Instagram photo dumps",
+  "Social media buzz",
+  "Star photo stories",
+  "Saree & ethnic looks",
+  "TOI entertainment photos",
+  "Telugu heroine photos (Telugu)",
+  "Telugu360",
+
 ];
 
 /**
