@@ -443,14 +443,17 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
   {
     kind: "news",
     queries: [
+      "ReelShort app news series launch cast",
+      "DramaBox app vertical drama news series",
+      "FlickReels app short drama news",
       "micro drama vertical short drama app India news",
-      "ReelShort OR DramaBox OR Holywater micro drama news",
+      "ReelShort OR DramaBox OR FlickReels OR Holywater micro drama news",
       "China micro drama duanju short drama industry news",
       "US vertical micro drama series app funding audience",
       "micro drama series launch cast photos India Telugu Hindi",
     ],
     match:
-      /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
+      /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|flickreels|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
   },
 ];
 
