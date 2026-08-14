@@ -1,4 +1,5 @@
 import { CalendarPlus, MapPin, Navigation, Ticket, CalendarDays } from "lucide-react";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 import { type EventItem, eventDate } from "@/lib/news-data";
 import { useLang } from "@/lib/language";
 
