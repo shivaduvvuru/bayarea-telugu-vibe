@@ -409,7 +409,7 @@ function Home() {
         <section>
           <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
           <div className="mb-3">
-            <RefreshGalleryButton />
+            <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
           </div>
 
           {uniqueGallery.length === 0 ? (
