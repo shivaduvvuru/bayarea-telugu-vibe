@@ -141,16 +141,6 @@ function base() {
 /** Published stories for a category/city slug (or everything when omitted). */
 export async function cmsPosts(category: string | undefined, limit: number): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
-  if (category === "micro-drama") {
-    return dedupeArticles(
-      rows
-        .filter(
-          (r) =>
-            r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
-        )
-        .map(toArticle),
-    ).slice(0, limit);
-  }
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
     // The pool has to be wide: most rows filed to a Bay Area city are India or
