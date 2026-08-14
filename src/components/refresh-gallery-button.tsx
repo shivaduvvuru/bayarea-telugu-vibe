@@ -8,7 +8,14 @@ import { toast } from "sonner";
  * tiles so newly collected star photos appear without waiting for the
  * 3-hourly job or the query cache.
  */
-export function RefreshGalleryButton({ className = "" }: { className?: string }) {
+export function RefreshGalleryButton({
+  className = "",
+  onRefreshed,
+}: {
+  className?: string;
+  /** Lets a grid advance its rotating window so the tiles visibly change. */
+  onRefreshed?: (added: number) => void;
+}) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
 
