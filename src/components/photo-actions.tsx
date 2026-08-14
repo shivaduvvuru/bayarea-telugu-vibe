@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { Heart, Share2, Check } from "lucide-react";
+import { Heart, Share2, Check, ThumbsDown } from "lucide-react";
 import { shareLink } from "@/lib/saved";
-import { useFavoritePhoto, type FavoritePhoto } from "@/lib/photo-favorites";
+import {
+  useFavoritePhoto,
+  useHiddenPhoto,
+  type FavoritePhoto,
+} from "@/lib/photo-favorites";
 import type { Article } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 /**
- * Favorite + share controls for a cinema photo.
+ * Favorite + dislike + share controls for a cinema photo.
  * Two tones: "light" for dark overlays (lightbox / tiles), "ink" on white cards.
  */
 export function PhotoActions({
@@ -19,6 +23,7 @@ export function PhotoActions({
   className?: string;
 }) {
   const { favorite, toggle } = useFavoritePhoto(article);
+  const { hidden, toggle: toggleHidden } = useHiddenPhoto(article);
   const [copied, setCopied] = useState(false);
 
   const btn = cn(
@@ -51,6 +56,23 @@ export function PhotoActions({
           aria-hidden
         />
       </button>
+      <button
+        type="button"
+        className={btn}
+        aria-pressed={hidden}
+        aria-label={hidden ? "Undo dislike" : "Dislike photo"}
+        title={hidden ? "Undo dislike — photo will stay" : "Dislike — removed on next refresh"}
+        onClick={(e) => {
+          stop(e);
+          toggleHidden();
+        }}
+      >
+        <ThumbsDown
+          className={cn("h-[18px] w-[18px]", hidden && "fill-current text-primary")}
+          aria-hidden
+        />
+      </button>
+
       <button
         type="button"
         className={btn}
