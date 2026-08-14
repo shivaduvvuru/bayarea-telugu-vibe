@@ -94,10 +94,12 @@ function DeskPage() {
       setSessionError("");
       const res = await doUnlock({ data: { passcode } });
       if (!res.ok) return false;
-      const verified = await doCheck();
-      setUnlocked(verified.unlocked);
-      if (!verified.unlocked) setSessionError("The desk session did not persist. Please try again.");
-      return verified.unlocked;
+      // The unlock response writes the encrypted session cookie. Enter the
+      // workspace from that authoritative result instead of immediately
+      // racing a second request through the preview proxy; protected desk
+      // queries still validate the cookie before returning any content.
+      setUnlocked(true);
+      return true;
     } catch {
       setSessionError("Could not unlock the desk. Please try again.");
       return false;
