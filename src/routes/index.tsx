@@ -345,7 +345,12 @@ function Home() {
   const bannerFresh = isPrimeBannerFresh();
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
   takeUnique([lead, ...localRest], homepageSeen);
-  const uniqueGallery = takeUnique(galleryItems, homepageSeen, 6);
+  // Rotating window over the picture pool: the sources only publish a handful of
+  // new photo sets a day, so a fixed "newest six" looks unchanged after a
+  // refresh. Each refresh advances the window instead.
+  const galleryPool = takeUnique(galleryItems, homepageSeen, 48);
+  const start = galleryPool.length ? (galleryPage * 6) % galleryPool.length : 0;
+  const uniqueGallery = [...galleryPool.slice(start), ...galleryPool.slice(0, start)].slice(0, 6);
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
