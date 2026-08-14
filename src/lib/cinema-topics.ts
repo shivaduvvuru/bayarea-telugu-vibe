@@ -40,6 +40,15 @@ const PHOTO_LED =
 const PHOTO_DESK_URL =
   /gallery\.|\/gallery|\/galleries|\/photos?|\/photo-gallery|\/photostory|photogallery|slideshow|ragalahari|telugustop|sitara|\/web-?stories/i;
 
+/** The photo section has to sit on an entertainment desk, not city/politics. */
+const ENTERTAINMENT_URL =
+  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|fashion|lifestyle|beauty/i;
+
+/** Hard news cues — never a glamour picture post, whatever the URL says. */
+const NEWSY =
+  /\b(?:arrest|police|court|case filed|fir\b|murder|rape|assault|dies|died|death|passes away|obituar|accident|crash|fire|flood|earthquake|protest|election|minister|politic|court order|traffic|weather|covid|scam|fraud|suicide|hospital|verdict|petition|bandh|strike|war|attack|shooting)\b|ట్రాఫిక్|అరెస్ట్|కేసు|మృతి|ప్రమాదం|ఎన్నికల/i;
+
+
 
 /** Male-subject cues: those photo posts stay in Cinema, not the Gallery. */
 const MALE_SUBJECT =
