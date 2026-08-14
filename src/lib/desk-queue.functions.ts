@@ -11,7 +11,7 @@ type QueueRow = {
 /** Reads review-queue rows. Editorial desk only — the queue holds unpublished
  * and rejected content and must never be world-readable. */
 export const listQueueRows = createServerFn({ method: "POST" })
-  .inputValidator((data: { itemIds?: string[] }) => ({
+  .validator((data: { itemIds?: string[] }) => ({
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 1000).map(String) : [],
   }))
   .handler(async ({ data }): Promise<{ rows: QueueRow[] }> => {
@@ -30,7 +30,7 @@ export const listQueueRows = createServerFn({ method: "POST" })
 
 /** Records an editor decision on queue rows. Editorial desk only. */
 export const setQueueStatus = createServerFn({ method: "POST" })
-  .inputValidator((data: { itemIds: string[]; status: string }) => {
+  .validator((data: { itemIds: string[]; status: string }) => {
     if (!["pending", "approved", "rejected"].includes(String(data?.status))) {
       throw new Error("Invalid status");
     }
@@ -71,7 +71,7 @@ type DeskQueueRow = {
  * than the browser client (which sees zero rows when nobody is signed in).
  */
 export const listDeskItems = createServerFn({ method: "POST" })
-  .inputValidator((data: { days?: number }) => ({
+  .validator((data: { days?: number }) => ({
     days: Math.min(Math.max(Number(data?.days) || 7, 1), 30),
   }))
   .handler(async ({ data }): Promise<{ items: DeskQueueRow[] }> => {
@@ -84,7 +84,10 @@ export const listDeskItems = createServerFn({ method: "POST" })
       .from("digest_queue")
       .select("item_id,digest_date,kind,city_slug,title,summary,source,source_url,payload")
       .gte("digest_date", since)
-      .neq("upload_status", "sent")
+      // A row can have been accidentally stamped as sent by an older pull
+      // while its editorial decision is still pending. Pending work must
+      // always remain visible to the reviewer.
+      .or("upload_status.neq.sent,status.eq.pending")
       .order("digest_date", { ascending: false })
       .limit(600);
     if (error) throw new Error(error.message);

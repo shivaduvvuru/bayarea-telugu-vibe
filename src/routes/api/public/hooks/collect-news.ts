@@ -97,7 +97,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           if (marked.length) {
             const { error } = await supabaseAdmin
               .from("digest_queue")
-              .upsert(marked as never, { onConflict: "dedupe_key", ignoreDuplicates: false });
+              // Never rewrite an existing row's editorial decision or sent
+              // state when a source repeats it in a later pull.
+              .upsert(marked as never, { onConflict: "dedupe_key", ignoreDuplicates: true });
             if (error) throw error;
           }
 
