@@ -83,8 +83,10 @@ const cityNewsQuery = queryOptions({
  * instead of sitting behind a half-hour snapshot.
  */
 const galleryQuery = queryOptions({
-  queryKey: ["wp", "posts", "gallery"],
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 12, compact: true } }),
+  queryKey: ["wp", "posts", "gallery", "home"],
+  // Deep pool: the home column shows a rotating window of six, so tapping
+  // "Refresh gallery" always moves on to different photos.
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
   staleTime: 60 * 1000,
   refetchOnMount: "always",
 });
