@@ -138,12 +138,22 @@ export async function syncWordPressRemovals(
 
   // Keep the review queue in step too, so a removed post is not re-published.
   if (gone.length) {
-    await admin
+    const { data: queued } = await admin
       .from("digest_queue")
-      .update({ status: "rejected" })
+      .select("item_id, source_url")
       .ilike("source_url", "%bayarea.telugutimes.net%")
-      .not("source_url", "in", `(${[...live].map((u) => `"https://${u}"`).join(",")})`);
+      .limit(2000);
+    const drop = ((queued ?? []) as { item_id: string; source_url: string | null }[])
+      .filter((r) => r.source_url && !live.has(norm(r.source_url)))
+      .map((r) => r.item_id);
+    for (let i = 0; i < drop.length; i += 200) {
+      await admin
+        .from("digest_queue")
+        .update({ status: "rejected" })
+        .in("item_id", drop.slice(i, i + 200));
+    }
   }
+
 
   return gone.length;
 }
