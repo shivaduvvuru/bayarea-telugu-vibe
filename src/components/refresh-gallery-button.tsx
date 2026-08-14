@@ -7,7 +7,7 @@ import { CollectStatus, collectStatusKey } from "@/components/collect-status";
 /**
  * Forces an immediate gallery-only collection pass, then reloads the picture
  * tiles so newly collected star photos appear without waiting for the
- * 3-hourly job or the query cache.
+ * every-30-minutes job or the query cache.
  */
 export function RefreshGalleryButton({
   className = "",
