@@ -79,14 +79,12 @@ export function isStarGallery(
     (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));
   const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
-  // Strictly no men in Gallery: any male-subject cue disqualifies the post.
+  // Strictly no men in Glamourie: any male-subject cue disqualifies the post.
   if (MALE_SUBJECT.test(text)) return false;
-  // Entertainment photo desks are galleries by construction; elsewhere we still
-  // require a female-star cue so headline stories don't leak in.
-  // Photo-led posts already sitting on a film/entertainment publisher qualify;
-  // elsewhere we still require a female-star cue so headlines don't leak in.
-  if (!photoDesk && !ownSite && !CINEMA_HOSTS.test(url) && !FEMALE_SUBJECT.test(text)) return false;
+  // Glamourie is a female-artist picture desk (Tollywood, Mollywood, Kollywood,
+  // Sandalwood, Bollywood, Hollywood). A named heroine / actress / glamour cue
+  // is now required everywhere — trusted photo desks no longer get a pass.
+  if (!FEMALE_SUBJECT.test(text)) return false;
   return true;
-
-
 }
+
