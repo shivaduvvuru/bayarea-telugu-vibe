@@ -841,6 +841,19 @@ const PUBLISHER_FEEDS: {
     limit: 5,
   },
 
+  // Direct picture-desk feeds. The Google News search feeds above answer 503 on
+  // many gallery queries, which starved Glamourie, so the pool now leans on
+  // publisher RSS that always answers. Every row still passes the photo /
+  // female-star / portrait-quality gates before it reaches the desk.
+  { name: "NDTV Movies photos", url: "https://feeds.feedburner.com/ndtvmovies-latest", kind: "news", limit: 40 },
+  { name: "Koimoi", url: "https://www.koimoi.com/feed/", kind: "news", limit: 20 },
+  { name: "India Today Movies", url: "https://www.indiatoday.in/rss/1206614", kind: "news", limit: 20 },
+  { name: "eTimes photos", url: "https://timesofindia.indiatimes.com/rssfeeds/-2128672765.cms", kind: "news", limit: 20 },
+  { name: "eTimes Telugu", url: "https://timesofindia.indiatimes.com/rssfeeds/2886704.cms", kind: "news", limit: 20 },
+  { name: "The Hindu Movies", url: "https://www.thehindu.com/entertainment/movies/feeder/default.rss", kind: "news", limit: 30 },
+  { name: "Free Press Entertainment", url: "https://www.freepressjournal.in/stories.rss?section=entertainment", kind: "news", limit: 20 },
+  { name: "Deccan Chronicle Entertainment", url: "https://www.deccanchronicle.com/google_feeds.xml", kind: "news", limit: 30 },
+
 
   {
     name: "Consulate General of India, San Francisco",
@@ -1439,6 +1452,18 @@ const GALLERY_FEED_NAMES = [
   "Pinkvilla photos",
   "Heroine latest looks",
   "తెలుగు హీరోయిన్లు",
+  "NDTV Movies photos",
+  "Koimoi",
+  "India Today Movies",
+  "eTimes photos",
+  "eTimes Telugu",
+  "The Hindu Movies",
+  "Free Press Entertainment",
+  "Deccan Chronicle Entertainment",
+  "123Telugu",
+  "Bollywood Hungama",
+  "Pinkvilla",
+
 ];
 
 /**
@@ -1449,7 +1474,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
-    limit: Math.max(f.limit ?? 6, 40),
+    limit: Math.max(f.limit ?? 6, 60),
   }));
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
