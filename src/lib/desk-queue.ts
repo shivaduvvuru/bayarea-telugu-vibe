@@ -24,7 +24,7 @@ function unwrapQueueRows(value: unknown): QueueRow[] {
  * Review queue for the editorial desk, backed by the digest_queue table.
  * Decisions live in the database so any editor sees the same state.
  */
-export function useReviewQueue(itemIds: string[], version: string) {
+export function useReviewQueue(itemIds: string[], version: string, deskToken: string) {
   const [rows, setRows] = useState<Record<string, QueueRow>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -38,7 +38,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
       return {} as Record<string, QueueRow>;
     }
     // Retry with backoff so a transient timeout does not blank out decisions.
-    const data = await retryWithBackoff(() => fetchRows({ data: { itemIds } }), {
+    const data = await retryWithBackoff(() => fetchRows({ data: { itemIds, deskToken } }), {
       attempts: 4,
     });
     const map: Record<string, QueueRow> = {};
@@ -46,7 +46,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
     setRows(map);
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [version]);
+  }, [version, deskToken]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +79,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
         return next;
       });
       try {
-        await saveStatus({ data: { itemIds: ids, status } });
+        await saveStatus({ data: { itemIds: ids, status, deskToken } });
       } catch (e) {
         console.error(e);
         await load();
@@ -89,7 +89,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
       // see every approved story without a second manual step.
       if (status === "approved") {
         try {
-          const res = await publishApproved({ data: { itemIds: ids } });
+          const res = await publishApproved({ data: { itemIds: ids, deskToken } });
           if (res.error) console.error("auto-publish failed", res.error);
         } catch (e) {
           console.error("auto-publish failed", e);
@@ -97,21 +97,21 @@ export function useReviewQueue(itemIds: string[], version: string) {
       }
       await load();
     },
-    [load, publishApproved, saveStatus],
+    [deskToken, load, publishApproved, saveStatus],
   );
 
   /** Safety net: push every approved-but-unpublished item into the newsroom. */
   const processQueue = useCallback(async () => {
     setBusy(true);
     try {
-      const res = await publishApproved({ data: {} });
+      const res = await publishApproved({ data: { deskToken } });
       await load();
       if (res.error) throw new Error(res.error);
       return res.sent;
     } finally {
       setBusy(false);
     }
-  }, [load, publishApproved]);
+  }, [deskToken, load, publishApproved]);
 
 
   const statusOf = (id: string): ItemStatus => rows[id]?.status ?? "pending";

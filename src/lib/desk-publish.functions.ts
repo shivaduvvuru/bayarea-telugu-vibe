@@ -1,19 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 
-type Input = { itemIds?: string[] };
+type Input = { itemIds?: string[]; deskToken?: string };
 
 /**
  * Publishes approved desk rows into the site's own newsroom store and records
  * the outcome on the queue row (queued -> sent, or failed + error).
  */
 export const publishApproved = createServerFn({ method: "POST" })
-  .inputValidator((data: Input) => ({
+  .validator((data: Input) => ({
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 500).map(String) : undefined,
+    deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
   }))
   .handler(async ({ data }) => {
     // Publishing pushes content live: require an unlocked editorial desk.
     const { assertDesk } = await import("@/lib/desk-session.server");
-    await assertDesk();
+    await assertDesk(data.deskToken);
     const { ingest, admin } = await import("@/lib/cms.server");
     const { deskRowToIngest } = await import("@/lib/desk-publish.server");
     const db = await admin();

@@ -1,5 +1,5 @@
 import { useSession } from "@tanstack/react-start/server";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 type DeskSession = { unlocked?: boolean };
 
@@ -18,6 +18,33 @@ function passwordMatches(input: string, expected: string): boolean {
   const a = createHash("sha256").update(input, "utf8").digest();
   const b = createHash("sha256").update(expected, "utf8").digest();
   return timingSafeEqual(a, b);
+}
+
+function deskTokenSecret(): string {
+  const secret = process.env["DESK_SESSION_SECRET"];
+  if (!secret) throw new Error("Desk session secret is not configured");
+  return secret;
+}
+
+function tokenSignature(payload: string): string {
+  return createHmac("sha256", deskTokenSecret()).update(payload).digest("base64url");
+}
+
+/** Signed capability used when a preview proxy delays or drops the session cookie. */
+export function createDeskToken(): string {
+  const expires = Date.now() + 60 * 60 * 1000;
+  const payload = String(expires);
+  return `${payload}.${tokenSignature(payload)}`;
+}
+
+export function verifyDeskToken(token?: string): boolean {
+  if (!token) return false;
+  const [payload, supplied] = token.split(".");
+  if (!payload || !supplied || Number(payload) <= Date.now()) return false;
+  const expected = tokenSignature(payload);
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 export async function unlockDeskSession(passcode: string): Promise<boolean> {
@@ -50,8 +77,8 @@ export async function deskUnlocked(): Promise<boolean> {
 }
 
 /** Throws for anyone without an unlocked desk session. */
-export async function assertDesk(): Promise<void> {
-  if (!(await deskUnlocked())) {
+export async function assertDesk(token?: string): Promise<void> {
+  if (!verifyDeskToken(token) && !(await deskUnlocked())) {
     throw new Response("Unauthorized", { status: 401 });
   }
 }
