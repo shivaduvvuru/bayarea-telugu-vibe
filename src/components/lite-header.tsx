@@ -14,9 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
-  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
-  { to: "/forums", label: "Forums" },
+  { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
@@ -24,15 +24,16 @@ const RAIL = [
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations" },
   { to: "/connect", label: "Community" },
+  { to: "/forums", label: "Forums" },
 ] as const;
 
 /** Mobile top rail — news sections; utilities live in the bottom bars. */
 const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
-  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
+  { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
-  { to: "/forums", label: "Forums" },
+  { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
 ] as const;
 
 

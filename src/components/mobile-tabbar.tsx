@@ -29,6 +29,7 @@ const TEXT_TABS = [
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations" },
   { to: "/connect", label: "Community" },
+  { to: "/forums", label: "Forums" },
 ] as const;
 
 /** White icon strip below the red rail — local, practical destinations. */
