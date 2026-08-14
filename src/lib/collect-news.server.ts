@@ -587,7 +587,8 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
-
+  {
+    name: "Bollywood stars",
     url: "https://news.google.com/rss/search?q=(Bollywood+actress+OR+%22Hindi+film+actress%22)+(photos+OR+stills+OR+%22red+carpet%22+OR+%22new+look%22+OR+%22photo+shoot%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 6,
