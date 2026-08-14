@@ -13,11 +13,15 @@ export async function hookAuthorized(request: Request): Promise<boolean> {
   const presented = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")?.trim();
   if (presented) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("hook_tokens")
-      .select("token")
-      .eq("name", "ingest")
-      .maybeSingle();
+    // hook_tokens is an operational table outside the generated types.
+    const db = supabaseAdmin as unknown as {
+      from: (table: string) => {
+        select: (cols: string) => {
+          eq: (col: string, val: string) => { maybeSingle: () => Promise<{ data: unknown }> };
+        };
+      };
+    };
+    const { data } = await db.from("hook_tokens").select("token").eq("name", "ingest").maybeSingle();
     const expected = (data as { token?: string } | null)?.token;
     if (expected && presented.length === expected.length && presented === expected) return true;
   }
