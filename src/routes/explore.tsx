@@ -38,7 +38,7 @@ const TILES = [
   { en: "Things to Do", te: "ఏం చేయాలి", icon: MapPinned, to: "/events" as const },
   { en: "Food", te: "ఆహారం", icon: UtensilsCrossed, category: "restaurants" },
   { en: "Culture", te: "సంస్కృతి", icon: Sparkles, category: "community" },
-  { en: "Cinema", te: "సినిమా", icon: Clapperboard, category: "cinema" },
+  { en: "Cinema/OTT", te: "సినిమా", icon: Clapperboard, category: "cinema" },
   {
     en: "Videos",
     te: "వీడియోలు",
