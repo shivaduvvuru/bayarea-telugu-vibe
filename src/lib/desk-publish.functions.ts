@@ -11,6 +11,9 @@ export const publishApproved = createServerFn({ method: "POST" })
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 500).map(String) : undefined,
   }))
   .handler(async ({ data }) => {
+    // Publishing pushes content live: require an unlocked editorial desk.
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk();
     const { ingest, admin } = await import("@/lib/cms.server");
     const { deskRowToIngest } = await import("@/lib/desk-publish.server");
     const db = await admin();

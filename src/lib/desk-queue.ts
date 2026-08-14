@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { publishApproved as publishApprovedFn } from "@/lib/desk-publish.functions";
+import { listQueueRows, setQueueStatus } from "@/lib/desk-queue.functions";
 import type { ItemStatus, UploadState } from "./desk";
 
 export type QueueRow = {
@@ -21,17 +21,15 @@ export function useReviewQueue(itemIds: string[], version: string) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const publishApproved = useServerFn(publishApprovedFn);
+  const fetchRows = useServerFn(listQueueRows);
+  const saveStatus = useServerFn(setQueueStatus);
 
   const load = useCallback(async () => {
     if (!itemIds.length) {
       setRows({});
       return {} as Record<string, QueueRow>;
     }
-    const { data, error } = await supabase
-      .from("digest_queue")
-      .select("item_id,status,upload_status,uploaded_at,error")
-      .in("item_id", itemIds);
-    if (error) throw error;
+    const data = await fetchRows({ data: { itemIds } });
     const map: Record<string, QueueRow> = {};
     (data ?? []).forEach((r) => (map[r.item_id] = r as QueueRow));
     setRows(map);
@@ -69,11 +67,12 @@ export function useReviewQueue(itemIds: string[], version: string) {
         });
         return next;
       });
-      const { error } = await supabase.from("digest_queue").update({ status }).in("item_id", ids);
-      if (error) {
-        console.error(error);
+      try {
+        await saveStatus({ data: { itemIds: ids, status } });
+      } catch (e) {
+        console.error(e);
         await load();
-        throw error;
+        throw e;
       }
       // Approving is publishing: push straight into the newsroom so readers
       // see every approved story without a second manual step.
@@ -87,7 +86,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
       }
       await load();
     },
-    [load, publishApproved],
+    [load, publishApproved, saveStatus],
   );
 
   /** Safety net: push every approved-but-unpublished item into the newsroom. */

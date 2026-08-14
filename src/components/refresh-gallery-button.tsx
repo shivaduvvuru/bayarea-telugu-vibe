@@ -25,10 +25,8 @@ export function RefreshGalleryButton({
     try {
       const res = await fetch("/api/public/hooks/collect-news", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string,
-        },
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "gallery", trigger: "manual" }),
       });
       const json = (await res.json().catch(() => ({}))) as {

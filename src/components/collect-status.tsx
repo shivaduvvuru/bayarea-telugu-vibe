@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, AlertTriangle, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { latestCollectRun } from "@/lib/collect-status.functions";
 
 type Run = {
   mode: string;
@@ -18,17 +19,12 @@ export const collectStatusKey = (mode: "all" | "gallery") => ["collect-status", 
 
 /** Reads the latest logged collection run for a mode ("gallery" or "all"). */
 export function useCollectStatus(mode: "all" | "gallery") {
+  const fetchRun = useServerFn(latestCollectRun);
   return useQuery({
     queryKey: collectStatusKey(mode),
     staleTime: 60_000,
     queryFn: async (): Promise<Run | null> => {
-      const { data } = await supabase
-        .from("collect_runs")
-        .select("mode, trigger, collected, published, held, duplicates_hidden, ok, error, finished_at")
-        .eq("mode", mode)
-        .order("finished_at", { ascending: false })
-        .limit(1);
-      return ((data ?? [])[0] as Run | undefined) ?? null;
+      return ((await fetchRun({ data: { mode } })) as Run | null) ?? null;
     },
   });
 }
