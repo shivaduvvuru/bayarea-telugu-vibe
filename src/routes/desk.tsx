@@ -28,6 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isStarGallery } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
+import { retryWithBackoff } from "@/lib/retry";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
@@ -213,48 +214,65 @@ function DeskWorkspace({
   const [refreshing, setRefreshing] = useState(false);
   const [loadingItems, setLoadingItems] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [retryNote, setRetryNote] = useState("");
   const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
-    const rawResponse = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
-    const response = unwrapDeskItems(rawResponse);
-    if (!response) {
-      throw new Error("The desk returned an invalid response");
-    }
-    const mapped: DeskItem[] = response.items.map((r) => {
-      const p = (r.payload ?? {}) as Record<string, string | undefined>;
-      return {
-
-        id: r.item_id,
-        kind: r.kind as ItemKind,
-        citySlug: r.city_slug,
-        title: r.title,
-        summary: r.summary ?? p["summary"] ?? "",
-        source: r.source ?? p["source"] ?? "Web",
-        sourceUrl: r.source_url ?? p["sourceUrl"] ?? "#",
-        collectedAt: r.digest_date,
-        ...(p["image"] ? { image: p["image"] } : {}),
-        ...(p["when"] ? { when: p["when"] } : {}),
-        ...(p["venue"] ? { venue: p["venue"] } : {}),
-        status: "pending" as const,
-      };
-    });
+    // Retry with backoff: a single timeout must never present as an empty desk.
+    const mapped = await retryWithBackoff(
+      async () => {
+        const rawResponse = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
+        const response = unwrapDeskItems(rawResponse);
+        if (!response) throw new Error("The desk returned an invalid response");
+        return response.items.map((r) => {
+          const p = (r.payload ?? {}) as Record<string, string | undefined>;
+          return {
+            id: r.item_id,
+            kind: r.kind as ItemKind,
+            citySlug: r.city_slug,
+            title: r.title,
+            summary: r.summary ?? p["summary"] ?? "",
+            source: r.source ?? p["source"] ?? "Web",
+            sourceUrl: r.source_url ?? p["sourceUrl"] ?? "#",
+            collectedAt: r.digest_date,
+            ...(p["image"] ? { image: p["image"] } : {}),
+            ...(p["when"] ? { when: p["when"] } : {}),
+            ...(p["venue"] ? { venue: p["venue"] } : {}),
+            status: "pending" as const,
+          } satisfies DeskItem;
+        });
+      },
+      {
+        attempts: 4,
+        onRetry: (attempt) =>
+          setRetryNote(`Desk was slow to answer — retrying (attempt ${attempt + 1} of 4)…`),
+      },
+    );
+    setRetryNote("");
     setBase(mapped);
     return mapped;
   }, [fetchDeskItems]);
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoadingItems(true);
     setLoadError("");
-    void loadItems()
+    return loadItems()
       .catch((e) => {
         console.error("desk load failed", e);
         const message = e instanceof Error ? e.message : "Desk items could not be loaded";
         setLoadError(message);
         if (/unauthorized|session|401/i.test(message)) onSessionExpired();
       })
-      .finally(() => setLoadingItems(false));
+      .finally(() => {
+        setRetryNote("");
+        setLoadingItems(false);
+      });
   }, [loadItems, onSessionExpired]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
 
   const ids = useMemo(() => base.map((i) => i.id), [base]);
   const queue = useReviewQueue(ids, `${date}-${ids.length}`);
@@ -460,9 +478,16 @@ function DeskWorkspace({
         )}
 
         {loadingItems || queue.loading ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Loading desk…</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground">
+            {retryNote || "Loading desk…"}
+          </Card>
         ) : loadError ? (
-          <Card className="p-8 text-center text-sm text-destructive">{loadError}</Card>
+          <Card className="p-8 text-center text-sm text-destructive">
+            <p>{loadError}</p>
+            <Button variant="outline" className="mt-3" onClick={() => void reload()}>
+              <RotateCcw className="mr-2 size-4" /> Try again
+            </Button>
+          </Card>
         ) : visible.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             Nothing here. Switch tab or filter, or use “Collect now” to pull fresh items.
