@@ -44,7 +44,8 @@ function ago(iso: string) {
 }
 
 /**
- * Small "last pull" chip: shows when the scheduled (3-hourly) job or a manual
+ * Small "last pull" chip: shows when the scheduled job (gallery: every 30 min,
+ * news: hourly) or a manual
  * refresh last finished and how many items it added.
  */
 export function CollectStatus({
@@ -58,6 +59,8 @@ export function CollectStatus({
   className?: string;
 }) {
   const { data: run, isLoading } = useCollectStatus(mode);
+  const cadence = mode === "gallery" ? "every 30 minutes" : "every hour";
+  const cadenceShort = mode === "gallery" ? "every 30 min" : "hourly";
 
   const base = `inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${className}`;
 
@@ -81,7 +84,7 @@ export function CollectStatus({
     return (
       <span className={`${base} border-border text-muted-foreground`}>
         <Clock className="h-3 w-3" aria-hidden />
-        No pull recorded yet · runs every 3 hours
+        No pull recorded yet · runs {cadence}
       </span>
     );
 
@@ -89,7 +92,7 @@ export function CollectStatus({
     return (
       <span className={`${base} border-destructive/40 text-destructive`} title={run.error ?? ""}>
         <AlertTriangle className="h-3 w-3" aria-hidden />
-        Last pull failed {ago(run.finished_at)} · retries every 3 hours
+        Last pull failed {ago(run.finished_at)} · retries {cadence}
       </span>
     );
 
@@ -98,11 +101,11 @@ export function CollectStatus({
   return (
     <span
       className={`${base} border-border text-muted-foreground`}
-      title={`${run.trigger === "manual" ? "Manual refresh" : "Scheduled 3-hourly job"} finished ${new Date(run.finished_at).toLocaleString()} · ${run.collected} collected, ${run.published} published, ${run.held} held for review, ${run.duplicates_hidden} duplicates removed`}
+      title={`${run.trigger === "manual" ? "Manual refresh" : "Scheduled job (${cadence})"} finished ${new Date(run.finished_at).toLocaleString()} · ${run.collected} collected, ${run.published} published, ${run.held} held for review, ${run.duplicates_hidden} duplicates removed`}
     >
       <CheckCircle2 className="h-3 w-3 text-primary" aria-hidden />
       Updated {ago(run.finished_at)} · {added} item{added === 1 ? "" : "s"}
-      <span className="hidden sm:inline"> · every 3 hrs</span>
+      <span className="hidden sm:inline">  · {cadenceShort}</span>
     </span>
   );
 }
