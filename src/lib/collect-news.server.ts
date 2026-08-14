@@ -75,6 +75,12 @@ type RawItem = {
   source: string;
   published: string | null;
   image: string | null;
+  /** Item body text — municipal calendars carry the event date in here. */
+  detail?: string;
+  /** CivicPlus calendar feeds expose the event date in its own element. */
+  eventDates?: string;
+  /** True when the item came from a city calendar rather than its newsroom. */
+  calendar?: boolean;
 };
 
 /** Pulls a usable image URL out of an RSS <item> block. */
@@ -234,6 +240,8 @@ function parseRss(xml: string): RawItem[] {
       source,
       published: pub ? new Date(pub).toISOString() : null,
       image: imageFrom(b),
+      detail: tag(b, "description"),
+      eventDates: tag(b, "calendarEvent:EventDates"),
     });
   }
   return out;
@@ -761,7 +769,33 @@ const CITY_GUIDE_FEEDS: { citySlug: string; label: string; urls: string[] }[] = 
   {
     citySlug: "union-city",
     label: "City of Union City",
-    urls: ["https://www.unioncity.org/RSSFeed.aspx?ModID=58&CID=All-0"],
+    urls: [
+      "https://www.unioncity.org/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.unioncity.org/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+  {
+    // Morgan Hill and Redwood City are not tracked slugs, so their guides file
+    // under the region-wide bucket and show up in City News / Events.
+    citySlug: BAY_AREA.slug,
+    label: "City of Morgan Hill",
+    urls: [
+      "https://www.morganhill.ca.gov/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.morganhill.ca.gov/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+  {
+    citySlug: BAY_AREA.slug,
+    label: "City of Redwood City",
+    urls: [
+      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=76&CID=All-0",
+      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=58&CID=All-0",
+    ],
+  },
+  {
+    citySlug: BAY_AREA.slug,
+    label: "City of San Leandro",
+    urls: ["https://www.sanleandro.org/RSSFeed.aspx?ModID=76&CID=All-0"],
   },
   {
     citySlug: "fremont",
@@ -793,16 +827,6 @@ const CITY_GUIDE_FEEDS: { citySlug: string; label: string; urls: string[] }[] = 
     label: "City of Mountain View",
     urls: ["https://www.mountainview.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
   },
-  {
-    // Redwood City is on the Peninsula but not a tracked city slug, so its
-    // activity guide files under the region-wide bucket.
-    citySlug: BAY_AREA.slug,
-    label: "City of Redwood City",
-    urls: [
-      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=76&CID=All-0",
-      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=58&CID=All-0",
-    ],
-  },
 ];
 
 /** Cities whose guides we only reach through a news search. */
@@ -815,21 +839,39 @@ const GUIDE_WORDS =
   /activity guide|recreation|rec guide|parks and rec|class(?:es)?|camp|program|programme|registration|enroll|swim|library|storytime|summer|fall|winter|spring|senior center|community center|workshop|clinic|league/i;
 
 /** Keep items dated inside this month or the following six weeks. */
+/**
+ * Municipal calendars stamp <pubDate> with the day staff posted the listing,
+ * not the day the activity runs — a class posted in July but running next month
+ * used to be dropped. Prefer the event date carried in the calendar element or
+ * the "Event date: ..." line of the description.
+ */
+function guideDate(item: RawItem): string | null {
+  const raw =
+    item.eventDates?.trim() ||
+    item.detail?.match(/event date:?\s*([A-Za-z]+\s+\d{1,2},\s*\d{4})/i)?.[1] ||
+    "";
+  if (raw) {
+    const t = Date.parse(raw);
+    if (!Number.isNaN(t)) return new Date(t).toISOString();
+  }
+  return item.published;
+}
+
+/** Keep activities happening now or soon (and news posted in the last month). */
 function inGuideWindow(published: string | null): boolean {
   if (!published) return true;
   const t = Date.parse(published);
   if (Number.isNaN(t)) return true;
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const ahead = Date.now() + 45 * 24 * 60 * 60 * 1000;
-  return t >= monthStart && t <= ahead;
+  const behind = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const ahead = Date.now() + 75 * 24 * 60 * 60 * 1000;
+  return t >= behind && t <= ahead;
 }
 
-const GUIDE_MAX = 6;
+const GUIDE_MAX = 10;
 
 /** City-site boilerplate that is not an activity or a story. */
 const GUIDE_JUNK =
-  /public notice|agenda|minutes|commission|council meeting|election|bid|rfp|request for proposal|job|employment|vacan|budget hearing|surplus|ordinance|volunteer opportunit|staff report|permit|utility bill/i;
+  /public notice|agenda|minutes|commission|council meeting|subcommittee|zoning administrator|planning commission|board of|election|bid|rfp|request for proposal|job|employment|vacan|budget hearing|surplus|ordinance|volunteer opportunit|staff report|permit|utility bill|closed session|cancelled|canceled/i;
 
 async function fetchCityGuide(entry: {
   citySlug: string;
@@ -842,21 +884,25 @@ async function fetchCityGuide(entry: {
       if (!parsed?.length) return [];
       lastDiag.fetched += 1;
       lastDiag.raw += parsed.length;
-      return parsed.map((i) => ({ ...i, source: entry.label }));
+      // ModID=58 is the municipal calendar (activities); 76 is the newsroom.
+      const calendar = /ModID=58/i.test(url);
+      return parsed.map((i) => ({ ...i, source: entry.label, calendar }));
     }),
   );
   const seen = new Set<string>();
   const merged: RawItem[] = [];
   for (const item of results.flat()) {
     const k = normalize(item.title);
-    if (!k || seen.has(k) || !inGuideWindow(item.published)) continue;
+    if (!k || seen.has(k)) continue;
+    const when = guideDate(item);
+    if (!inGuideWindow(when)) continue;
     // City feeds mix programme listings with procedural notices; keep the
-    // activities and drop the administrivia.
+    // activities and drop the administrivia. Anything else on a city calendar
+    // or newsroom is genuine local activity, so no keyword gate here.
     if (GUIDE_JUNK.test(item.title)) continue;
-    if (!GUIDE_WORDS.test(item.title) && !EVENT_WORDS.test(item.title)) continue;
     seen.add(k);
     // Bare page titles ("Lap Swim Schedule") need the city for context.
-    merged.push({ ...item, title: `${item.title} — ${entry.label}` });
+    merged.push({ ...item, title: `${item.title} — ${entry.label}`, published: when });
     if (merged.length >= GUIDE_MAX) break;
   }
   await addImages(merged);
@@ -897,9 +943,11 @@ async function fetchGuideSearch(city: { citySlug: string; name: string }): Promi
 }
 
 /** Programme-style listings belong in Events; announcements read as news. */
-function guideKind(title: string): CollectedItem["kind"] {
-  if (TEMPLE_WORDS.test(title)) return "temple";
-  if (EVENT_WORDS.test(title) || GUIDE_WORDS.test(title)) return "event";
+function guideKind(item: RawItem): CollectedItem["kind"] {
+  if (TEMPLE_WORDS.test(item.title)) return "temple";
+  // Everything on a city calendar is a dated activity.
+  if (item.calendar) return "event";
+  if (EVENT_WORDS.test(item.title) || GUIDE_WORDS.test(item.title)) return "event";
   return "news";
 }
 
@@ -1008,7 +1056,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
         const city = cityBySlug(slug) ?? BAY_AREA;
         const summaries = await summarize(city, items, apiKey);
         return items.map((it, i) => {
-          const kind = guideKind(it.title);
+          const kind = guideKind(it);
           const dedupe = keyFor(slug, it.title);
           return {
             dedupe_key: dedupe,
