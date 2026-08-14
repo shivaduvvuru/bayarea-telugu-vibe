@@ -162,8 +162,8 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
   const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
-    const data = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
-    const mapped: DeskItem[] = (data ?? []).map((r) => {
+    const response = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
+    const mapped: DeskItem[] = response.items.map((r) => {
       const p = (r.payload ?? {}) as Record<string, string | undefined>;
       return {
 
@@ -183,7 +183,7 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
     });
     setBase(mapped);
     return mapped;
-  }, []);
+  }, [fetchDeskItems]);
 
   useEffect(() => {
     setLoadingItems(true);

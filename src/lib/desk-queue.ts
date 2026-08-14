@@ -31,7 +31,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
     }
     const data = await fetchRows({ data: { itemIds } });
     const map: Record<string, QueueRow> = {};
-    (data ?? []).forEach((r) => (map[r.item_id] = r as QueueRow));
+    data.rows.forEach((r) => (map[r.item_id] = r as QueueRow));
     setRows(map);
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
