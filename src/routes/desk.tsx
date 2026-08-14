@@ -62,6 +62,27 @@ const WINDOW_DAYS = 7;
 /** Desk tabs: pictures are reviewed on their own tab, apart from the news list. */
 type DeskTab = ItemKind | "picture" | "all";
 
+type DeskItemsResponse = {
+  items: Array<{
+    item_id: string;
+    digest_date: string;
+    kind: string;
+    city_slug: string;
+    title: string;
+    summary: string | null;
+    source: string | null;
+    source_url: string | null;
+    payload: Record<string, string | undefined> | null;
+  }>;
+};
+
+function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record["items"])) return record as DeskItemsResponse;
+  return unwrapDeskItems(record["data"] ?? record["result"]);
+}
+
 /**
  * A queue row belongs on the Pictures tab when it carries a usable photo that
  * passes the Glamourie quality check — those are reviewed as images, not text.
@@ -195,8 +216,9 @@ function DeskWorkspace({
   const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
-    const response = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
-    if (!response || !Array.isArray(response.items)) {
+    const rawResponse = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
+    const response = unwrapDeskItems(rawResponse);
+    if (!response) {
       throw new Error("The desk returned an invalid response");
     }
     const mapped: DeskItem[] = response.items.map((r) => {
@@ -294,7 +316,7 @@ function DeskWorkspace({
       };
       if (res.status === 401) throw new Error("Desk session expired — unlock again");
       if (!res.ok) throw new Error(json.error ?? "Collection failed");
-      await loadItems();
+      const loaded = await loadItems();
       if (!json.collected) {
         const note = json.diag?.notes?.[0];
         toast.warning(
@@ -303,7 +325,7 @@ function DeskWorkspace({
             : `No new items right now (${json.diag?.raw ?? 0} headlines scanned)`,
         );
       } else {
-        toast.success(`Collected ${json.collected} items from live sources`);
+        toast.success(`Collected ${json.collected} items · ${loaded.length} awaiting review`);
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not refresh news");
@@ -468,9 +490,9 @@ function DeskWorkspace({
                         {item.status}
                       </Badge>
                     </div>
-                    {galleryImage(item.image) && (
+                    {galleryImage(item.image) ? (
                       <img
-                        src={galleryImage(item.image)!}
+                        src={galleryImage(item.image) ?? undefined}
                         alt={item.title}
                         loading="lazy"
                         decoding="async"
@@ -478,7 +500,7 @@ function DeskWorkspace({
                           kind === "picture" ? "max-h-96 object-top" : "max-h-56"
                         }`}
                       />
-                    )}
+                    ) : null}
                     <h2 className="text-base font-semibold leading-snug text-foreground">
                       {item.title}
                     </h2>

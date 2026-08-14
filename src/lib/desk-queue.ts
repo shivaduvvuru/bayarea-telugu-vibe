@@ -12,6 +12,13 @@ export type QueueRow = {
   error: string | null;
 };
 
+function unwrapQueueRows(value: unknown): QueueRow[] {
+  if (!value || typeof value !== "object") return [];
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record["rows"])) return record["rows"] as QueueRow[];
+  return unwrapQueueRows(record["data"] ?? record["result"]);
+}
+
 /**
  * Review queue for the editorial desk, backed by the digest_queue table.
  * Decisions live in the database so any editor sees the same state.
@@ -31,7 +38,7 @@ export function useReviewQueue(itemIds: string[], version: string) {
     }
     const data = await fetchRows({ data: { itemIds } });
     const map: Record<string, QueueRow> = {};
-    data.rows.forEach((r) => (map[r.item_id] = r as QueueRow));
+    unwrapQueueRows(data).forEach((r) => (map[r.item_id] = r));
     setRows(map);
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
