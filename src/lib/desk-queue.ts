@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { publishApproved as publishApprovedFn } from "@/lib/desk-publish.functions";
 import { listQueueRows, setQueueStatus } from "@/lib/desk-queue.functions";
+import { retryWithBackoff } from "@/lib/retry";
 import type { ItemStatus, UploadState } from "./desk";
 
 export type QueueRow = {
@@ -36,7 +37,10 @@ export function useReviewQueue(itemIds: string[], version: string) {
       setRows({});
       return {} as Record<string, QueueRow>;
     }
-    const data = await fetchRows({ data: { itemIds } });
+    // Retry with backoff so a transient timeout does not blank out decisions.
+    const data = await retryWithBackoff(() => fetchRows({ data: { itemIds } }), {
+      attempts: 4,
+    });
     const map: Record<string, QueueRow> = {};
     unwrapQueueRows(data).forEach((r) => (map[r.item_id] = r));
     setRows(map);
