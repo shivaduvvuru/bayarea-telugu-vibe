@@ -94,7 +94,8 @@ export const CATEGORIES: Category[] = [
       { slug: "india-nri", te: "ఎన్ఆర్ఐ", en: "NRI & Diaspora" },
     ],
   },
-  { slug: "cinema", te: "సినిమా", en: "Cinema" },
+  { slug: "cinema", te: "సినిమా", en: "Cinema/OTT" },
+  { slug: "micro-drama", te: "మైక్రో డ్రామా", en: "Micro-Drama" },
   { slug: "political", te: "పొలిటికల్", en: "Political" },
 
   { slug: "temples", te: "దేవాలయాలు", en: "Temples" },
