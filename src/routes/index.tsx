@@ -17,6 +17,8 @@ import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
+import { useFavoritePhotos } from "@/lib/photo-favorites";
+
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 
 
@@ -320,6 +322,8 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  const { favorites } = useFavoritePhotos();
+
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
@@ -346,12 +350,28 @@ function Home() {
   const bannerFresh = isPrimeBannerFresh();
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
   takeUnique([lead, ...localRest], homepageSeen);
-  // Rotating window over the picture pool: the sources only publish a handful of
-  // new photo sets a day, so a fixed "newest six" looks unchanged after a
-  // refresh. Each refresh advances the window instead.
-  const galleryPool = takeUnique(galleryItems, homepageSeen, 48);
-  const start = galleryPool.length ? (galleryPage * 6) % galleryPool.length : 0;
-  const uniqueGallery = [...galleryPool.slice(start), ...galleryPool.slice(0, start)].slice(0, 6);
+  // Newest photos always hold the top slots, and any picture you've liked stays
+  // pinned so a refresh never rotates it away. The remaining tiles cycle through
+  // the deeper pool so each refresh still shows something different.
+  const galleryPool = takeUnique(galleryItems, homepageSeen, 48)
+    .slice()
+    .sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  const favoriteSlugs = new Set(favorites.map((f) => f.slug));
+  const pinnedSlugs = new Set<string>();
+  const pinned = [
+    ...galleryPool.slice(0, 2),
+    ...galleryPool.filter((a) => favoriteSlugs.has(a.slug)),
+  ]
+    .filter((a) => (pinnedSlugs.has(a.slug) ? false : pinnedSlugs.add(a.slug)))
+    .slice(0, 4);
+  const rotatable = galleryPool.filter((a) => !pinnedSlugs.has(a.slug));
+  const fillCount = Math.max(0, 6 - pinned.length);
+  const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;
+  const uniqueGallery = [
+    ...pinned,
+    ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
+  ];
+
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
