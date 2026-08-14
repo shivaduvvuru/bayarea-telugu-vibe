@@ -24,7 +24,7 @@ export type CollectedItem = {
   payload: Record<string, unknown>;
 };
 
-const MAX_PER_CITY = 6;
+const MAX_PER_CITY = 16;
 
 const EVENT_WORDS = /\b(festival|event|concert|mela|fair|parade|workshop|meetup|celebration|camp|tournament|show)\b/i;
 const TEMPLE_WORDS = /\b(temple|mandir|puja|pooja|abhishekam|hindu|devotee|swami|gurudwara|bhajan)\b/i;
@@ -282,6 +282,10 @@ async function fetchCity(city: City): Promise<RawItem[]> {
   const queries = [
     `"${city.en}" California city news`,
     `"${city.en}" California Indian OR Telugu OR temple OR community event`,
+    `"${city.en}" California city council OR schools OR police OR traffic`,
+    `"${city.en}" California housing OR real estate OR rent OR development`,
+    `"${city.en}" California business OR jobs OR layoffs OR tech`,
+    `"${city.en}" California weather OR transit OR BART OR Caltrain OR road closure`,
   ];
   const results = await Promise.all(
     queries.map(async (q) => {
