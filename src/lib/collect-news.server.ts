@@ -1474,7 +1474,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
-    limit: Math.max(f.limit ?? 6, 40),
+    limit: Math.max(f.limit ?? 6, 60),
   }));
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
