@@ -11,12 +11,13 @@ type QueueRow = {
 /** Reads review-queue rows. Editorial desk only — the queue holds unpublished
  * and rejected content and must never be world-readable. */
 export const listQueueRows = createServerFn({ method: "POST" })
-  .validator((data: { itemIds?: string[] }) => ({
+  .validator((data: { itemIds?: string[]; deskToken?: string }) => ({
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 1000).map(String) : [],
+    deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
   }))
   .handler(async ({ data }): Promise<{ rows: QueueRow[] }> => {
     const { assertDesk } = await import("@/lib/desk-session.server");
-    await assertDesk();
+    await assertDesk(data.deskToken);
     if (!data.itemIds.length) return { rows: [] };
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
@@ -30,18 +31,19 @@ export const listQueueRows = createServerFn({ method: "POST" })
 
 /** Records an editor decision on queue rows. Editorial desk only. */
 export const setQueueStatus = createServerFn({ method: "POST" })
-  .validator((data: { itemIds: string[]; status: string }) => {
+  .validator((data: { itemIds: string[]; status: string; deskToken?: string }) => {
     if (!["pending", "approved", "rejected"].includes(String(data?.status))) {
       throw new Error("Invalid status");
     }
     return {
       itemIds: (Array.isArray(data?.itemIds) ? data.itemIds : []).slice(0, 1000).map(String),
       status: String(data.status),
+      deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
     };
   })
   .handler(async ({ data }) => {
     const { assertDesk } = await import("@/lib/desk-session.server");
-    await assertDesk();
+    await assertDesk(data.deskToken);
     if (!data.itemIds.length) return { updated: 0 };
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
@@ -71,12 +73,13 @@ type DeskQueueRow = {
  * than the browser client (which sees zero rows when nobody is signed in).
  */
 export const listDeskItems = createServerFn({ method: "POST" })
-  .validator((data: { days?: number }) => ({
+  .validator((data: { days?: number; deskToken?: string }) => ({
     days: Math.min(Math.max(Number(data?.days) || 7, 1), 30),
+    deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
   }))
   .handler(async ({ data }): Promise<{ items: DeskQueueRow[] }> => {
     const { assertDesk } = await import("@/lib/desk-session.server");
-    await assertDesk();
+    await assertDesk(data.deskToken);
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
     const since = new Date(Date.now() - data.days * 86400000).toISOString().slice(0, 10);

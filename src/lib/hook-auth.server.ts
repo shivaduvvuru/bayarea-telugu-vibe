@@ -10,6 +10,11 @@ import { deskUnlocked } from "@/lib/desk-session.server";
  * The Supabase publishable key is NOT accepted — it ships to every browser.
  */
 export async function hookAuthorized(request: Request): Promise<boolean> {
+  const deskToken = request.headers.get("x-desk-token") ?? undefined;
+  if (deskToken) {
+    const { verifyDeskToken } = await import("@/lib/desk-session.server");
+    if (verifyDeskToken(deskToken)) return true;
+  }
   const presented = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "")?.trim();
   if (presented) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

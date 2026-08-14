@@ -96,6 +96,7 @@ function isPictureItem(item: DeskItem): boolean {
 
 function DeskPage() {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
+  const [deskToken, setDeskToken] = useState("");
   const [sessionError, setSessionError] = useState("");
   const doCheck = useServerFn(checkDesk);
   const doUnlock = useServerFn(unlockDesk);
@@ -104,7 +105,10 @@ function DeskPage() {
 
   useEffect(() => {
     doCheck()
-      .then((res) => setUnlocked(res.unlocked))
+      .then((res) => {
+        setDeskToken(res.deskToken ?? "");
+        setUnlocked(res.unlocked);
+      })
       .catch(() => {
         setSessionError("The desk session could not be checked. Please unlock again.");
         setUnlocked(false);
@@ -116,6 +120,7 @@ function DeskPage() {
       setSessionError("");
       const res = await doUnlock({ data: { passcode } });
       if (!res.ok) return false;
+      setDeskToken(res.deskToken ?? "");
       // The unlock response writes the encrypted session cookie. Enter the
       // workspace from that authoritative result instead of immediately
       // racing a second request through the preview proxy; protected desk
@@ -130,6 +135,7 @@ function DeskPage() {
 
   const onLock = async () => {
     await doLock();
+    setDeskToken("");
     setUnlocked(false);
   };
 
@@ -145,7 +151,7 @@ function DeskPage() {
     return <DeskPasscodeForm onUnlock={onUnlock} sessionError={sessionError} />;
   }
 
-  return <DeskWorkspace onLock={onLock} onSessionExpired={onSessionExpired} />;
+  return <DeskWorkspace deskToken={deskToken} onLock={onLock} onSessionExpired={onSessionExpired} />;
 }
 
 function DeskPasscodeForm({
@@ -203,9 +209,11 @@ function DeskPasscodeForm({
 }
 
 function DeskWorkspace({
+  deskToken,
   onLock,
   onSessionExpired,
 }: {
+  deskToken: string;
   onLock: () => Promise<void>;
   onSessionExpired: () => void;
 }) {
@@ -222,7 +230,7 @@ function DeskWorkspace({
     // Retry with backoff: a single timeout must never present as an empty desk.
     const mapped = await retryWithBackoff(
       async () => {
-        const rawResponse = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
+        const rawResponse = await fetchDeskItems({ data: { days: WINDOW_DAYS, deskToken } });
         const response = unwrapDeskItems(rawResponse);
         if (!response) throw new Error("The desk returned an invalid response");
         return response.items.map((r) => {
@@ -252,7 +260,7 @@ function DeskWorkspace({
     setRetryNote("");
     setBase(mapped);
     return mapped;
-  }, [fetchDeskItems]);
+  }, [deskToken, fetchDeskItems]);
 
   const reload = useCallback(() => {
     setLoadingItems(true);
@@ -276,7 +284,7 @@ function DeskWorkspace({
 
 
   const ids = useMemo(() => base.map((i) => i.id), [base]);
-  const queue = useReviewQueue(ids, `${date}-${ids.length}`);
+  const queue = useReviewQueue(ids, `${date}-${ids.length}`, deskToken);
 
   const [kind, setKind] = useState<DeskTab>("all");
   const [region, setRegion] = useState<string>("all");
@@ -325,7 +333,7 @@ function DeskWorkspace({
       const res = await fetch("/api/public/hooks/collect-news", {
         method: "POST",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Desk-Token": deskToken },
         body: "{}",
       });
       const json = (await res.json()) as {
