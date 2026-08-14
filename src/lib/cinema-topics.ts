@@ -60,11 +60,14 @@ export function isStarGallery(
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
   const url = (sourceUrl ?? "").toLowerCase();
-  const photoLed =
-    PHOTO_LED.test(text) || /gallery\.|\/gallery\/|\/photos?\/|slideshow/.test(url);
+  const photoDesk = PHOTO_DESK_URL.test(url);
+  const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
-  if (!FEMALE_SUBJECT.test(text)) return false;
   // Strictly no men in Gallery: any male-subject cue disqualifies the post.
   if (MALE_SUBJECT.test(text)) return false;
+  // Dedicated photo desks are galleries by construction; elsewhere we still
+  // require a female-star cue so headline stories don't leak in.
+  if (!photoDesk && !FEMALE_SUBJECT.test(text)) return false;
   return true;
+
 }
