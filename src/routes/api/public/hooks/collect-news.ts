@@ -28,8 +28,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           "@/lib/collect-news.server"
         );
         // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
-        const body = (await request.json().catch(() => ({}))) as { mode?: string };
+        const body = (await request.json().catch(() => ({}))) as {
+          mode?: string;
+          trigger?: string;
+        };
         const galleryOnly = body?.mode === "gallery";
+        const trigger = body?.trigger === "manual" ? "manual" : "cron";
         const { dedupeKey } = await import("@/lib/dedupe");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -162,10 +166,29 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, diag: { ...lastDiag }, aiError: lastAiError, at: new Date().toISOString() });
+          const finishedAt = new Date().toISOString();
+          // Status log so the site can show when the last pull completed.
+          await supabaseAdmin.from("collect_runs").insert({
+            mode: galleryOnly ? "gallery" : "all",
+            trigger,
+            collected: rows.length,
+            published: publishedCount,
+            held: marked.length - autoIds.length,
+            duplicates_hidden: hidden,
+            ok: true,
+            finished_at: finishedAt,
+          } as never);
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
+          try {
+            await supabaseAdmin
+              .from("collect_runs")
+              .insert({ mode: galleryOnly ? "gallery" : "all", trigger, ok: false, error: message } as never);
+          } catch {
+            /* status logging must never mask the original failure */
+          }
           return new Response(JSON.stringify({ ok: false, error: message }), {
             status: 500,
             headers: { "Content-Type": "application/json" },

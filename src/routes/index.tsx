@@ -20,6 +20,7 @@ import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
+import { CollectStatus } from "@/components/collect-status";
 
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
@@ -435,6 +436,7 @@ function Home() {
             Digest from sources
           </p>
           <DigestNote className="mt-0.5" />
+          <CollectStatus mode="all" className="mt-2" />
         </div>
 
         {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}

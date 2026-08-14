@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      collect_runs: {
+        Row: {
+          collected: number
+          duplicates_hidden: number
+          error: string | null
+          finished_at: string
+          held: number
+          id: string
+          mode: string
+          ok: boolean
+          published: number
+          trigger: string
+        }
+        Insert: {
+          collected?: number
+          duplicates_hidden?: number
+          error?: string | null
+          finished_at?: string
+          held?: number
+          id?: string
+          mode: string
+          ok?: boolean
+          published?: number
+          trigger?: string
+        }
+        Update: {
+          collected?: number
+          duplicates_hidden?: number
+          error?: string | null
+          finished_at?: string
+          held?: number
+          id?: string
+          mode?: string
+          ok?: boolean
+          published?: number
+          trigger?: string
+        }
+        Relationships: []
+      }
       content_item_contacts: {
         Row: {
           content_item_id: string
