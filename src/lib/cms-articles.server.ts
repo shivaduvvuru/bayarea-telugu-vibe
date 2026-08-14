@@ -236,7 +236,8 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
 
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
-    return articles.filter((a) => a.category === "cinema").slice(0, limit);
+    // No picture, no cinema story — there is plenty of illustrated film news.
+    return articles.filter((a) => a.category === "cinema" && a.image).slice(0, limit);
   }
 
   return articles;
