@@ -14,6 +14,8 @@ export type DeskItem = {
   sourceUrl: string;
   /** ISO date the item was collected. */
   collectedAt: string;
+  /** Photo attached to the item, when the source carried a usable one. */
+  image?: string | null;
   /** Event start / temple seva time. */
   when?: string;
   venue?: string;

@@ -12,6 +12,7 @@ import {
   ExternalLink,
   MapPin,
   Lock,
+  Images,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isStarGallery } from "@/lib/cinema-topics";
+import { galleryImage } from "@/lib/story-image";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
@@ -54,6 +57,19 @@ const KIND_ICON: Record<ItemKind, typeof Newspaper> = {
 };
 
 const WINDOW_DAYS = 7;
+
+/** Desk tabs: pictures are reviewed on their own tab, apart from the news list. */
+type DeskTab = ItemKind | "picture" | "all";
+
+/**
+ * A queue row belongs on the Pictures tab when it carries a usable photo that
+ * passes the Glamourie quality check — those are reviewed as images, not text.
+ */
+function isPictureItem(item: DeskItem): boolean {
+  return (
+    !!galleryImage(item.image) && isStarGallery(item.title, item.summary, item.sourceUrl)
+  );
+}
 
 function DeskPage() {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
@@ -164,6 +180,7 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
         source: r.source ?? p["source"] ?? "Web",
         sourceUrl: r.source_url ?? p["sourceUrl"] ?? "#",
         collectedAt: r.digest_date,
+        ...(p["image"] ? { image: p["image"] } : {}),
         ...(p["when"] ? { when: p["when"] } : {}),
         ...(p["venue"] ? { venue: p["venue"] } : {}),
         status: "pending" as const,
@@ -183,12 +200,14 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
   const ids = useMemo(() => base.map((i) => i.id), [base]);
   const queue = useReviewQueue(ids, `${date}-${ids.length}`);
 
-  const [kind, setKind] = useState<ItemKind | "all">("all");
+  const [kind, setKind] = useState<DeskTab>("all");
   const [region, setRegion] = useState<string>("all");
   const [city, setCity] = useState<string>("all");
   const [view, setView] = useState<ItemStatus | "all">("all");
 
   const items: DeskItem[] = base.map((i) => ({ ...i, status: queue.statusOf(i.id) }));
+
+  const pictureCount = items.filter(isPictureItem).length;
 
   const counts = {
     all: items.length,
@@ -199,7 +218,10 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
 
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
-    if (kind !== "all" && i.kind !== kind) return false;
+    // Pictures get their own tab; the news tab keeps only text stories.
+    if (kind === "picture" && !isPictureItem(i)) return false;
+    if (kind === "news" && (i.kind !== "news" || isPictureItem(i))) return false;
+    if (kind !== "all" && kind !== "picture" && kind !== "news" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
     return true;
@@ -315,13 +337,16 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
       </header>
 
       <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
-        <Tabs value={kind} onValueChange={(v) => setKind(v as ItemKind | "all")}>
+        <Tabs value={kind} onValueChange={(v) => setKind(v as DeskTab)}>
           <TabsList className="w-full">
             <TabsTrigger value="all" className="flex-1">
               All
             </TabsTrigger>
             <TabsTrigger value="news" className="flex-1">
               News
+            </TabsTrigger>
+            <TabsTrigger value="picture" className="flex-1 gap-1">
+              <Images className="size-3" /> Pictures ({pictureCount})
             </TabsTrigger>
             <TabsTrigger value="event" className="flex-1">
               Events
@@ -367,10 +392,10 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
         {(view === "pending" || view === "all") && visible.length > 0 && (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => bulk("approved")}>
-              <Check /> Approve all shown
+              <Check /> Approve all remaining ({visible.length})
             </Button>
             <Button size="sm" variant="outline" onClick={() => bulk("rejected")}>
-              <X /> Reject all shown
+              <X /> Reject all remaining
             </Button>
           </div>
         )}
@@ -404,6 +429,17 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
                         {item.status}
                       </Badge>
                     </div>
+                    {galleryImage(item.image) && (
+                      <img
+                        src={galleryImage(item.image)!}
+                        alt={item.title}
+                        loading="lazy"
+                        decoding="async"
+                        className={`w-full rounded-md border border-border object-cover ${
+                          kind === "picture" ? "max-h-96 object-top" : "max-h-56"
+                        }`}
+                      />
+                    )}
                     <h2 className="text-base font-semibold leading-snug text-foreground">
                       {item.title}
                     </h2>

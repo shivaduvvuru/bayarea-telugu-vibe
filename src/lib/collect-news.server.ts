@@ -701,6 +701,33 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
   { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
+  // Micro-drama desk: Google News blocks these queries, so read them through the
+  // Bing news RSS which answers reliably. Vertical short-drama coverage from
+  // India, China and the US keeps the Micro-Drama section filled.
+  {
+    name: "Micro-drama wire",
+    url: "https://www.bing.com/news/search?q=%22micro+drama%22+OR+%22short+drama%22+OR+%22vertical+drama%22&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "ReelShort & DramaBox",
+    url: "https://www.bing.com/news/search?q=ReelShort+OR+DramaBox+OR+FlickReels+OR+Holywater&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "India short drama apps",
+    url: "https://www.bing.com/news/search?q=India+%22micro+drama%22+OR+%22short+drama%22+app+OR+%22Flick+TV%22+OR+%22Chai+Shots%22+OR+%22Pocket+FM%22&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "China duanju short drama",
+    url: "https://www.bing.com/news/search?q=duanju+OR+%22Chinese+micro+drama%22+OR+%22short+drama+industry%22&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 8,
+  },
   // Social-media picture desks: Instagram / X posts that publishers write up,
   // plus photo-story sections. These keep Glamourie topped up between runs.
   {
