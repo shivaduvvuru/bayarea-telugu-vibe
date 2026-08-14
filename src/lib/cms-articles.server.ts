@@ -148,11 +148,15 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
 
   } else if (category === "gallery") {
     // Gallery is a star picture desk: heroine / star photo features from
-    // Telugu, Hindi and OTT cinema — not the cinema headline feed.
+    // Telugu, Hindi and OTT cinema — not the cinema headline feed. The pool has
+    // to stay wide because most picture rows are headline stories, so a narrow
+    // window would starve the grid as the archive grows.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(400)
+      .limit(1200)
       .not("image_url", "is", null);
+
+
 
   } else if (category === "cinema") {
     // Older film stories were stored as plain "news"; pull both and let the
