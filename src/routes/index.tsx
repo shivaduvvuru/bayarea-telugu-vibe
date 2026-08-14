@@ -17,7 +17,7 @@ import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
-import { useFavoritePhotos } from "@/lib/photo-favorites";
+import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 
