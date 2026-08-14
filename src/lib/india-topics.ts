@@ -26,12 +26,13 @@ const RULES: { slug: IndiaSlug; match: RegExp }[] = [
   },
   {
     slug: "india-telangana",
-    match: /telangana|hyderabad|warangal|karimnagar|nizamabad|khammam|brs\b|kcr\b|revanth/i,
+    match:
+      /telangana|hyderabad|secunderabad|cyberabad|hitec city|gachibowli|warangal|karimnagar|nizamabad|khammam|hydraa|brs\b|kcr\b|revanth/i,
   },
   {
     slug: "india-andhra",
     match:
-      /andhra|amaravati|vijayawada|visakhapatnam|vizag|guntur|tirupati|kurnool|nellore|rajahmundry|tdp\b|ysrcp|jagan|chandrababu|pawan kalyan/i,
+      /andhra|amaravati|\bcrda\b|vijayawada|visakhapatnam|vizag|guntur|tirupati|kurnool|nellore|kakinada|anantapur|kadapa|rajahmundry|tdp\b|ysrcp|jagan|chandrababu|pawan kalyan/i,
   },
   {
     slug: "india-nri",
