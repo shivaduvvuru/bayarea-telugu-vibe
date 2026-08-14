@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { CollectStatus, collectStatusKey } from "@/components/collect-status";
 
 /**
  * Forces an immediate gallery-only collection pass, then reloads the picture
