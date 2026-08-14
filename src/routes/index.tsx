@@ -17,6 +17,8 @@ import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
+import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
+
 
 const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
 const DESC =
