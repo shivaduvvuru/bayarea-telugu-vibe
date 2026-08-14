@@ -93,6 +93,16 @@ const galleryQuery = queryOptions({
   refetchOnMount: "always",
 });
 
+/**
+ * Home-state desk: Telangana / Hyderabad and Andhra / Amaravati coverage,
+ * including the property market there, shown alongside the Bay Area digest.
+ */
+const homeStatesQuery = queryOptions({
+  queryKey: ["wp", "posts", "india-states", "home"],
+  queryFn: () => listPosts({ data: { category: "india-news", perPage: 40, compact: true } }),
+  staleTime: 10 * 60 * 1000,
+});
+
 /** Community-submitted and editor-published items from the newsroom CMS. */
 const communityQuery = queryOptions({
   queryKey: ["cms", "community", "home"],
@@ -329,6 +339,7 @@ function Home() {
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
+  const { data: indiaStates = [] } = useQuery(homeStatesQuery);
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
@@ -407,6 +418,11 @@ function Home() {
   const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
   const uniquePolitics = takeUnique(politics, homepageSeen, 6);
   const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
+  const homeStates = takeUnique(
+    indiaStates.filter((a) => a.category === "india-telangana" || a.category === "india-andhra"),
+    homepageSeen,
+    8,
+  );
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
@@ -433,6 +449,21 @@ function Home() {
               <Row key={a.slug} a={a} />
             ))}
           </div>
+        </section>
+
+        <section>
+          <Head more={<MoreTo to="/category/india-news" label="All India news" />}>
+            Telangana &amp; Andhra
+          </Head>
+          {homeStates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Loading home-state news…</p>
+          ) : (
+            <div>
+              {homeStates.map((a) => (
+                <Row key={a.slug} a={a} />
+              ))}
+            </div>
+          )}
         </section>
 
         <section>
