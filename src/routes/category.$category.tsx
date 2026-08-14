@@ -10,6 +10,8 @@ import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 
 import { PhotoActions } from "@/components/photo-actions";
+import { useHiddenPhotos } from "@/lib/photo-favorites";
+
 import type { Article } from "@/lib/content";
 
 /** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
