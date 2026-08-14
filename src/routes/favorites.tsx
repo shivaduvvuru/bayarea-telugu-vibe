@@ -42,7 +42,7 @@ function FavoritesPage() {
     author: "",
     image: p.image,
     category: "gallery",
-    categoryName: "Gallery",
+    categoryName: "Glamourie",
     sourceName: p.sourceName ?? null,
     sourceUrl: p.sourceUrl ?? null,
   }));
@@ -64,7 +64,7 @@ function FavoritesPage() {
             params={{ category: "gallery" }}
             className="font-semibold underline"
           >
-            Cinema gallery
+            <em className="italic">Glamourie</em>
           </Link>
           .
         </p>

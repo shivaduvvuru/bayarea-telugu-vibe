@@ -15,7 +15,7 @@ const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
   { to: "/forums", label: "Forums" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
@@ -31,7 +31,7 @@ const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema" },
-  { to: "/category/$category", params: { category: "gallery" }, label: "Gallery" },
+  { to: "/category/$category", params: { category: "gallery" }, label: <em className="italic">Glamourie</em> },
   { to: "/forums", label: "Forums" },
 ] as const;
 
@@ -336,9 +336,9 @@ export function LiteHeader() {
               Desk
             </Link>
           ) : null}
-          {RAIL.map((item) => (
+          {RAIL.map((item, i) => (
             <Link
-              key={item.label}
+              key={i}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}
@@ -359,9 +359,9 @@ export function LiteHeader() {
         className="flex md:hidden overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
-          {MOBILE_RAIL.map((item) => (
+          {MOBILE_RAIL.map((item, i) => (
             <Link
-              key={item.label}
+              key={i}
               to={item.to}
               // @ts-expect-error — params only present on dynamic entries
               params={item.params}

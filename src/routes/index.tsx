@@ -259,7 +259,7 @@ function Snippet({ a }: { a: Article }) {
 }
 
 
-function Head({ children, more }: { children: string; more?: React.ReactNode }) {
+function Head({ children, more }: { children: React.ReactNode; more?: React.ReactNode }) {
   return (
     <h2 className="mb-1 flex items-baseline justify-between gap-2 border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
       <span>{children}</span>
@@ -515,7 +515,7 @@ function Home() {
         </section>
 
         <section>
-          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Cinema gallery</Head>
+          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}><em className="italic">Glamourie</em></Head>
           <div className="mb-3">
             <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
           </div>

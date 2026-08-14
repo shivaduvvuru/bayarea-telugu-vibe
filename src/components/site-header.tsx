@@ -108,7 +108,7 @@ const MENU_ROW_1 = [
 /** Second row of the two-line desktop navigation. */
 const MENU_ROW_2 = [
   { en: "Temples", to: "/temples" },
-  { en: "Gallery", cat: "gallery" },
+  { en: <em className="italic">Glamourie</em>, cat: "gallery" },
   { en: "Events", to: "/events" },
   { en: "Advertise", to: "/contact" },
 ] as const;
@@ -123,7 +123,7 @@ function NavItem({
   const hasMenu = "items" in item;
   const hasMega = "mega" in item;
   return (
-    <li key={item.en} className="group relative">
+    <li key={JSON.stringify(item)} className="group relative">
       {"to" in item ? (
         <Link
           to={item.to}
@@ -147,8 +147,8 @@ function NavItem({
       )}
       {hasMenu ? (
         <ul className="invisible absolute left-0 top-full z-30 w-60 border border-border bg-background opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100">
-          {item.items.map((s) => (
-            <li key={s.en}>
+          {item.items.map((s, i) => (
+            <li key={i}>
               {"to" in s ? (
                 <Link
                   to={s.to}
@@ -343,13 +343,13 @@ export function SiteHeader() {
         {/* Two-line desktop navigation */}
         <div className="mx-auto hidden max-w-7xl flex-col md:flex px-2 lg:px-4">
           <ul className="grid min-w-0 grid-cols-6 items-stretch text-center">
-            {MENU_ROW_1.map((m) => (
-              <NavItem key={m.en} item={m} navLink={NAV_LINK} />
+            {MENU_ROW_1.map((m, i) => (
+              <NavItem key={i} item={m} navLink={NAV_LINK} />
             ))}
           </ul>
           <ul className="grid min-w-0 grid-cols-6 items-stretch border-t border-border/40 text-center">
-            {MENU_ROW_2.map((m) => (
-              <NavItem key={m.en} item={m} navLink={NAV_LINK_SECONDARY} />
+            {MENU_ROW_2.map((m, i) => (
+              <NavItem key={i} item={m} navLink={NAV_LINK_SECONDARY} />
             ))}
           </ul>
         </div>
