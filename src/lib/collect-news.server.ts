@@ -985,6 +985,10 @@ const GALLERY_FEED_NAMES = [
   "Bollywood Hungama",
   "M9 News",
   "Mirchi9",
+  "Kollywood heroines",
+  "Mollywood heroines",
+  "Sandalwood heroines",
+  "South stars glamour",
 ];
 
 /**
