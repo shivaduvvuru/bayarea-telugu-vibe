@@ -2,6 +2,7 @@ import type { IngestRow } from "@/lib/cms.server";
 import { CITIES, cityBySlug } from "@/lib/desk-cities";
 import { classifyIndia } from "@/lib/india-topics";
 import { isCinema, CINEMA_SLUG } from "@/lib/cinema-topics";
+import { isMicroDrama, MICRO_DRAMA_SLUG } from "@/lib/microdrama-topics";
 
 
 type Row = Record<string, unknown>;
@@ -27,9 +28,10 @@ export function deskRowToIngest(row: Row): IngestRow {
   // the aggregated digest and must never be reclassified into an India section.
   const source = `${str(row["source"]) ?? str(payload["source"]) ?? ""}`.toLowerCase();
   const firstParty = source.includes("wordpress") || source.includes("telugu times");
-  const cinema = kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
+  const micro = kind === "news" && !firstParty && isMicroDrama(title, summary, linkUrl);
+  const cinema = !micro && kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
   const indiaSlug =
-    !cinema && !firstParty && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
+    !cinema && !micro && !firstParty && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
       ? classifyIndia(title, summary, linkUrl)
       : null;
 
@@ -49,7 +51,9 @@ export function deskRowToIngest(row: Row): IngestRow {
         ? "temples"
         : kind === "event"
           ? "events"
-          : cinema
+          : micro
+            ? MICRO_DRAMA_SLUG
+            : cinema
             ? CINEMA_SLUG
             : (indiaSlug ?? "news"),
     published_at:

@@ -99,7 +99,7 @@ const COMMUNITY_ITEMS = [
 const MENU_ROW_1 = [
   { en: "City News", cat: "city-news", mega: true },
   { en: "Community", cat: "community", items: COMMUNITY_ITEMS },
-  { en: "Cinema", cat: "cinema" },
+  { en: "Cinema/OTT", cat: "cinema" },
   { en: "Restaurants", cat: "restaurants" },
   { en: "Fun Zone", cat: "fun-zone" },
   { en: "Classifieds", cat: "classifieds" },

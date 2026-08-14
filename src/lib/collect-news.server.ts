@@ -425,6 +425,33 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
     match:
       /tollywood|bollywood|telugu (?:film|movie|cinema)|hindi (?:film|movie|cinema)|box office|teaser|trailer|first look|premiere|movie review|actor|actress|director|ott release/,
   },
+  // OTT / streaming attractions: what is landing this week on the platforms
+  // Telugu-American households subscribe to.
+  {
+    kind: "news",
+    queries: [
+      "Telugu OTT release this week Aha OR Netflix OR Prime Video OR Hotstar",
+      "Indian web series OTT premiere review streaming",
+      "Netflix OR Prime Video OR JioHotstar India new series announcement",
+      "Telugu movie OTT streaming date digital rights",
+    ],
+    match:
+      /ott|streaming|web series|netflix|prime video|amazon prime|hotstar|jiohotstar|\baha\b|zee5|sony ?liv|apple tv|disney\+|episode|season|series/,
+  },
+  // Micro-dramas: vertical short-form serialised drama from India, China and
+  // the US — its own desk, kept out of the Cinema feed.
+  {
+    kind: "news",
+    queries: [
+      "micro drama vertical short drama app India news",
+      "ReelShort OR DramaBox OR Holywater micro drama news",
+      "China micro drama duanju short drama industry news",
+      "US vertical micro drama series app funding audience",
+      "micro drama series launch cast photos India Telugu Hindi",
+    ],
+    match:
+      /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
+  },
 ];
 
 const TOPIC_MAX = 8;
