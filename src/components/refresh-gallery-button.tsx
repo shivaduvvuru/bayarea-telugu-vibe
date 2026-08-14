@@ -39,7 +39,12 @@ export function RefreshGalleryButton({
       await qc.invalidateQueries({ queryKey: ["wp", "posts", "gallery"] });
       await qc.refetchQueries({ queryKey: ["wp", "posts", "gallery"] });
       const added = json.published ?? json.collected ?? 0;
-      toast.success(added ? `${added} new pictures added` : "Gallery is already up to date");
+      onRefreshed?.(added);
+      toast.success(
+        added
+          ? `${added} new pictures added`
+          : "No new photos from the sources yet — showing more from the archive",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not refresh the gallery");
     } finally {
