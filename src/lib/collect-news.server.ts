@@ -1,7 +1,11 @@
 import { BAY_AREA, CITIES, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
-import { resolveGoogleNewsUrls } from "./google-news.server";
+import {
+  resolveGoogleNewsUrls,
+  resolveGoogleNewsUrl,
+  isGoogleNewsUrl,
+} from "./google-news.server";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 
