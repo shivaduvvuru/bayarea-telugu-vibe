@@ -1401,7 +1401,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
-    limit: Math.max(f.limit ?? 6, 20),
+    limit: Math.max(f.limit ?? 6, 40),
   }));
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
@@ -1443,10 +1443,13 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
   }
   // Only picture-led star stories belong in this pass.
   const { isStarGallery } = await import("./cinema-topics");
+  const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
       (r) =>
-        !!(r.payload as { image?: string | null } | undefined)?.image &&
+        // Quality check: the attached picture must read as people photography,
+        // not stock nature / graphic filler.
+        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
         isStarGallery(r.title, r.summary, r.source_url ?? ""),
     ),
   );
