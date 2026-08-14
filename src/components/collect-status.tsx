@@ -11,7 +11,6 @@ type Run = {
   held: number;
   duplicates_hidden: number;
   ok: boolean;
-  error: string | null;
   finished_at: string;
 };
 
@@ -86,7 +85,7 @@ export function CollectStatus({
 
   if (!run.ok)
     return (
-      <span className={`${base} border-destructive/40 text-destructive`} title={run.error ?? ""}>
+      <span className={`${base} border-destructive/40 text-destructive`} title="Last collection run failed">
         <AlertTriangle className="h-3 w-3" aria-hidden />
         Last pull failed {ago(run.finished_at)} · retries {cadence}
       </span>

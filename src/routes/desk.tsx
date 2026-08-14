@@ -233,6 +233,7 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
         error?: string;
         diag?: { fetched?: number; raw?: number; notes?: string[] };
       };
+      if (res.status === 401) throw new Error("Desk session expired — unlock again");
       if (!res.ok) throw new Error(json.error ?? "Collection failed");
       await loadItems();
       if (!json.collected) {
