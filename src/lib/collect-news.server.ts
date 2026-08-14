@@ -1345,6 +1345,14 @@ const GALLERY_FEED_NAMES = [
   "Mollywood heroines",
   "Sandalwood heroines",
   "South stars glamour",
+  "Instagram photo dumps",
+  "Social media buzz",
+  "Star photo stories",
+  "Saree & ethnic looks",
+  "TOI entertainment photos",
+  "Telugu heroine photos (Telugu)",
+  "Telugu360",
+
 ];
 
 /**
