@@ -353,10 +353,12 @@ function Home() {
   // Newest photos always hold the top slots, and any picture you've liked stays
   // pinned so a refresh never rotates it away. The remaining tiles cycle through
   // the deeper pool so each refresh still shows something different.
+  // Disliked photos drop out of the grid entirely.
   const galleryPool = takeUnique(galleryItems, homepageSeen, 48)
-    .slice()
+    .filter((a) => !hidden.includes(a.slug))
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
+
   const pinnedSlugs = new Set<string>();
   const pinned = [
     ...galleryPool.slice(0, 2),
