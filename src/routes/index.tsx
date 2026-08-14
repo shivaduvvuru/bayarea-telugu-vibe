@@ -323,6 +323,8 @@ function Home() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   const { favorites } = useFavoritePhotos();
+  const { hidden } = useHiddenPhotos();
+
 
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
