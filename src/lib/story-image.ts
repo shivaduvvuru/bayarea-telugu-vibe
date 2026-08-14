@@ -65,3 +65,28 @@ export function sourceLabel(url: string | null | undefined): string | null {
     return null;
   }
 }
+
+/**
+ * Quality gate for the Glamourie grid. Picture desks sometimes attach stock
+ * artwork that has nothing to do with a star portrait — nature shots, birds,
+ * temple/church crosses, maps, weather graphics, sports frames. Those slipped
+ * into the photo grid, so reject them by URL/slug cue and keep only pictures
+ * that read as people photography.
+ */
+const NOT_A_PORTRAIT =
+  /\b(?:bird|birds|eagle|parrot|peacock|animal|wildlife|dog|cat|tiger|lion|elephant|nature|landscape|sunset|sunrise|mountain|forest|tree|flower|garden|beachscape|cross|crucifix|church|chapel|cathedral|temple|mosque|masjid|shrine|idol|god|deity|festival-?graphic|map|maps|chart|graph|graphic|infographic|weather|rain|storm|flood|traffic|accident|crash|police|court|stadium|cricket|match|scorecard|trophy|stocks?|market|currency|coin|crypto|car|bike|vehicle|building|construction|flag|poster-?only|screenshot|whatsapp-?image|collage-?graphic)\b/i;
+
+/** Usable image that also passes the Glamourie subject check. */
+export function galleryImage(url: string | null | undefined): string | null {
+  const ok = usableImage(url);
+  if (!ok) return null;
+  let path = ok;
+  try {
+    const u = new URL(ok);
+    path = `${u.pathname}`;
+  } catch {
+    /* keep raw string */
+  }
+  if (NOT_A_PORTRAIT.test(decodeURIComponent(path).replace(/[_%20+]/g, "-"))) return null;
+  return ok;
+}
