@@ -28,8 +28,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           "@/lib/collect-news.server"
         );
         // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
-        const body = (await request.json().catch(() => ({}))) as { mode?: string };
+        const body = (await request.json().catch(() => ({}))) as {
+          mode?: string;
+          trigger?: string;
+        };
         const galleryOnly = body?.mode === "gallery";
+        const trigger = body?.trigger === "manual" ? "manual" : "cron";
         const { dedupeKey } = await import("@/lib/dedupe");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
