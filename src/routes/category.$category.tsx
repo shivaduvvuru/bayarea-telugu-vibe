@@ -96,8 +96,13 @@ export const Route = createFileRoute("/category/$category")({
 
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
-  const { data: articles } = useSuspenseQuery(postsQuery(cat.slug));
+  const { data: allArticles } = useSuspenseQuery(postsQuery(cat.slug));
+  const { hidden } = useHiddenPhotos();
+  // Disliked pictures are dropped from the picture desk.
+  const articles =
+    cat.slug === "gallery" ? allArticles.filter((a) => !hidden.includes(a.slug)) : allArticles;
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-3xl font-bold text-ink">{cat.en}</h1>
