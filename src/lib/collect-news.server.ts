@@ -610,6 +610,31 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 5,
   },
+  // South-Indian language star desks — Tamil, Malayalam, Kannada heroines.
+  {
+    name: "Kollywood heroines",
+    url: "https://news.google.com/rss/search?q=(Kollywood+OR+%22Tamil+actress%22+OR+%22Tamil+heroine%22)+(photos+OR+stills+OR+gallery+OR+glamour+OR+%22photo+shoot%22+OR+%22new+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 7,
+  },
+  {
+    name: "Mollywood heroines",
+    url: "https://news.google.com/rss/search?q=(Mollywood+OR+%22Malayalam+actress%22+OR+%22Malayalam+heroine%22)+(photos+OR+stills+OR+gallery+OR+glamour+OR+%22photo+shoot%22+OR+%22new+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 7,
+  },
+  {
+    name: "Sandalwood heroines",
+    url: "https://news.google.com/rss/search?q=(Sandalwood+OR+%22Kannada+actress%22+OR+%22Kannada+heroine%22)+(photos+OR+stills+OR+gallery+OR+glamour+OR+%22photo+shoot%22+OR+%22new+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 7,
+  },
+  {
+    name: "South stars glamour",
+    url: "https://news.google.com/rss/search?q=(%22South+Indian+actress%22+OR+%22South+actress%22)+(%22glamorous+photos%22+OR+photoshoot+OR+%22latest+stills%22+OR+%22viral+photos%22+OR+%22saree+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 7,
+  },
   {
     name: "గ్లామర్ ఫోటోలు",
     url: "https://news.google.com/rss/search?q=%E0%B0%97%E0%B1%8D%E0%B0%B2%E0%B0%BE%E0%B0%AE%E0%B0%B0%E0%B1%8D+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%85%E0%B0%82%E0%B0%A6%E0%B0%BE%E0%B0%B2+%E0%B0%A4%E0%B0%BE%E0%B0%B0+when:7d&hl=te&gl=IN&ceid=IN:te",
@@ -960,6 +985,10 @@ const GALLERY_FEED_NAMES = [
   "Bollywood Hungama",
   "M9 News",
   "Mirchi9",
+  "Kollywood heroines",
+  "Mollywood heroines",
+  "Sandalwood heroines",
+  "South stars glamour",
 ];
 
 /**
