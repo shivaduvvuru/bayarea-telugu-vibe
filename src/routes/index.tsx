@@ -15,7 +15,6 @@ import { PrimeHero } from "@/components/prime-hero";
 import { isPrimeBannerFresh, pickPrimeStory } from "@/lib/prime-story";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
-import { GalleryHero } from "@/components/gallery-hero";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
