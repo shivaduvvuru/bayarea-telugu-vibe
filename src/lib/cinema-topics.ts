@@ -46,7 +46,7 @@ const ENTERTAINMENT_URL =
 
 /** Hard news cues — never a glamour picture post, whatever the URL says. */
 const NEWSY =
-  /\b(?:arrest|police|court|case filed|fir\b|murder|rape|assault|dies|died|death|passes away|obituar|accident|crash|fire|flood|earthquake|protest|election|minister|politic|court order|traffic|weather|covid|scam|fraud|suicide|hospital|verdict|petition|bandh|strike|war|attack|shooting)\b|ట్రాఫిక్|అరెస్ట్|కేసు|మృతి|ప్రమాదం|ఎన్నికల/i;
+  /\b(?:arrest|police|court|case filed|fir\b|murder|rape|assault|dies|died|death|passes away|obituar|accident|crash|fire|flood|earthquake|protest|election|minister|politic|court order|traffic|weather|covid|scam|fraud|suicide|hospital|verdict|petition|bandh|strike|war|attack|shooting|backlash|slams|controvers|lawsuit|feud|apolog)\b|ట్రాఫిక్|అరెస్ట్|కేసు|మృతి|ప్రమాదం|ఎన్నికల/i;
 
 
 
