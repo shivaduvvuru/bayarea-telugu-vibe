@@ -1,4 +1,5 @@
 import { CalendarPlus, MapPin, Navigation, Ticket, CalendarDays } from "lucide-react";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 import { type EventItem, eventDate } from "@/lib/news-data";
 import { useLang } from "@/lib/language";
 
@@ -136,6 +137,13 @@ export function EventStrip({ event }: { event: EventItem }) {
         {d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""} ·{" "}
         {event.title} · {event.city}
       </span>
+      <WhatsAppShare
+        path="/events"
+        title={`${event.title} · ${event.city}`}
+        context="event"
+        tone="bare"
+        className="h-8 w-8 shrink-0"
+      />
     </div>
   );
 }

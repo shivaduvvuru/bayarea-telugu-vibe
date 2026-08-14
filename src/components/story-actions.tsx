@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2, Check } from "lucide-react";
 import { useSaved, shareLink } from "@/lib/saved";
 import { useLang } from "@/lib/language";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 
 const btn =
   "inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-tint hover:text-primary";
@@ -61,6 +62,7 @@ export function StoryActions({
           <Share2 className="h-[18px] w-[18px]" />
         )}
       </button>
+      <WhatsAppShare path={url} title={title} context={context} tone="bare" />
       <span aria-live="polite" className="sr-only">
         {copied ? t("Link copied", "లింక్ కాపీ అయింది") : ""}
       </span>

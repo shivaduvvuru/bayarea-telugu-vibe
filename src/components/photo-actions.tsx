@@ -10,6 +10,7 @@ import {
 import { removeDislikedPhoto } from "@/lib/photo-moderation.functions";
 import type { Article } from "@/lib/content";
 import { cn } from "@/lib/utils";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 
 
 /**
@@ -108,6 +109,12 @@ export function PhotoActions({
           <Share2 className="h-[18px] w-[18px]" aria-hidden />
         )}
       </button>
+      <WhatsAppShare
+        path={`/article/${article.slug}`}
+        title={article.title}
+        context="photo"
+        tone={tone}
+      />
       <span aria-live="polite" className="sr-only">
         {copied ? "Link copied" : ""}
       </span>
