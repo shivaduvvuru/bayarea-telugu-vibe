@@ -15,6 +15,8 @@ export type AnalyticsEvent =
   | "share"
   | "save"
   | "photo_favorite"
+  | "photo_dislike"
+
   | "newsletter_signup"
   | "poll_vote"
   | "language_switch"

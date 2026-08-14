@@ -17,7 +17,7 @@ import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
-import { useFavoritePhotos } from "@/lib/photo-favorites";
+import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 
@@ -323,6 +323,8 @@ function Home() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   const { favorites } = useFavoritePhotos();
+  const { hidden } = useHiddenPhotos();
+
 
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
@@ -353,10 +355,12 @@ function Home() {
   // Newest photos always hold the top slots, and any picture you've liked stays
   // pinned so a refresh never rotates it away. The remaining tiles cycle through
   // the deeper pool so each refresh still shows something different.
+  // Disliked photos drop out of the grid entirely.
   const galleryPool = takeUnique(galleryItems, homepageSeen, 48)
-    .slice()
+    .filter((a) => !hidden.includes(a.slug))
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
+
   const pinnedSlugs = new Set<string>();
   const pinned = [
     ...galleryPool.slice(0, 2),
