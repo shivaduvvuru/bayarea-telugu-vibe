@@ -14,10 +14,10 @@ export const listQueueRows = createServerFn({ method: "POST" })
   .inputValidator((data: { itemIds?: string[] }) => ({
     itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 1000).map(String) : [],
   }))
-  .handler(async ({ data }): Promise<QueueRow[]> => {
+  .handler(async ({ data }): Promise<{ rows: QueueRow[] }> => {
     const { assertDesk } = await import("@/lib/desk-session.server");
     await assertDesk();
-    if (!data.itemIds.length) return [];
+    if (!data.itemIds.length) return { rows: [] };
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
     const { data: rows, error } = await db
@@ -25,15 +25,15 @@ export const listQueueRows = createServerFn({ method: "POST" })
       .select("item_id,status,upload_status,uploaded_at,error")
       .in("item_id", data.itemIds);
     if (error) throw new Error(error.message);
-    return (rows ?? []) as unknown as QueueRow[];
+    return { rows: (rows ?? []) as unknown as QueueRow[] };
   });
-
-const STATUSES = new Set(["pending", "approved", "rejected"]);
 
 /** Records an editor decision on queue rows. Editorial desk only. */
 export const setQueueStatus = createServerFn({ method: "POST" })
   .inputValidator((data: { itemIds: string[]; status: string }) => {
-    if (!STATUSES.has(String(data?.status))) throw new Error("Invalid status");
+    if (!["pending", "approved", "rejected"].includes(String(data?.status))) {
+      throw new Error("Invalid status");
+    }
     return {
       itemIds: (Array.isArray(data?.itemIds) ? data.itemIds : []).slice(0, 1000).map(String),
       status: String(data.status),
@@ -74,7 +74,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
   .inputValidator((data: { days?: number }) => ({
     days: Math.min(Math.max(Number(data?.days) || 7, 1), 30),
   }))
-  .handler(async ({ data }): Promise<DeskQueueRow[]> => {
+  .handler(async ({ data }): Promise<{ items: DeskQueueRow[] }> => {
     const { assertDesk } = await import("@/lib/desk-session.server");
     await assertDesk();
     const { admin } = await import("@/lib/cms.server");
@@ -88,5 +88,5 @@ export const listDeskItems = createServerFn({ method: "POST" })
       .order("digest_date", { ascending: false })
       .limit(600);
     if (error) throw new Error(error.message);
-    return (rows ?? []) as unknown as DeskQueueRow[];
+    return { items: (rows ?? []) as unknown as DeskQueueRow[] };
   });
