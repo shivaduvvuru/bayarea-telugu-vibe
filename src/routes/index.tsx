@@ -474,7 +474,7 @@ function Home() {
               .map((a, i) => (
                 <div key={a.slug}>
                   <Row a={a} />
-                  {i === 1 || i === 5 ? (
+                  {i === 0 || (i + 1) % 4 === 0 ? (
                     <GalleryHero
                       items={uniqueGallery}
                       onOpen={setViewerIndex}

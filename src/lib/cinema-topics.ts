@@ -71,8 +71,12 @@ export function isStarGallery(
   const url = (sourceUrl ?? "").toLowerCase();
   // Hard news never belongs in a glamour grid.
   if (NEWSY.test(text)) return false;
+  // Our own newsroom (bayarea.telugutimes.net) is a trusted first-party desk:
+  // its photo galleries and event picture posts belong in Glamourie too.
+  const ownSite = /telugutimes\.net/i.test(url);
   const photoDesk =
-    PHOTO_DESK_URL.test(url) && (CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url));
+    (PHOTO_DESK_URL.test(url) && (CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url))) ||
+    (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));
   const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
   // Strictly no men in Gallery: any male-subject cue disqualifies the post.
@@ -81,7 +85,7 @@ export function isStarGallery(
   // require a female-star cue so headline stories don't leak in.
   // Photo-led posts already sitting on a film/entertainment publisher qualify;
   // elsewhere we still require a female-star cue so headlines don't leak in.
-  if (!photoDesk && !CINEMA_HOSTS.test(url) && !FEMALE_SUBJECT.test(text)) return false;
+  if (!photoDesk && !ownSite && !CINEMA_HOSTS.test(url) && !FEMALE_SUBJECT.test(text)) return false;
   return true;
 
 
