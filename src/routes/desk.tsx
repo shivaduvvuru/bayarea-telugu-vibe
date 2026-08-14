@@ -74,6 +74,7 @@ function isPictureItem(item: DeskItem): boolean {
 
 function DeskPage() {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
+  const [sessionError, setSessionError] = useState("");
   const doCheck = useServerFn(checkDesk);
   const doUnlock = useServerFn(unlockDesk);
   const doLock = useServerFn(lockDesk);
@@ -81,13 +82,25 @@ function DeskPage() {
   useEffect(() => {
     doCheck()
       .then((res) => setUnlocked(res.unlocked))
-      .catch(() => setUnlocked(false));
+      .catch(() => {
+        setSessionError("The desk session could not be checked. Please unlock again.");
+        setUnlocked(false);
+      });
   }, [doCheck]);
 
   const onUnlock = async (passcode: string) => {
-    const res = await doUnlock({ data: { passcode } });
-    setUnlocked(res.ok);
-    return res.ok;
+    try {
+      setSessionError("");
+      const res = await doUnlock({ data: { passcode } });
+      if (!res.ok) return false;
+      const verified = await doCheck();
+      setUnlocked(verified.unlocked);
+      if (!verified.unlocked) setSessionError("The desk session did not persist. Please try again.");
+      return verified.unlocked;
+    } catch {
+      setSessionError("Could not unlock the desk. Please try again.");
+      return false;
+    }
   };
 
   const onLock = async () => {
@@ -104,13 +117,19 @@ function DeskPage() {
   }
 
   if (!unlocked) {
-    return <DeskPasscodeForm onUnlock={onUnlock} />;
+    return <DeskPasscodeForm onUnlock={onUnlock} sessionError={sessionError} />;
   }
 
-  return <DeskWorkspace onLock={onLock} />;
+  return <DeskWorkspace onLock={onLock} onSessionExpired={() => setUnlocked(false)} />;
 }
 
-function DeskPasscodeForm({ onUnlock }: { onUnlock: (passcode: string) => Promise<boolean> }) {
+function DeskPasscodeForm({
+  onUnlock,
+  sessionError,
+}: {
+  onUnlock: (passcode: string) => Promise<boolean>;
+  sessionError: string;
+}) {
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -144,7 +163,11 @@ function DeskPasscodeForm({ onUnlock }: { onUnlock: (passcode: string) => Promis
             placeholder="Passcode"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
           />
-          {error && <p className="text-sm text-destructive">Incorrect passcode.</p>}
+          {(error || sessionError) && (
+            <p className="text-sm text-destructive">
+              {sessionError || "Incorrect passcode."}
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={busy || !value}>
             {busy ? "Checking…" : "Unlock desk"}
           </Button>
@@ -154,15 +177,25 @@ function DeskPasscodeForm({ onUnlock }: { onUnlock: (passcode: string) => Promis
   );
 }
 
-function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
+function DeskWorkspace({
+  onLock,
+  onSessionExpired,
+}: {
+  onLock: () => Promise<void>;
+  onSessionExpired: () => void;
+}) {
   const date = todayISO();
   const [base, setBase] = useState<DeskItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
     const response = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
+    if (!response || !Array.isArray(response.items)) {
+      throw new Error("The desk returned an invalid response");
+    }
     const mapped: DeskItem[] = response.items.map((r) => {
       const p = (r.payload ?? {}) as Record<string, string | undefined>;
       return {
@@ -187,10 +220,16 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
 
   useEffect(() => {
     setLoadingItems(true);
+    setLoadError("");
     void loadItems()
-      .catch((e) => console.error("desk load failed", e))
+      .catch((e) => {
+        console.error("desk load failed", e);
+        const message = e instanceof Error ? e.message : "Desk items could not be loaded";
+        setLoadError(message);
+        if (/unauthorized|session|401/i.test(message)) onSessionExpired();
+      })
       .finally(() => setLoadingItems(false));
-  }, [loadItems]);
+  }, [loadItems, onSessionExpired]);
 
   const ids = useMemo(() => base.map((i) => i.id), [base]);
   const queue = useReviewQueue(ids, `${date}-${ids.length}`);
@@ -397,6 +436,8 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
 
         {loadingItems || queue.loading ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">Loading desk…</Card>
+        ) : loadError ? (
+          <Card className="p-8 text-center text-sm text-destructive">{loadError}</Card>
         ) : visible.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             Nothing here. Switch tab or filter, or use “Collect now” to pull fresh items.
