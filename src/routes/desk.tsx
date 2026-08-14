@@ -16,8 +16,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { useReviewQueue } from "@/lib/desk-queue";
+import { listDeskItems } from "@/lib/desk-queue.functions";
+
 import { CITIES, CITY_REGIONS, cityBySlug } from "@/lib/desk-cities";
 import { KIND_LABEL, todayISO, type DeskItem, type ItemKind, type ItemStatus } from "@/lib/desk";
 import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
@@ -158,20 +159,14 @@ function DeskWorkspace({ onLock }: { onLock: () => Promise<void> }) {
   const [base, setBase] = useState<DeskItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingItems, setLoadingItems] = useState(true);
+  const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
-    const since = new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
-    const { data, error } = await supabase
-      .from("digest_queue")
-      .select("item_id,digest_date,kind,city_slug,title,summary,source,source_url,payload")
-      .gte("digest_date", since)
-      .neq("upload_status", "sent")
-      .order("digest_date", { ascending: false })
-      .limit(600);
-    if (error) throw error;
+    const data = await fetchDeskItems({ data: { days: WINDOW_DAYS } });
     const mapped: DeskItem[] = (data ?? []).map((r) => {
       const p = (r.payload ?? {}) as Record<string, string | undefined>;
       return {
+
         id: r.item_id,
         kind: r.kind as ItemKind,
         citySlug: r.city_slug,
