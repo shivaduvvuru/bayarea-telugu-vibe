@@ -341,7 +341,13 @@ async function addImages(items: RawItem[]): Promise<void> {
         item.image = null;
         return;
       }
-      if (!item.image && item.link) {
+      if (item.link && isGoogleNewsUrl(item.link)) {
+        // Feed-level resolution can miss some wrappers; retry per item so the
+        // stored link (and its artwork) points at the publisher.
+        const real = await resolveGoogleNewsUrl(item.link);
+        if (real && real !== item.link) item.link = real;
+      }
+      if (!item.image && item.link && !isGoogleNewsUrl(item.link)) {
         try {
           const host = new URL(item.link).hostname;
           item.image = /(?:^|\.)msn\.com$/.test(host)
@@ -351,6 +357,8 @@ async function addImages(items: RawItem[]): Promise<void> {
           /* unusable link */
         }
       }
+      item.image = usableImage(item.image);
+
       if (item.image) lastDiag.images += 1;
       else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
     }),
