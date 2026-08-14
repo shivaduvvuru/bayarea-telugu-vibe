@@ -480,6 +480,55 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 4,
   },
+  // Home-state desks: Telangana / Hyderabad and Andhra Pradesh / Amaravati,
+  // read straight from the state editions plus a property-market pass, since
+  // most readers here have roots in the two Telugu states.
+  { name: "The Hindu (Telangana)", url: "https://www.thehindu.com/news/national/telangana/feeder/default.rss", kind: "news", limit: 6 },
+  { name: "The Hindu (Andhra Pradesh)", url: "https://www.thehindu.com/news/national/andhra-pradesh/feeder/default.rss", kind: "news", limit: 6 },
+  { name: "The Times of India (Hyderabad)", url: "https://timesofindia.indiatimes.com/rssfeeds/-2128816011.cms", kind: "news", limit: 5 },
+  {
+    name: "Deccan Chronicle",
+    url: "https://news.google.com/rss/search?q=site:deccanchronicle.com+(Telangana+OR+Hyderabad+OR+Andhra+OR+Amaravati)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "The New Indian Express",
+    url: "https://news.google.com/rss/search?q=site:newindianexpress.com+(Telangana+OR+Hyderabad+OR+Andhra+OR+Amaravati+OR+Vijayawada+OR+Visakhapatnam)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Telangana & Hyderabad",
+    url: "https://news.google.com/rss/search?q=(Telangana+OR+Hyderabad+OR+Warangal+OR+%22Cyberabad%22)+(news+OR+government+OR+IT+OR+metro+OR+HYDRAA)+when:2d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Andhra Pradesh & Amaravati",
+    url: "https://news.google.com/rss/search?q=(%22Andhra+Pradesh%22+OR+Amaravati+OR+Vijayawada+OR+Visakhapatnam+OR+Tirupati)+(capital+OR+government+OR+news+OR+projects+OR+investment)+when:2d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Amaravati capital works",
+    url: "https://news.google.com/rss/search?q=Amaravati+(capital+OR+%22CRDA%22+OR+construction+OR+secretariat+OR+%22land+pooling%22+OR+plots)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Telugu states property market",
+    url: "https://news.google.com/rss/search?q=(Hyderabad+OR+Amaravati+OR+Vijayawada+OR+Visakhapatnam+OR+%22Andhra+Pradesh%22+OR+Telangana)+(%22real+estate%22+OR+%22property+prices%22+OR+%22land+rates%22+OR+apartments+OR+%22open+plots%22+OR+RERA+OR+%22housing+market%22)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Telugu states (Telugu)",
+    url: "https://news.google.com/rss/search?q=%E0%B0%A4%E0%B1%86%E0%B0%B2%E0%B0%82%E0%B0%97%E0%B0%BE%E0%B0%A3+OR+%E0%B0%B9%E0%B1%88%E0%B0%A6%E0%B0%B0%E0%B0%BE%E0%B0%AC%E0%B0%BE%E0%B0%A6%E0%B1%8D+OR+%E0%B0%86%E0%B0%82%E0%B0%A7%E0%B1%8D%E0%B0%B0%E0%B0%AA%E0%B1%8D%E0%B0%B0%E0%B0%A6%E0%B1%87%E0%B0%B6%E0%B1%8D+OR+%E0%B0%85%E0%B0%AE%E0%B0%B0%E0%B0%BE%E0%B0%B5%E0%B0%A4%E0%B0%BF+when:2d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
+
   // Immigration and consular
   {
     name: "USCIS",
