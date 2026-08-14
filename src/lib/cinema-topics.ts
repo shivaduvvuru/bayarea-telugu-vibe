@@ -1,20 +1,21 @@
 /**
- * Client-safe classifier for Telugu / Indian cinema coverage.
+ * Client-safe classifier for Indian and Hollywood cinema coverage.
  *
- * Movie stories collected from Tollywood and Bollywood desks used to land in the
- * generic "news" bucket. This files them under the site's Cinema section, and
- * photo-led film stories also surface in Gallery.
+ * Movie stories collected from Tollywood, Bollywood, Kollywood, Mollywood,
+ * Sandalwood and Hollywood desks used to land in the generic "news" bucket.
+ * This files them under the site's Cinema section, and photo-led film stories
+ * also surface in Gallery.
  */
 
 export const CINEMA_SLUG = "cinema";
 
 const CINEMA_TEXT =
-  /tollywood|bollywood|kollywood|mollywood|sandalwood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|(?:tamil|malayalam|kannada) (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్/i;
+  /tollywood|bollywood|kollywood|mollywood|sandalwood|hollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|(?:tamil|malayalam|kannada) (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|academy award|oscar|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్|మూవీ|సినిమాలు|టాలీవుడ్/i;
 
 
 /** Well-known film-trade publishers whose whole feed is cinema. */
 const CINEMA_HOSTS =
-  /123telugu|gulte|greatandhra|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery/i;
+  /123telugu|gulte|greatandhra|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery|variety|deadline|hollywoodreporter|eonline|pagesix|justjared|tmz|entertainmenttonight|people\.com|vogue|elle|glamour\.com/i;
 
 
 /** True when a story reads as film / entertainment coverage. */
@@ -37,11 +38,11 @@ const PHOTO_LED =
 
 /** Male-subject cues: those photo posts stay in Cinema, not the Gallery. */
 const MALE_SUBJECT =
-  /\b(?:actor|hero|director|producer|comedian|singer|megastar|power star|young tiger|mass maharaja|natural star|rebel star|superstar (?:rajinikanth|mahesh)|nandamuri|jr\.? ?ntr|ntr|pawan kalyan|allu arjun|mahesh babu|prabhas|ram charan|nani|vijay deverakonda|ravi teja|nithiin|sharwanand|bellamkonda|akhil|varun tej|sai (?:dharam )?tej|naga chaitanya|nagarjuna|balakrishna|chiranjeevi|venkatesh|shah ?rukh|salman|aamir|hrithik|ranbir|ranveer|ajay devgn|akshay|kartik aaryan|vicky kaushal|allu sirish|siddhu|teja sajja|rajinikanth|vijay|dhanush|suriya|yash|rishab shetty)\b|హీరో\b|నటుడు|దర్శకుడు/i;
+  /\b(?:actor|hero|director|producer|comedian|singer|megastar|power star|young tiger|mass maharaja|natural star|rebel star|superstar (?:rajinikanth|mahesh)|nandamuri|jr\.? ?ntr|ntr|pawan kalyan|allu arjun|mahesh babu|prabhas|ram charan|nani|vijay deverakonda|ravi teja|nithiin|sharwanand|bellamkonda|akhil|varun tej|sai (?:dharam )?tej|naga chaitanya|nagarjuna|balakrishna|chiranjeevi|venkatesh|shah ?rukh|salman|aamir|hrithik|ranbir|ranveer|ajay devgn|akshay|kartik aaryan|vicky kaushal|allu sirish|siddhu|teja sajja|rajinikanth|vijay|dhanush|suriya|yash|rishab shetty|timothee chalamet|chris evans|ryan reynolds|leonardo dicaprio|brad pitt|tom holland|chris hemsworth|robert downey|johnny depp|matt damon|ben affleck|george clooney|bradley cooper|jake gyllenhaal|andrew garfield|tobey maguire|hugh jackman|henry cavill|jason momoa|idris elba|michael b jordan|chadwick boseman|will smith|denzel washington|morgan freeman|samuel jackson|keanu reeves|jason statham|vin diesel|dwayne johnson|chris pratt|john cena|the rock)\b|హీరో\b|నటుడు|దర్శకుడు/i;
 
-/** Female star cues across Telugu, Hindi, Tamil, Malayalam and Kannada cinema. */
+/** Female star cues across Telugu, Hindi, Tamil, Malayalam, Kannada and Hollywood cinema. */
 const FEMALE_SUBJECT =
-  /\b(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she\b|her\b|model|samantha|rashmika|pooja hegde|sreeleela|anupama|keerthy suresh|kajal|tamannaah|nabha natesh|krithi shetty|nidhhi agerwal|raashi khanna|rakul|shraddha|katrina|deepika|alia|janhvi|kiara|ananya|tripti dimri|mrunal thakur|sai pallavi|nayanthara|trisha|malavika mohanan|meenakshi chaudhary|payal rajput|faria abdullah|shriya|hansika|regina|ashu reddy|bhagyashri|divi vadthya|priyanka|kriti sanon|tara sutaria|disha patani|urvashi|nora fatehi|avika gor|lavanya|ketika sharma|shivani|apsara rani|ruhani sharma|sanjana|amrutha|preity mukhundhan|kushitha|nuveksha|rashi singh|yukti thareja|neha shetty|anikha|aishwarya|madhuri|nithya menen|niharika|aishwarya rajesh|anikha surendran|andrea jeremiah|sri divya|priya bhavani shankar|aparna das|ivana|nikki galrani|amala paul|kalyani priyadarshan|ahaana krishna|ann augustine|anna ben|rajisha vijayan|aparna balamurali|manju warrier|nazriya|parvathy thiruvothu|honey rose|durga krishna|esther anil|saniya iyappan|anaswara rajan|ashika ranganath|rachita ram|rashmika mandanna|shanvi srivastava|radhika kumaraswamy|nidhi subbaiah|milana nagaraj|samyuktha|sanjana anand|reeshma nanaiah|haripriya|amrutha iyengar|kavya shetty|priyanka upendra)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార|సుందరి|நடிகை|கதாநாயகி|நடிகையின்|നടി|നായിക|ನಟಿ|ನಾಯಕಿ/i;
+  /\b(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she\b|her\b|model|samantha|rashmika|pooja hegde|sreeleela|anupama|keerthy suresh|kajal|tamannaah|nabha natesh|krithi shetty|nidhhi agerwal|raashi khanna|rakul|shraddha|katrina|deepika|alia|janhvi|kiara|ananya|tripti dimri|mrunal thakur|sai pallavi|nayanthara|trisha|malavika mohanan|meenakshi chaudhary|payal rajput|faria abdullah|shriya|hansika|regina|ashu reddy|bhagyashri|divi vadthya|priyanka|kriti sanon|tara sutaria|disha patani|urvashi|nora fatehi|avika gor|lavanya|ketika sharma|shivani|apsara rani|ruhani sharma|sanjana|amrutha|preity mukhundhan|kushitha|nuveksha|rashi singh|yukti thareja|neha shetty|anikha|aishwarya|madhuri|nithya menen|niharika|aishwarya rajesh|anikha surendran|andrea jeremiah|sri divya|priya bhavani shankar|aparna das|ivana|nikki galrani|amala paul|kalyani priyadarshan|ahaana krishna|ann augustine|anna ben|rajisha vijayan|aparna balamurali|manju warrier|nazriya|parvathy thiruvothu|honey rose|durga krishna|esther anil|saniya iyappan|anaswara rajan|ashika ranganath|rachita ram|rashmika mandanna|shanvi srivastava|radhika kumaraswamy|nidhi subbaiah|milana nagaraj|samyuktha|sanjana anand|reeshma nanaiah|haripriya|amrutha iyengar|kavya shetty|priyanka upendra|mehreen pirzada|pranitha subhash|catherine tresa|ileana d cruz|raasi|latha|ramya krishnan|jayaprada|jayasudha|kanchana|saritha|revathi|srividya|bhanupriya|radha|suhasini|amala|madhavi|silk smitha|scarlett johansson|margot robbie|zendaya|jennifer lawrence|emma stone|natalie portman|anne hathaway|gal gadot|charlize theron|angelina jolie|julia roberts|millie bobby brown|florence pugh|ana de armas|sydney sweeney|anya taylor-joy|selena gomez|hailey bieber|kylie jenner|kim kardashian|beyonce|rihanna|taylor swift|ariana grande|lady gaga|dua lipa|billie eilish|megan fox|blake lively|gwyneth paltrow|kate winslet|reese witherspoon|sandra bullock|nicole kidman|penelope cruz|salma hayek|eva longoria|olivia wilde|jessica alba|halle berry|demi moore|drew barrymore|cameron diaz|jennifer aniston|lupita nyong'o|naomi watts|kristen stewart|elizabeth olsen|brie larson|rachel mcadams|anne marie|camila cabello|shakira|jennifer lopez|cardi b|nicki minaj|doja cat|sza|ice spice|madison beer|olivia rodrigo|vanessa hudgens|ashley benson|lucy hale|troian bellisario|shay mitchell|emily ratajkowski|bella hadid|gigi hadid|kendall jenner|kourtney kardashian|khloe kardashian|kris jenner|kylie minogue|dolly parton|miley cyrus|demi lovato|ariana debose|rachel zegler|zendaya coleman)\b|హీరోయిన్|నటి|అందాల|భామ|గ్లామర్|తార|సుందరి|நடிகை|கதாநாயகி|நடிகையின்|നടി|നായിക|ನಟಿ|ನಾಯಕಿ/i;
 
 /**
  * True for heroine / female-star photo features that belong in Gallery.
@@ -62,6 +63,3 @@ export function isStarGallery(
   if (MALE_SUBJECT.test(text)) return false;
   return true;
 }
-
-
-

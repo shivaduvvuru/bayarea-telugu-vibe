@@ -564,9 +564,26 @@ const PUBLISHER_FEEDS: {
     limit: 8,
   },
   {
-    name: "Tollywood stars",
-
+    name: "Tollywood heroines",
     url: "https://news.google.com/rss/search?q=(Tollywood+OR+%22Telugu+actress%22+OR+%22Telugu+heroine%22)+(photos+OR+stills+OR+glamour+OR+%22new+look%22+OR+%22photo+shoot%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Tollywood glamour",
+    url: "https://news.google.com/rss/search?q=(%22Tollywood+glamour%22+OR+%22Telugu+heroine+photos%22+OR+%22Tollywood+actress+photos%22+OR+%22Telugu+actress+gallery%22)+(stills+OR+photos+OR+gallery)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Hollywood heroines",
+    url: "https://news.google.com/rss/search?q=(Hollywood+actress+OR+%22Hollywood+heroine%22+OR+%22American+actress%22)+(photos+OR+stills+OR+gallery+OR+glamour+OR+%22red+carpet%22+OR+%22new+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Hollywood stars",
+    url: "https://news.google.com/rss/search?q=(Hollywood+celebrity+OR+%22movie+star%22+OR+%22Hollywood+actress%22)+(Instagram+OR+%22social+media%22+OR+photos+OR+stills+OR+glamour)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 6,
   },
@@ -588,19 +605,19 @@ const PUBLISHER_FEEDS: {
   { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 5 },
   {
     name: "Glamour shoots",
-    url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+OR+Hollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 8,
   },
   {
     name: "Instagram buzz",
-    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(Instagram+OR+%22social+media%22+OR+%22Insta+post%22+OR+%22viral+photos%22+OR+%22breaks+the+internet%22)+(Telugu+OR+Tollywood+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(Instagram+OR+%22social+media%22+OR+%22Insta+post%22+OR+%22viral+photos%22+OR+%22breaks+the+internet%22)+(Telugu+OR+Tollywood+OR+Bollywood+OR+Hollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 8,
   },
   {
     name: "Red carpet & events",
-    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22red+carpet%22+OR+%22ramp+walk%22+OR+%22magazine+cover%22+OR+%22pre-release+event+photos%22+OR+%22award+function+photos%22)+(Telugu+OR+Bollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    url: "https://news.google.com/rss/search?q=(actress+OR+heroine)+(%22red+carpet%22+OR+%22ramp+walk%22+OR+%22magazine+cover%22+OR+%22pre-release+event+photos%22+OR+%22award+function+photos%22)+(Telugu+OR+Bollywood+OR+Hollywood)+when:7d&hl=en-US&gl=US&ceid=US:en",
     kind: "news",
     limit: 6,
   },
@@ -974,7 +991,10 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 const GALLERY_FEED_NAMES = [
   "123Telugu Gallery",
   "Heroine galleries",
-  "Tollywood stars",
+  "Tollywood heroines",
+  "Tollywood glamour",
+  "Hollywood heroines",
+  "Hollywood stars",
   "Bollywood stars",
   "OTT stars gallery",
   "Glamour shoots",
