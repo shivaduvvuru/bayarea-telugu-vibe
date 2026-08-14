@@ -91,3 +91,74 @@ export function useFavoritePhoto(article: Article | FavoritePhoto) {
 
   return { favorite, toggle };
 }
+
+/* ------------------------------ disliked photos ----------------------------- */
+
+const HIDDEN_KEY = "batt-photo-hidden";
+const HIDDEN_EVENT = "batt-photo-hidden-change";
+
+function readHidden(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(HIDDEN_KEY);
+    const list = raw ? (JSON.parse(raw) as string[]) : [];
+    return Array.isArray(list) ? list.filter((s) => typeof s === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeHidden(list: string[]) {
+  window.localStorage.setItem(HIDDEN_KEY, JSON.stringify(list.slice(0, 500)));
+  window.dispatchEvent(new Event(HIDDEN_EVENT));
+}
+
+function subscribeHidden(fn: () => void) {
+  window.addEventListener(HIDDEN_EVENT, fn);
+  window.addEventListener("storage", fn);
+  return () => {
+    window.removeEventListener(HIDDEN_EVENT, fn);
+    window.removeEventListener("storage", fn);
+  };
+}
+
+/** Slugs the reader disliked — dropped from grids on the next refresh. */
+export function useHiddenPhotos() {
+  const [hidden, setHidden] = useState<string[]>([]);
+
+  useEffect(() => {
+    const sync = () => setHidden(readHidden());
+    sync();
+    return subscribeHidden(sync);
+  }, []);
+
+  const restore = useCallback((slug: string) => {
+    writeHidden(readHidden().filter((s) => s !== slug));
+  }, []);
+
+  const clear = useCallback(() => writeHidden([]), []);
+
+  return { hidden, restore, clear };
+}
+
+/** Dislike state for one photo. Disliking also drops it from favorites. */
+export function useHiddenPhoto(article: Article | FavoritePhoto) {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setHidden(readHidden().includes(article.slug));
+    sync();
+    return subscribeHidden(sync);
+  }, [article.slug]);
+
+  const toggle = useCallback(() => {
+    const list = readHidden();
+    const exists = list.includes(article.slug);
+    writeHidden(exists ? list.filter((s) => s !== article.slug) : [article.slug, ...list]);
+    if (!exists) write(read().filter((p) => p.slug !== article.slug));
+    track("photo_dislike", { slug: article.slug, hidden: !exists });
+  }, [article]);
+
+  return { hidden, toggle };
+}
+
