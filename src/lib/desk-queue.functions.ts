@@ -89,7 +89,9 @@ export const listDeskItems = createServerFn({ method: "POST" })
       // always remain visible to the reviewer.
       .or("upload_status.neq.sent,status.eq.pending")
       .order("digest_date", { ascending: false })
-      .limit(600);
+      // Match the collection endpoint's verification window so its confirmed
+      // pending totals can be reconciled exactly by the desk.
+      .limit(1000);
     if (error) throw new Error(error.message);
     return { items: (rows ?? []) as unknown as DeskQueueRow[] };
   });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Check,
@@ -215,6 +215,7 @@ function DeskWorkspace({
   const [loadingItems, setLoadingItems] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [retryNote, setRetryNote] = useState("");
+  const autoRecoveryStarted = useRef(false);
   const fetchDeskItems = useServerFn(listDeskItems);
 
   const loadItems = useCallback(async () => {
@@ -331,10 +332,39 @@ function DeskWorkspace({
         collected?: number;
         error?: string;
         diag?: { fetched?: number; raw?: number; notes?: string[] };
+        intakeHealth?: {
+          attempts: number;
+          pending: { news: number; pictures: number };
+          healthy: boolean;
+        };
       };
       if (res.status === 401) throw new Error("Desk session expired — unlock again");
       if (!res.ok) throw new Error(json.error ?? "Collection failed");
-      const loaded = await loadItems();
+       let loaded = await loadItems();
+       const expected = json.intakeHealth?.pending;
+       const loadedPictures = loaded.filter(isPictureItem).length;
+       const loadedNews = loaded.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
+       // The collection endpoint verifies the database after ingest. If this
+       // browser read is lower than that verified count, retry the queue read
+       // instead of presenting a misleading zero.
+       if (
+         expected &&
+         (loadedNews < expected.news || loadedPictures < expected.pictures)
+       ) {
+         setRetryNote("Collection completed — verifying the approval queue…");
+         loaded = await retryWithBackoff(
+           async () => {
+             const next = await loadItems();
+             const nextPictures = next.filter(isPictureItem).length;
+             const nextNews = next.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
+             if (nextNews < expected.news || nextPictures < expected.pictures) {
+               throw new Error("Approval queue has not caught up yet");
+             }
+             return next;
+           },
+           { attempts: 4, baseDelayMs: 700 },
+         );
+       }
       if (!json.collected) {
         const note = json.diag?.notes?.[0];
         toast.warning(
@@ -342,8 +372,13 @@ function DeskWorkspace({
             ? `No new items — sources unreachable (${note})`
             : `No new items right now (${json.diag?.raw ?? 0} headlines scanned)`,
         );
-      } else {
-        toast.success(`Collected ${json.collected} items · ${loaded.length} awaiting review`);
+       } else {
+         const health = json.intakeHealth;
+         toast.success(
+           health
+             ? `Ready for approval: ${health.pending.news} news · ${health.pending.pictures} pictures${health.attempts > 1 ? ` · checked ${health.attempts} times` : ""}`
+             : `Collected ${json.collected} items · ${loaded.length} awaiting review`,
+         );
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not refresh news");
@@ -351,6 +386,18 @@ function DeskWorkspace({
       setRefreshing(false);
     }
   };
+
+  // One automatic recovery pass on entry: a genuinely empty/underfilled desk
+  // should repair its intake before the editor has to press anything.
+  useEffect(() => {
+    if (loadingItems || loadError || autoRecoveryStarted.current) return;
+    const news = base.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
+    const pictures = base.filter(isPictureItem).length;
+    if (news >= 4 && pictures >= 4) return;
+    autoRecoveryStarted.current = true;
+    setRetryNote("Intake is low — checking sources and collecting again…");
+    void refresh();
+  }, [base, loadError, loadingItems]);
 
   const publish = () => {
     void queue
@@ -395,6 +442,11 @@ function DeskWorkspace({
               <Lock className="size-3" /> Lock
             </Button>
           </div>
+          {refreshing && (
+            <p className="mt-2 text-xs font-medium text-primary" role="status">
+              {retryNote || "Checking News and Pictures intake before approval…"}
+            </p>
+          )}
 
           <div className="mt-4 grid grid-cols-4 gap-2">
             {(["all", "pending", "approved", "rejected"] as const).map((s) => (

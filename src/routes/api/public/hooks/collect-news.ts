@@ -28,12 +28,51 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
-          const collected = galleryOnly
-            ? await collectGallery(process.env["LOVABLE_API_KEY"])
-            : [
-                ...(await collectAll(process.env["LOVABLE_API_KEY"])),
-                ...(await collectGallery(process.env["LOVABLE_API_KEY"])),
-              ];
+          const { isStarGallery } = await import("@/lib/cinema-topics");
+          const { galleryImage } = await import("@/lib/story-image");
+          const isPicture = (r: Record<string, unknown>) => {
+            const image = (r["payload"] as { image?: string | null } | undefined)?.image ?? null;
+            return (
+              !!galleryImage(image) &&
+              isStarGallery(
+                String(r["title"] ?? ""),
+                String(r["summary"] ?? ""),
+                String(r["source_url"] ?? ""),
+              )
+            );
+          };
+
+          // Intake health gate: do not send a starved pull to the approval
+          // stage. Retry only the deficient source pool, with short backoff,
+          // and merge all attempts before the normal duplicate checks.
+          let newsPool = galleryOnly ? [] : await collectAll(process.env["LOVABLE_API_KEY"]);
+          let picturePool = await collectGallery(process.env["LOVABLE_API_KEY"]);
+          const minimumNews = galleryOnly ? 0 : 12;
+          const minimumPictures = 8;
+          let healthAttempts = 1;
+          const poolCounts = () => ({
+            news: newsPool.filter((r) => r.kind === "news" && !isPicture(r as unknown as Record<string, unknown>)).length,
+            pictures: picturePool.filter((r) => isPicture(r as unknown as Record<string, unknown>)).length,
+          });
+          while (
+            healthAttempts < 3 &&
+            (poolCounts().news < minimumNews || poolCounts().pictures < minimumPictures)
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** (healthAttempts - 1)));
+            const before = poolCounts();
+            const [moreNews, morePictures] = await Promise.all([
+              before.news < minimumNews
+                ? collectAll(process.env["LOVABLE_API_KEY"])
+                : Promise.resolve([]),
+              before.pictures < minimumPictures
+                ? collectGallery(process.env["LOVABLE_API_KEY"])
+                : Promise.resolve([]),
+            ]);
+            newsPool = dedupeCollected([...newsPool, ...moreNews]);
+            picturePool = dedupeCollected([...picturePool, ...morePictures]);
+            healthAttempts += 1;
+          }
+          const collected = dedupeCollected([...newsPool, ...picturePool]);
 
 
           // Drop stories already stored on earlier days (same headline or article URL)
@@ -70,16 +109,6 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Temple notices, events and ordinary news publish without an editor.
           // Only sensitive news stays pending in the review desk.
           const { canAutoPublish } = await import("@/lib/auto-publish");
-          const { isStarGallery } = await import("@/lib/cinema-topics");
-          const { galleryImage } = await import("@/lib/story-image");
-          /** Glamourie photo rows always wait for an editor's eye. */
-          const isPicture = (r: Record<string, unknown>) => {
-            const image = (r["payload"] as { image?: string | null } | undefined)?.image ?? null;
-            return (
-              !!galleryImage(image) &&
-              isStarGallery(String(r["title"] ?? ""), String(r["summary"] ?? ""), String(r["source_url"] ?? ""))
-            );
-          };
           const marked = rows.map((r) => ({
             ...r,
             status:
@@ -173,6 +202,30 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { sweepDuplicates } = await import("@/lib/dedupe-sweep.server");
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
+          // Verify the actual approval backlog after ingestion. This is the
+          // authoritative check the desk uses to distinguish a genuinely
+          // empty queue from a temporary read/display failure.
+          const { data: pendingRows, error: pendingError } = await supabaseAdmin
+            .from("digest_queue")
+            .select("title,summary,source_url,payload,kind")
+            .eq("status", "pending")
+            .gte("digest_date", cutoff)
+            .limit(1000);
+          if (pendingError) throw pendingError;
+          const pendingPictures = (pendingRows ?? []).filter((r) =>
+            isPicture(r as unknown as Record<string, unknown>),
+          ).length;
+          const pendingNews = (pendingRows ?? []).filter(
+            (r) => r.kind === "news" && !isPicture(r as unknown as Record<string, unknown>),
+          ).length;
+          const intakeHealth = {
+            attempts: healthAttempts,
+            pool: poolCounts(),
+            pending: { news: pendingNews, pictures: pendingPictures },
+            healthy:
+              poolCounts().news >= minimumNews && poolCounts().pictures >= minimumPictures,
+          };
+
 
           const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
           const finishedAt = new Date().toISOString();
@@ -187,7 +240,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
