@@ -12,7 +12,7 @@ import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
 import { PrimeHero } from "@/components/prime-hero";
-import { isPrimeBannerFresh } from "@/lib/prime-story";
+import { isPrimeBannerFresh, pickPrimeStory } from "@/lib/prime-story";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
@@ -334,7 +334,12 @@ function Home() {
 
   const homepageSeen = new Set<string>();
   const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
-  const lead = local[0] ?? articles[0];
+  // Prime slot leads with the most popular current story (US / big-city news
+  // scores highest) and swaps itself out as soon as a stronger one lands.
+  const lead =
+    pickPrimeStory([...local, ...articles.filter((a) => a.category !== "gallery")]) ??
+    local[0] ??
+    articles[0];
 
   if (!lead) {
     return (

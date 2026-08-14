@@ -287,7 +287,7 @@ export function LiteHeader() {
             href={TT_LINKS.site}
             target="_blank"
             rel="noreferrer"
-            className="hidden rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline-block"
+            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
           >
             TeluguTimes.net
           </a>
