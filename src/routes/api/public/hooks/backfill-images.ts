@@ -6,25 +6,14 @@ import { createFileRoute } from "@tanstack/react-router";
  * og:image and store it (credited to the publisher in the UI).
  *
  *   POST /api/public/hooks/backfill-images
- *   apikey: <publishable key>
+ *   Authorization: Bearer <ingest hook token>
  */
 export const Route = createFileRoute("/api/public/hooks/backfill-images")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key =
-          request.headers.get("apikey") ??
-          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const expected =
-          process.env["SUPABASE_PUBLISHABLE_KEY"] ??
-          process.env["SUPABASE_ANON_KEY"] ??
-          (import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined);
-        if (!key || !expected || key !== expected) {
-          return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
+        const { hookAuthorized, unauthorized } = await import("@/lib/hook-auth.server");
+        if (!(await hookAuthorized(request))) return unauthorized();
 
         const { fetchArticleImage } = await import("@/lib/collect-news.server");
         const { resolveGoogleNewsUrl, isGoogleNewsUrl } = await import(

@@ -9,20 +9,8 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key =
-          request.headers.get("apikey") ??
-          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const expected =
-          process.env["SUPABASE_PUBLISHABLE_KEY"] ??
-          process.env["SUPABASE_ANON_KEY"] ??
-          (import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined);
-
-        if (!key || !expected || key !== expected) {
-          return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
+        const { hookAuthorized, unauthorized } = await import("@/lib/hook-auth.server");
+        if (!(await hookAuthorized(request))) return unauthorized();
 
         const { collectAll, collectGallery, dedupeCollected, urlKey } = await import(
           "@/lib/collect-news.server"
