@@ -149,6 +149,26 @@ function CategoryPage() {
               : "No stories published in this section yet."}
           </p>
 
+        ) : cat.slug === "city-news" ? (
+          // Illustrated local reporting leads the page; text-only stories are
+          // collected underneath as short snippets instead of empty cards.
+          <>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.filter((a) => a.image).map((a) => (
+                <StoryCard key={a.id} article={a} />
+              ))}
+            </div>
+            {articles.some((a) => !a.image) ? (
+              <div className="mt-10">
+                <SectionHeading te="క్లుప్తంగా" en="In brief" />
+                <ul className="grid gap-x-8 sm:grid-cols-2">
+                  {articles.filter((a) => !a.image).map((a) => (
+                    <ListRow key={a.id} article={a} />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
         ) : (
           <div
             className={
@@ -167,6 +187,7 @@ function CategoryPage() {
           </div>
         )}
       </div>
+
       {cat.slug === "gallery" && viewerIndex !== null && (
         <GalleryLightbox
           items={articles}
