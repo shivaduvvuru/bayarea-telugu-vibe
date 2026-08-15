@@ -532,7 +532,7 @@ function Home() {
             <GalleryHero
               items={uniqueGallery}
               onOpen={setViewerIndex}
-              offset={3}
+              offset={1}
               className="my-4"
             />
 
@@ -551,7 +551,7 @@ function Home() {
                       <GalleryHero
                         items={uniqueGallery}
                         onOpen={setViewerIndex}
-                        offset={heroSlot * 7}
+                        offset={heroSlot + 1}
                         className="my-4"
                       />
                     ) : null}
