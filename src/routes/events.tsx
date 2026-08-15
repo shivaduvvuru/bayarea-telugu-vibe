@@ -146,7 +146,7 @@ function EventsPage() {
 
       {liveRows.length > 0 && (
         <section className="mt-8">
-          <SectionHeading te="తాజా ఈవెంట్స్" en="Latest listings" />
+          <SectionHeading te="తాజా ఈవెంట్స్" en="Latest listings XQ7" />
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
             {liveRows.map((r) => (
               <li key={r.key} className="flex items-start gap-3 p-3">
