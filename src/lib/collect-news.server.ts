@@ -1478,7 +1478,7 @@ const GALLERY_FEED_NAMES = [
  * Gallery-only pass: re-reads the star / photo desks with a wider limit so the
  * Cinema Gallery keeps filling up between the full collection runs.
  */
-export async function collectGallery(apiKey: string | undefined): Promise<CollectedItem[]> {
+export async function collectGallery(_apiKey?: string | undefined): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
@@ -1489,10 +1489,15 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
     const batches = await Promise.all(
       feeds.slice(b, b + 6).map(async (feed) => {
         const items = await fetchPublisher(feed);
-        const summaries = await summarize(BAY_AREA, items, apiKey);
-        return items.map((it, i) => {
-          const dedupe = keyFor(BAY_AREA.slug, it.title);
+        // No AI note on the picture path: a photo set needs no editorial
+        // sentence, and the gateway call was collapsing the picture pool.
+        return items.map((it) => {
+          // Pictures key off the article URL, not the headline. Photo desks
+          // reuse the same headline for every new set, so a title key made
+          // each later gallery post look like a duplicate for ever.
+          const dedupe = `gal-${keyFor("gal", urlKey(it.link || it.title))}`;
           const kind = classify(it.title);
+          const summary = `${it.source || feed.name} photo feature.`;
           return {
             dedupe_key: dedupe,
             item_id: dedupe,
@@ -1500,7 +1505,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
             kind,
             city_slug: BAY_AREA.slug,
             title: it.title,
-            summary: summaries[i] ?? "",
+            summary,
             source: it.source || feed.name,
             source_url: it.link,
             published_at: it.published,
@@ -1510,10 +1515,11 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
               kind,
               citySlug: BAY_AREA.slug,
               title: it.title,
-              summary: summaries[i] ?? "",
+              summary,
               source: it.source || feed.name,
               sourceUrl: it.link,
               image: it.image,
+              gallery: true,
               collectedAt: today,
             },
           } satisfies CollectedItem;
@@ -1522,6 +1528,7 @@ export async function collectGallery(apiKey: string | undefined): Promise<Collec
     );
     rows.push(...batches.flat());
   }
+
   // Only picture-led star stories belong in this pass.
   const { isStarGallery } = await import("./cinema-topics");
   const { galleryImage } = await import("./story-image");
