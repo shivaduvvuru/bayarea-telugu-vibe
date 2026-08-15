@@ -1568,7 +1568,10 @@ export function dedupeCollected(
   const seenUrl = new Set(existing?.urls ?? []);
   const unique: CollectedItem[] = [];
   for (const r of rows) {
-    const tk = dedupeKey(r.title);
+    // Picture rows are de-duplicated by article URL only: photo desks recycle
+    // one headline for every new set, so a title match is not a duplicate.
+    const isGallery = !!(r.payload as { gallery?: boolean } | undefined)?.gallery;
+    const tk = isGallery ? "" : dedupeKey(r.title);
     const uk = r.source_url ? urlKey(r.source_url) : "";
     if (seenKey.has(r.dedupe_key) || (tk && seenTitle.has(tk)) || (uk && seenUrl.has(uk))) {
       lastDiag.duplicates += 1;
@@ -1577,6 +1580,7 @@ export function dedupeCollected(
     seenKey.add(r.dedupe_key);
     if (tk) seenTitle.add(tk);
     if (uk) seenUrl.add(uk);
+
     unique.push(r);
   }
   return unique;
