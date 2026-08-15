@@ -131,7 +131,7 @@ function SocialIcons() {
           rel="noreferrer"
           aria-label={label}
           title={label}
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink hover:border-primary hover:text-primary"
+          className="press flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink hover:border-primary hover:text-primary"
         >
           <Icon className="h-4 w-4" aria-hidden />
         </a>
@@ -270,7 +270,7 @@ export function LiteHeader() {
           {signedIn ? (
             <Link
               to="/desk"
-              className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+              className="press flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
             >
               <ClipboardCheck className="h-3.5 w-3.5" />
               Desk
@@ -298,7 +298,7 @@ export function LiteHeader() {
             to="/search"
             search={{ q: "" }}
             aria-label="Search"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink"
+            className="press flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink"
           >
             <Search className="h-4 w-4" />
           </Link>
@@ -306,7 +306,7 @@ export function LiteHeader() {
             <button
               type="button"
               onClick={() => void signOut()}
-              className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
+              className="press flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign out
@@ -314,7 +314,7 @@ export function LiteHeader() {
           ) : (
             <Link
               to="/auth"
-              className="flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+              className="press flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
             >
               <LogIn className="h-3.5 w-3.5" />
               Sign in

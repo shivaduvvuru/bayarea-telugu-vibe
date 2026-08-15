@@ -196,7 +196,7 @@ export const Route = createFileRoute("/")({
 
 function Lead({ a }: { a: Article }) {
   return (
-    <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
+    <Link to="/article/$slug" params={{ slug: a.slug }} className="lift block rounded-md">
       <div className="overflow-hidden rounded-md">
         <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
       </div>
@@ -217,7 +217,7 @@ function Row({ a }: { a: Article }) {
     <Link
       to="/article/$slug"
       params={{ slug: a.slug }}
-      className="block border-b border-border py-3 last:border-0"
+      className="lift block rounded-md border-b border-border px-1 py-3 last:border-0"
     >
       {/* Bigger picture first, then the story text underneath. */}
       <div className="overflow-hidden rounded">
@@ -311,7 +311,7 @@ function LinkRow({
       ) : null}
     </>
   );
-  const cls = "block border-b border-border py-3 last:border-0";
+  const cls = "lift block rounded-md border-b border-border px-1 py-3 last:border-0";
   return internal ? (
     <Link to={href} className={cls}>
       {body}
@@ -327,7 +327,7 @@ function LinkRow({
 /** Picture tile that opens the swipeable home gallery viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
-    <figure className="m-0">
+    <figure className="lift m-0 rounded-md">
       <div className="relative">
         <button type="button" onClick={onOpen} className="block w-full text-left">
           <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
@@ -449,7 +449,7 @@ function Home() {
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-3">
+    <div className="rise mx-auto max-w-6xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
 
       <div className="mx-auto max-w-3xl">
