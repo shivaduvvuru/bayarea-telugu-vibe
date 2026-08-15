@@ -954,46 +954,75 @@ const CITY_GUIDE_FEEDS: { citySlug: string; label: string; urls: string[] }[] = 
     label: "City of San Leandro",
     urls: ["https://www.sanleandro.org/RSSFeed.aspx?ModID=76&CID=All-0"],
   },
+  // Redwood City, Fremont and most Peninsula/South Bay city sites block
+  // datacenter traffic on their CivicPlus RSS endpoints (HTTP 403), so their
+  // local calendar and civic coverage comes through the town news feed instead.
   {
-    citySlug: "fremont",
-    label: "City of Fremont",
-    urls: ["https://www.fremont.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+    citySlug: BAY_AREA.slug,
+    label: "Redwood City",
+    urls: ["https://patch.com/feeds/rss/california/redwoodcity-woodside"],
   },
   {
-    citySlug: "santa-clara",
-    label: "City of Santa Clara",
-    urls: ["https://www.santaclaraca.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+    citySlug: BAY_AREA.slug,
+    label: "San Mateo",
+    urls: ["https://patch.com/feeds/rss/california/sanmateo"],
+  },
+  { citySlug: "fremont", label: "Fremont", urls: ["https://patch.com/feeds/rss/california/fremont"] },
+  {
+    citySlug: "milpitas",
+    label: "Milpitas",
+    urls: ["https://patch.com/feeds/rss/california/milpitas"],
+  },
+  { citySlug: "dublin", label: "Dublin", urls: ["https://patch.com/feeds/rss/california/dublin"] },
+  {
+    citySlug: "pleasanton",
+    label: "Pleasanton",
+    urls: ["https://patch.com/feeds/rss/california/pleasanton"],
   },
   {
-    citySlug: "sunnyvale",
-    label: "City of Sunnyvale",
-    urls: ["https://www.sunnyvale.ca.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+    citySlug: "livermore",
+    label: "Livermore",
+    urls: ["https://patch.com/feeds/rss/california/livermore"],
   },
   {
     citySlug: "cupertino",
-    label: "City of Cupertino",
-    urls: ["https://www.cupertino.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
-  },
-  {
-    citySlug: "palo-alto",
-    label: "City of Palo Alto",
-    urls: ["https://www.cityofpaloalto.org/RSSFeed.aspx?ModID=58&CID=All-0"],
+    label: "Cupertino",
+    urls: ["https://patch.com/feeds/rss/california/cupertino"],
   },
   {
     citySlug: "mountain-view",
-    label: "City of Mountain View",
-    urls: ["https://www.mountainview.gov/RSSFeed.aspx?ModID=58&CID=All-0"],
+    label: "Mountain View",
+    urls: ["https://patch.com/feeds/rss/california/mountainview"],
   },
+  {
+    citySlug: "palo-alto",
+    label: "Palo Alto",
+    urls: ["https://patch.com/feeds/rss/california/paloalto"],
+  },
+  {
+    citySlug: "san-ramon",
+    label: "San Ramon",
+    urls: ["https://patch.com/feeds/rss/california/sanramon"],
+  },
+  {
+    citySlug: "union-city",
+    label: "Union City",
+    urls: ["https://patch.com/feeds/rss/california/unioncity"],
+  },
+  { citySlug: "gilroy", label: "Gilroy", urls: ["https://patch.com/feeds/rss/california/gilroy"] },
 ];
 
 /** Cities whose guides we only reach through a news search. */
 const GUIDE_SEARCH_CITIES = [
   ...CITIES.map((c) => ({ citySlug: c.slug, name: c.en })),
   { citySlug: BAY_AREA.slug, name: "Redwood City" },
+  { citySlug: BAY_AREA.slug, name: "San Mateo" },
+  { citySlug: BAY_AREA.slug, name: "Morgan Hill" },
 ];
 
 const GUIDE_WORDS =
-  /activity guide|recreation|rec guide|parks and rec|class(?:es)?|camp|program|programme|registration|enroll|swim|library|storytime|summer|fall|winter|spring|senior center|community center|workshop|clinic|league/i;
+  /activity guide|recreation|rec guide|parks and rec|class(?:es)?|camp|program|programme|registration|enroll|swim|library|storytime|summer|fall|winter|spring|senior center|community center|workshop|clinic|league|event|festival|fair|farmers market|concert|parade|celebration|movie night|street party|holiday|volunteer|open house|tour|run|walk|market/i;
+
 
 /** Keep items dated inside this month or the following six weeks. */
 /**
