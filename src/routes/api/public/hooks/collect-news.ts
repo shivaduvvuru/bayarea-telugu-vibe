@@ -77,14 +77,43 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
           // Drop stories already stored on earlier days (same headline or article URL),
           // anything already published to the newsroom, and anything an editor rejected.
-          const [{ data: stored }, { data: published }, { data: rejected }] = await Promise.all([
-            supabaseAdmin.from("digest_queue").select("dedupe_key, title, source_url").limit(5000),
-            supabaseAdmin
-              .from("content_items")
-              .select("title, link_url, source_ref, dedupe_key")
-              .limit(5000),
-            supabaseAdmin.from("digest_rejects").select("dedupe_key, item_id, title").limit(5000),
+          // Paged reads: the Data API caps a single select at 1000 rows, so an
+          // unpaged fetch made the duplicate memory partial and inconsistent.
+          const readAll = async <T>(
+            table: "digest_queue" | "content_items" | "digest_rejects",
+            columns: string,
+          ): Promise<T[]> => {
+            const out: T[] = [];
+            for (let page = 0; page < 12; page++) {
+              const from = page * 1000;
+              const { data, error } = await supabaseAdmin
+                .from(table)
+                .select(columns)
+                .range(from, from + 999);
+              if (error) throw error;
+              const chunk = (data ?? []) as unknown as T[];
+              out.push(...chunk);
+              if (chunk.length < 1000) break;
+            }
+            return out;
+          };
+          const [stored, published, rejected] = await Promise.all([
+            readAll<{ dedupe_key: string | null; title: string | null; source_url: string | null }>(
+              "digest_queue",
+              "dedupe_key, title, source_url",
+            ),
+            readAll<{
+              title: string | null;
+              link_url: string | null;
+              source_ref: string | null;
+              dedupe_key: string | null;
+            }>("content_items", "title, link_url, source_ref, dedupe_key"),
+            readAll<{ dedupe_key: string | null; item_id: string | null; title: string | null }>(
+              "digest_rejects",
+              "dedupe_key, item_id, title",
+            ),
           ]);
+
           const storedKeys = new Set([
             ...(stored ?? []).map((r) => r.dedupe_key ?? ""),
             ...(published ?? []).map((r) => r.dedupe_key ?? ""),
