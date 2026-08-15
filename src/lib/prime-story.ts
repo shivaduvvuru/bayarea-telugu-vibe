@@ -95,3 +95,25 @@ export function pickPrimeStory<T extends PrimeCandidate>(
   }
   return best ?? candidates[0];
 }
+
+/** How long one story holds the rotating prime slot. */
+export const PRIME_ROTATE_MS = 15 * 60 * 1000;
+
+/**
+ * Rotating prime slot: ranks candidates by popularity, keeps the strongest few
+ * and hands the slot to the next one every 15 minutes, so the main story
+ * changes on a later visit without waiting for new collection.
+ */
+export function pickRotatingPrime<T extends PrimeCandidate>(
+  candidates: T[],
+  slot: number,
+  now: Date = new Date(),
+  poolSize = 5,
+): T | undefined {
+  const ranked = [...candidates].sort((a, b) => primeScore(b, now) - primeScore(a, now));
+  const pool = ranked.slice(0, Math.max(1, poolSize));
+  if (pool.length === 0) return undefined;
+  const i = ((slot % pool.length) + pool.length) % pool.length;
+  return pool[i];
+}
+
