@@ -492,18 +492,26 @@ function Home() {
           <div className={bannerFresh ? "mt-4" : ""}>
             {localRest
               .filter((a) => a.image)
-              .map((a, i) => (
-                <div key={a.slug}>
-                  <Row a={a} />
-                  {i === 0 || (i + 1) % 4 === 0 ? (
-                    <GalleryHero
-                      items={uniqueGallery}
-                      onOpen={setViewerIndex}
-                      className="my-4"
-                    />
-                  ) : null}
-                </div>
-              ))}
+              .map((a, i) => {
+                const heroHere = i === 0 || (i + 1) % 4 === 0;
+                // Each hero slot is shifted, so a second full-size picture is
+                // never the same photo as the one above it.
+                const heroSlot = i === 0 ? 0 : Math.floor((i + 1) / 4);
+                return (
+                  <div key={a.slug}>
+                    <Row a={a} />
+                    {heroHere ? (
+                      <GalleryHero
+                        items={uniqueGallery}
+                        onOpen={setViewerIndex}
+                        offset={heroSlot * 7}
+                        className="my-4"
+                      />
+                    ) : null}
+                  </div>
+                );
+              })}
+
           </div>
           {localRest.some((a) => !a.image) ? (
             <div className="mt-4 border-t border-border pt-3">
