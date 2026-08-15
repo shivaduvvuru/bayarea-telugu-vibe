@@ -207,8 +207,10 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .limit(300)
       .not("image_url", "is", null)
       .eq("category", "gallery");
-    const pickedRows = ((picked ?? []) as unknown as Row[]).filter(
-      (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
+    // Category=gallery rows are editor-approved picks. Do not run them back
+    // through the automatic intake classifier after approval.
+    const pickedRows = ((picked ?? []) as unknown as Row[]).filter((r) =>
+      galleryImage(r.image_url),
     );
     const auto = rows.filter(
       (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
