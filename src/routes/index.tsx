@@ -135,6 +135,37 @@ const politicsQuery = queryOptions({
 });
 
 
+/**
+ * Shared empty / error surface: always says what happened and offers one
+ * concrete way out instead of a dead end.
+ */
+function EmptyState({ title, note }: { title: string; note?: string }) {
+  return (
+    <div className="rise mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">{title}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {note ?? "Reload the digest, or browse a section from the menu."}
+      </p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="press min-h-11 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
+        >
+          Reload digest
+        </button>
+        <Link
+          to="/category/$category"
+          params={{ category: "city-news" }}
+          className="press inline-flex min-h-11 items-center rounded-full border border-border px-5 text-sm font-semibold text-ink"
+        >
+          Browse city news
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     await Promise.all([
