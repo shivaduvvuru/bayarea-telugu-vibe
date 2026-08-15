@@ -389,6 +389,15 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // Main story slot advances every 15 minutes. Starts at 0 so server and first
+  // client render agree, then picks up the time-based slot after mount.
+  const [primeSlot, setPrimeSlot] = useState(0);
+  useEffect(() => {
+    const current = () => Math.floor(Date.now() / PRIME_ROTATE_MS);
+    setPrimeSlot(current());
+    const id = window.setInterval(() => setPrimeSlot(current()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const { favorites } = useFavoritePhotos();
   const { hidden } = useHiddenPhotos();
 
