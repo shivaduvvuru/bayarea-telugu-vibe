@@ -102,7 +102,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               titles: [
                 ...(stored ?? []).map((r) => dedupeKey(r.title ?? "")),
                 ...(published ?? []).map((r) => dedupeKey(r.title ?? "")),
+                ...(rejected ?? []).map((r) => dedupeKey(r.title ?? "")),
               ],
+
               urls: [
                 ...(stored ?? []).map((r) => (r.source_url ? urlKey(r.source_url) : "")),
                 ...(published ?? []).map((r) => (r.link_url ? urlKey(r.link_url) : "")),
