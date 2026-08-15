@@ -6,12 +6,12 @@ import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
 
-/** A new picture takes the slot every quarter hour. */
-const ROTATE_MS = 15 * 60 * 1000;
+/** A new picture takes the slot every five minutes. */
+const ROTATE_MS = 5 * 60 * 1000;
 
 /**
  * Wide picture break placed inside the city-news column: shows one photo from
- * the cinema gallery and swaps itself for another every 15 minutes, so the page
+ * the cinema gallery and swaps itself for another every 5 minutes, so the page
  * looks different on a later visit without a reload.
  *
  * The first render always uses index 0 (same on server and client, no hydration
@@ -33,7 +33,7 @@ export function GalleryHero({
     if (items.length < 2) return;
     const current = () => Math.floor(Date.now() / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 30_000);
+    const id = window.setInterval(() => setSlot(current()), 15_000);
     return () => window.clearInterval(id);
   }, [items.length]);
 
@@ -60,9 +60,9 @@ export function GalleryHero({
             key={picture}
             src={picture}
             alt={article.title}
-            loading="lazy"
+            loading="eager"
             decoding="async"
-            className="aspect-[16/9] w-full object-cover object-top"
+            className="aspect-[4/5] w-full object-cover object-top sm:aspect-[3/4]"
           />
         </button>
         <PhotoActions article={article} tone="light" className="absolute right-2 top-2" />
@@ -75,7 +75,7 @@ export function GalleryHero({
           <span className="line-clamp-1 text-[13px] font-semibold text-ink">{article.title}</span>
           <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
             <SourceChip article={article} />
-            <span>New picture every 15 min</span>
+            <span>New picture every 5 min</span>
           </span>
         </span>
         <Link
