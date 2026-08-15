@@ -82,9 +82,10 @@ export function isStarGallery(
   // Strictly no men in Glamourie: any male-subject cue disqualifies the post.
   if (MALE_SUBJECT.test(text)) return false;
   // Glamourie is a female-artist picture desk (Tollywood, Mollywood, Kollywood,
-  // Sandalwood, Bollywood, Hollywood). A named heroine / actress / glamour cue
-  // is now required everywhere — trusted photo desks no longer get a pass.
-  if (!FEMALE_SUBJECT.test(text)) return false;
+  // Sandalwood, Bollywood, Hollywood). Either a named heroine or a clear
+  // female-subject cue has to be present.
+  if (!FEMALE_SUBJECT.test(text) && !FEMALE_GENERIC.test(text)) return false;
   return true;
 }
+
 
