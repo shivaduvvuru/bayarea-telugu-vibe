@@ -20,11 +20,17 @@ const ROTATE_MS = 5 * 60 * 1000;
 export function GalleryHero({
   items,
   onOpen,
+  offset = 0,
+  exclude,
   className = "",
 }: {
   items: Article[];
   /** Opens the swipeable viewer at this photo's position in `items`. */
   onOpen?: (index: number) => void;
+  /** Shifts this slot so two heroes on one page never land on the same photo. */
+  offset?: number;
+  /** Photo URLs already used elsewhere on the page. */
+  exclude?: string[];
   className?: string;
 }) {
   const [slot, setSlot] = useState(0);
@@ -37,13 +43,22 @@ export function GalleryHero({
     return () => window.clearInterval(id);
   }, [items.length]);
 
-  const withPictures = items.filter((a) => galleryImage(a.image));
+  const used = new Set(exclude ?? []);
+  const seen = new Set<string>();
+  const withPictures = items.filter((a) => {
+    const picture = galleryImage(a.image);
+    if (!picture || used.has(picture) || seen.has(picture)) return false;
+    seen.add(picture);
+    return true;
+  });
   if (withPictures.length === 0) return null;
 
-  const index = ((slot % withPictures.length) + withPictures.length) % withPictures.length;
+  const raw = slot + offset;
+  const index = ((raw % withPictures.length) + withPictures.length) % withPictures.length;
   const article = withPictures[index]!;
   const picture = galleryImage(article.image)!;
   const position = items.findIndex((a) => a.slug === article.slug);
+
 
   return (
     <figure
