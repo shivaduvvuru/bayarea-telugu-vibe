@@ -66,7 +66,7 @@ export function useReviewQueue(itemIds: string[], version: string, deskToken: st
   }, [load]);
 
   const setStatus = useCallback(
-    async (ids: string[], status: ItemStatus) => {
+    async (ids: string[], status: ItemStatus, reason?: "duplicate") => {
       if (!ids.length) return;
       setRows((prev) => {
         const next = { ...prev };
@@ -79,7 +79,7 @@ export function useReviewQueue(itemIds: string[], version: string, deskToken: st
         return next;
       });
       try {
-        await saveStatus({ data: { itemIds: ids, status, deskToken } });
+        await saveStatus({ data: { itemIds: ids, status, reason, deskToken } });
       } catch (e) {
         console.error(e);
         await load();
@@ -99,6 +99,7 @@ export function useReviewQueue(itemIds: string[], version: string, deskToken: st
     },
     [deskToken, load, publishApproved, saveStatus],
   );
+
 
   /** Safety net: push every approved-but-unpublished item into the newsroom. */
   const processQueue = useCallback(async () => {
