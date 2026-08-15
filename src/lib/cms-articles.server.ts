@@ -177,12 +177,14 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .in("category", ["cinema", "news"]);
 
   } else if (category === "micro-drama") {
-    // Micro-drama is a young desk: pull a wide pool of film/OTT rows and let the
-    // format classifier pick the vertical short-drama coverage out of it.
+    // Micro-drama is a young desk. Rows already filed to it are read in a
+    // dedicated pass below; here we only widen the pool so film/OTT rows that
+    // were filed generically can still be classified into the format.
     q = base()
       .order("published_at", { ascending: false })
       .limit(Math.max(limit * 20, 600))
       .in("category", [MICRO_DRAMA_SLUG, "cinema", "news"]);
+
   } else if (category === "india-news") {
     // Explicit India sections plus anything the classifier recognises as
     // India coverage that was filed under a generic bucket.
@@ -230,15 +232,19 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     ).slice(0, limit);
   }
   if (category === "micro-drama") {
-    return dedupeArticles(
-      rows
-        .filter(
-          (r) =>
-            r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
-        )
-        .map(toArticle),
-    ).slice(0, limit);
+    // Rows filed to the micro-drama desk are read on their own so a busy news
+    // day can never crowd them out of the shared pool.
+    const { data: filed } = await base()
+      .order("published_at", { ascending: false })
+      .limit(200)
+      .eq("category", MICRO_DRAMA_SLUG);
+    const filedRows = (filed ?? []) as unknown as Row[];
+    const auto = rows.filter(
+      (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
+    );
+    return dedupeArticles([...filedRows, ...auto].map(toArticle)).slice(0, limit);
   }
+
   if (category === "city-news") {
     // Local Bay Area reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
