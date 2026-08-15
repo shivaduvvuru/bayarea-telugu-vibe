@@ -18,7 +18,7 @@ import {
   pickRotatingPrime,
   PRIME_ROTATE_MS,
 } from "@/lib/prime-story";
-import { isBayArea } from "@/lib/bay-area";
+import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
@@ -414,7 +414,7 @@ function Home() {
   // Prime slot leads with a Bay Area story: the strongest few local stories are
   // ranked by popularity and the slot rotates through them every 15 minutes.
   const primePool = [...local, ...articles.filter((a) => a.category !== "gallery")].filter(
-    (a) => isBayArea(a.title, a.excerpt) && a.category !== "gallery",
+    (a) => (isBayArea(a.title) || isBayAreaSource(a.sourceUrl)) && a.category !== "gallery",
   );
   const lead =
     pickRotatingPrime(primePool, primeSlot) ??
