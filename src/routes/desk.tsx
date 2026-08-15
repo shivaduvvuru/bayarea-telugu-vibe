@@ -629,6 +629,17 @@ function DeskWorkspace({
                           <X /> Reject
                         </Button>
                       )}
+                      {item.status !== "rejected" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => markDuplicate(item.id)}
+                          title="Same story already on the site — remove and never re-collect"
+                        >
+                          <CopyX /> Duplicate
+                        </Button>
+                      )}
+
                       {item.status !== "pending" && (
                         <Button
                           size="sm"
