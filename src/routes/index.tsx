@@ -42,9 +42,12 @@ function contentKeys(item: {
   const image = usableImage(item.image ?? item.image_url);
   return [
     title ? `t:${title}` : "",
+    // Near-duplicate headlines (same story, re-worded tail) collapse too.
+    title.length > 28 ? `p:${title.slice(0, 28)}` : "",
     url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
     image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
   ].filter(Boolean);
+
 }
 
 /** Reserves every headline, source URL and image once across the whole homepage. */
@@ -492,18 +495,26 @@ function Home() {
           <div className={bannerFresh ? "mt-4" : ""}>
             {localRest
               .filter((a) => a.image)
-              .map((a, i) => (
-                <div key={a.slug}>
-                  <Row a={a} />
-                  {i === 0 || (i + 1) % 4 === 0 ? (
-                    <GalleryHero
-                      items={uniqueGallery}
-                      onOpen={setViewerIndex}
-                      className="my-4"
-                    />
-                  ) : null}
-                </div>
-              ))}
+              .map((a, i) => {
+                const heroHere = i === 0 || (i + 1) % 4 === 0;
+                // Each hero slot is shifted, so a second full-size picture is
+                // never the same photo as the one above it.
+                const heroSlot = i === 0 ? 0 : Math.floor((i + 1) / 4);
+                return (
+                  <div key={a.slug}>
+                    <Row a={a} />
+                    {heroHere ? (
+                      <GalleryHero
+                        items={uniqueGallery}
+                        onOpen={setViewerIndex}
+                        offset={heroSlot * 7}
+                        className="my-4"
+                      />
+                    ) : null}
+                  </div>
+                );
+              })}
+
           </div>
           {localRest.some((a) => !a.image) ? (
             <div className="mt-4 border-t border-border pt-3">
