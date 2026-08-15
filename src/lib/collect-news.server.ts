@@ -1477,13 +1477,26 @@ const GALLERY_FEED_NAMES = [
 /**
  * Gallery-only pass: re-reads the star / photo desks with a wider limit so the
  * Cinema Gallery keeps filling up between the full collection runs.
+ *
+ * `slice` reads only part of the desk list. Reading all ~40 photo desks in one
+ * request means hundreds of article-page reads for artwork, which the serverless
+ * runtime cuts short — the pass then returned a fraction of what the feeds hold.
+ * Each scheduled run now takes the next slice, so every desk is still read
+ * within the hour and every run finishes inside its budget.
  */
-export async function collectGallery(_apiKey?: string | undefined): Promise<CollectedItem[]> {
+export async function collectGallery(
+  _apiKey?: string | undefined,
+  opts?: { slice?: number; sliceSize?: number },
+): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
-  const feeds = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
+  const all = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
     limit: Math.max(f.limit ?? 6, 60),
   }));
+  const size = Math.max(1, opts?.sliceSize ?? all.length);
+  const slices = Math.max(1, Math.ceil(all.length / size));
+  const start = ((opts?.slice ?? 0) % slices) * size;
+  const feeds = size >= all.length ? all : all.slice(start, start + size);
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
     const batches = await Promise.all(
