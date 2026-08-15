@@ -728,6 +728,46 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 10,
   },
+  // Chinese, Korean and Indian short-vertical coverage, read through both
+  // Google News and Bing News so a single provider outage cannot starve the
+  // desk. Windows are wide (30d) because trade coverage is low-volume.
+  {
+    name: "China duanju trade",
+    url: "https://news.google.com/rss/search?q=(duanju+OR+%22micro+drama%22+OR+%22mini+drama%22)+(China+OR+Chinese+OR+Kuaishou+OR+Tencent+OR+iQiyi+OR+Douyin+OR+Mango+OR+%22Red+Note%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Korea short drama",
+    url: "https://news.google.com/rss/search?q=(Korea+OR+Korean+OR+K-drama+OR+Vigloo+OR+TopReels+OR+Spoon+OR+Naver+OR+Kakao)+(%22short+drama%22+OR+%22micro+drama%22+OR+%22vertical+drama%22+OR+%22shortform+drama%22+OR+%22short-form+drama%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "India vertical drama trade",
+    url: "https://news.google.com/rss/search?q=(India+OR+Indian+OR+Telugu+OR+Hindi+OR+Tamil)+(%22vertical+video+series%22+OR+%22microdrama%22+OR+%22micro-drama%22+OR+%22Fatafat%22+OR+%22Flick+TV%22+OR+%22Bullet%22+OR+ShareChat+OR+%22Amazon+MX+Player%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Micro-drama wire (Bing)",
+    url: "https://www.bing.com/news/search?q=%22micro+drama%22+OR+%22microdrama%22+OR+duanju+OR+%22vertical+drama%22&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Short drama apps (Bing)",
+    url: "https://www.bing.com/news/search?q=ReelShort+OR+DramaBox+OR+GoodShort+OR+ShortMax+OR+%22Flick+TV%22+OR+Vigloo&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Asia short drama (Bing)",
+    url: "https://www.bing.com/news/search?q=(China+OR+Korea+OR+India)+%22short+drama%22+series+app&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+
   // Social-media picture desks: Instagram / X posts that publishers write up,
   // plus photo-story sections. These keep Glamourie topped up between runs.
   {
