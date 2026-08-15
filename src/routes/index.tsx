@@ -411,9 +411,13 @@ function Home() {
 
   const homepageSeen = new Set<string>();
   const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
-  // Prime slot leads with the most popular current story (US / big-city news
-  // scores highest) and swaps itself out as soon as a stronger one lands.
+  // Prime slot leads with a Bay Area story: the strongest few local stories are
+  // ranked by popularity and the slot rotates through them every 15 minutes.
+  const primePool = [...local, ...articles.filter((a) => a.category !== "gallery")].filter(
+    (a) => isBayArea(a.title, a.excerpt) && a.category !== "gallery",
+  );
   const lead =
+    pickRotatingPrime(primePool, primeSlot) ??
     pickPrimeStory([...local, ...articles.filter((a) => a.category !== "gallery")]) ??
     local[0] ??
     articles[0];
