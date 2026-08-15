@@ -1124,14 +1124,22 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
 
   try {
     const gateway = createLovableAiGatewayProvider(apiKey);
-    const { text } = await generateText({
-      model: gateway("google/gemini-3.1-flash-lite"),
-      prompt:
-        `You write short editorial notes for a Telugu-American community news desk in ${city.en}, California.\n` +
-        `For each numbered headline below, write ONE neutral sentence (max 28 words) explaining what it means for local residents. Do not invent facts beyond the headline.\n` +
-        `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
-        items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
-    });
+    // Hard ceiling: a slow gateway must never shrink or stall the collected
+    // pool. If the note is late we ship the fallback line instead.
+    const { text } = await Promise.race([
+      generateText({
+        model: gateway("google/gemini-3.1-flash-lite"),
+        prompt:
+          `You write short editorial notes for a Telugu-American community news desk in ${city.en}, California.\n` +
+          `For each numbered headline below, write ONE neutral sentence (max 28 words) explaining what it means for local residents. Do not invent facts beyond the headline.\n` +
+          `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
+          items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
+      }),
+      new Promise<{ text: string }>((resolve) =>
+        setTimeout(() => resolve({ text: "" }), 9000),
+      ),
+    ]);
+
     const map = new Map<number, string>();
     for (const line of text.split("\n")) {
       const m = line.match(/^\s*(\d+)[.)]\s*(.+)$/);
