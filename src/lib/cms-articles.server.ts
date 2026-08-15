@@ -206,7 +206,7 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .order("published_at", { ascending: false })
       .limit(300)
       .not("image_url", "is", null)
-      .like("source", "editorial-desk%");
+      .eq("category", "gallery");
     const pickedRows = ((picked ?? []) as unknown as Row[]).filter(
       (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
     );
