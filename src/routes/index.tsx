@@ -42,9 +42,12 @@ function contentKeys(item: {
   const image = usableImage(item.image ?? item.image_url);
   return [
     title ? `t:${title}` : "",
+    // Near-duplicate headlines (same story, re-worded tail) collapse too.
+    title.length > 28 ? `p:${title.slice(0, 28)}` : "",
     url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
     image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
   ].filter(Boolean);
+
 }
 
 /** Reserves every headline, source URL and image once across the whole homepage. */
