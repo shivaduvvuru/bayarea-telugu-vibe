@@ -512,6 +512,11 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
+            {/* Guarantees the rotating full-size picture appears even when no
+                local story carries artwork. */}
+            {localRest.every((a) => !a.image) ? (
+              <GalleryHero items={uniqueGallery} onOpen={setViewerIndex} className="my-4" />
+            ) : null}
             {localRest
               .filter((a) => a.image)
               .map((a, i) => {
