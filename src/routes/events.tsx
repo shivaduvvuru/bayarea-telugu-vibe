@@ -8,6 +8,7 @@ import { useQuery, queryOptions } from "@tanstack/react-query";
 import { listCommunityItems } from "@/lib/cms.functions";
 import { listPosts } from "@/lib/content.functions";
 import { formatDate } from "@/lib/content";
+import { classifyIndia } from "@/lib/india-topics";
 
 /** Events published by the newsroom desk (collected city guides + submissions). */
 const liveEventsQuery = queryOptions({
@@ -96,6 +97,8 @@ function EventsPage() {
       title: e.title,
       href: e.link_url && !e.link_url.startsWith("/") ? e.link_url : null,
       image: e.image_url ?? null,
+      summary: e.summary ?? null,
+      source: e.link_url ?? null,
       meta: [e.city, e.event_start ? formatDate(e.event_start) : e.venue].filter(Boolean).join(" · "),
     })),
     ...eventPosts.map((a) => ({
@@ -103,14 +106,20 @@ function EventsPage() {
       title: a.title,
       href: a.sourceUrl ?? null,
       image: a.image ?? null,
+      summary: a.excerpt ?? null,
+      source: a.sourceUrl ?? null,
       meta: [a.categoryName, formatDate(a.date)].filter(Boolean).join(" · "),
     })),
-  ].filter((r) => {
-    const k = r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 40);
-    if (!k || seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
+  ]
+    // Bay Area calendar only — drop India/immigration/NRI coverage.
+    .filter((r) => !classifyIndia(r.title, r.summary, r.source))
+    .filter((r) => {
+      const k = r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 40);
+      if (!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
   const { filter, setFilter, filtered } = useEventFilter(upcomingEvents());
   const weekend = weekendEvents().filter((w) => filtered.some((f) => f.id === w.id));
   const upcoming = filtered.filter((e) => !weekend.some((w) => w.id === e.id));
