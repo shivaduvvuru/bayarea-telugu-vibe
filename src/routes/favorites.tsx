@@ -42,7 +42,7 @@ function FavoritesPage() {
     author: "",
     image: p.image,
     category: "gallery",
-    categoryName: "Glamourie",
+    categoryName: "Glamour",
     sourceName: p.sourceName ?? null,
     sourceUrl: p.sourceUrl ?? null,
   }));
@@ -64,7 +64,7 @@ function FavoritesPage() {
             params={{ category: "gallery" }}
             className="font-semibold underline"
           >
-            Glamourie
+            Glamour
           </Link>
           .
         </p>

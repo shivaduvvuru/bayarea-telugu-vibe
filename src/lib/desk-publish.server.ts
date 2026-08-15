@@ -29,10 +29,13 @@ export function deskRowToIngest(row: Row): IngestRow {
   const source = `${str(row["source"]) ?? str(payload["source"]) ?? ""}`.toLowerCase();
   const firstParty = source.includes("wordpress") || source.includes("telugu times");
   const image = str(payload["image"]) ?? str(payload["image_url"]);
-  // Approved picture sets are filed to the Glamourie desk so the grid shows the
-  // editor's picks rather than leaving them in the generic cinema feed.
+  // Rows collected for the picture desk have a gal-* ID. Approval is the final
+  // editorial quality decision, so keep those picks in Glamour even when a
+  // generic headline does not satisfy the automatic classifier.
+  const pictureDesk = itemId.startsWith("gal-");
   const gallery =
-    kind === "news" && !firstParty && !!image && isStarGallery(title, summary, linkUrl);
+    kind === "news" && !firstParty && !!image &&
+    (pictureDesk || isStarGallery(title, summary, linkUrl));
   const micro = !gallery && kind === "news" && !firstParty && isMicroDrama(title, summary, linkUrl);
   const cinema = !gallery && !micro && kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
   const indiaSlug =

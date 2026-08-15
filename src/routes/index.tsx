@@ -515,7 +515,7 @@ function Home() {
         </section>
 
         <section>
-          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Glamourie</Head>
+          <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Glamour</Head>
           <div className="mb-3">
             <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
           </div>

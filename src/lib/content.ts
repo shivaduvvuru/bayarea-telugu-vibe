@@ -100,7 +100,7 @@ export const CATEGORIES: Category[] = [
 
   { slug: "temples", te: "దేవాలయాలు", en: "Temples" },
   { slug: "restaurants", te: "రెస్టారెంట్లు", en: "Restaurants" },
-  { slug: "gallery", te: "గ్లామూరీ", en: "Glamourie" },
+  { slug: "gallery", te: "గ్లామర్", en: "Glamour" },
   { slug: "fun-zone", te: "ఫన్ జోన్", en: "Fun Zone" },
   { slug: "readers-column", te: "పాఠకుల కాలమ్", en: "Readers Column" },
   { slug: "classifieds", te: "క్లాసిఫైడ్స్", en: "Classifieds" },
