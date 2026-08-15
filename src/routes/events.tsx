@@ -4,6 +4,23 @@ import { EventCard } from "@/components/events";
 import { SectionHeading } from "@/components/news";
 import { useLang } from "@/lib/language";
 import { EventFilterBar, useEventFilter } from "@/components/event-filters";
+import { useQuery, queryOptions } from "@tanstack/react-query";
+import { listCommunityItems } from "@/lib/cms.functions";
+import { listPosts } from "@/lib/content.functions";
+import { formatDate } from "@/lib/content";
+
+/** Events published by the newsroom desk (collected city guides + submissions). */
+const liveEventsQuery = queryOptions({
+  queryKey: ["cms", "events", "page"],
+  queryFn: () => listCommunityItems({ data: { kind: "event", limit: 40 } }),
+  staleTime: 5 * 60 * 1000,
+});
+
+const eventPostsQuery = queryOptions({
+  queryKey: ["wp", "posts", "events-community"],
+  queryFn: () => listPosts({ data: { category: "events-community", perPage: 24, compact: true } }),
+  staleTime: 5 * 60 * 1000,
+});
 
 const TITLE = "Bay Area Telugu Events Calendar — festivals, meetups & temple programs";
 const DESC =
@@ -70,6 +87,30 @@ export const Route = createFileRoute("/events")({
 
 function EventsPage() {
   const { t } = useLang();
+  const { data: live = [] } = useQuery(liveEventsQuery);
+  const { data: eventPosts = [] } = useQuery(eventPostsQuery);
+  const seen = new Set<string>();
+  const liveRows = [
+    ...live.map((e) => ({
+      key: `c-${e.id}`,
+      title: e.title,
+      href: e.link_url && !e.link_url.startsWith("/") ? e.link_url : null,
+      image: e.image_url ?? null,
+      meta: [e.city, e.event_start ? formatDate(e.event_start) : e.venue].filter(Boolean).join(" · "),
+    })),
+    ...eventPosts.map((a) => ({
+      key: `p-${a.id}`,
+      title: a.title,
+      href: a.sourceUrl ?? null,
+      image: a.image ?? null,
+      meta: [a.categoryName, formatDate(a.date)].filter(Boolean).join(" · "),
+    })),
+  ].filter((r) => {
+    const k = r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 40);
+    if (!k || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
   const { filter, setFilter, filtered } = useEventFilter(upcomingEvents());
   const weekend = weekendEvents().filter((w) => filtered.some((f) => f.id === w.id));
   const upcoming = filtered.filter((e) => !weekend.some((w) => w.id === e.id));
@@ -89,6 +130,41 @@ function EventsPage() {
       <div className="mt-6">
         <EventFilterBar filter={filter} onChange={setFilter} />
       </div>
+
+      {liveRows.length > 0 && (
+        <section className="mt-8">
+          <SectionHeading te="తాజా ఈవెంట్స్" en="Latest listings" />
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+            {liveRows.map((r) => (
+              <li key={r.key} className="flex items-start gap-3 p-3">
+                {r.image && (
+                  <img
+                    src={r.image}
+                    alt={r.title}
+                    loading="lazy"
+                    className="h-16 w-16 flex-none rounded-md object-cover"
+                  />
+                )}
+                <div className="min-w-0">
+                  {r.href ? (
+                    <a
+                      href={r.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-base font-semibold text-ink"
+                    >
+                      {r.title}
+                    </a>
+                  ) : (
+                    <span className="text-base font-semibold text-ink">{r.title}</span>
+                  )}
+                  {r.meta && <p className="mt-1 text-sm text-muted-foreground">{r.meta}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {weekend.length > 0 && (
         <section className="mt-8">
