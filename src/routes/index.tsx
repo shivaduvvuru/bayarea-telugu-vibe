@@ -19,6 +19,7 @@ import {
   PRIME_ROTATE_MS,
 } from "@/lib/prime-story";
 import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
+import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
