@@ -319,6 +319,15 @@ function DeskWorkspace({
     void queue.setStatus([id], status).catch(() => toast.error("Could not save decision"));
   };
 
+  /** Marks an item as a duplicate: it leaves the desk and never comes back. */
+  const markDuplicate = (id: string) => {
+    void queue
+      .setStatus([id], "rejected", "duplicate")
+      .then(() => toast.success("Marked duplicate and removed"))
+      .catch(() => toast.error("Could not mark duplicate"));
+  };
+
+
   const bulk = (status: ItemStatus) => {
     void queue
       .setStatus(
