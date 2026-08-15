@@ -178,18 +178,12 @@ export const Route = createFileRoute("/")({
       </div>
     </div>
   ),
-  errorComponent: () => (
-    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-      <h1 className="text-xl font-bold text-ink">Today's edition didn't load</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Please refresh, or browse sections from the menu below.
-      </p>
-    </div>
-  ),
+  errorComponent: () => <EmptyState title="Today's edition didn't load" />,
   notFoundComponent: () => (
-    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-      <h1 className="text-xl font-bold text-ink">No stories yet</h1>
-    </div>
+    <EmptyState
+      title="No stories yet"
+      note="The digest refills as soon as the next collection run finishes."
+    />
   ),
 });
 
