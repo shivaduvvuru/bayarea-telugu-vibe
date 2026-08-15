@@ -539,10 +539,11 @@ function Home() {
             {localRest
               .filter((a) => a.image)
               .map((a, i) => {
-                const heroHere = i === 0 || (i + 1) % 4 === 0;
-                // Each hero slot is shifted, so a second full-size picture is
-                // never the same photo as the one above it.
-                const heroSlot = i === 0 ? 0 : Math.floor((i + 1) / 4);
+                const heroHere = (i + 1) % 4 === 0;
+                // Each hero slot is shifted, so a later full-size picture is
+                // never the same photo as the ones above it.
+                const heroSlot = Math.floor((i + 1) / 4) + 1;
+
                 return (
                   <div key={a.slug}>
                     <Row a={a} />
