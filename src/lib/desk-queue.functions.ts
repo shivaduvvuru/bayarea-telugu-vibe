@@ -47,6 +47,25 @@ export const setQueueStatus = createServerFn({ method: "POST" })
     if (!data.itemIds.length) return { updated: 0 };
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
+    // Rejected stories leave the desk for good: remember their keys so the
+    // collector never re-offers them, then delete the rows.
+    if (data.status === "rejected") {
+      const { data: rows } = await db
+        .from("digest_queue")
+        .select("item_id,dedupe_key,title")
+        .in("item_id", data.itemIds);
+      const keys = (rows ?? []).map((r) => ({
+        dedupe_key: String((r as { dedupe_key?: string; item_id?: string }).dedupe_key ?? (r as { item_id?: string }).item_id ?? ""),
+        item_id: String((r as { item_id?: string }).item_id ?? ""),
+        title: (r as { title?: string }).title ?? null,
+      })).filter((r) => r.dedupe_key);
+      if (keys.length) {
+        await db.from("digest_rejects").upsert(keys as never, { onConflict: "dedupe_key", ignoreDuplicates: true });
+      }
+      const { error: delError } = await db.from("digest_queue").delete().in("item_id", data.itemIds);
+      if (delError) throw new Error(delError.message);
+      return { updated: data.itemIds.length };
+    }
     const { error } = await db
       .from("digest_queue")
       .update({ status: data.status } as never)
@@ -54,6 +73,7 @@ export const setQueueStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { updated: data.itemIds.length };
   });
+
 
 type DeskQueueRow = {
   item_id: string;

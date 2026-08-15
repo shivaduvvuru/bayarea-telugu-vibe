@@ -234,6 +234,27 @@ export type Database = {
         }
         Relationships: []
       }
+      digest_rejects: {
+        Row: {
+          created_at: string
+          dedupe_key: string
+          item_id: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key: string
+          item_id?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string
+          item_id?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       digest_subscribers: {
         Row: {
           city: string
