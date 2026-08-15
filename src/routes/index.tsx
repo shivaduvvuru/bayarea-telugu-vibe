@@ -135,6 +135,37 @@ const politicsQuery = queryOptions({
 });
 
 
+/**
+ * Shared empty / error surface: always says what happened and offers one
+ * concrete way out instead of a dead end.
+ */
+function EmptyState({ title, note }: { title: string; note?: string }) {
+  return (
+    <div className="rise mx-auto max-w-3xl px-4 py-16 text-center">
+      <h1 className="text-xl font-bold text-ink">{title}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {note ?? "Reload the digest, or browse a section from the menu."}
+      </p>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="press min-h-11 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
+        >
+          Reload digest
+        </button>
+        <Link
+          to="/category/$category"
+          params={{ category: "city-news" }}
+          className="press inline-flex min-h-11 items-center rounded-full border border-border px-5 text-sm font-semibold text-ink"
+        >
+          Browse city news
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     await Promise.all([
@@ -178,25 +209,19 @@ export const Route = createFileRoute("/")({
       </div>
     </div>
   ),
-  errorComponent: () => (
-    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-      <h1 className="text-xl font-bold text-ink">Today's edition didn't load</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Please refresh, or browse sections from the menu below.
-      </p>
-    </div>
-  ),
+  errorComponent: () => <EmptyState title="Today's edition didn't load" />,
   notFoundComponent: () => (
-    <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-      <h1 className="text-xl font-bold text-ink">No stories yet</h1>
-    </div>
+    <EmptyState
+      title="No stories yet"
+      note="The digest refills as soon as the next collection run finishes."
+    />
   ),
 });
 
 
 function Lead({ a }: { a: Article }) {
   return (
-    <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
+    <Link to="/article/$slug" params={{ slug: a.slug }} className="lift block rounded-md">
       <div className="overflow-hidden rounded-md">
         <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
       </div>
@@ -217,7 +242,7 @@ function Row({ a }: { a: Article }) {
     <Link
       to="/article/$slug"
       params={{ slug: a.slug }}
-      className="block border-b border-border py-3 last:border-0"
+      className="lift block rounded-md border-b border-border px-1 py-3 last:border-0"
     >
       {/* Bigger picture first, then the story text underneath. */}
       <div className="overflow-hidden rounded">
@@ -311,7 +336,7 @@ function LinkRow({
       ) : null}
     </>
   );
-  const cls = "block border-b border-border py-3 last:border-0";
+  const cls = "lift block rounded-md border-b border-border px-1 py-3 last:border-0";
   return internal ? (
     <Link to={href} className={cls}>
       {body}
@@ -327,7 +352,7 @@ function LinkRow({
 /** Picture tile that opens the swipeable home gallery viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
   return (
-    <figure className="m-0">
+    <figure className="lift m-0 rounded-md">
       <div className="relative">
         <button type="button" onClick={onOpen} className="block w-full text-left">
           <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
@@ -376,11 +401,7 @@ function Home() {
     articles[0];
 
   if (!lead) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-ink">No stories yet</h1>
-      </div>
-    );
+    return <EmptyState title="No stories yet" />;
   }
 
   // The lead has already been reserved by the local pass. Every later section
@@ -449,7 +470,7 @@ function Home() {
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-3">
+    <div className="rise mx-auto max-w-6xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
 
       <div className="mx-auto max-w-3xl">
