@@ -45,8 +45,16 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Intake health gate: do not send a starved pull to the approval
           // stage. Retry only the deficient source pool, with short backoff,
           // and merge all attempts before the normal duplicate checks.
+          // Photo desks are read in rotating slices: one request cannot read all
+          // ~40 desks plus their artwork inside the serverless time budget, and
+          // an interrupted pass was why only a handful of pictures ever landed.
+          const sliceSize = 10;
+          const baseSlice = Math.floor(Date.now() / (30 * 60 * 1000));
           let newsPool = galleryOnly ? [] : await collectAll(process.env["LOVABLE_API_KEY"]);
-          let picturePool = await collectGallery(process.env["LOVABLE_API_KEY"]);
+          let picturePool = await collectGallery(process.env["LOVABLE_API_KEY"], {
+            slice: baseSlice,
+            sliceSize,
+          });
           const minimumNews = galleryOnly ? 0 : 12;
           const minimumPictures = 8;
           let healthAttempts = 1;
@@ -55,18 +63,21 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             pictures: picturePool.filter((r) => isPicture(r as unknown as Record<string, unknown>)).length,
           });
           while (
-            healthAttempts < 3 &&
+            healthAttempts < 4 &&
             (poolCounts().news < minimumNews || poolCounts().pictures < minimumPictures)
           ) {
-            await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** (healthAttempts - 1)));
+            await new Promise((resolve) => setTimeout(resolve, 300 * healthAttempts));
             const before = poolCounts();
             const [moreNews, morePictures] = await Promise.all([
               before.news < minimumNews
                 ? collectAll(process.env["LOVABLE_API_KEY"])
                 : Promise.resolve([]),
-              before.pictures < minimumPictures
-                ? collectGallery(process.env["LOVABLE_API_KEY"])
-                : Promise.resolve([]),
+              // Retries advance to the next desk slice instead of re-reading the
+              // same one, so a thin slice cannot starve the picture pool.
+              collectGallery(process.env["LOVABLE_API_KEY"], {
+                slice: baseSlice + healthAttempts,
+                sliceSize,
+              }),
             ]);
             newsPool = dedupeCollected([...newsPool, ...moreNews]);
             picturePool = dedupeCollected([...picturePool, ...morePictures]);
