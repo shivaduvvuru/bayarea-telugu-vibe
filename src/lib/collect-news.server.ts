@@ -1091,13 +1091,15 @@ async function fetchCityGuide(entry: {
 }
 
 async function fetchGuideSearch(city: { citySlug: string; name: string }): Promise<RawItem[]> {
-  const q = `"${city.name}" California ("activity guide" OR "parks and recreation" OR "community center") classes OR camps OR events OR registration`;
+  const q = `"${city.name}" California (events OR festival OR "farmers market" OR "activity guide" OR "parks and recreation" OR "community center" OR concert OR parade OR camps OR classes)`;
+  // Google News carries these municipal round-ups reliably; Bing frequently
+  // answers with an empty channel, so it is only the fallback now.
   let parsed = await fetchFeed(
-    `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:21d&hl=en-US&gl=US&ceid=US:en`,
   );
   if (!parsed?.length) {
     parsed = await fetchFeed(
-      `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:14d&hl=en-US&gl=US&ceid=US:en`,
+      `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
     );
   }
   if (!parsed?.length) return [];
@@ -1107,19 +1109,23 @@ async function fetchGuideSearch(city: { citySlug: string; name: string }): Promi
   const seen = new Set<string>();
   const merged: RawItem[] = [];
   for (const item of parsed) {
-    const hay = normalize(`${item.title} ${item.source}`);
+    // The city name often sits in the outlet name or the blurb rather than the
+    // headline, so match across everything we have before dropping an item.
+    const hay = normalize(`${item.title} ${item.source} ${item.detail ?? ""}`);
     const k = normalize(item.title);
     if (!k || seen.has(k)) continue;
     if (!hay.includes(cityWords) || !GUIDE_WORDS.test(hay)) continue;
+    if (GUIDE_JUNK.test(item.title)) continue;
     if (!inGuideWindow(item.published)) continue;
     seen.add(k);
     merged.push(item);
-    if (merged.length >= 4) break;
+    if (merged.length >= 6) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
   return merged;
 }
+
 
 /** Programme-style listings belong in Events; announcements read as news. */
 function guideKind(item: RawItem): CollectedItem["kind"] {
