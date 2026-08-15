@@ -420,9 +420,14 @@ function Home() {
   const bayPool = leadCandidates.filter(
     (a) => isBayArea(a.title) || isBayAreaSource(a.sourceUrl),
   );
+  const looseBayPool = leadCandidates.filter(
+    (a) => isBayArea(a.title, a.excerpt) && !classifyIndia(a.title, a.excerpt, a.sourceUrl),
+  );
   const primePool = bayPool.length
     ? bayPool
-    : leadCandidates.filter((a) => !classifyIndia(a.title, a.excerpt, a.sourceUrl));
+    : looseBayPool.length
+      ? looseBayPool
+      : leadCandidates.filter((a) => !classifyIndia(a.title, a.excerpt, a.sourceUrl));
   const lead =
     pickRotatingPrime(primePool, primeSlot) ??
     pickPrimeStory(primePool) ??
