@@ -942,14 +942,7 @@ const CITY_GUIDE_FEEDS: { citySlug: string; label: string; urls: string[] }[] = 
     ],
   },
   {
-    citySlug: BAY_AREA.slug,
-    label: "City of Redwood City",
-    urls: [
-      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=76&CID=All-0",
-      "https://www.redwoodcity.org/RSSFeed.aspx?ModID=58&CID=All-0",
-    ],
-  },
-  {
+
     citySlug: BAY_AREA.slug,
     label: "City of San Leandro",
     urls: ["https://www.sanleandro.org/RSSFeed.aspx?ModID=76&CID=All-0"],
