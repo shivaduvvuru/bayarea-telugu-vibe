@@ -12,7 +12,13 @@ import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
 import { PrimeHero } from "@/components/prime-hero";
-import { isPrimeBannerFresh, pickPrimeStory } from "@/lib/prime-story";
+import {
+  isPrimeBannerFresh,
+  pickPrimeStory,
+  pickRotatingPrime,
+  PRIME_ROTATE_MS,
+} from "@/lib/prime-story";
+import { isBayArea } from "@/lib/bay-area";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
