@@ -9,6 +9,7 @@ import { listCommunityItems } from "@/lib/cms.functions";
 import { listPosts } from "@/lib/content.functions";
 import { formatDate } from "@/lib/content";
 import { classifyIndia } from "@/lib/india-topics";
+import { isBayArea } from "@/lib/bay-area";
 
 /** Events published by the newsroom desk (collected city guides + submissions). */
 const liveEventsQuery = queryOptions({
