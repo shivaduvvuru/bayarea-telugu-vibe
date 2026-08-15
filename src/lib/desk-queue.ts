@@ -79,7 +79,7 @@ export function useReviewQueue(itemIds: string[], version: string, deskToken: st
         return next;
       });
       try {
-        await saveStatus({ data: { itemIds: ids, status, reason, deskToken } });
+        await saveStatus({ data: { itemIds: ids, status, deskToken, ...(reason ? { reason } : {}) } });
       } catch (e) {
         console.error(e);
         await load();
