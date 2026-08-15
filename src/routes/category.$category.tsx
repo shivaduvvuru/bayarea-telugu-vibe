@@ -108,7 +108,7 @@ function CategoryPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-3xl font-bold text-ink">
-        {cat.slug === "gallery" ? {cat.en} : cat.en}
+        {cat.en}
       </h1>
       <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
       <DigestNote className="mt-2 max-w-2xl" />
