@@ -27,7 +27,7 @@ const RULES: { slug: IndiaSlug; match: RegExp }[] = [
   {
     slug: "india-telangana",
     match:
-      /telangana|hyderabad|secunderabad|cyberabad|hitec city|gachibowli|warangal|karimnagar|nizamabad|khammam|hydraa|brs\b|kcr\b|revanth/i,
+      /telangana|hyderabad|secunderabad|cyberabad|hitec city|gachibowli|warangal|karimnagar|nizamabad|khammam|hydraa|brs\b|kcr\b|\bktr\b|revanth|harish rao|kavitha|bhatti vikramarka/i,
   },
   {
     slug: "india-andhra",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/content.functions";
@@ -12,7 +12,14 @@ import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
 import { PrimeHero } from "@/components/prime-hero";
-import { isPrimeBannerFresh, pickPrimeStory } from "@/lib/prime-story";
+import {
+  isPrimeBannerFresh,
+  pickPrimeStory,
+  pickRotatingPrime,
+  PRIME_ROTATE_MS,
+} from "@/lib/prime-story";
+import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
+import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
@@ -383,6 +390,15 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // Main story slot advances every 15 minutes. Starts at 0 so server and first
+  // client render agree, then picks up the time-based slot after mount.
+  const [primeSlot, setPrimeSlot] = useState(0);
+  useEffect(() => {
+    const current = () => Math.floor(Date.now() / PRIME_ROTATE_MS);
+    setPrimeSlot(current());
+    const id = window.setInterval(() => setPrimeSlot(current()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const { favorites } = useFavoritePhotos();
   const { hidden } = useHiddenPhotos();
 
@@ -396,10 +412,25 @@ function Home() {
 
   const homepageSeen = new Set<string>();
   const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
-  // Prime slot leads with the most popular current story (US / big-city news
-  // scores highest) and swaps itself out as soon as a stronger one lands.
+  // Prime slot leads with a Bay Area story: the strongest local stories are
+  // ranked by popularity and the slot rotates through them every 15 minutes.
+  // Relevance is judged on the headline and publisher only — collected rows
+  // carry a blanket "Bay Area" city stamp and AI summaries echo it.
+  const leadCandidates = [...local, ...articles].filter((a) => a.category !== "gallery");
+  const bayPool = leadCandidates.filter(
+    (a) => isBayArea(a.title) || isBayAreaSource(a.sourceUrl),
+  );
+  const looseBayPool = leadCandidates.filter(
+    (a) => isBayArea(a.title, a.excerpt) && !classifyIndia(a.title, a.excerpt, a.sourceUrl),
+  );
+  const primePool = bayPool.length
+    ? bayPool
+    : looseBayPool.length
+      ? looseBayPool
+      : leadCandidates.filter((a) => !classifyIndia(a.title, a.excerpt, a.sourceUrl));
   const lead =
-    pickPrimeStory([...local, ...articles.filter((a) => a.category !== "gallery")]) ??
+    pickRotatingPrime(primePool, primeSlot) ??
+    pickPrimeStory(primePool) ??
     local[0] ??
     articles[0];
 
@@ -493,6 +524,11 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
+            {/* Guarantees the rotating full-size picture appears even when no
+                local story carries artwork. */}
+            {localRest.every((a) => !a.image) ? (
+              <GalleryHero items={uniqueGallery} onOpen={setViewerIndex} className="my-4" />
+            ) : null}
             {localRest
               .filter((a) => a.image)
               .map((a, i) => {

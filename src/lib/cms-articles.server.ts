@@ -5,6 +5,7 @@
  */
 import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
+import { isBayArea, isBayAreaSource } from "./bay-area";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { galleryImage, sourceLabel, usableImage } from "./story-image";
@@ -257,10 +258,12 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
           // it was filed under (a Punjab story collected by the temple pass is
           // still India news).
           if (classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
-          return (
-            !isCinema(r.title, r.summary, r.link_url) &&
-            !isStarGallery(r.title, r.summary, r.link_url)
-          );
+          if (isCinema(r.title, r.summary, r.link_url)) return false;
+          if (isStarGallery(r.title, r.summary, r.link_url)) return false;
+          // Positive local signal required. Collected rows carry a blanket
+          // "Bay Area" city stamp and their AI summaries often name the region,
+          // so relevance is judged on the headline and the publisher only.
+          return isBayArea(r.title) || isBayAreaSource(r.link_url);
         })
         .map(toArticle),
     )

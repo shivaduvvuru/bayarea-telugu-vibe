@@ -9,6 +9,7 @@ import { listCommunityItems } from "@/lib/cms.functions";
 import { listPosts } from "@/lib/content.functions";
 import { formatDate } from "@/lib/content";
 import { classifyIndia } from "@/lib/india-topics";
+import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
 
 /** Events published by the newsroom desk (collected city guides + submissions). */
 const liveEventsQuery = queryOptions({
@@ -111,8 +112,11 @@ function EventsPage() {
       meta: [a.categoryName, formatDate(a.date)].filter(Boolean).join(" · "),
     })),
   ]
-    // Bay Area calendar only — drop India/immigration/NRI coverage.
+    // Bay Area calendar only. The collector stamps every row's city as "Bay
+    // Area" and AI summaries sometimes name it too, so relevance is judged on
+    // the headline and the publisher instead of those fields.
     .filter((r) => !classifyIndia(r.title, r.summary, r.source))
+    .filter((r) => isBayArea(r.title) || isBayAreaSource(r.source))
     .filter((r) => {
       const k = r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 40);
       if (!k || seen.has(k)) return false;
