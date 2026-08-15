@@ -177,12 +177,14 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
       .in("category", ["cinema", "news"]);
 
   } else if (category === "micro-drama") {
-    // Micro-drama is a young desk: pull a wide pool of film/OTT rows and let the
-    // format classifier pick the vertical short-drama coverage out of it.
+    // Micro-drama is a young desk. Rows already filed to it are read in a
+    // dedicated pass below; here we only widen the pool so film/OTT rows that
+    // were filed generically can still be classified into the format.
     q = base()
       .order("published_at", { ascending: false })
       .limit(Math.max(limit * 20, 600))
       .in("category", [MICRO_DRAMA_SLUG, "cinema", "news"]);
+
   } else if (category === "india-news") {
     // Explicit India sections plus anything the classifier recognises as
     // India coverage that was filed under a generic bucket.
