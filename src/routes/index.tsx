@@ -517,6 +517,10 @@ function Home() {
         </div>
 
         {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
+
+        {/* Baseline: the full-size glamour picture always sits at the top of the
+            homepage and swaps itself every 5 minutes. Never remove this. */}
+        <GalleryHero items={uniqueGallery} onOpen={setViewerIndex} className="mt-4" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
@@ -524,11 +528,14 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
-            {/* Guarantees the rotating full-size picture appears even when no
-                local story carries artwork. */}
-            {localRest.every((a) => !a.image) ? (
-              <GalleryHero items={uniqueGallery} onOpen={setViewerIndex} className="my-4" />
-            ) : null}
+            {/* Second full-size picture, offset so it is a different photo. */}
+            <GalleryHero
+              items={uniqueGallery}
+              onOpen={setViewerIndex}
+              offset={3}
+              className="my-4"
+            />
+
             {localRest
               .filter((a) => a.image)
               .map((a, i) => {
