@@ -401,11 +401,7 @@ function Home() {
     articles[0];
 
   if (!lead) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-ink">No stories yet</h1>
-      </div>
-    );
+    return <EmptyState title="No stories yet" />;
   }
 
   // The lead has already been reserved by the local pass. Every later section
