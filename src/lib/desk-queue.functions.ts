@@ -29,15 +29,18 @@ export const listQueueRows = createServerFn({ method: "POST" })
     return { rows: (rows ?? []) as unknown as QueueRow[] };
   });
 
-/** Records an editor decision on queue rows. Editorial desk only. */
+/** Records an editor decision on queue rows. Editorial desk only.
+ * `reason: "duplicate"` behaves like a rejection (row leaves the desk and its
+ * key is remembered) but is labelled so the audit list shows why it went. */
 export const setQueueStatus = createServerFn({ method: "POST" })
-  .validator((data: { itemIds: string[]; status: string; deskToken?: string }) => {
+  .validator((data: { itemIds: string[]; status: string; reason?: string; deskToken?: string }) => {
     if (!["pending", "approved", "rejected"].includes(String(data?.status))) {
       throw new Error("Invalid status");
     }
     return {
       itemIds: (Array.isArray(data?.itemIds) ? data.itemIds : []).slice(0, 1000).map(String),
       status: String(data.status),
+      reason: data?.reason === "duplicate" ? "duplicate" : undefined,
       deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
     };
   })
@@ -57,7 +60,9 @@ export const setQueueStatus = createServerFn({ method: "POST" })
       const keys = (rows ?? []).map((r) => ({
         dedupe_key: String((r as { dedupe_key?: string; item_id?: string }).dedupe_key ?? (r as { item_id?: string }).item_id ?? ""),
         item_id: String((r as { item_id?: string }).item_id ?? ""),
-        title: (r as { title?: string }).title ?? null,
+        title: data.reason === "duplicate"
+          ? `[duplicate] ${(r as { title?: string }).title ?? ""}`.trim()
+          : ((r as { title?: string }).title ?? null),
       })).filter((r) => r.dedupe_key);
       if (keys.length) {
         await db.from("digest_rejects").upsert(keys as never, { onConflict: "dedupe_key", ignoreDuplicates: true });
@@ -73,6 +78,7 @@ export const setQueueStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { updated: data.itemIds.length };
   });
+
 
 
 type DeskQueueRow = {

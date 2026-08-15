@@ -13,6 +13,8 @@ import {
   MapPin,
   Lock,
   Images,
+  CopyX,
+
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
@@ -317,6 +319,15 @@ function DeskWorkspace({
     void queue.setStatus([id], status).catch(() => toast.error("Could not save decision"));
   };
 
+  /** Marks an item as a duplicate: it leaves the desk and never comes back. */
+  const markDuplicate = (id: string) => {
+    void queue
+      .setStatus([id], "rejected", "duplicate")
+      .then(() => toast.success("Marked duplicate and removed"))
+      .catch(() => toast.error("Could not mark duplicate"));
+  };
+
+
   const bulk = (status: ItemStatus) => {
     void queue
       .setStatus(
@@ -618,6 +629,17 @@ function DeskWorkspace({
                           <X /> Reject
                         </Button>
                       )}
+                      {item.status !== "rejected" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => markDuplicate(item.id)}
+                          title="Same story already on the site — remove and never re-collect"
+                        >
+                          <CopyX /> Duplicate
+                        </Button>
+                      )}
+
                       {item.status !== "pending" && (
                         <Button
                           size="sm"
