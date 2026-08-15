@@ -58,10 +58,11 @@ type Row = {
   category: string | null;
   published_at: string | null;
   created_at: string;
+  source?: string | null;
 };
 
 const COLUMNS =
-  "id, title, summary, body, image_url, link_url, city, category, published_at, created_at";
+  "id, title, summary, body, image_url, link_url, city, category, published_at, created_at, source";
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
 function citySlugOf(city: string | null): string | undefined {
@@ -198,11 +199,21 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   if (error) throw error;
   const rows = (data ?? []) as unknown as Row[];
   if (category === "gallery") {
-    return dedupeArticles(
-      rows
-        .filter((r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url))
-        .map(toArticle),
-    ).slice(0, limit);
+    // Editor-approved picture sets are the point of the desk: read them in their
+    // own pass (so a busy news day can never push them out of the shared pool)
+    // and show them ahead of the automatically collected photos.
+    const { data: picked } = await base()
+      .order("published_at", { ascending: false })
+      .limit(300)
+      .not("image_url", "is", null)
+      .eq("category", "gallery");
+    const pickedRows = ((picked ?? []) as unknown as Row[]).filter(
+      (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
+    );
+    const auto = rows.filter(
+      (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
+    );
+    return dedupeArticles([...pickedRows, ...auto].map(toArticle)).slice(0, limit);
   }
   if (category === "india-news") {
     return dedupeArticles(

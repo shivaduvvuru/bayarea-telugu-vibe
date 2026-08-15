@@ -1,7 +1,7 @@
 import type { IngestRow } from "@/lib/cms.server";
 import { CITIES, cityBySlug } from "@/lib/desk-cities";
 import { classifyIndia } from "@/lib/india-topics";
-import { isCinema, CINEMA_SLUG } from "@/lib/cinema-topics";
+import { isCinema, isStarGallery, CINEMA_SLUG } from "@/lib/cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "@/lib/microdrama-topics";
 
 
@@ -28,10 +28,15 @@ export function deskRowToIngest(row: Row): IngestRow {
   // the aggregated digest and must never be reclassified into an India section.
   const source = `${str(row["source"]) ?? str(payload["source"]) ?? ""}`.toLowerCase();
   const firstParty = source.includes("wordpress") || source.includes("telugu times");
-  const micro = kind === "news" && !firstParty && isMicroDrama(title, summary, linkUrl);
-  const cinema = !micro && kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
+  const image = str(payload["image"]) ?? str(payload["image_url"]);
+  // Approved picture sets are filed to the Glamourie desk so the grid shows the
+  // editor's picks rather than leaving them in the generic cinema feed.
+  const gallery =
+    kind === "news" && !firstParty && !!image && isStarGallery(title, summary, linkUrl);
+  const micro = !gallery && kind === "news" && !firstParty && isMicroDrama(title, summary, linkUrl);
+  const cinema = !gallery && !micro && kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
   const indiaSlug =
-    !cinema && !micro && !firstParty && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
+    !gallery && !cinema && !micro && !firstParty && kind === "news" && !CITIES.some((c) => c.slug === citySlug)
       ? classifyIndia(title, summary, linkUrl)
       : null;
 
@@ -43,7 +48,7 @@ export function deskRowToIngest(row: Row): IngestRow {
     title,
     summary,
     link_url: linkUrl,
-    image_url: str(payload["image"]) ?? str(payload["image_url"]),
+    image_url: image,
     city,
     region: citySlug ? (cityBySlug(citySlug)?.region ?? null) : null,
     category:
@@ -51,7 +56,9 @@ export function deskRowToIngest(row: Row): IngestRow {
         ? "temples"
         : kind === "event"
           ? "events"
-          : micro
+          : gallery
+            ? "gallery"
+            : micro
             ? MICRO_DRAMA_SLUG
             : cinema
             ? CINEMA_SLUG
