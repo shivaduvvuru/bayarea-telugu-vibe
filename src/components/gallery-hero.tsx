@@ -56,6 +56,7 @@ export function GalleryHero({
   className?: string;
 }) {
   const [slot, setSlot] = useState(0);
+  const [failedPictures, setFailedPictures] = useState<string[]>([]);
 
   useEffect(() => {
     if (items.length < 2) return;
@@ -69,7 +70,9 @@ export function GalleryHero({
   const seen = new Set<string>();
   const withPictures = items.filter((a) => {
     const picture = galleryImage(a.image);
-    if (!picture || used.has(picture) || seen.has(picture)) return false;
+    if (!picture || failedPictures.includes(picture) || used.has(picture) || seen.has(picture)) {
+      return false;
+    }
     seen.add(picture);
     return true;
   });
@@ -104,6 +107,11 @@ export function GalleryHero({
             alt={article.title}
             loading="eager"
             decoding="async"
+            onError={() =>
+              setFailedPictures((current) =>
+                current.includes(picture) ? current : [...current, picture],
+              )
+            }
             className="aspect-[4/5] w-full object-cover object-top sm:aspect-[3/4]"
           />
         </button>
