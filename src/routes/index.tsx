@@ -445,6 +445,7 @@ function Home() {
   // threshold the newest local story is promoted instead.
   const bannerFresh = isPrimeBannerFresh();
   const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+  const localPictureStories = localRest.filter((a) => a.image);
   takeUnique([lead, ...localRest], homepageSeen);
   // Newest photos always hold the top slots, and any picture you've liked stays
   // pinned so a refresh never rotates it away. The remaining tiles cycle through
@@ -528,9 +529,7 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
-            {localRest
-              .filter((a) => a.image)
-              .map((a, i) => {
+            {localPictureStories.map((a, i) => {
                 // Baseline: full-size glamour pictures are never adjacent —
                 // at least three news items sit between them.
                 const heroHere = (i + 1) % 4 === 0;
@@ -552,6 +551,19 @@ function Home() {
                   </div>
                 );
               })}
+
+            {/* Keep the frozen second full-size slot visible even when today's
+                city feed has fewer than four image-bearing stories. It follows
+                every available picture story, so it is never adjacent to the
+                first hero merely because collection volume is low. */}
+            {localPictureStories.length < 4 ? (
+              <GalleryHero
+                items={uniqueGallery}
+                onOpen={setViewerIndex}
+                offset={1}
+                className="my-4"
+              />
+            ) : null}
 
 
           </div>
