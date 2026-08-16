@@ -528,21 +528,15 @@ function Home() {
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
-            {/* Second full-size picture, offset so it is a different photo. */}
-            <GalleryHero
-              items={uniqueGallery}
-              onOpen={setViewerIndex}
-              offset={1}
-              className="my-4"
-            />
-
             {localRest
               .filter((a) => a.image)
               .map((a, i) => {
+                // Baseline: full-size glamour pictures are never adjacent —
+                // at least three news items sit between them.
                 const heroHere = (i + 1) % 4 === 0;
                 // Each hero slot is shifted, so a later full-size picture is
                 // never the same photo as the ones above it.
-                const heroSlot = Math.floor((i + 1) / 4) + 1;
+                const heroSlot = Math.floor((i + 1) / 4);
 
                 return (
                   <div key={a.slug}>
@@ -551,13 +545,14 @@ function Home() {
                       <GalleryHero
                         items={uniqueGallery}
                         onOpen={setViewerIndex}
-                        offset={heroSlot + 1}
+                        offset={heroSlot}
                         className="my-4"
                       />
                     ) : null}
                   </div>
                 );
               })}
+
 
           </div>
           {localRest.some((a) => !a.image) ? (
