@@ -14,9 +14,13 @@ export const HERO_STAGGER_MS = ROTATE_MS / 2;
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
   const order = Array.from({ length }, (_, i) => i);
-  let state = (seed * 2654435761) % 4294967296 || 1;
+  // `offset` makes the second hero's initial server-render seed negative.
+  // Normalize to an unsigned integer; JavaScript's `%` preserves a negative
+  // sign and previously produced a negative shuffle index and an empty slot.
+  let state = Math.imul(seed | 0, -1640531527) >>> 0;
+  if (state === 0) state = 1;
   const next = () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     return state / 4294967296;
   };
   for (let i = length - 1; i > 0; i--) {
@@ -75,8 +79,10 @@ export function GalleryHero({
   // cycle so two heroes on screen never land on the same photo.
   const order = seededOrder(withPictures.length, slot - offset);
   const index = order[((offset % withPictures.length) + withPictures.length) % withPictures.length]!;
-  const article = withPictures[index]!;
-  const picture = galleryImage(article.image)!;
+  const article = withPictures[index] ?? withPictures[0];
+  if (!article) return null;
+  const picture = galleryImage(article.image);
+  if (!picture) return null;
   const position = items.findIndex((a) => a.slug === article.slug);
 
 
