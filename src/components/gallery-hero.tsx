@@ -8,14 +8,32 @@ import { galleryImage } from "@/lib/story-image";
 
 /** A new picture takes the slot every five minutes. */
 const ROTATE_MS = 5 * 60 * 1000;
+/** Later slots change 2.5 minutes after the one above them. */
+export const HERO_STAGGER_MS = ROTATE_MS / 2;
+
+/** Deterministic 32-bit hash so server and client agree on the shuffle. */
+function seededOrder(length: number, seed: number) {
+  const order = Array.from({ length }, (_, i) => i);
+  let state = (seed * 2654435761) % 4294967296 || 1;
+  const next = () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+  for (let i = length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  return order;
+}
 
 /**
  * Wide picture break placed inside the city-news column: shows one photo from
  * the cinema gallery and swaps itself for another every 5 minutes, so the page
  * looks different on a later visit without a reload.
  *
- * The first render always uses index 0 (same on server and client, no hydration
- * mismatch); the time-based slot is applied right after mount.
+ * Baseline (8-15-2026): every full-size slot rotates on a 5 minute cycle, the
+ * picture is drawn at random (not the next one in the list), and consecutive
+ * slots are staggered 2.5 minutes apart.
  */
 export function GalleryHero({
   items,
@@ -27,7 +45,7 @@ export function GalleryHero({
   items: Article[];
   /** Opens the swipeable viewer at this photo's position in `items`. */
   onOpen?: (index: number) => void;
-  /** Shifts this slot so two heroes on one page never land on the same photo. */
+  /** Slot number: shifts both the picture picked and its 2.5 min stagger. */
   offset?: number;
   /** Photo URLs already used elsewhere on the page. */
   exclude?: string[];
@@ -37,11 +55,11 @@ export function GalleryHero({
 
   useEffect(() => {
     if (items.length < 2) return;
-    const current = () => Math.floor(Date.now() / ROTATE_MS);
+    const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
     const id = window.setInterval(() => setSlot(current()), 15_000);
     return () => window.clearInterval(id);
-  }, [items.length]);
+  }, [items.length, offset]);
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
@@ -53,11 +71,14 @@ export function GalleryHero({
   });
   if (withPictures.length === 0) return null;
 
-  const raw = slot + offset;
-  const index = ((raw % withPictures.length) + withPictures.length) % withPictures.length;
+  // Random pick per cycle; the shuffle is shared across slots of the same
+  // cycle so two heroes on screen never land on the same photo.
+  const order = seededOrder(withPictures.length, slot - offset);
+  const index = order[((offset % withPictures.length) + withPictures.length) % withPictures.length]!;
   const article = withPictures[index]!;
   const picture = galleryImage(article.image)!;
   const position = items.findIndex((a) => a.slug === article.slug);
+
 
 
   return (
