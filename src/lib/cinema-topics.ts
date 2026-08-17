@@ -42,7 +42,8 @@ const PHOTO_DESK_URL =
 
 /** The photo section has to sit on an entertainment desk, not city/politics. */
 const ENTERTAINMENT_URL =
-  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|fashion|lifestyle|beauty/i;
+  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|television|web-?series|ott|streaming|netflix|prime-?video|hotstar|reelshort|dramabox|micro-?drama|short-?drama|fashion|lifestyle|beauty|style|glamour|photos?-?of-?the-?day|instagram|social|influencer|model/i;
+
 
 /** Hard news cues — never a glamour picture post, whatever the URL says. */
 const NEWSY =
