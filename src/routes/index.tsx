@@ -400,16 +400,16 @@ function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
-  // Same picture desk used in /category/gallery.
-  // Non-blocking: pictures stream in after the headlines are on screen.
-  // The pocket of 48 pictures is replaced three times a day (every 8 hours),
-  // which lets archived photos rotate back in without extra reads.
-  const [pocket, setPocket] = useState(() => currentPocket());
+  const { pocket: loaderPocket } = Route.useLoaderData();
+  // Same picture desk used in /category/gallery. The pocket of 48 pictures is
+  // replaced three times a day (every 8 hours), which lets archived photos
+  // rotate back in without extra reads.
+  const [pocket, setPocket] = useState(loaderPocket);
   useEffect(() => {
     const id = window.setInterval(() => setPocket(currentPocket()), 5 * 60_000);
     return () => window.clearInterval(id);
   }, []);
-  const { data: galleryItems = [] } = useQuery(galleryQueryFor(pocket));
+  const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
@@ -417,6 +417,7 @@ function Home() {
   // whole digest every few seconds.
   useEffect(() => {
     const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
+
     return () => window.clearInterval(id);
   }, []);
 
