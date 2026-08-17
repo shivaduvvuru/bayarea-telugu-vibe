@@ -26,7 +26,7 @@ export function isBayArea(...parts: (string | null | undefined)[]): boolean {
 }
 
 /** Local newsrooms and municipal sites whose output is Bay Area by definition. */
-const BAY_HOSTS = [
+export const BAY_HOSTS = [
   "mercurynews.com", "eastbaytimes.com", "sfgate.com", "sfchronicle.com",
   "sfstandard.com", "sfexaminer.com", "paloaltoonline.com", "mv-voice.com",
   "almanacnews.com", "padailypost.com", "kron4.com", "ktvu.com",

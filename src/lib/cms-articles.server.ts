@@ -5,7 +5,7 @@
  */
 import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
-import { isBayArea, isBayAreaSource } from "./bay-area";
+import { isBayArea, isBayAreaSource, BAY_HOSTS } from "./bay-area";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { galleryImage, sourceLabel, usableImage } from "./story-image";
@@ -246,13 +246,28 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
   }
 
   if (category === "city-news") {
-    // Local Bay Area reporting only: no India coverage and no film/gallery
+    // The newest 400 city-filed rows are dominated by India/cinema syndication,
+    // which used to push every local report (our own newsroom, Patch, Bay Area
+    // dailies, city halls) out of the window and left the page empty. Read the
+    // local publishers in their own pass so they can never be crowded out.
+    const localPatterns = [
+      "bayarea.telugutimes.net",
+      "patch.com/california",
+      ...BAY_HOSTS,
+    ].map((h) => `link_url.ilike.%${h}%`);
+    const { data: localData } = await base()
+      .or(localPatterns.join(","))
+      .order("published_at", { ascending: false })
+      .limit(400);
+    const localRows = (localData ?? []) as unknown as Row[];
+    // Local reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
     // Rows already filed to an India section are excluded by their stored
     // category; generic rows are classified from their text. First-party
     // newsroom posts (our own WordPress site) are always local.
     return dedupeArticles(
-      rows
+      [...localRows, ...rows]
+
         .filter((r) => {
           if (r.category === CINEMA_SLUG || r.category === MICRO_DRAMA_SLUG) return false;
           if (isMicroDrama(r.title, r.summary, r.link_url)) return false;
