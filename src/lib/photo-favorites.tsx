@@ -126,12 +126,11 @@ function writeHidden(list: string[]) {
 
 function subscribeHidden(fn: () => void) {
   window.addEventListener(HIDDEN_EVENT, fn);
-  window.addEventListener("storage", fn);
   return () => {
     window.removeEventListener(HIDDEN_EVENT, fn);
-    window.removeEventListener("storage", fn);
   };
 }
+
 
 /** Slugs the reader disliked — dropped from grids on the next refresh. */
 export function useHiddenPhotos() {
