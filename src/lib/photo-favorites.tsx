@@ -46,12 +46,11 @@ function toSnapshot(a: Article | FavoritePhoto): FavoritePhoto {
 
 function subscribe(fn: () => void) {
   window.addEventListener(EVENT, fn);
-  window.addEventListener("storage", fn);
   return () => {
     window.removeEventListener(EVENT, fn);
-    window.removeEventListener("storage", fn);
   };
 }
+
 
 /** Whole favorites list, kept in sync across components and tabs. */
 export function useFavoritePhotos() {
