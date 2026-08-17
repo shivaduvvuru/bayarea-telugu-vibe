@@ -58,7 +58,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             slice: baseSlice,
             sliceSize,
           });
-          const minimumNews = galleryOnly ? 0 : 12;
+          // News publishes automatically, so a thin news pull is never retried
+          // or reported as unhealthy — only the picture desk is gated.
+          const minimumNews = 0;
           const minimumPictures = 12;
 
           let healthAttempts = 1;

@@ -292,6 +292,12 @@ export function ListRow({ article }: { article: Article }) {
       <p className="mt-1 text-xs text-muted-foreground">
         <RelativeDate iso={article.date} />
       </p>
+      <StoryActions
+        id={article.slug}
+        title={article.title}
+        url={`/article/${article.slug}`}
+        context="list"
+      />
     </li>
   );
 }

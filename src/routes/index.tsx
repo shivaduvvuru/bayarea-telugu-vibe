@@ -22,6 +22,7 @@ import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
 import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
+import { StoryActions } from "@/components/story-actions";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
@@ -271,45 +272,47 @@ export const Route = createFileRoute("/")({
 
 function Lead({ a }: { a: Article }) {
   return (
-    <Link to="/article/$slug" params={{ slug: a.slug }} className="lift block rounded-md">
-      <div className="overflow-hidden rounded-md">
-        <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
-      </div>
-      <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
-      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
-      <p className="mt-1.5 flex flex-wrap items-center gap-2">
-        <SourceChip article={a} />
-        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          {a.categoryName} · {formatDate(a.date)}
-        </span>
-      </p>
-    </Link>
-  );
-}
-
-function Row({ a }: { a: Article }) {
-  return (
-    <Link
-      to="/article/$slug"
-      params={{ slug: a.slug }}
-      className="lift block rounded-md border-b border-border px-1 py-3 last:border-0"
-    >
-      {/* Bigger picture first, then the story text underneath. */}
-      <div className="overflow-hidden rounded">
-        <Thumb article={a} sizes="(max-width: 768px) 100vw, 720px" />
-      </div>
-      <div className="mt-2">
-        <h3 className="line-clamp-3 text-[16px] font-semibold leading-snug text-ink">
-          {a.title}
-        </h3>
-        <p className="mt-1 flex flex-wrap items-center gap-2">
+    <article>
+      <Link to="/article/$slug" params={{ slug: a.slug }} className="lift block rounded-md">
+        <div className="overflow-hidden rounded-md">
+          <Thumb article={a} priority sizes="(max-width: 768px) 100vw, 720px" />
+        </div>
+        <h2 className="mt-2 text-[22px] font-bold leading-snug text-ink">{a.title}</h2>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{a.excerpt}</p>
+        <p className="mt-1.5 flex flex-wrap items-center gap-2">
           <SourceChip article={a} />
           <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
             {a.categoryName} · {formatDate(a.date)}
           </span>
         </p>
-      </div>
-    </Link>
+      </Link>
+      <StoryActions id={a.slug} title={a.title} url={`/article/${a.slug}`} context="lead" />
+    </article>
+  );
+}
+
+function Row({ a }: { a: Article }) {
+  return (
+    <article className="border-b border-border px-1 py-3 last:border-0">
+      <Link to="/article/$slug" params={{ slug: a.slug }} className="lift block rounded-md">
+        {/* Bigger picture first, then the story text underneath. */}
+        <div className="overflow-hidden rounded">
+          <Thumb article={a} sizes="(max-width: 768px) 100vw, 720px" />
+        </div>
+        <div className="mt-2">
+          <h3 className="line-clamp-3 text-[16px] font-semibold leading-snug text-ink">
+            {a.title}
+          </h3>
+          <p className="mt-1 flex flex-wrap items-center gap-2">
+            <SourceChip article={a} />
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {a.categoryName} · {formatDate(a.date)}
+            </span>
+          </p>
+        </div>
+      </Link>
+      <StoryActions id={a.slug} title={a.title} url={`/article/${a.slug}`} context="card" />
+    </article>
   );
 }
 
@@ -329,6 +332,7 @@ function Snippet({ a }: { a: Article }) {
           </span>
         </p>
       </Link>
+      <StoryActions id={a.slug} title={a.title} url={`/article/${a.slug}`} context="snippet" />
     </li>
   );
 }
