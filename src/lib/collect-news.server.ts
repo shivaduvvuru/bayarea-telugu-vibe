@@ -1564,6 +1564,13 @@ const GALLERY_FEED_NAMES = [
   "Mollywood heroines",
   "Sandalwood heroines",
   "South stars glamour",
+  "Tollywood heroine names",
+  "Kollywood heroine names",
+  "Mollywood heroine names",
+  "Sandalwood heroine names",
+  "South glamour girls search",
+  "South heroine photoshoot search",
+
   "Instagram photo dumps",
   "Social media buzz",
   "Star photo stories",
