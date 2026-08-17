@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Bookmark, BookmarkCheck, Share2, Check } from "lucide-react";
+import { Bookmark, BookmarkCheck, Share2, Check, Heart, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 import { useSaved, shareLink } from "@/lib/saved";
+import { useFavoritePhoto, useHiddenPhoto } from "@/lib/photo-favorites";
+import { removeDislikedPhoto } from "@/lib/photo-moderation.functions";
 import { useLang } from "@/lib/language";
 import { WhatsAppShare } from "@/components/whatsapp-share";
 
@@ -21,10 +24,55 @@ export function StoryActions({
 }) {
   const { t } = useLang();
   const { saved, toggle } = useSaved(id);
+  const snapshot = { id: 0, slug: id, title, image: null, date: "" };
+  const { favorite, toggle: toggleFavorite } = useFavoritePhoto(snapshot);
+  const { hidden, toggle: toggleHidden } = useHiddenPhoto(snapshot);
   const [copied, setCopied] = useState(false);
+
+  const stop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <div className="-ml-2.5 flex items-center gap-1">
+      <button
+        type="button"
+        className={btn}
+        aria-pressed={favorite}
+        aria-label={favorite ? t("Unlike story", "అన్‌లైక్") : t("Like story", "లైక్")}
+        title={favorite ? t("Unlike story", "అన్‌లైక్") : t("Like story", "లైక్")}
+        onClick={(e) => {
+          stop(e);
+          toggleFavorite();
+        }}
+      >
+        <Heart className={favorite ? "h-[18px] w-[18px] fill-current text-rose-500" : "h-[18px] w-[18px]"} />
+      </button>
+      <button
+        type="button"
+        className={btn}
+        aria-pressed={hidden}
+        aria-label={hidden ? t("Undo dislike", "అన్‌డూ") : t("Dislike story", "డిస్‌లైక్")}
+        title={hidden ? t("Undo dislike", "అన్‌డూ") : t("Dislike — story is deleted", "డిస్‌లైక్ — తొలగించబడుతుంది")}
+        onClick={(e) => {
+          stop(e);
+          const wasHidden = hidden;
+          toggleHidden();
+          if (wasHidden) return;
+          // Editors (desk unlocked) delete the story site-wide; readers just
+          // hide it on their own device.
+          void removeDislikedPhoto({ data: { slug: id } })
+            .then((res) => {
+              if (res?.removed) toast.success(t("Story deleted", "కథనం తొలగించబడింది"));
+            })
+            .catch(() => {
+              /* reader without desk access: local hide is enough */
+            });
+        }}
+      >
+        <ThumbsDown className={hidden ? "h-[18px] w-[18px] fill-current text-primary" : "h-[18px] w-[18px]"} />
+      </button>
       <button
         type="button"
         className={btn}
