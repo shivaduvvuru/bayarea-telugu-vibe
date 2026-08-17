@@ -694,6 +694,32 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 7,
   },
+  // Direct "glamour + tollywood" keyword desks: one on Google News, one on Bing
+  // News, both feeding the Glamour intake.
+  {
+    name: "Glamour Tollywood (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "glamour Tollywood (actress OR heroine) (photos OR stills OR gallery OR photoshoot) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Glamour Tollywood (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "glamour Tollywood actress photos",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Glamour Telugu heroines (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "Telugu heroine glamour photoshoot stills",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 10,
+  },
   // Google-search picture desks per South industry. Named-heroine sweeps pull
   // far more illustrated photo posts than generic "actress photos" queries,
   // which is what starved the Glamour folder.
