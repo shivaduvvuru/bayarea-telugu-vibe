@@ -524,21 +524,15 @@ function Home() {
       ? galleryItems.filter(notDislikedPicture)
       : galleryItems;
 
-  // Each full-size slot reports the photo it is showing; every other slot then
-  // excludes it, so the two heroes always hold two different pictures even when
-  // their own pools diverge.
+  // Every slot shares one pool and one per-cycle shuffle, stepping through it by
+  // its slot number — that is what keeps the two full-size pictures different
+  // without any cross-slot state (which previously looped and blanked the page).
   const heroProps = (slot: number) => ({
     items: heroPool,
     onOpen: setViewerIndex,
     offset: slot,
-    exclude: Object.entries(heroPicks)
-      .filter(([key, url]) => Number(key) !== slot && !!url)
-      .map(([, url]) => url),
-    onPick: (picture: string | null) =>
-      setHeroPicks((prev) =>
-        prev[slot] === (picture ?? "") ? prev : { ...prev, [slot]: picture ?? "" },
-      ),
   });
+
 
 
 
