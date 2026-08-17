@@ -31,14 +31,18 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { isStarGallery } = await import("@/lib/cinema-topics");
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
-            const image = (r["payload"] as { image?: string | null } | undefined)?.image ?? null;
+            const payload = r["payload"] as
+              | { image?: string | null; review_type?: string | null }
+              | undefined;
+            const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
-              isStarGallery(
-                String(r["title"] ?? ""),
-                String(r["summary"] ?? ""),
-                String(r["source_url"] ?? ""),
-              )
+              (payload?.review_type === "picture" ||
+                isStarGallery(
+                  String(r["title"] ?? ""),
+                  String(r["summary"] ?? ""),
+                  String(r["source_url"] ?? ""),
+                ))
             );
           };
 
@@ -184,7 +188,16 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
                   (r as { title?: string }).title,
                   (r as { summary?: string }).summary,
                 );
-            return { ...r, status: auto ? "approved" : "pending" };
+            const payload = (row["payload"] ?? {}) as Record<string, unknown>;
+            return {
+              ...r,
+              // Persist the collector's picture decision. Re-running the
+              // classifier against a queue row used to turn held pictures back
+              // into ordinary news when publisher text changed or was sparse,
+              // and the legacy news release then emptied the picture desk.
+              payload: picture ? { ...payload, review_type: "picture" } : payload,
+              status: auto ? "approved" : "pending",
+            };
           });
 
 

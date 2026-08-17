@@ -92,7 +92,8 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
  */
 function isPictureItem(item: DeskItem): boolean {
   return (
-    !!galleryImage(item.image) && isStarGallery(item.title, item.summary, item.sourceUrl)
+    !!galleryImage(item.image) &&
+    (item.reviewType === "picture" || isStarGallery(item.title, item.summary, item.sourceUrl))
   );
 }
 
@@ -247,6 +248,7 @@ function DeskWorkspace({
             sourceUrl: r.source_url ?? p["sourceUrl"] ?? "#",
             collectedAt: r.digest_date,
             ...(p["image"] ? { image: p["image"] } : {}),
+            ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,
@@ -345,7 +347,10 @@ function DeskWorkspace({
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json", "X-Desk-Token": deskToken },
-        body: "{}",
+        // Desk recovery is specifically for held pictures. Avoid spending the
+        // request budget on news, which publishes automatically and never needs
+        // to occupy this review screen.
+        body: JSON.stringify({ mode: "gallery", trigger: "manual" }),
       });
       const json = (await res.json()) as {
         collected?: number;
