@@ -489,9 +489,6 @@ function DeskWorkspace({
             <TabsTrigger value="all" className="flex-1">
               All
             </TabsTrigger>
-            <TabsTrigger value="news" className="flex-1">
-              News
-            </TabsTrigger>
             <TabsTrigger value="picture" className="flex-1 gap-1">
               <Images className="size-3" /> Pictures ({pictureCount})
             </TabsTrigger>
