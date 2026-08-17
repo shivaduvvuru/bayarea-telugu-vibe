@@ -48,8 +48,6 @@ export function GalleryHero({
   items,
   onOpen,
   offset = 0,
-  exclude,
-  onPick,
   className = "",
 }: {
   items: Article[];
@@ -57,10 +55,6 @@ export function GalleryHero({
   onOpen?: (index: number) => void;
   /** Slot number: shifts both the picture picked and its 10s stagger. */
   offset?: number;
-  /** Photo URLs already used elsewhere on the page. */
-  exclude?: string[];
-  /** Reports the photo this slot is showing so sibling slots can avoid it. */
-  onPick?: (picture: string | null) => void;
   className?: string;
 }) {
   // Start from the slot number so server and client paint the same initial
@@ -68,6 +62,7 @@ export function GalleryHero({
   const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
   const [history, setHistory] = useState<Set<string>>(new Set());
+
   // Photos the reader hearted, so the slots can bring them back.
   const { favorites } = useFavoritePhotos();
 
