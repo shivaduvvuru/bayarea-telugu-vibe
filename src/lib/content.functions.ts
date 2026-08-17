@@ -23,7 +23,7 @@ export const listPosts = createServerFn({ method: "GET" })
   .inputValidator(
     (input: { category?: string; perPage?: number; compact?: boolean; page?: number }) => ({
       category: input?.category,
-      perPage: Math.min(Math.max(input?.perPage ?? 12, 1), 48),
+      perPage: Math.min(Math.max(input?.perPage ?? 12, 1), 200),
       compact: input?.compact === true,
       // Which window of the desk to read: the Glamour slots walk through the
       // whole folder instead of always re-reading the newest photos.
