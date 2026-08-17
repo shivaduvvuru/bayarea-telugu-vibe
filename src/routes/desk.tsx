@@ -262,8 +262,11 @@ function DeskWorkspace({
       },
     );
     setRetryNote("");
-    setBase(mapped);
-    return mapped;
+    // Text news publishes automatically and is never reviewed here — the desk
+    // keeps only pictures, events and temple notices.
+    const deskOnly = mapped.filter((i) => i.kind !== "news" || isPictureItem(i));
+    setBase(deskOnly);
+    return deskOnly;
   }, [deskToken, fetchDeskItems]);
 
   const reload = useCallback(() => {
@@ -308,10 +311,9 @@ function DeskWorkspace({
 
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
-    // Pictures get their own tab; the news tab keeps only text stories.
+    // Pictures get their own tab; text news never reaches the desk.
     if (kind === "picture" && !isPictureItem(i)) return false;
-    if (kind === "news" && (i.kind !== "news" || isPictureItem(i))) return false;
-    if (kind !== "all" && kind !== "picture" && kind !== "news" && i.kind !== kind) return false;
+    if (kind !== "all" && kind !== "picture" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
     return true;
@@ -486,9 +488,6 @@ function DeskWorkspace({
           <TabsList className="w-full">
             <TabsTrigger value="all" className="flex-1">
               All
-            </TabsTrigger>
-            <TabsTrigger value="news" className="flex-1">
-              News
             </TabsTrigger>
             <TabsTrigger value="picture" className="flex-1 gap-1">
               <Images className="size-3" /> Pictures ({pictureCount})
