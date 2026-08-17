@@ -61,7 +61,7 @@ export function GalleryHero({
   // picture, and two heroes never begin with the same photo.
   const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
-  const [history, setHistory] = useState<Set<string>>(new Set());
+  
 
   // Photos the reader hearted, so the slots can bring them back.
   const { favorites } = useFavoritePhotos();
