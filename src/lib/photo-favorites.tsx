@@ -114,12 +114,13 @@ export function useFavoritePhoto(article: Article | FavoritePhoto) {
 /* ------------------------------ disliked photos ----------------------------- */
 
 const HIDDEN_KEY = "batt-photo-hidden";
+const HIDDEN_IMAGES_KEY = "batt-photo-hidden-images";
 const HIDDEN_EVENT = "batt-photo-hidden-change";
 
-function readHidden(): string[] {
+function readList(key: string): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(HIDDEN_KEY);
+    const raw = window.localStorage.getItem(key);
     const list = raw ? (JSON.parse(raw) as string[]) : [];
     return Array.isArray(list) ? list.filter((s) => typeof s === "string") : [];
   } catch {
@@ -127,8 +128,22 @@ function readHidden(): string[] {
   }
 }
 
+function readHidden(): string[] {
+  return readList(HIDDEN_KEY);
+}
+
+/** Picture URLs the reader disliked — blocked even if re-collected under a new slug. */
+function readHiddenImages(): string[] {
+  return readList(HIDDEN_IMAGES_KEY);
+}
+
 function writeHidden(list: string[]) {
   window.localStorage.setItem(HIDDEN_KEY, JSON.stringify(list.slice(0, 500)));
+  window.dispatchEvent(new Event(HIDDEN_EVENT));
+}
+
+function writeHiddenImages(list: string[]) {
+  window.localStorage.setItem(HIDDEN_IMAGES_KEY, JSON.stringify(list.slice(0, 500)));
   window.dispatchEvent(new Event(HIDDEN_EVENT));
 }
 
@@ -139,17 +154,20 @@ function subscribeHidden(fn: () => void) {
   };
 }
 
+const sameList = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((s, i) => s === b[i]);
 
-/** Slugs the reader disliked — dropped from grids on the next refresh. */
+/** Slugs and picture URLs the reader disliked — dropped from every grid. */
 export function useHiddenPhotos() {
   const [hidden, setHidden] = useState<string[]>([]);
+  const [hiddenImages, setHiddenImages] = useState<string[]>([]);
 
   useEffect(() => {
     const sync = () => {
       const next = readHidden();
-      setHidden((prev) =>
-        prev.length === next.length && prev.every((s, i) => s === next[i]) ? prev : next,
-      );
+      setHidden((prev) => (sameList(prev, next) ? prev : next));
+      const nextImages = readHiddenImages();
+      setHiddenImages((prev) => (sameList(prev, nextImages) ? prev : nextImages));
     };
     sync();
     return subscribeHidden(sync);
@@ -159,9 +177,12 @@ export function useHiddenPhotos() {
     writeHidden(readHidden().filter((s) => s !== slug));
   }, []);
 
-  const clear = useCallback(() => writeHidden([]), []);
+  const clear = useCallback(() => {
+    writeHidden([]);
+    writeHiddenImages([]);
+  }, []);
 
-  return { hidden, restore, clear };
+  return { hidden, hiddenImages, restore, clear };
 }
 
 
@@ -179,10 +200,18 @@ export function useHiddenPhoto(article: Article | FavoritePhoto) {
     const list = readHidden();
     const exists = list.includes(article.slug);
     writeHidden(exists ? list.filter((s) => s !== article.slug) : [article.slug, ...list]);
+    const image = article.image ?? null;
+    if (image) {
+      const images = readHiddenImages();
+      writeHiddenImages(
+        exists ? images.filter((s) => s !== image) : [image, ...images.filter((s) => s !== image)],
+      );
+    }
     if (!exists) write(read().filter((p) => p.slug !== article.slug));
     track("photo_dislike", { slug: article.slug, hidden: !exists });
   }, [article]);
 
   return { hidden, toggle };
 }
+
 

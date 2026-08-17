@@ -431,7 +431,7 @@ function Home() {
     return () => window.clearInterval(id);
   }, []);
   const { favorites } = useFavoritePhotos();
-  const { hidden } = useHiddenPhotos();
+  const { hidden, hiddenImages } = useHiddenPhotos();
 
 
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
@@ -445,6 +445,10 @@ function Home() {
   // Disliked stories disappear for this reader too (editors delete them site-wide).
   const notDisliked = <T extends { slug: string }>(list: T[]) =>
     list.filter((a) => !hidden.includes(a.slug));
+  // A disliked picture is gone for good: the same image URL is blocked even if
+  // it is re-collected later under a different slug.
+  const notDislikedPicture = (a: { slug: string; image?: string | null }) =>
+    !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image));
   const local = notDisliked(
     takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>()),
   );
@@ -490,7 +494,7 @@ function Home() {
   // the deeper pool so each refresh still shows something different.
   // Disliked photos drop out of the grid entirely.
   const galleryPool = takeUnique(galleryItems, homepageSeen, 96)
-    .filter((a) => !hidden.includes(a.slug))
+    .filter(notDislikedPicture)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
 
