@@ -48,15 +48,19 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Photo desks are read in rotating slices: one request cannot read all
           // ~40 desks plus their artwork inside the serverless time budget, and
           // an interrupted pass was why only a handful of pictures ever landed.
-          const sliceSize = 10;
-          const baseSlice = Math.floor(Date.now() / (30 * 60 * 1000));
+          // Intake is pushed hard: a wider slice of photo desks per pass and a
+          // faster rotation window, so the whole desk list is read every few
+          // minutes instead of every couple of hours.
+          const sliceSize = 14;
+          const baseSlice = Math.floor(Date.now() / (5 * 60 * 1000));
           let newsPool = galleryOnly ? [] : await collectAll(process.env["LOVABLE_API_KEY"]);
           let picturePool = await collectGallery(process.env["LOVABLE_API_KEY"], {
             slice: baseSlice,
             sliceSize,
           });
           const minimumNews = galleryOnly ? 0 : 12;
-          const minimumPictures = 8;
+          const minimumPictures = 12;
+
           let healthAttempts = 1;
           const poolCounts = () => ({
             news: newsPool.filter((r) => r.kind === "news" && !isPicture(r as unknown as Record<string, unknown>)).length,
