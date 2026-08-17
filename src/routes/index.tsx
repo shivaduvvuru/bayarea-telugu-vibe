@@ -22,6 +22,7 @@ import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
 import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
+import { StoryActions } from "@/components/story-actions";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
