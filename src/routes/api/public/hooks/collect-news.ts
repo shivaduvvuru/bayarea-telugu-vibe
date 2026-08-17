@@ -32,12 +32,13 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
-              | { image?: string | null; review_type?: string | null }
+               | { image?: string | null; review_type?: string | null; gallery?: boolean }
               | undefined;
             const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
-              (payload?.review_type === "picture" ||
+               (payload?.review_type === "picture" ||
+                 payload?.gallery === true ||
                 isStarGallery(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),

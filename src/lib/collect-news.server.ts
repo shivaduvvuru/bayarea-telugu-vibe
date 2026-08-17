@@ -1731,6 +1731,13 @@ const GALLERY_FEED_NAMES = [
   "Social media creators glamour",
   "Models & fashion shoots",
   "Dancers & performers glamour",
+  "Glamour Tollywood (Google)",
+  "Glamour Tollywood (Bing)",
+  "Glamour Telugu heroines (Bing)",
+  "US vertical drama actresses",
+  "India micro-drama heroines",
+  "China duanju actresses",
+  "Micro-drama stars (Bing)",
 
 
   "Instagram photo dumps",
