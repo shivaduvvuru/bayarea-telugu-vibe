@@ -362,22 +362,15 @@ function DeskWorkspace({
        let loaded = await loadItems();
        const expected = json.intakeHealth?.pending;
        const loadedPictures = loaded.filter(isPictureItem).length;
-       const loadedNews = loaded.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
-       // The collection endpoint verifies the database after ingest. If this
-       // browser read is lower than that verified count, retry the queue read
-       // instead of presenting a misleading zero.
-       if (
-         expected &&
-         (loadedNews < expected.news || loadedPictures < expected.pictures)
-       ) {
-         setRetryNote("Collection completed — verifying the approval queue…");
+       // News publishes automatically and never waits in this desk, so only the
+       // picture queue is verified after a collection run.
+       if (expected && loadedPictures < expected.pictures) {
+         setRetryNote("Collection completed — verifying the picture queue…");
          loaded = await retryWithBackoff(
            async () => {
              const next = await loadItems();
-             const nextPictures = next.filter(isPictureItem).length;
-             const nextNews = next.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
-             if (nextNews < expected.news || nextPictures < expected.pictures) {
-               throw new Error("Approval queue has not caught up yet");
+             if (next.filter(isPictureItem).length < expected.pictures) {
+               throw new Error("Picture queue has not caught up yet");
              }
              return next;
            },
@@ -395,7 +388,7 @@ function DeskWorkspace({
          const health = json.intakeHealth;
          toast.success(
            health
-             ? `Ready for approval: ${health.pending.news} news · ${health.pending.pictures} pictures${health.attempts > 1 ? ` · checked ${health.attempts} times` : ""}`
+             ? `Pictures ready for approval: ${health.pending.pictures}${health.attempts > 1 ? ` · checked ${health.attempts} times` : ""}`
              : `Collected ${json.collected} items · ${loaded.length} awaiting review`,
          );
       }
