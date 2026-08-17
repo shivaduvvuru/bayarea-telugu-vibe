@@ -166,7 +166,7 @@ export function GalleryHero({
           <span className="line-clamp-1 text-[13px] font-semibold text-ink">{article.title}</span>
           <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
             <SourceChip article={article} />
-            <span>New picture every 5 min</span>
+            <span>New picture every 10 sec</span>
           </span>
         </span>
         <Link
