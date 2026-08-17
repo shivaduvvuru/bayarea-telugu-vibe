@@ -87,7 +87,19 @@ export function useFavoritePhoto(article: Article | FavoritePhoto) {
     const exists = list.some((p) => p.slug === article.slug);
     write(exists ? list.filter((p) => p.slug !== article.slug) : [toSnapshot(article), ...list]);
     track("photo_favorite", { slug: article.slug, favorite: !exists });
+    // Site-wide like tally: ranks which archived photos come back first.
+    void import("@/integrations/supabase/client")
+      .then(({ supabase }) =>
+        supabase.rpc("bump_photo_like" as never, {
+          _slug: article.slug,
+          _delta: exists ? -1 : 1,
+        } as never),
+      )
+      .catch(() => {
+        /* the local favorite still stands if the tally is unreachable */
+      });
   }, [article]);
+
 
   return { favorite, toggle };
 }
