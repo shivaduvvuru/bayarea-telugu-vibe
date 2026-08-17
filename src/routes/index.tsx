@@ -592,7 +592,7 @@ function Home() {
 
         {/* Baseline: the full-size glamour picture always sits at the top of the
             homepage and swaps itself every 5 minutes. Never remove this. */}
-        <GalleryHero items={heroPool} onOpen={setViewerIndex} className="mt-4" />
+        <GalleryHero {...heroProps(0)} className="mt-4" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
