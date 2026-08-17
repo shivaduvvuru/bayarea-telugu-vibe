@@ -7,9 +7,9 @@ import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 
-/** The slots run continuously: a new picture takes the slot every 20 seconds. */
-const ROTATE_MS = 20_000;
-/** Later slots change halfway through the cycle, 10s after the one above them. */
+/** The slots run continuously: a new picture takes the slot every 10 seconds. */
+const ROTATE_MS = 10_000;
+/** Later slots change halfway through the cycle, 5s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
