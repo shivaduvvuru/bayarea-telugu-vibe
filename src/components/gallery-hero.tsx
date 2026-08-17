@@ -7,9 +7,9 @@ import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 
-/** The slots run continuously: a new picture takes the slot every 20 seconds. */
-const ROTATE_MS = 20_000;
-/** Later slots change halfway through the cycle, 10s after the one above them. */
+/** The slots run continuously: a new picture takes the slot every 10 seconds. */
+const ROTATE_MS = 10_000;
+/** Later slots change halfway through the cycle, 5s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
@@ -57,15 +57,18 @@ export function GalleryHero({
   className?: string;
 }) {
   const [slot, setSlot] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
 
   useEffect(() => {
+    setMounted(true);
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 5_000);
+    const id = window.setInterval(() => setSlot(current()), 2_000);
     return () => window.clearInterval(id);
   }, [items.length, offset]);
+
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
@@ -102,6 +105,19 @@ export function GalleryHero({
   const picture = galleryImage(article.image);
   if (!picture) return null;
   const position = items.findIndex((a) => a.slug === article.slug);
+
+  // The picked photo depends on the clock, so the first paint keeps a plain
+  // placeholder and the picture appears once the slot timer is live.
+  if (!mounted) {
+    return (
+      <div
+        className={`aspect-[4/5] w-full rounded-lg border border-border bg-surface-tint sm:aspect-[3/4] ${className}`}
+        aria-hidden
+      />
+    );
+  }
+
+
 
 
 
@@ -150,7 +166,7 @@ export function GalleryHero({
           <span className="line-clamp-1 text-[13px] font-semibold text-ink">{article.title}</span>
           <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
             <SourceChip article={article} />
-            <span>New picture every 5 min</span>
+            <span>New picture every 10 sec</span>
           </span>
         </span>
         <Link

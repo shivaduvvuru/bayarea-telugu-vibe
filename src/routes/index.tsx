@@ -96,15 +96,21 @@ const cityNewsQuery = queryOptions({
  * Kept on a short cache so newly collected star photos show up on the next visit
  * instead of sitting behind a half-hour snapshot.
  */
-const galleryQuery = queryOptions({
-  queryKey: ["wp", "posts", "gallery", "home"],
-  // Deep pool: the home column shows a rotating window of six, so tapping
-  // "Refresh gallery" always moves on to different photos.
-  // Pool trimmed to 48: a deeper read made the first paint wait on a much
-  // larger payload without adding visible variety.
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
-  staleTime: 5 * 60 * 1000,
-});
+/** The 48-picture Glamour pocket is swapped for a fresh one three times a day. */
+export const GALLERY_POCKET_MS = 8 * 60 * 60 * 1000;
+/** Which 8-hour pocket we are in (same value on server and client). */
+const currentPocket = () => Math.floor(Date.now() / GALLERY_POCKET_MS);
+
+const galleryQueryFor = (pocket: number) =>
+  queryOptions({
+    // The pocket number is part of the key, so a brand new window of photos is
+    // read three times a day while each pocket itself stays cached.
+    queryKey: ["wp", "posts", "gallery", "home", pocket],
+    queryFn: (): Promise<Article[]> =>
+      listPosts({ data: { category: "gallery", perPage: 48, compact: true } }) as Promise<Article[]>,
+    staleTime: GALLERY_POCKET_MS,
+  });
+
 
 /**
  * Home-state desk: Telangana / Hyderabad and Andhra / Amaravati coverage,
@@ -181,7 +187,7 @@ export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     // Only the text digest blocks the first paint. The Glamour folder is warmed
     // in the background so pictures never delay the headlines.
-    void context.queryClient.prefetchQuery(galleryQuery);
+    void context.queryClient.prefetchQuery(galleryQueryFor(currentPocket()));
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
@@ -391,16 +397,24 @@ function Home() {
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   // Same picture desk used in /category/gallery.
   // Non-blocking: pictures stream in after the headlines are on screen.
-  const { data: galleryItems = [] } = useQuery(galleryQuery);
+  // The pocket of 48 pictures is replaced three times a day (every 8 hours),
+  // which lets archived photos rotate back in without extra reads.
+  const [pocket, setPocket] = useState(() => currentPocket());
+  useEffect(() => {
+    const id = window.setInterval(() => setPocket(currentPocket()), 5 * 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const { data: galleryItems = [] } = useQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
-  // full-size hero slots still change every 20s) so the page isn't re-rendering
-  // the whole digest every few seconds.
+  // full-size hero slots change faster) so the page isn't re-rendering the
+  // whole digest every few seconds.
   useEffect(() => {
     const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
   // client render agree, then picks up the time-based slot after mount.
   const [primeSlot, setPrimeSlot] = useState(0);
