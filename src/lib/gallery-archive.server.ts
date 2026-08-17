@@ -130,3 +130,64 @@ export async function rotateGalleryFolder(
 
   return { archived, restored, live: liveCount + restored };
 }
+
+/**
+ * Calls in the next pocket: the current live pocket goes back to the archive
+ * and up to `POCKET_SIZE` archived photos take its place, most-liked first.
+ * Used when the reader-facing folder has been fully shown, so the site keeps a
+ * small, fast live pocket instead of one huge folder.
+ */
+export async function swapGalleryPocket(
+  client: Client,
+  size = POCKET_SIZE,
+): Promise<{ archived: number; restored: number; live: number }> {
+  const { data: liveData, error: liveError } = await client
+    .from("content_items")
+    .select("id,link_url,published_at,updated_at")
+    .eq("category", "gallery")
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(1000);
+  if (liveError) throw liveError;
+  const live = (liveData ?? []) as Row[];
+
+  // Candidate replacements first: never empty the folder when the archive has
+  // nothing to offer.
+  const { data: archData } = await client
+    .from("content_items")
+    .select("id,link_url,published_at,updated_at")
+    .eq("category", "gallery")
+    .eq("status", ARCHIVED)
+    .order("updated_at", { ascending: true })
+    .limit(1000);
+  const pool = (archData ?? []) as Row[];
+  if (!pool.length) return { archived: 0, restored: 0, live: live.length };
+
+  const likes = await likesBySlug(client, pool.map(slugOf));
+  const picks = [...pool]
+    .sort((a, b) => {
+      const la = likes.get(slugOf(a)) ?? 0;
+      const lb = likes.get(slugOf(b)) ?? 0;
+      if (la !== lb) return lb - la; // most liked returns first
+      return (a.updated_at ?? "").localeCompare(b.updated_at ?? ""); // longest archived
+    })
+    .slice(0, size);
+
+  let archived = 0;
+  if (live.length) {
+    const { error } = await client
+      .from("content_items")
+      .update({ status: ARCHIVED } as never)
+      .in("id", live.map((r) => r.id));
+    if (error) throw error;
+    archived = live.length;
+  }
+
+  const { error: restoreError } = await client
+    .from("content_items")
+    .update({ status: "published", published_at: new Date().toISOString() } as never)
+    .in("id", picks.map((r) => r.id));
+  if (restoreError) throw restoreError;
+
+  return { archived, restored: picks.length, live: picks.length };
+}
