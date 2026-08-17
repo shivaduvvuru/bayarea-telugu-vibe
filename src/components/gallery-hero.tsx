@@ -68,14 +68,23 @@ export function GalleryHero({
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
-  const withPictures = items.filter((a) => {
+  const eligible = (a: Article) => {
     const picture = galleryImage(a.image);
     if (!picture || failedPictures.includes(picture) || used.has(picture) || seen.has(picture)) {
       return false;
     }
     seen.add(picture);
     return true;
-  });
+  };
+  // Full-size slots only carry solo-woman portraits; landscape frames and
+  // mixed-company stills are rejected (landscape ones drop out on load below).
+  let withPictures = items.filter(
+    (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
+  );
+  if (withPictures.length === 0) {
+    seen.clear();
+    withPictures = items.filter(eligible);
+  }
   if (withPictures.length === 0) return null;
 
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
