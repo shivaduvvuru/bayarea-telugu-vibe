@@ -694,6 +694,58 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 7,
   },
+  // Google-search picture desks per South industry. Named-heroine sweeps pull
+  // far more illustrated photo posts than generic "actress photos" queries,
+  // which is what starved the Glamour folder.
+  {
+    name: "Tollywood heroine names",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Samantha" OR "Rashmika Mandanna" OR "Pooja Hegde" OR "Sreeleela" OR "Krithi Shetty" OR "Anupama Parameswaran" OR "Nabha Natesh" OR "Kajal Aggarwal" OR "Sai Pallavi" OR "Nidhhi Agerwal") (photos OR stills OR gallery OR glamour OR photoshoot OR "new look") when:7d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 16,
+  },
+  {
+    name: "Kollywood heroine names",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Nayanthara" OR "Trisha" OR "Keerthy Suresh" OR "Sai Pallavi" OR "Aishwarya Rajesh" OR "Priya Bhavani Shankar" OR "Andrea Jeremiah" OR "Ritika Singh" OR "Amala Paul") (photos OR stills OR gallery OR glamour OR photoshoot OR "new look") when:7d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 16,
+  },
+  {
+    name: "Mollywood heroine names",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Manju Warrier" OR "Nazriya Nazim" OR "Ahaana Krishna" OR "Anna Ben" OR "Aparna Balamurali" OR "Malavika Mohanan" OR "Kalyani Priyadarshan" OR "Rajisha Vijayan" OR "Durga Krishna") (photos OR stills OR gallery OR glamour OR photoshoot OR "new look") when:7d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 16,
+  },
+  {
+    name: "Sandalwood heroine names",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Rachita Ram" OR "Rashmika Mandanna" OR "Ashika Ranganath" OR "Radhika Pandit" OR "Nishvika Naidu" OR "Sonu Gowda" OR "Milana Nagaraj" OR "Haripriya") (photos OR stills OR gallery OR glamour OR photoshoot OR "new look") when:7d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 16,
+  },
+  {
+    name: "South glamour girls search",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '(Tollywood OR Kollywood OR Mollywood OR Sandalwood) (heroine OR actress OR "glamour girl" OR model) ("glamorous photos" OR "hot photos" OR "saree photos" OR "photo shoot" OR "latest pics" OR "viral pics") when:3d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 18,
+  },
+  {
+    name: "South heroine photoshoot search",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Tamil actress" OR "Telugu actress" OR "Malayalam actress" OR "Kannada actress") ("photo gallery" OR "latest photos" OR "new stills" OR "glam look" OR "beach look" OR "traditional look") when:3d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 18,
+  },
+
   {
     name: "గ్లామర్ ఫోటోలు",
     url: "https://news.google.com/rss/search?q=%E0%B0%97%E0%B1%8D%E0%B0%B2%E0%B0%BE%E0%B0%AE%E0%B0%B0%E0%B1%8D+%E0%B0%AB%E0%B1%8B%E0%B0%9F%E0%B1%8B%E0%B0%B2%E0%B1%81+OR+%E0%B0%85%E0%B0%82%E0%B0%A6%E0%B0%BE%E0%B0%B2+%E0%B0%A4%E0%B0%BE%E0%B0%B0+when:7d&hl=te&gl=IN&ceid=IN:te",
@@ -1512,6 +1564,13 @@ const GALLERY_FEED_NAMES = [
   "Mollywood heroines",
   "Sandalwood heroines",
   "South stars glamour",
+  "Tollywood heroine names",
+  "Kollywood heroine names",
+  "Mollywood heroine names",
+  "Sandalwood heroine names",
+  "South glamour girls search",
+  "South heroine photoshoot search",
+
   "Instagram photo dumps",
   "Social media buzz",
   "Star photo stories",
