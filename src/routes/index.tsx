@@ -100,7 +100,7 @@ const galleryQuery = queryOptions({
   queryKey: ["wp", "posts", "gallery", "home"],
   // Deep pool: the home column shows a rotating window of six, so tapping
   // "Refresh gallery" always moves on to different photos.
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 96, compact: true } }),
   staleTime: 60 * 1000,
   refetchOnMount: "always",
 });
@@ -458,7 +458,7 @@ function Home() {
   // pinned so a refresh never rotates it away. The remaining tiles cycle through
   // the deeper pool so each refresh still shows something different.
   // Disliked photos drop out of the grid entirely.
-  const galleryPool = takeUnique(galleryItems, homepageSeen, 48)
+  const galleryPool = takeUnique(galleryItems, homepageSeen, 96)
     .filter((a) => !hidden.includes(a.slug))
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
@@ -477,6 +477,10 @@ function Home() {
     ...pinned,
     ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
   ];
+  // The full-size heroes draw from the WHOLE Glamour folder, not just the six
+  // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
+  const heroPool = galleryPool;
+
 
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
@@ -528,7 +532,7 @@ function Home() {
 
         {/* Baseline: the full-size glamour picture always sits at the top of the
             homepage and swaps itself every 5 minutes. Never remove this. */}
-        <GalleryHero items={uniqueGallery} onOpen={setViewerIndex} className="mt-4" />
+        <GalleryHero items={heroPool} onOpen={setViewerIndex} className="mt-4" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
@@ -549,7 +553,7 @@ function Home() {
                     <Row a={a} />
                     {heroHere ? (
                       <GalleryHero
-                        items={uniqueGallery}
+                        items={heroPool}
                         onOpen={setViewerIndex}
                         offset={heroSlot}
                         className="my-4"
@@ -565,7 +569,7 @@ function Home() {
                 first hero merely because collection volume is low. */}
             {localPictureStories.length < 4 ? (
               <GalleryHero
-                items={uniqueGallery}
+                items={heroPool}
                 onOpen={setViewerIndex}
                 offset={1}
                 className="my-4"
@@ -615,16 +619,20 @@ function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {uniqueGallery.map((a, i) => (
-                <GalleryTile key={a.slug} article={a} onOpen={() => setViewerIndex(i)} />
+                <GalleryTile
+                  key={a.slug}
+                  article={a}
+                  onOpen={() => setViewerIndex(Math.max(0, heroPool.findIndex((g) => g.slug === a.slug)))}
+                />
               ))}
             </div>
           )}
         </section>
       </div>
 
-      {uniqueGallery.length > 0 && viewerIndex !== null && (
+      {heroPool.length > 0 && viewerIndex !== null && (
         <GalleryLightbox
-          items={uniqueGallery}
+          items={heroPool}
           index={viewerIndex}
           onIndexChange={setViewerIndex}
           onClose={() => setViewerIndex(null)}
