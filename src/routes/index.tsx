@@ -365,7 +365,7 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
     <figure className="lift m-0 rounded-md">
       <div className="relative">
         <button type="button" onClick={onOpen} className="block w-full text-left">
-          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 180px" />
+          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 100vw, 340px" />
         </button>
         <PhotoActions article={article} tone="light" className="absolute right-1.5 top-1.5" />
       </div>
@@ -623,7 +623,7 @@ function Home() {
           {uniqueGallery.length === 0 ? (
             <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {uniqueGallery.map((a, i) => (
                 <GalleryTile
                   key={a.slug}
