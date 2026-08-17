@@ -5,6 +5,7 @@ import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
+import { isSingleWoman } from "@/lib/cinema-topics";
 
 /** A new picture takes the slot every five minutes. */
 const ROTATE_MS = 5 * 60 * 1000;
@@ -68,14 +69,23 @@ export function GalleryHero({
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
-  const withPictures = items.filter((a) => {
+  const eligible = (a: Article) => {
     const picture = galleryImage(a.image);
     if (!picture || failedPictures.includes(picture) || used.has(picture) || seen.has(picture)) {
       return false;
     }
     seen.add(picture);
     return true;
-  });
+  };
+  // Full-size slots only carry solo-woman portraits; landscape frames and
+  // mixed-company stills are rejected (landscape ones drop out on load below).
+  let withPictures = items.filter(
+    (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
+  );
+  if (withPictures.length === 0) {
+    seen.clear();
+    withPictures = items.filter(eligible);
+  }
   if (withPictures.length === 0) return null;
 
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
@@ -117,6 +127,16 @@ export function GalleryHero({
                 current.includes(picture) ? current : [...current, picture],
               )
             }
+            onLoad={(event) => {
+              // Wide/landscape frames (box-office stills, event group shots)
+              // are not portraits: drop them and let the slot pick again.
+              const img = event.currentTarget;
+              if (img.naturalWidth && img.naturalHeight / img.naturalWidth < 1.05) {
+                setFailedPictures((current) =>
+                  current.includes(picture) ? current : [...current, picture],
+                );
+              }
+            }}
             className="aspect-[4/5] w-full object-cover object-top sm:aspect-[3/4]"
           />
         </button>
