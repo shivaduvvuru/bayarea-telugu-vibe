@@ -399,15 +399,14 @@ function DeskWorkspace({
     }
   };
 
-  // One automatic recovery pass on entry: a genuinely empty/underfilled desk
-  // should repair its intake before the editor has to press anything.
+  // One automatic recovery pass on entry: only the picture desk is checked,
+  // since news publishes automatically and never queues here.
   useEffect(() => {
     if (loadingItems || loadError || autoRecoveryStarted.current) return;
-    const news = base.filter((item) => item.kind === "news" && !isPictureItem(item)).length;
     const pictures = base.filter(isPictureItem).length;
-    if (news >= 4 && pictures >= 4) return;
+    if (pictures >= 4) return;
     autoRecoveryStarted.current = true;
-    setRetryNote("Intake is low — checking sources and collecting again…");
+    setRetryNote("Picture intake is low — checking sources and collecting again…");
     void refresh();
   }, [base, loadError, loadingItems]);
 
