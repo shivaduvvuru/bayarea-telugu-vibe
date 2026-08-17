@@ -100,6 +100,7 @@ function EventsPage() {
       image: e.image_url ?? null,
       summary: e.summary ?? null,
       source: e.link_url ?? null,
+      city: e.city ?? null,
       meta: [e.city, e.event_start ? formatDate(e.event_start) : e.venue].filter(Boolean).join(" · "),
     })),
     ...eventPosts.map((a) => ({
@@ -109,14 +110,20 @@ function EventsPage() {
       image: a.image ?? null,
       summary: a.excerpt ?? null,
       source: a.sourceUrl ?? null,
+      city: null as string | null,
       meta: [a.categoryName, formatDate(a.date)].filter(Boolean).join(" · "),
     })),
   ]
     // Bay Area calendar only. The collector stamps every row's city as "Bay
     // Area" and AI summaries sometimes name it too, so relevance is judged on
-    // the headline and the publisher instead of those fields.
+    // the headline, the publisher, or a specific (non-generic) city stamp.
     .filter((r) => !classifyIndia(r.title, r.summary, r.source))
-    .filter((r) => isBayArea(r.title) || isBayAreaSource(r.source))
+    .filter(
+      (r) =>
+        isBayArea(r.title) ||
+        isBayAreaSource(r.source) ||
+        (r.city && r.city.toLowerCase() !== "bay area" && isBayArea(r.city)),
+    )
     .filter((r) => {
       const k = r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 40);
       if (!k || seen.has(k)) return false;
