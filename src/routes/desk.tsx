@@ -262,8 +262,11 @@ function DeskWorkspace({
       },
     );
     setRetryNote("");
-    setBase(mapped);
-    return mapped;
+    // Text news publishes automatically and is never reviewed here — the desk
+    // keeps only pictures, events and temple notices.
+    const deskOnly = mapped.filter((i) => i.kind !== "news" || isPictureItem(i));
+    setBase(deskOnly);
+    return deskOnly;
   }, [deskToken, fetchDeskItems]);
 
   const reload = useCallback(() => {
