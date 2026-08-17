@@ -623,12 +623,7 @@ function Home() {
                 every available picture story, so it is never adjacent to the
                 first hero merely because collection volume is low. */}
             {localPictureStories.length < 4 ? (
-              <GalleryHero
-                items={heroPool}
-                onOpen={setViewerIndex}
-                offset={1}
-                className="my-4"
-              />
+              <GalleryHero {...heroProps(1)} className="my-4" />
             ) : null}
 
 
