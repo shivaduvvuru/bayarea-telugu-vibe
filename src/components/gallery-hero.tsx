@@ -74,13 +74,16 @@ export function GalleryHero({
   // picture, and two heroes never begin with the same photo.
   const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
-  
+  // Guard the initial render so server and client paint the same picture; the
+  // time-based rotation and cross-slot avoidance take over after hydration.
+  const [mounted, setMounted] = useState(false);
 
   // Photos the reader hearted, so the slots can bring them back.
   const { favorites } = useFavoritePhotos();
 
   // All hooks must run before any early return to keep hook order stable.
   useEffect(() => {
+    setMounted(true);
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
@@ -156,9 +159,11 @@ export function GalleryHero({
   // are staggered they can sit on neighbouring cycles, so also walk forward past
   // any picture another slot currently holds — two heroes on screen never show
   // the same photo.
-  const taken = new Set(
-    [...activePicks.entries()].filter(([key]) => key !== offset).map(([, url]) => url),
-  );
+  const taken = mounted
+    ? new Set(
+        [...activePicks.entries()].filter(([key]) => key !== offset).map(([, url]) => url),
+      )
+    : new Set<string>();
   let article: Article | null = null;
   let picture: string | null = null;
   for (let step = 0; step < (pool.length || 1); step += 1) {
