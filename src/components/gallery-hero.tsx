@@ -78,10 +78,15 @@ export function GalleryHero({
   });
   if (withPictures.length === 0) return null;
 
-  // Random pick per cycle; the shuffle is shared across slots of the same
-  // cycle so two heroes on screen never land on the same photo.
-  const order = seededOrder(withPictures.length, slot - offset);
-  const index = order[((offset % withPictures.length) + withPictures.length) % withPictures.length]!;
+  // Random pick per cycle. The shuffle is reseeded on every cycle and the
+  // read position also walks forward, so the slot keeps drawing a different
+  // photo out of the Glamour folder instead of settling on a few favourites.
+  // Slots of the same cycle share the shuffle, so two heroes on screen never
+  // land on the same photo.
+  const cycle = slot - offset;
+  const order = seededOrder(withPictures.length, cycle);
+  const pick = ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length;
+  const index = order[pick]!;
   const article = withPictures[index] ?? withPictures[0];
   if (!article) return null;
   const picture = galleryImage(article.image);
