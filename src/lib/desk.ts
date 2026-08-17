@@ -16,6 +16,8 @@ export type DeskItem = {
   collectedAt: string;
   /** Photo attached to the item, when the source carried a usable one. */
   image?: string | null;
+  /** Collector-stamped identity so held pictures cannot be mistaken for news. */
+  reviewType?: "picture";
   /** Event start / temple seva time. */
   when?: string;
   venue?: string;
