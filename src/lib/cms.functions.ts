@@ -12,7 +12,7 @@ const STATUSES = ["published", "pending", "removed", "duplicate"] as const;
 export const listCommunityItems = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z
-      .object({ kind: z.enum(KINDS).optional(), limit: z.number().min(1).max(50).optional() })
+      .object({ kind: z.enum(KINDS).optional(), limit: z.number().min(1).max(200).optional() })
       .parse(input ?? {}),
   )
   .handler(async ({ data }) => {
