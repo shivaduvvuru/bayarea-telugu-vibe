@@ -522,6 +522,22 @@ function Home() {
       ? galleryItems.filter(notDislikedPicture)
       : galleryItems;
 
+  // Each full-size slot reports the photo it is showing; every other slot then
+  // excludes it, so the two heroes always hold two different pictures even when
+  // their own pools diverge.
+  const heroProps = (slot: number) => ({
+    items: heroPool,
+    onOpen: setViewerIndex,
+    offset: slot,
+    exclude: Object.entries(heroPicks)
+      .filter(([key, url]) => Number(key) !== slot && !!url)
+      .map(([, url]) => url),
+    onPick: (picture: string | null) =>
+      setHeroPicks((prev) =>
+        prev[slot] === (picture ?? "") ? prev : { ...prev, [slot]: picture ?? "" },
+      ),
+  });
+
 
 
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
