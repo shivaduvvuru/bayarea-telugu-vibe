@@ -155,18 +155,25 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Temple notices, events and ordinary news publish without an editor.
           // Only sensitive news stays pending in the review desk.
           const { canAutoPublish } = await import("@/lib/auto-publish");
-          const marked = rows.map((r) => ({
-            ...r,
-            status:
-              !isPicture(r as unknown as Record<string, unknown>) &&
-              canAutoPublish(
-                String((r as { kind?: string }).kind ?? "news"),
-                (r as { title?: string }).title,
-                (r as { summary?: string }).summary,
-              )
-                ? "approved"
-                : "pending",
-          }));
+          const { isSingleWoman } = await import("@/lib/cinema-topics");
+          const marked = rows.map((r) => {
+            const row = r as unknown as Record<string, unknown>;
+            const picture = isPicture(row);
+            // Pictures: a solo female-star portrait goes straight into the
+            // Glamour folder; group / unclear shots wait in the picture desk.
+            const auto = picture
+              ? isSingleWoman(
+                  String(row["title"] ?? ""),
+                  String(row["summary"] ?? ""),
+                  String(row["source_url"] ?? ""),
+                )
+              : canAutoPublish(
+                  String((r as { kind?: string }).kind ?? "news"),
+                  (r as { title?: string }).title,
+                  (r as { summary?: string }).summary,
+                );
+            return { ...r, status: auto ? "approved" : "pending" };
+          });
 
 
           if (marked.length) {

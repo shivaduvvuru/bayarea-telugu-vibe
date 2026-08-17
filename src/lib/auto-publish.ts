@@ -14,8 +14,12 @@ export function isSensitive(title?: string | null, summary?: string | null): boo
   return SENSITIVE.test(`${title ?? ""} ${summary ?? ""}`);
 }
 
-/** True when a collected item can be published straight away. */
-export function canAutoPublish(kind: string, title?: string | null, summary?: string | null) {
-  if (kind === "temple" || kind === "event") return true;
-  return !isSensitive(title, summary);
+/**
+ * True when a collected item can be published straight away.
+ * News, temple notices and events all go live without an editor — readers can
+ * like a story or dislike it, and a dislike deletes it site-wide.
+ */
+export function canAutoPublish(_kind: string, _title?: string | null, _summary?: string | null) {
+  return true;
 }
+
