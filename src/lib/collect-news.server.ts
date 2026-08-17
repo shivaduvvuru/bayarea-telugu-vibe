@@ -451,6 +451,9 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "China micro drama duanju short drama industry news",
       "US vertical micro drama series app funding audience",
       "micro drama series launch cast photos India Telugu Hindi",
+      "ReelShort OR DramaBox short drama actress photos glamour",
+      "China duanju short drama actress star photos",
+      "India micro drama heroine actress vertical series photos",
     ],
     match:
       /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|flickreels|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
