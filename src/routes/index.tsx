@@ -188,12 +188,15 @@ export const Route = createFileRoute("/")({
     // The text digest and the Glamour folder both block the first paint so the
     // two full-size hero slots are present in the server-rendered HTML and avoid
     // hydration mismatches.
+    const pocket = currentPocket();
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
-      context.queryClient.ensureQueryData(galleryQueryFor(currentPocket())),
+      context.queryClient.ensureQueryData(galleryQueryFor(pocket)),
     ]);
+    return { pocket };
   },
+
 
   head: () => ({
     meta: [
