@@ -57,7 +57,14 @@ export function useFavoritePhotos() {
   const [list, setList] = useState<FavoritePhoto[]>([]);
 
   useEffect(() => {
-    const sync = () => setList(read());
+    const sync = () => {
+      const next = read();
+      setList((prev) =>
+        prev.length === next.length && prev.every((p, i) => p.slug === next[i]?.slug)
+          ? prev
+          : next,
+      );
+    };
     sync();
     return subscribe(sync);
   }, []);
@@ -70,6 +77,7 @@ export function useFavoritePhotos() {
 
   return { favorites: list, remove, clear };
 }
+
 
 /** Favorite state for one photo. */
 export function useFavoritePhoto(article: Article | FavoritePhoto) {
