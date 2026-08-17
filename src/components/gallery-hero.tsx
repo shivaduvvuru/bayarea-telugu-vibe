@@ -65,6 +65,7 @@ export function GalleryHero({
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
   const [history, setHistory] = useState<Set<string>>(new Set());
 
+  // All hooks must run before any early return to keep hook order stable.
   useEffect(() => {
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
@@ -75,14 +76,18 @@ export function GalleryHero({
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
-  const eligible = (a: Article) => {
+
+  const baseEligible = (a: Article) => {
     const picture = galleryImage(a.image);
-    if (!picture || failedPictures.includes(picture) || used.has(picture) || history.has(picture)) {
-      return false;
-    }
+    if (!picture || failedPictures.includes(picture) || used.has(picture)) return false;
     if (seen.has(picture)) return false;
     seen.add(picture);
     return true;
+  };
+
+  const eligible = (a: Article) => {
+    const picture = galleryImage(a.image);
+    return baseEligible(a) && !history.has(picture ?? "");
   };
 
   // Full-size slots only carry solo-woman portraits; landscape frames and
@@ -91,18 +96,16 @@ export function GalleryHero({
     (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
   );
   if (withPictures.length < 2) {
-    // History has covered too much of a small pool: reset and try again.
-    if (history.size > 0) setHistory(new Set());
+    // History has covered too much of a small pool; ignore it for now.
     seen.clear();
     withPictures = items.filter(
-      (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
+      (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && baseEligible(a),
     );
   }
   if (withPictures.length === 0) {
     seen.clear();
-    withPictures = items.filter(eligible);
+    withPictures = items.filter(baseEligible);
   }
-  if (withPictures.length === 0) return null;
 
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
   // read position also walks forward, so the slot keeps drawing a different
@@ -110,17 +113,18 @@ export function GalleryHero({
   // Slots of the same cycle share the shuffle, so two heroes on screen never
   // land on the same photo.
   const cycle = slot - offset;
-  const order = seededOrder(withPictures.length, cycle);
-  const pick = ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length;
+  const order = seededOrder(withPictures.length || 1, cycle);
+  const pick = withPictures.length
+    ? ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length
+    : 0;
   const index = order[pick]!;
-  const article = withPictures[index] ?? withPictures[0];
-  if (!article) return null;
-  const picture = galleryImage(article.image);
-  if (!picture) return null;
-  const position = items.findIndex((a) => a.slug === article.slug);
+  const article = withPictures[index] ?? null;
+  const picture = article ? galleryImage(article.image) : null;
+  const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
 
-  // Remember the picked photo so the same hero doesn't repeat it again quickly.
+  // Remember the picked photo so this hero doesn't repeat it again quickly.
   useEffect(() => {
+    if (!picture) return;
     setHistory((prev) => {
       if (prev.has(picture)) return prev;
       const next = new Set(prev);
@@ -132,6 +136,8 @@ export function GalleryHero({
       return next;
     });
   }, [picture]);
+
+  if (withPictures.length === 0 || !article || !picture) return null;
 
   return (
     <figure
