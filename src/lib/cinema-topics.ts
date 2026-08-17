@@ -112,7 +112,7 @@ const MULTI_SUBJECT =
  * and couple/wedding framing — that let "woman with a man" shots slip through.
  */
 const MALE_PRESENT =
-  /\b(?:he|his|him|himself|husband|hubby|boyfriend|bf|beau|fiance|fianc[eé]e?|partner|groom|bridegroom|spouse|male|man|men|guy|boy|brother|bro|father|dad|son|uncle|co-?star|hero|actor|singer|director|producer|rapper|cricketer|businessman|mr\.?|sir)\b|\b(?:couple|couples|romance|romantic|dating|date night|engagement|engaged|wedding|weds|marriage|married|honeymoon|pre-?wedding|reception|anniversary|kiss|kissing|hug|hugging|lip lock|liplock|holding hands|walk hand)\b|\bwith\s+(?:her|his)\b|భర్త|ప్రియుడు|జంట|పెళ్లి|వివాహ|హీరో|నటుడు/i;
+  /\b(?:he|his|him|himself|husband|hubby|boyfriend|bf|beau|fiance|fianc[eé]e?|partner|groom|bridegroom|spouse|male|man|men|guy|boy|brother|bro|father|dad|son|uncle|co-?star|hero|actor|singer|director|producer|rapper|cricketer|businessman|mr\.?|sir)\b|\b(?:couple|couples|romance|romantic|dating|date night|engagement|engaged|wedding|weds|marriage|married|honeymoon|pre-?wedding|reception|anniversary|kiss|kissing|hug|hugging|lip lock|liplock|holding hands|walk hand)\b|\bwith\s+(?:her|his)\b|భర్త|ప్రియుడు|జంట|పెళ్లి|వివాహ|నటుడు/i;
 
 /**
  * True when a picture post reads as a solo female star portrait — the only kind
