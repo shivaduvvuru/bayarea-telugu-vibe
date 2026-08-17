@@ -12,12 +12,19 @@ type Client = {
   rpc?: unknown;
 };
 
-/** Live photos kept in the Glamour folder at any time. */
-export const GALLERY_CAPACITY = 300;
+/**
+ * The folder works in pockets: a small live pocket keeps pages fast, and the
+ * rest of the collection waits in the archive as further pockets. When the live
+ * pocket has been fully used the next pocket is called in.
+ */
+export const POCKET_SIZE = 50;
+/** Live photos kept in the Glamour folder at any time (one pocket). */
+export const GALLERY_CAPACITY = POCKET_SIZE;
 /** The folder must never hold fewer than this many live photos. */
-export const GALLERY_MINIMUM = 300;
+export const GALLERY_MINIMUM = POCKET_SIZE;
 /** Archived photos become eligible for re-entry after this many days. */
 export const ARCHIVE_COOLDOWN_DAYS = 15;
+
 
 const ARCHIVED = "archived";
 
