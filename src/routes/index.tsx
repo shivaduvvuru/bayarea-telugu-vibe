@@ -544,11 +544,17 @@ function Home() {
   // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
   // If dislikes/dedupe empty that pool, fall back to the raw picture desk so the
   // two full-size slots never vanish from the page.
-  const heroPool = galleryPool.length
-    ? galleryPool
-    : galleryItems.filter(notDislikedPicture).length
-      ? galleryItems.filter(notDislikedPicture)
-      : galleryItems;
+  // Prefer the wide background pool (up to 200 photos) so a picture that has run
+  // this week is never re-shown just because the 48-photo grid window is small.
+  const widePool = heroItems.filter(notDislikedPicture);
+  const heroPool = widePool.length
+    ? widePool
+    : galleryPool.length
+      ? galleryPool
+      : galleryItems.filter(notDislikedPicture).length
+        ? galleryItems.filter(notDislikedPicture)
+        : galleryItems;
+
 
   // Every slot shares one pool and one per-cycle shuffle, stepping through it by
   // its slot number — that is what keeps the two full-size pictures different
