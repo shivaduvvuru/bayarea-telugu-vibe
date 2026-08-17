@@ -96,15 +96,20 @@ const cityNewsQuery = queryOptions({
  * Kept on a short cache so newly collected star photos show up on the next visit
  * instead of sitting behind a half-hour snapshot.
  */
-const galleryQuery = queryOptions({
-  queryKey: ["wp", "posts", "gallery", "home"],
-  // Deep pool: the home column shows a rotating window of six, so tapping
-  // "Refresh gallery" always moves on to different photos.
-  // Pool trimmed to 48: a deeper read made the first paint wait on a much
-  // larger payload without adding visible variety.
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
-  staleTime: 5 * 60 * 1000,
-});
+/** The 48-picture Glamour pocket is swapped for a fresh one three times a day. */
+export const GALLERY_POCKET_MS = 8 * 60 * 60 * 1000;
+/** Which 8-hour pocket we are in (same value on server and client). */
+const currentPocket = () => Math.floor(Date.now() / GALLERY_POCKET_MS);
+
+const galleryQueryFor = (pocket: number) =>
+  queryOptions({
+    // The pocket number is part of the key, so a brand new window of photos is
+    // read three times a day while each pocket itself stays cached.
+    queryKey: ["wp", "posts", "gallery", "home", pocket],
+    queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
+    staleTime: GALLERY_POCKET_MS,
+  });
+
 
 /**
  * Home-state desk: Telangana / Hyderabad and Andhra / Amaravati coverage,
