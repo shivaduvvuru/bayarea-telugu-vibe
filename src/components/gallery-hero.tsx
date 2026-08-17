@@ -57,15 +57,18 @@ export function GalleryHero({
   className?: string;
 }) {
   const [slot, setSlot] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
 
   useEffect(() => {
+    setMounted(true);
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 5_000);
+    const id = window.setInterval(() => setSlot(current()), 2_000);
     return () => window.clearInterval(id);
   }, [items.length, offset]);
+
 
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
