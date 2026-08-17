@@ -46,7 +46,7 @@ const ENTERTAINMENT_URL =
 
 
 /** Hard news cues — never a glamour picture post, whatever the URL says. */
-const NEWSY =
+const NEWSY = /* newsy */ 
   /\b(?:arrest|police|court|case filed|fir\b|murder|rape|assault|dies|died|death|passes away|obituar|accident|crash|fire|flood|earthquake|protest|election|minister|politic|court order|traffic|weather|covid|scam|fraud|suicide|hospital|verdict|petition|bandh|strike|war|attack|shooting|backlash|slams|controvers|lawsuit|feud|apolog)\b|ట్రాఫిక్|అరెస్ట్|కేసు|మృతి|ప్రమాదం|ఎన్నికల/i;
 
 
@@ -90,8 +90,10 @@ export function isStarGallery(
     (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));
   const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
-  // Strictly no men in Glamourie: any male-subject cue disqualifies the post.
-  if (MALE_SUBJECT.test(text)) return false;
+  // A male-only post is not a picture candidate. When a female artist is also
+  // named, keep the post for editorial review; isSingleWoman still rejects it,
+  // so a couple/group image can never auto-publish into Glamour.
+  if (MALE_SUBJECT.test(text) && !FEMALE_SUBJECT.test(text)) return false;
   // Glamourie is a female-artist picture desk (Tollywood, Mollywood, Kollywood,
   // Sandalwood, Bollywood, Hollywood). Either a named heroine or a clear
   // female-subject cue has to be present.

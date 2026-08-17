@@ -32,12 +32,13 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
-              | { image?: string | null; review_type?: string | null }
+               | { image?: string | null; review_type?: string | null; gallery?: boolean }
               | undefined;
             const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
-              (payload?.review_type === "picture" ||
+               (payload?.review_type === "picture" ||
+                 payload?.gallery === true ||
                 isStarGallery(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),
@@ -56,7 +57,10 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // faster rotation window, so the whole desk list is read every few
           // minutes instead of every couple of hours.
           const sliceSize = 14;
-          const baseSlice = Math.floor(Date.now() / (5 * 60 * 1000));
+          // The hook runs every minute. Advance on every run instead of reading
+          // the same desks five times; a complete source rotation now finishes
+          // in roughly five minutes while dedupe still prevents repeats.
+          const baseSlice = Math.floor(Date.now() / (60 * 1000));
           let newsPool = galleryOnly ? [] : await collectAll(process.env["LOVABLE_API_KEY"]);
           let picturePool = await collectGallery(process.env["LOVABLE_API_KEY"], {
             slice: baseSlice,
