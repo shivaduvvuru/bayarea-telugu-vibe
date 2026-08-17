@@ -99,10 +99,16 @@ export const Route = createFileRoute("/category/$category")({
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
   const { data: allArticles } = useSuspenseQuery(postsQuery(cat.slug));
-  const { hidden } = useHiddenPhotos();
-  // Disliked pictures are dropped from the picture desk.
+  const { hidden, hiddenImages } = useHiddenPhotos();
+  // Disliked pictures are dropped from the picture desk — by slug and by picture
+  // URL, so a re-collected copy of the same photo never comes back.
   const articles =
-    cat.slug === "gallery" ? allArticles.filter((a) => !hidden.includes(a.slug)) : allArticles;
+    cat.slug === "gallery"
+      ? allArticles.filter(
+          (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
+        )
+      : allArticles;
+
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   return (
