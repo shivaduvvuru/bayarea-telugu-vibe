@@ -186,7 +186,7 @@ export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     // Only the text digest blocks the first paint. The Glamour folder is warmed
     // in the background so pictures never delay the headlines.
-    void context.queryClient.prefetchQuery(galleryQuery);
+    void context.queryClient.prefetchQuery(galleryQueryFor(currentPocket()));
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
