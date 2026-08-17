@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Article } from "@/lib/content";
@@ -8,6 +9,10 @@ import { PhotoActions } from "@/components/photo-actions";
  * Full-screen picture viewer for the Gallery grid.
  * Keyboard (arrows / Esc), on-screen arrows and swipe move between photos so
  * readers can browse the set without going back to the grid each time.
+ *
+ * Rendered through a portal on <body>: inside the page tree an animated
+ * ancestor (transform) became the containing block for `position: fixed`, so
+ * the viewer opened as a small box over a dark strip instead of full screen.
  */
 export function GalleryLightbox({
   items,
@@ -22,13 +27,27 @@ export function GalleryLightbox({
 }) {
   const article = items[index];
   const touchX = useRef<number | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [failed, setFailed] = useState<string[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+  useEffect(() => setLoaded(false), [index]);
 
   const go = useCallback(
     (delta: number) => {
-      const next = (index + delta + items.length) % items.length;
+      if (items.length === 0) return;
+      // Walk past photos whose source refused to load so paging never lands
+      // on an empty black frame.
+      let next = index;
+      for (let step = 0; step < items.length; step++) {
+        next = (next + delta + items.length) % items.length;
+        const src = items[next]?.image;
+        if (!src || !failed.includes(src)) break;
+      }
       onIndexChange(next);
     },
-    [index, items.length, onIndexChange],
+    [failed, index, items, onIndexChange],
   );
 
   useEffect(() => {
@@ -57,14 +76,24 @@ export function GalleryLightbox({
     });
   }, [index, items]);
 
-  if (!article) return null;
+  const broken = useMemo(
+    () => Boolean(article?.image && failed.includes(article.image)),
+    [article?.image, failed],
+  );
 
-  return (
+  // The current photo turned out to be unreachable: move to the next one.
+  useEffect(() => {
+    if (broken) go(1);
+  }, [broken, go]);
+
+  if (!article || !mounted) return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label={article.title}
-      className="fixed inset-0 z-[100] flex flex-col bg-black/95"
+      className="fixed inset-0 z-[200] flex flex-col bg-black"
       onClick={onClose}
       onTouchStart={(e) => {
         touchX.current = e.touches[0]?.clientX ?? null;
@@ -106,16 +135,31 @@ export function GalleryLightbox({
         >
           <ChevronLeft className="h-6 w-6" aria-hidden />
         </button>
-        {article.image ? (
-          <img
-            key={article.image}
-            src={article.image}
-            alt={article.title}
-            decoding="async"
-            referrerPolicy="no-referrer-when-downgrade"
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-full max-w-full object-contain"
-          />
+        {article.image && !broken ? (
+          <>
+            {!loaded && (
+              <span className="absolute text-xs font-semibold text-white/60">Loading picture…</span>
+            )}
+            <img
+              key={article.image}
+              src={article.image}
+              alt={article.title}
+              decoding="async"
+              referrerPolicy="no-referrer-when-downgrade"
+              onLoad={() => setLoaded(true)}
+              onError={() =>
+                setFailed((current) =>
+                  article.image && !current.includes(article.image)
+                    ? [...current, article.image]
+                    : current,
+                )
+              }
+              onClick={(e) => e.stopPropagation()}
+              className={`max-h-full max-w-full object-contain transition-opacity ${
+                loaded ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          </>
         ) : (
           <p className="max-w-md text-center text-white">{article.title}</p>
         )}
@@ -132,10 +176,7 @@ export function GalleryLightbox({
         </button>
       </div>
 
-      <div
-        className="px-4 pb-5 pt-3 text-white"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="px-4 pb-5 pt-3 text-white" onClick={(e) => e.stopPropagation()}>
         <p className="text-sm font-semibold leading-snug">{article.title}</p>
         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/70">
           {article.sourceName && (
@@ -165,6 +206,7 @@ export function GalleryLightbox({
           </Link>
         </p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
