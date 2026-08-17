@@ -65,7 +65,8 @@ const FEMALE_SUBJECT =
  * MALE_SUBJECT above.
  */
 const FEMALE_GENERIC =
-  /\b(?:she|her|hers|girl|girls|woman|women|lady|ladies|bride|bridal|queen|princess|diva|beauty|babe|belle|dulhan|bhama|sundari|glam|glamour|glamorous|saree|sari|lehenga|salwar|anarkali|gown|bikini|swimsuit|photoshoot)\b|అమ్మాయి|భామ|సుందరి|అందాలు|తార|పెళ్లికూతురు|நடிகை|பெண்|നടി|പെൺ|ನಟಿ|ಹುಡುಗಿ/i;
+  /\b(?:she|her|hers|girl|girls|woman|women|lady|ladies|bride|bridal|queen|princess|diva|beauty|babe|belle|dulhan|bhama|sundari|glam|glamour|glamorous|saree|sari|lehenga|salwar|anarkali|gown|bikini|swimsuit|photoshoot|model|supermodel|influencer|creator|anchor|dancer|singer|miss\b)\b|అమ్మాయి|భామ|సుందరి|అందాలు|తార|పెళ్లికూతురు|நடிகை|பெண்|നടി|പെൺ|ನಟಿ|ಹುಡುಗಿ/i;
+
 
 /**
  * True for heroine / female-star photo features that belong in Gallery.
