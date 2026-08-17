@@ -104,6 +104,19 @@ const currentPocket = () => Math.floor(Date.now() / GALLERY_POCKET_MS);
 /** How many 48-photo windows of the folder the pockets walk through. */
 const GALLERY_WINDOWS = 3;
 
+/**
+ * Wide pool used only by the full-size slots: a week of no-repeat rotation needs
+ * far more than the 48 photos the grid shows. Loaded in the background, so it
+ * never delays the first paint.
+ */
+const heroGalleryQuery = queryOptions({
+  queryKey: ["wp", "posts", "gallery", "heroes"],
+  queryFn: (): Promise<Article[]> =>
+    listPosts({ data: { category: "gallery", perPage: 200, compact: true } }) as Promise<Article[]>,
+  staleTime: GALLERY_POCKET_MS,
+});
+
+
 const galleryQueryFor = (pocket: number) =>
   queryOptions({
     // The pocket number is part of the key, so a brand new window of photos is
