@@ -833,6 +833,33 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 10,
   },
+  // Micro-drama leading ladies: the women fronting vertical series in the US,
+  // India and China, with photo-led coverage for the Micro-Drama section.
+  {
+    name: "US vertical drama actresses",
+    url: "https://news.google.com/rss/search?q=(ReelShort+OR+%22short+drama%22+OR+%22vertical+drama%22+OR+Holywater+OR+FlickReels)+(actress+OR+%22leading+lady%22+OR+%22female+lead%22+OR+star)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "India micro-drama heroines",
+    url: "https://news.google.com/rss/search?q=(India+OR+Telugu+OR+Hindi+OR+Tamil)+(%22micro+drama%22+OR+%22short+drama%22+OR+%22vertical+series%22+OR+%22Flick+TV%22+OR+%22Kuku+TV%22+OR+ShareChat)+(actress+OR+heroine+OR+glamour)+when:30d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "China duanju actresses",
+    url: "https://news.google.com/rss/search?q=(duanju+OR+%22short+drama%22+OR+%22micro+drama%22+OR+DramaBox+OR+GoodShort+OR+ShortMax)+(China+OR+Chinese)+(actress+OR+star+OR+%22leading+lady%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Micro-drama stars (Bing)",
+    url: "https://www.bing.com/news/search?q=(%22short+drama%22+OR+%22micro+drama%22+OR+duanju+OR+ReelShort+OR+DramaBox)+(actress+OR+heroine+OR+glamour)&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+
   {
     name: "Short drama apps (Bing)",
     url: "https://www.bing.com/news/search?q=ReelShort+OR+DramaBox+OR+GoodShort+OR+ShortMax+OR+%22Flick+TV%22+OR+Vigloo&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
