@@ -100,7 +100,7 @@ const galleryQuery = queryOptions({
   queryKey: ["wp", "posts", "gallery", "home"],
   // Deep pool: the home column shows a rotating window of six, so tapping
   // "Refresh gallery" always moves on to different photos.
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 96, compact: true } }),
   staleTime: 60 * 1000,
   refetchOnMount: "always",
 });
@@ -477,6 +477,10 @@ function Home() {
     ...pinned,
     ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
   ];
+  // The full-size heroes draw from the WHOLE Glamour folder, not just the six
+  // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
+  const heroPool = galleryPool;
+
 
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
   const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
