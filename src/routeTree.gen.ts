@@ -24,6 +24,7 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
+import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
 import { Route as LiteRouteImport } from './routes/lite'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
@@ -118,6 +119,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const FoundationIconsRoute = FoundationIconsRouteImport.update({
   id: '/foundation-icons',
   path: '/foundation-icons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlamourDashboardRoute = GlamourDashboardRouteImport.update({
+  id: '/glamour-dashboard',
+  path: '/glamour-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiteRoute = LiteRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
+  '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
+  '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
+  '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/foundation-icons'
+    | '/glamour-dashboard'
     | '/lite'
     | '/people'
     | '/politics'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/foundation-icons'
+    | '/glamour-dashboard'
     | '/lite'
     | '/people'
     | '/politics'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/foundation-icons'
+    | '/glamour-dashboard'
     | '/lite'
     | '/people'
     | '/politics'
@@ -470,6 +482,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
+  GlamourDashboardRoute: typeof GlamourDashboardRoute
   LiteRoute: typeof LiteRoute
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
@@ -593,6 +606,13 @@ declare module '@tanstack/react-router' {
       path: '/foundation-icons'
       fullPath: '/foundation-icons'
       preLoaderRoute: typeof FoundationIconsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glamour-dashboard': {
+      id: '/glamour-dashboard'
+      path: '/glamour-dashboard'
+      fullPath: '/glamour-dashboard'
+      preLoaderRoute: typeof GlamourDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lite': {
@@ -789,6 +809,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   FoundationIconsRoute: FoundationIconsRoute,
+  GlamourDashboardRoute: GlamourDashboardRoute,
   LiteRoute: LiteRoute,
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
