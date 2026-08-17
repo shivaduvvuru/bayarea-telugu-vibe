@@ -63,7 +63,7 @@ export function GalleryHero({
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 1_000);
+    const id = window.setInterval(() => setSlot(current()), 5_000);
     return () => window.clearInterval(id);
   }, [items.length, offset]);
 

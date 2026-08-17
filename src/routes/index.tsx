@@ -390,13 +390,15 @@ function Home() {
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   // Same picture desk used in /category/gallery.
-  const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
+  // Non-blocking: pictures stream in after the headlines are on screen.
+  const { data: galleryItems = [] } = useQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
-  // The Glamour grid runs continuously too: it shuffles every 20 seconds, so the
-  // folder keeps moving without waiting for the "Refresh gallery" button.
+  // The Glamour grid keeps moving on its own. It shuffles once a minute (the
+  // full-size hero slots still change every 20s) so the page isn't re-rendering
+  // the whole digest every few seconds.
   useEffect(() => {
-    const id = window.setInterval(() => setGalleryPage((p) => p + 1), 20_000);
+    const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
     return () => window.clearInterval(id);
   }, []);
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
