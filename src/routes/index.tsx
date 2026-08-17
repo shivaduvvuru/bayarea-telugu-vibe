@@ -436,6 +436,9 @@ function Home() {
     return () => window.clearInterval(id);
   }, []);
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
+  // Background-only: the wide hero pool loads after paint.
+  const { data: heroItems = [] } = useQuery(heroGalleryQuery);
+
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // Photo currently held by each full-size slot, keyed by slot number.
