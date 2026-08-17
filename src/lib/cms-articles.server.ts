@@ -141,8 +141,13 @@ function base() {
 }
 
 /** Published stories for a category/city slug (or everything when omitted). */
-export async function cmsPosts(category: string | undefined, limit: number): Promise<Article[]> {
+export async function cmsPosts(
+  category: string | undefined,
+  limit: number,
+  page = 0,
+): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
+
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
     // The pool has to be wide: most rows filed to a Bay Area city are India or
@@ -218,7 +223,13 @@ export async function cmsPosts(category: string | undefined, limit: number): Pro
     const auto = rows.filter(
       (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
     );
-    return dedupeArticles([...pickedRows, ...auto].map(toArticle)).slice(0, limit);
+    // `page` walks a window through the whole picture folder, so a later read
+    // returns photos the reader has not been shown yet instead of the same
+    // newest batch. Falls back to the first window once the folder runs out.
+    const all = dedupeArticles([...pickedRows, ...auto].map(toArticle));
+    const from = page * limit;
+    return from < all.length ? all.slice(from, from + limit) : all.slice(0, limit);
+
   }
   if (category === "india-news") {
     return dedupeArticles(

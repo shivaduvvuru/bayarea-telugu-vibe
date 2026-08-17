@@ -20,19 +20,25 @@ async function ownStore<T>(read: () => Promise<T>, empty: T): Promise<T> {
 }
 
 export const listPosts = createServerFn({ method: "GET" })
-  .inputValidator((input: { category?: string; perPage?: number; compact?: boolean }) => ({
-    category: input?.category,
-    perPage: Math.min(Math.max(input?.perPage ?? 12, 1), 40),
-    compact: input?.compact === true,
-  }))
+  .inputValidator(
+    (input: { category?: string; perPage?: number; compact?: boolean; page?: number }) => ({
+      category: input?.category,
+      perPage: Math.min(Math.max(input?.perPage ?? 12, 1), 48),
+      compact: input?.compact === true,
+      // Which window of the desk to read: the Glamour slots walk through the
+      // whole folder instead of always re-reading the newest photos.
+      page: Math.min(Math.max(Math.trunc(input?.page ?? 0), 0), 20),
+    }),
+  )
   .handler(async ({ data }): Promise<Article[]> => {
     const { cmsPosts } = await import("./cms-articles.server");
     const posts = await ownStore(
-      () => cmsPosts(data.category, data.perPage),
+      () => cmsPosts(data.category, data.perPage, data.page),
       [] as Article[],
     );
     return data.compact ? posts.map((post) => ({ ...post, html: "" })) : posts;
   });
+
 
 export const getPostBySlug = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => ({ slug: String(input.slug).slice(0, 200) }))

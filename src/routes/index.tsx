@@ -101,15 +101,28 @@ export const GALLERY_POCKET_MS = 8 * 60 * 60 * 1000;
 /** Which 8-hour pocket we are in (same value on server and client). */
 const currentPocket = () => Math.floor(Date.now() / GALLERY_POCKET_MS);
 
+/** How many 48-photo windows of the folder the pockets walk through. */
+const GALLERY_WINDOWS = 3;
+
 const galleryQueryFor = (pocket: number) =>
   queryOptions({
     // The pocket number is part of the key, so a brand new window of photos is
     // read three times a day while each pocket itself stays cached.
     queryKey: ["wp", "posts", "gallery", "home", pocket],
     queryFn: (): Promise<Article[]> =>
-      listPosts({ data: { category: "gallery", perPage: 48, compact: true } }) as Promise<Article[]>,
+      listPosts({
+        data: {
+          category: "gallery",
+          perPage: 48,
+          compact: true,
+          // Each pocket reads a different slice of the folder, so photos already
+          // shown this week are not simply re-read as the newest 48 again.
+          page: ((pocket % GALLERY_WINDOWS) + GALLERY_WINDOWS) % GALLERY_WINDOWS,
+        },
+      }) as Promise<Article[]>,
     staleTime: GALLERY_POCKET_MS,
   });
+
 
 
 /**
