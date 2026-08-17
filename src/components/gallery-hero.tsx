@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { Images } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
@@ -8,6 +10,11 @@ import { useFavoritePhotos } from "@/lib/photo-favorites";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 import { markShown, shownAt, shownThisWeek } from "@/lib/photo-history";
+import { swapGlamourPocket } from "@/lib/gallery-pocket.functions";
+
+/** Client-side guard so several slots cannot ask for a new pocket at once. */
+let lastPocketRequest = 0;
+
 
 /** The slots run continuously: a new picture takes the slot every 20 seconds. */
 const ROTATE_MS = 20_000;
