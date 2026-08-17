@@ -514,7 +514,14 @@ function Home() {
   ];
   // The full-size heroes draw from the WHOLE Glamour folder, not just the six
   // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
-  const heroPool = galleryPool;
+  // If dislikes/dedupe empty that pool, fall back to the raw picture desk so the
+  // two full-size slots never vanish from the page.
+  const heroPool = galleryPool.length
+    ? galleryPool
+    : galleryItems.filter(notDislikedPicture).length
+      ? galleryItems.filter(notDislikedPicture)
+      : galleryItems;
+
 
 
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
