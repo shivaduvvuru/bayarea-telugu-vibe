@@ -612,12 +612,7 @@ function Home() {
                   <div key={a.slug}>
                     <Row a={a} />
                     {heroHere ? (
-                      <GalleryHero
-                        items={heroPool}
-                        onOpen={setViewerIndex}
-                        offset={heroSlot}
-                        className="my-4"
-                      />
+                      <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
                   </div>
                 );
