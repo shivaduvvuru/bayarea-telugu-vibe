@@ -7,9 +7,9 @@ import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 
-/** A new picture takes the slot every five minutes. */
-const ROTATE_MS = 5 * 60 * 1000;
-/** Later slots change 2.5 minutes after the one above them. */
+/** The slots run continuously: a new picture takes the slot every 20 seconds. */
+const ROTATE_MS = 20_000;
+/** Later slots change halfway through the cycle, 10s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
@@ -63,7 +63,7 @@ export function GalleryHero({
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 15_000);
+    const id = window.setInterval(() => setSlot(current()), 1_000);
     return () => window.clearInterval(id);
   }, [items.length, offset]);
 
