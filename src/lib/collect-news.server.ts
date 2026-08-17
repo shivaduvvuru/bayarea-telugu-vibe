@@ -1792,7 +1792,15 @@ export async function collectGallery(
   const size = Math.max(1, opts?.sliceSize ?? all.length);
   const slices = Math.max(1, Math.ceil(all.length / size));
   const start = ((opts?.slice ?? 0) % slices) * size;
-  const feeds = size >= all.length ? all : all.slice(start, start + size);
+  // Wrap the tail onto the start of the source list. With 57 desks and a
+  // 14-desk slice, the old final slice contained only one desk and produced
+  // the recurring low-intake runs seen by the editor.
+  const feeds =
+    size >= all.length
+      ? all
+      : Array.from({ length: Math.min(size, all.length) }, (_, index) =>
+          all[(start + index) % all.length],
+        ).filter((feed): feed is (typeof all)[number] => !!feed);
   const rows: CollectedItem[] = [];
   for (let b = 0; b < feeds.length; b += 6) {
     const batches = await Promise.all(
