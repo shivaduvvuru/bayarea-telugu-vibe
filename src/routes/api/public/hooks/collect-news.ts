@@ -62,12 +62,18 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const minimumPictures = 12;
 
           let healthAttempts = 1;
+          // Hard time budget: the retry loop used to keep re-reading the feeds
+          // until the whole request was killed by the platform, which is why
+          // hourly full-news runs failed and the approved backlog never flushed.
+          const startedAt = Date.now();
+          const withinBudget = () => Date.now() - startedAt < 90 * 1000;
           const poolCounts = () => ({
             news: newsPool.filter((r) => r.kind === "news" && !isPicture(r as unknown as Record<string, unknown>)).length,
             pictures: picturePool.filter((r) => isPicture(r as unknown as Record<string, unknown>)).length,
           });
           while (
             healthAttempts < 4 &&
+            withinBudget() &&
             (poolCounts().news < minimumNews || poolCounts().pictures < minimumPictures)
           ) {
             await new Promise((resolve) => setTimeout(resolve, 300 * healthAttempts));
@@ -198,6 +204,14 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           {
             const { deskRowToIngest } = await import("@/lib/desk-publish.server");
             const { ingest } = await import("@/lib/cms.server");
+            const { errorMessage } = await import("@/lib/error-message");
+            // News, events and temple notices publish without editor approval,
+            // so any legacy rows still sitting as "pending" are released here.
+            await supabaseAdmin
+              .from("digest_queue")
+              .update({ status: "approved" })
+              .eq("status", "pending")
+              .in("kind", ["news", "event", "temple"]);
             // Every approved row that has not gone out yet — the ones just
             // auto-approved plus anything an editor approved in the desk.
             const { data: queued } = await supabaseAdmin
@@ -207,9 +221,13 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               .neq("upload_status", "sent")
               .limit(500);
             const batch = (queued ?? []) as unknown as Record<string, unknown>[];
-            if (batch.length) {
+            // Published in small chunks: one malformed row used to fail the
+            // whole 500-row insert, so the entire approved backlog stayed stuck.
+            for (let i = 0; i < batch.length; i += 25) {
+              const chunk = batch.slice(i, i + 25);
+              const ids = chunk.map((r) => String(r["item_id"]));
               try {
-                await ingest(batch.map(deskRowToIngest));
+                await ingest(chunk.map(deskRowToIngest));
                 await supabaseAdmin
                   .from("digest_queue")
                   .update({
@@ -217,20 +235,15 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
                     uploaded_at: new Date().toISOString(),
                     error: null,
                   })
-                  .in(
-                    "item_id",
-                    batch.map((r) => String(r["item_id"])),
-                  );
-                publishedCount = batch.length;
+                  .in("item_id", ids);
+                publishedCount += chunk.length;
               } catch (e) {
-                const message = e instanceof Error ? e.message : String(e);
+                const message = errorMessage(e);
+                console.error("publish chunk failed", message);
                 await supabaseAdmin
                   .from("digest_queue")
                   .update({ upload_status: "failed", error: message })
-                  .in(
-                    "item_id",
-                    batch.map((r) => String(r["item_id"])),
-                  );
+                  .in("item_id", ids);
               }
             }
           }
@@ -310,7 +323,8 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           } as never);
           return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
-          const message = e instanceof Error ? e.message : String(e);
+          const { errorMessage } = await import("@/lib/error-message");
+          const message = errorMessage(e);
           console.error("collect-news failed", message);
           try {
             await supabaseAdmin
