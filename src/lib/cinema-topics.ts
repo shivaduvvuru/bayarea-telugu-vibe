@@ -90,8 +90,10 @@ export function isStarGallery(
     (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));
   const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
-  // Strictly no men in Glamourie: any male-subject cue disqualifies the post.
-  if (MALE_SUBJECT.test(text)) return false;
+  // A male-only post is not a picture candidate. When a female artist is also
+  // named, keep the post for editorial review; isSingleWoman still rejects it,
+  // so a couple/group image can never auto-publish into Glamour.
+  if (MALE_SUBJECT.test(text) && !FEMALE_SUBJECT.test(text)) return false;
   // Glamourie is a female-artist picture desk (Tollywood, Mollywood, Kollywood,
   // Sandalwood, Bollywood, Hollywood). Either a named heroine or a clear
   // female-subject cue has to be present.
