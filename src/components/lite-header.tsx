@@ -22,8 +22,8 @@ const RAIL = [
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
-  { to: "/associations", label: "Associations" },
-  { to: "/connect", label: "Community" },
+  { to: "/associations", label: "Associations & Community" },
+  { to: "/connect", label: "Services" },
   { to: "/forums", label: "Forums" },
 ] as const;
 
