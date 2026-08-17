@@ -106,6 +106,19 @@ export function GalleryHero({
     seen.clear();
     withPictures = items.filter(baseEligible);
   }
+  if (withPictures.length === 0) {
+    // Last resort: the reader has hidden or the browser has failed everything
+    // eligible. The full-size slot must never disappear, so fall back to any
+    // Glamour picture we have, ignoring history, failures and page exclusions.
+    seen.clear();
+    withPictures = items.filter((a) => {
+      const picture = galleryImage(a.image);
+      if (!picture || seen.has(picture)) return false;
+      seen.add(picture);
+      return true;
+    });
+  }
+
 
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
   // read position also walks forward, so the slot keeps drawing a different
