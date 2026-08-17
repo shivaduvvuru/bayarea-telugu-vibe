@@ -311,10 +311,9 @@ function DeskWorkspace({
 
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
-    // Pictures get their own tab; the news tab keeps only text stories.
+    // Pictures get their own tab; text news never reaches the desk.
     if (kind === "picture" && !isPictureItem(i)) return false;
-    if (kind === "news" && (i.kind !== "news" || isPictureItem(i))) return false;
-    if (kind !== "all" && kind !== "picture" && kind !== "news" && i.kind !== kind) return false;
+    if (kind !== "all" && kind !== "picture" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
     return true;
