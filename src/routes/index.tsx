@@ -412,6 +412,8 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // Photo currently held by each full-size slot, keyed by slot number.
+  const [heroPicks, setHeroPicks] = useState<Record<number, string>>({});
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
   // full-size hero slots change faster) so the page isn't re-rendering the
   // whole digest every few seconds.
