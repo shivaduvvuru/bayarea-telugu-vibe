@@ -5,6 +5,7 @@ import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
+import { isSingleWoman } from "@/lib/cinema-topics";
 
 /** A new picture takes the slot every five minutes. */
 const ROTATE_MS = 5 * 60 * 1000;
