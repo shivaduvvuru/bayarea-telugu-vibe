@@ -42,7 +42,8 @@ const PHOTO_DESK_URL =
 
 /** The photo section has to sit on an entertainment desk, not city/politics. */
 const ENTERTAINMENT_URL =
-  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|fashion|lifestyle|beauty/i;
+  /entertainment|celeb|movie|cinema|film|bollywood|tollywood|kollywood|hollywood|tv-shows|television|web-?series|ott|streaming|netflix|prime-?video|hotstar|reelshort|dramabox|micro-?drama|short-?drama|fashion|lifestyle|beauty|style|glamour|photos?-?of-?the-?day|instagram|social|influencer|model/i;
+
 
 /** Hard news cues — never a glamour picture post, whatever the URL says. */
 const NEWSY =
@@ -65,7 +66,8 @@ const FEMALE_SUBJECT =
  * MALE_SUBJECT above.
  */
 const FEMALE_GENERIC =
-  /\b(?:she|her|hers|girl|girls|woman|women|lady|ladies|bride|bridal|queen|princess|diva|beauty|babe|belle|dulhan|bhama|sundari|glam|glamour|glamorous|saree|sari|lehenga|salwar|anarkali|gown|bikini|swimsuit|photoshoot)\b|అమ్మాయి|భామ|సుందరి|అందాలు|తార|పెళ్లికూతురు|நடிகை|பெண்|നടി|പെൺ|ನಟಿ|ಹುಡುಗಿ/i;
+  /\b(?:she|her|hers|girl|girls|woman|women|lady|ladies|bride|bridal|queen|princess|diva|beauty|babe|belle|dulhan|bhama|sundari|glam|glamour|glamorous|saree|sari|lehenga|salwar|anarkali|gown|bikini|swimsuit|photoshoot|model|supermodel|influencer|creator|anchor|dancer|singer|miss\b)\b|అమ్మాయి|భామ|సుందరి|అందాలు|తార|పెళ్లికూతురు|நடிகை|பெண்|നടി|പെൺ|ನಟಿ|ಹುಡುಗಿ/i;
+
 
 /**
  * True for heroine / female-star photo features that belong in Gallery.

@@ -672,6 +672,46 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 5,
   },
+  // Wider glamour intake beyond film: OTT / streaming, vertical micro-drama and
+  // social-media creators. Every row still passes the picture-quality and
+  // female-subject gates, and the editor can cut anything unsuitable at the desk.
+  {
+    name: "OTT & streaming actresses",
+    url: "https://news.google.com/rss/search?q=(%22web+series%22+OR+OTT+OR+Netflix+OR+%22Prime+Video%22+OR+Hotstar+OR+ZEE5+OR+SonyLIV+OR+Aha)+(actress+OR+heroine+OR+star)+(photos+OR+pics+OR+stills+OR+gallery+OR+photoshoot+OR+%22new+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 14,
+  },
+  {
+    name: "Micro-drama actresses gallery",
+    url: "https://news.google.com/rss/search?q=(%22micro+drama%22+OR+%22vertical+drama%22+OR+%22short+drama%22+OR+ReelShort+OR+DramaBox+OR+%22mini+series%22)+(actress+OR+heroine+OR+star+OR+lead)+(photos+OR+pics+OR+stills+OR+gallery+OR+photoshoot+OR+look)+when:14d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "TV & anchor glamour",
+    url: "https://news.google.com/rss/search?q=(%22TV+actress%22+OR+%22television+actress%22+OR+anchor+OR+%22Bigg+Boss%22+OR+%22reality+show%22)+(photos+OR+pics+OR+stills+OR+gallery+OR+photoshoot+OR+%22latest+look%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Social media creators glamour",
+    url: "https://news.google.com/rss/search?q=(influencer+OR+%22content+creator%22+OR+%22Instagram+star%22+OR+%22social+media+star%22+OR+%22reels+star%22+OR+youtuber)+(actress+OR+girl+OR+woman+OR+diva+OR+model)+(photos+OR+pics+OR+photoshoot+OR+%22viral+photos%22+OR+look)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Models & fashion shoots",
+    url: "https://news.google.com/rss/search?q=(model+OR+supermodel+OR+%22fashion+shoot%22+OR+%22magazine+cover%22+OR+%22cover+shoot%22+OR+%22ramp+walk%22)+(photos+OR+pics+OR+photoshoot+OR+gallery+OR+glamour)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Dancers & performers glamour",
+    url: "https://news.google.com/rss/search?q=(dancer+OR+singer+OR+%22item+song%22+OR+%22special+song%22+OR+performer)+(actress+OR+heroine+OR+girl)+(photos+OR+pics+OR+stills+OR+gallery+OR+photoshoot)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+
   // South-Indian language star desks — Tamil, Malayalam, Kannada heroines.
   {
     name: "Kollywood heroines",
@@ -1685,6 +1725,13 @@ const GALLERY_FEED_NAMES = [
   "Sandalwood heroine names",
   "South glamour girls search",
   "South heroine photoshoot search",
+  "OTT & streaming actresses",
+  "Micro-drama actresses gallery",
+  "TV & anchor glamour",
+  "Social media creators glamour",
+  "Models & fashion shoots",
+  "Dancers & performers glamour",
+
 
   "Instagram photo dumps",
   "Social media buzz",
