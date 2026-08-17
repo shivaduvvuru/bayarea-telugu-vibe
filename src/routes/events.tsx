@@ -24,9 +24,9 @@ const eventPostsQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
 });
 
-const TITLE = "Bay Area Telugu Events Calendar — festivals, meetups & temple programs";
+const TITLE = "Bay Area Events Calendar — festivals, meetups & temple programs";
 const DESC =
-  "Verified Telugu community events across San Francisco, San Jose, Fremont and the Tri-Valley: dates, venues, ticket prices and directions.";
+  "Verified community events across San Francisco, San Jose, Fremont and the Tri-Valley: dates, venues, ticket prices and directions.";
 
 const EVENTS_URL = "https://bayarea-telugu-vibe.lovable.app/events";
 
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/events")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "ItemList",
-          name: "Bay Area Telugu community events",
+          name: "Bay Area community events",
           itemListElement: EVENTS.map((e, i) => ({
             "@type": "ListItem",
             position: i + 1,
@@ -131,7 +131,7 @@ function EventsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
       <h1 className="text-3xl font-bold text-ink">
-        {t("Bay Area Telugu Events", "బే ఏరియా తెలుగు ఈవెంట్స్")}
+        {t("Bay Area Events", "బే ఏరియా ఈవెంట్స్")}
       </h1>
       <p className="mt-2 text-base text-muted-foreground">
         {t(
