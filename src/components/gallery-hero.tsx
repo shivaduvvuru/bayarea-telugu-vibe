@@ -181,6 +181,24 @@ export function GalleryHero({
     if (picture) markShown(picture);
   }, [picture]);
 
+  // The live pocket has been fully used (every eligible photo already ran this
+  // week): ask the backend for the next archived pocket of ~50 pictures and
+  // refresh the folder. One slot does this, throttled on both sides.
+  const requestPocket = useServerFn(swapGlamourPocket);
+  const queryClient = useQueryClient();
+  const exhausted = offset === 0 && withPictures.length > 0 && !freshAll.length && !freshLiked.length;
+  useEffect(() => {
+    if (!exhausted) return;
+    if (Date.now() - lastPocketRequest < 3 * 60_000) return;
+    lastPocketRequest = Date.now();
+    void requestPocket({ data: undefined })
+      .then((res) => {
+        if (res?.restored) void queryClient.invalidateQueries({ queryKey: ["posts"] });
+      })
+      .catch(() => undefined);
+  }, [exhausted, requestPocket, queryClient]);
+
+
 
 
 
