@@ -1725,6 +1725,13 @@ const GALLERY_FEED_NAMES = [
   "Sandalwood heroine names",
   "South glamour girls search",
   "South heroine photoshoot search",
+  "OTT & streaming actresses",
+  "Micro-drama actresses gallery",
+  "TV & anchor glamour",
+  "Social media creators glamour",
+  "Models & fashion shoots",
+  "Dancers & performers glamour",
+
 
   "Instagram photo dumps",
   "Social media buzz",
