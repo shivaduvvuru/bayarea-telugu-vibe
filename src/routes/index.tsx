@@ -411,12 +411,19 @@ function Home() {
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
   const homepageSeen = new Set<string>();
-  const local = takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>());
+  // Disliked stories disappear for this reader too (editors delete them site-wide).
+  const notDisliked = <T extends { slug: string }>(list: T[]) =>
+    list.filter((a) => !hidden.includes(a.slug));
+  const local = notDisliked(
+    takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>()),
+  );
   // Prime slot leads with a Bay Area story: the strongest local stories are
   // ranked by popularity and the slot rotates through them every 15 minutes.
   // Relevance is judged on the headline and publisher only — collected rows
   // carry a blanket "Bay Area" city stamp and AI summaries echo it.
-  const leadCandidates = [...local, ...articles].filter((a) => a.category !== "gallery");
+  const leadCandidates = notDisliked(
+    [...local, ...articles].filter((a) => a.category !== "gallery"),
+  );
   const bayPool = leadCandidates.filter(
     (a) => isBayArea(a.title) || isBayAreaSource(a.sourceUrl),
   );
