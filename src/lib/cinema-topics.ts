@@ -98,3 +98,28 @@ export function isStarGallery(
 }
 
 
+
+/**
+ * Group / multi-subject cues. The Glamour folder is a single-woman picture desk:
+ * duos, "actresses who…", listicles and couple shots stay in the review desk.
+ */
+const MULTI_SUBJECT =
+  /\b(?:actresses|heroines|divas|beauties|stars|celebs|celebrities|girls|women|ladies|sisters|duo|trio|couple|couples|pair|family|together|with\s+(?:her|his)?\s*(?:husband|hubby|wife|boyfriend|co-?star|friend|mother|father|son|daughter|kids?)|and\s+(?:her|his)\b|top\s*\d+|\d+\s*(?:actresses|heroines|beauties|stars|pics|photos)\s+(?:who|that|you)|these\b|list\b|group|team|cast|event|premiere|red\s*carpet|press\s*meet|audio\s*launch|awards?)\b|&|,\s*\w+\s+(?:and|&)\s+\w+/i;
+
+/**
+ * True when a picture post reads as a solo female star portrait — the only kind
+ * that may go into the Glamour folder without an editor's approval.
+ */
+export function isSingleWoman(
+  title: string | null | undefined,
+  summary?: string | null,
+  sourceUrl?: string | null,
+): boolean {
+  if (!isStarGallery(title, summary, sourceUrl)) return false;
+  const text = `${title ?? ""} ${summary ?? ""}`;
+  if (MULTI_SUBJECT.test(text)) return false;
+  // Two or more named heroines in one headline is a group post.
+  const named = text.match(FEMALE_SUBJECT_GLOBAL);
+  if (named && new Set(named.map((n) => n.toLowerCase())).size > 1) return false;
+  return true;
+}
