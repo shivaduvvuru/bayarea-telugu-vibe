@@ -118,13 +118,29 @@ export function GalleryHero({
   const pool = liked.length > 1 && ((cycle % 2) + 2) % 2 === 0 ? liked : withPictures;
 
   const order = seededOrder(pool.length || 1, cycle);
-  // Slots step through the shared shuffle by their slot number, so two heroes
-  // in the same cycle can never land on the same photo.
-  const pick = pool.length ? (((cycle + offset) % pool.length) + pool.length) % pool.length : 0;
-  const index = order[pick]!;
-  const article = pool[index] ?? null;
-  const picture = article ? galleryImage(article.image) : null;
-  const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
+  // Slots step through the shared shuffle by their slot number. Because slots
+  // are staggered they can sit on neighbouring cycles, so also walk forward past
+  // any picture another slot currently holds — two heroes on screen never show
+  // the same photo.
+  const taken = new Set(
+    [...activePicks.entries()].filter(([key]) => key !== offset).map(([, url]) => url),
+  );
+  let article: Article | null = null;
+  let picture: string | null = null;
+  for (let step = 0; step < (pool.length || 1); step += 1) {
+    const pick = pool.length
+      ? (((cycle + offset + step) % pool.length) + pool.length) % pool.length
+      : 0;
+    const candidate = pool[order[pick]!] ?? null;
+    const candidatePicture = candidate ? galleryImage(candidate.image) : null;
+    if (!candidate || !candidatePicture) continue;
+    article = candidate;
+    picture = candidatePicture;
+    if (!taken.has(candidatePicture)) break;
+  }
+  if (picture) activePicks.set(offset, picture);
+  const position = article && picture ? items.findIndex((a) => a.slug === article!.slug) : -1;
+
 
 
   if (withPictures.length === 0 || !article || !picture) return null;
