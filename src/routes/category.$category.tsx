@@ -160,7 +160,7 @@ function CategoryPage() {
               : "No stories published in this section yet."}
           </p>
 
-        ) : cat.slug === "city-news" ? (
+        ) : cat.slug === "city-news" || cat.slug === "micro-drama" ? (
           // Illustrated local reporting leads the page; text-only stories are
           // collected underneath as short snippets instead of empty cards.
           <>
