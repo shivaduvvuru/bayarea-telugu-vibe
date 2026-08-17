@@ -13,7 +13,9 @@ type Client = {
 };
 
 /** Live photos kept in the Glamour folder at any time. */
-export const GALLERY_CAPACITY = 120;
+export const GALLERY_CAPACITY = 300;
+/** The folder must never hold fewer than this many live photos. */
+export const GALLERY_MINIMUM = 300;
 /** Archived photos become eligible for re-entry after this many days. */
 export const ARCHIVE_COOLDOWN_DAYS = 15;
 
@@ -85,14 +87,17 @@ export async function rotateGalleryFolder(
   let restored = 0;
   const room = capacity - liveCount;
   if (room > 0) {
+    // The folder must never fall below the minimum, so when it is short we
+    // ignore the cooling period and pull back the best archived photos.
+    const belowMinimum = liveCount < GALLERY_MINIMUM;
     const cutoff = new Date(Date.now() - ARCHIVE_COOLDOWN_DAYS * 86400000).toISOString();
-    const { data: archData } = await client
+    let query = client
       .from("content_items")
       .select("id,link_url,published_at,updated_at")
       .eq("category", "gallery")
-      .eq("status", ARCHIVED)
-      .lt("updated_at", cutoff)
-      .limit(500);
+      .eq("status", ARCHIVED);
+    if (!belowMinimum) query = query.lt("updated_at", cutoff);
+    const { data: archData } = await query.limit(1000);
     const pool = (archData ?? []) as Row[];
     if (pool.length) {
       const likes = await likesBySlug(client, pool.map(slugOf));
