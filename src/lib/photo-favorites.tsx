@@ -145,7 +145,12 @@ export function useHiddenPhotos() {
   const [hidden, setHidden] = useState<string[]>([]);
 
   useEffect(() => {
-    const sync = () => setHidden(readHidden());
+    const sync = () => {
+      const next = readHidden();
+      setHidden((prev) =>
+        prev.length === next.length && prev.every((s, i) => s === next[i]) ? prev : next,
+      );
+    };
     sync();
     return subscribeHidden(sync);
   }, []);
@@ -158,6 +163,7 @@ export function useHiddenPhotos() {
 
   return { hidden, restore, clear };
 }
+
 
 /** Dislike state for one photo. Disliking also drops it from favorites. */
 export function useHiddenPhoto(article: Article | FavoritePhoto) {
