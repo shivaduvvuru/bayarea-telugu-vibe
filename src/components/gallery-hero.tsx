@@ -4,6 +4,7 @@ import { Images } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
+import { useFavoritePhotos } from "@/lib/photo-favorites";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 
@@ -67,6 +68,8 @@ export function GalleryHero({
   const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
   const [history, setHistory] = useState<Set<string>>(new Set());
+  // Photos the reader hearted, so the slots can bring them back.
+  const { favorites } = useFavoritePhotos();
 
   // All hooks must run before any early return to keep hook order stable.
   useEffect(() => {
@@ -122,19 +125,24 @@ export function GalleryHero({
     });
   }
 
-
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
   // read position also walks forward, so the slot keeps drawing a different
   // photo out of the Glamour folder instead of settling on a few favourites.
   // Slots of the same cycle share the shuffle, so two heroes on screen never
   // land on the same photo.
   const cycle = slot - offset;
-  const order = seededOrder(withPictures.length || 1, cycle);
-  const pick = withPictures.length
-    ? ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length
-    : 0;
+
+  // Pictures the reader hearted come back into the full-size slots: every other
+  // cycle draws from the liked set (when there is one) before going back to the
+  // wider Glamour folder.
+  const likedSlugs = new Set(favorites.map((p) => p.slug));
+  const liked = withPictures.filter((a) => likedSlugs.has(a.slug));
+  const pool = liked.length && ((cycle % 2) + 2) % 2 === 0 ? liked : withPictures;
+
+  const order = seededOrder(pool.length || 1, cycle);
+  const pick = pool.length ? (((cycle + offset) % pool.length) + pool.length) % pool.length : 0;
   const index = order[pick]!;
-  const article = withPictures[index] ?? null;
+  const article = pool[index] ?? null;
   const picture = article ? galleryImage(article.image) : null;
   const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
 
