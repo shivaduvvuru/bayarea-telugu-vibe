@@ -255,6 +255,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { sweepDuplicates } = await import("@/lib/dedupe-sweep.server");
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
+          // Keep the Glamour folder at capacity: overflow moves to the archive,
+          // and archived photos return after 15 days, most-liked first.
+          let galleryRotation = { archived: 0, restored: 0, live: 0 };
+          try {
+            const { rotateGalleryFolder } = await import("@/lib/gallery-archive.server");
+            galleryRotation = await rotateGalleryFolder(supabaseAdmin as never);
+          } catch (e) {
+            console.error("gallery archive rotation failed", e);
+          }
+
+
           // Verify the actual approval backlog after ingestion. This is the
           // authoritative check the desk uses to distinguish a genuinely
           // empty queue from a temporary read/display failure.
