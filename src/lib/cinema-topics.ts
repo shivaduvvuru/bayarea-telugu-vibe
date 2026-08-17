@@ -118,8 +118,5 @@ export function isSingleWoman(
   if (!isStarGallery(title, summary, sourceUrl)) return false;
   const text = `${title ?? ""} ${summary ?? ""}`;
   if (MULTI_SUBJECT.test(text)) return false;
-  // Two or more named heroines in one headline is a group post.
-  const named = text.match(FEMALE_SUBJECT_GLOBAL);
-  if (named && new Set(named.map((n) => n.toLowerCase())).size > 1) return false;
   return true;
 }
