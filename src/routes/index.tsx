@@ -100,9 +100,10 @@ const galleryQuery = queryOptions({
   queryKey: ["wp", "posts", "gallery", "home"],
   // Deep pool: the home column shows a rotating window of six, so tapping
   // "Refresh gallery" always moves on to different photos.
-  queryFn: () => listPosts({ data: { category: "gallery", perPage: 96, compact: true } }),
-  staleTime: 60 * 1000,
-  refetchOnMount: "always",
+  // Pool trimmed to 48: a deeper read made the first paint wait on a much
+  // larger payload without adding visible variety.
+  queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
+  staleTime: 5 * 60 * 1000,
 });
 
 /**
@@ -178,10 +179,12 @@ function EmptyState({ title, note }: { title: string; note?: string }) {
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
+    // Only the text digest blocks the first paint. The Glamour folder is warmed
+    // in the background so pictures never delay the headlines.
+    void context.queryClient.prefetchQuery(galleryQuery);
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
-      context.queryClient.ensureQueryData(galleryQuery),
     ]);
   },
   head: () => ({
@@ -365,7 +368,7 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
     <figure className="lift m-0 rounded-md">
       <div className="relative">
         <button type="button" onClick={onOpen} className="block w-full text-left">
-          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 100vw, 340px" />
+          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 200px" />
         </button>
         <PhotoActions article={article} tone="light" className="absolute right-1.5 top-1.5" />
       </div>
@@ -623,7 +626,7 @@ function Home() {
           {uniqueGallery.length === 0 ? (
             <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {uniqueGallery.map((a, i) => (
                 <GalleryTile
                   key={a.slug}
