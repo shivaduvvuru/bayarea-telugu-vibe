@@ -1274,6 +1274,55 @@ async function fetchGuideSearch(city: { citySlug: string; name: string }): Promi
   return merged;
 }
 
+/**
+ * NRI-interest community events for each of the 16 cities: Telugu / Indian
+ * cultural programmes, temple festivals, association gatherings and desi
+ * markets. The municipal guide search only surfaces city-run recreation, so
+ * this pass is what keeps the Events page stocked with diaspora listings.
+ */
+const NRI_EVENT_WORDS =
+  /telugu|indian|india|hindu|temple|mandir|desi|south asian|bollywood|tollywood|carnatic|kuchipudi|classical|ugadi|diwali|deepavali|sankranti|bathukamma|bonalu|navratri|garba|holi|onam|pongal|vinayaka|ganesh|tana|nats|ata|association|cultural/i;
+
+async function fetchNriEventSearch(city: {
+  citySlug: string;
+  name: string;
+}): Promise<RawItem[]> {
+  const q = `"${city.name}" California (Telugu OR Indian OR Hindu OR "South Asian" OR desi) (event OR festival OR concert OR mela OR "cultural program" OR temple OR Diwali OR Ugadi OR Sankranti OR Navratri OR Garba OR Holi OR fundraiser OR "community meet")`;
+  let parsed = await fetchFeed(
+    `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:30d&hl=en-US&gl=US&ceid=US:en`,
+  );
+  if (!parsed?.length) {
+    parsed = await fetchFeed(
+      `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    );
+  }
+  if (!parsed?.length) return [];
+  lastDiag.fetched += 1;
+  lastDiag.raw += parsed.length;
+  const cityWords = normalize(city.name);
+  const seen = new Set<string>();
+  const merged: RawItem[] = [];
+  for (const item of parsed) {
+    const hay = normalize(`${item.title} ${item.source} ${item.detail ?? ""}`);
+    const k = normalize(item.title);
+    if (!k || seen.has(k)) continue;
+    // Must be about this city AND read as a diaspora community happening.
+    if (!hay.includes(cityWords)) continue;
+    if (!NRI_EVENT_WORDS.test(hay)) continue;
+    if (!EVENT_WORDS.test(hay) && !GUIDE_WORDS.test(hay)) continue;
+    if (GUIDE_JUNK.test(item.title)) continue;
+    if (!inGuideWindow(item.published)) continue;
+    seen.add(k);
+    merged.push(item);
+    if (merged.length >= 6) break;
+  }
+  await addImages(merged);
+  lastDiag.kept += merged.length;
+  return merged;
+}
+
+
+
 
 /** Programme-style listings belong in Events; announcements read as news. */
 function guideKind(item: RawItem): CollectedItem["kind"] {
@@ -1383,21 +1432,31 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
     rows.push(...collected.flat());
   }
 
-  // City activity guides and municipal recreation calendars for the month.
+  // City activity guides, municipal recreation calendars, and the NRI-interest
+  // community events pass for every one of the 16 cities.
   const guideEntries = [
     ...CITY_GUIDE_FEEDS.map((e) => ({ kind: "feed" as const, entry: e })),
     ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "search" as const, entry: c })),
+    ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "nri" as const, entry: c })),
   ];
   for (let b = 0; b < guideEntries.length; b += 5) {
     const guideRows = await Promise.all(
       guideEntries.slice(b, b + 5).map(async (g) => {
         const items =
-          g.kind === "feed" ? await fetchCityGuide(g.entry) : await fetchGuideSearch(g.entry);
+          g.kind === "feed"
+            ? await fetchCityGuide(g.entry as { citySlug: string; label: string; urls: string[] })
+            : g.kind === "nri"
+              ? await fetchNriEventSearch(g.entry as { citySlug: string; name: string })
+              : await fetchGuideSearch(g.entry as { citySlug: string; name: string });
+
         const slug = g.entry.citySlug;
         const city = cityBySlug(slug) ?? BAY_AREA;
         const summaries = await summarize(city, items, apiKey);
         return items.map((it, i) => {
-          const kind = guideKind(it);
+          // The NRI pass only keeps community happenings, so those always file
+          // as events (a temple festival still files as temple).
+          const kind =
+            g.kind === "nri" ? (TEMPLE_WORDS.test(it.title) ? "temple" : "event") : guideKind(it);
           const dedupe = keyFor(slug, it.title);
           return {
             dedupe_key: dedupe,
