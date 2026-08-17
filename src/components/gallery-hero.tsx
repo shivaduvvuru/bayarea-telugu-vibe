@@ -127,6 +127,16 @@ export function GalleryHero({
                 current.includes(picture) ? current : [...current, picture],
               )
             }
+            onLoad={(event) => {
+              // Wide/landscape frames (box-office stills, event group shots)
+              // are not portraits: drop them and let the slot pick again.
+              const img = event.currentTarget;
+              if (img.naturalWidth && img.naturalHeight / img.naturalWidth < 1.05) {
+                setFailedPictures((current) =>
+                  current.includes(picture) ? current : [...current, picture],
+                );
+              }
+            }}
             className="aspect-[4/5] w-full object-cover object-top sm:aspect-[3/4]"
           />
         </button>
