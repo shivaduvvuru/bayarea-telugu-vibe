@@ -304,7 +304,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
