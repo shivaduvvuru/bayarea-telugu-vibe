@@ -106,7 +106,8 @@ const galleryQueryFor = (pocket: number) =>
     // The pocket number is part of the key, so a brand new window of photos is
     // read three times a day while each pocket itself stays cached.
     queryKey: ["wp", "posts", "gallery", "home", pocket],
-    queryFn: () => listPosts({ data: { category: "gallery", perPage: 48, compact: true } }),
+    queryFn: (): Promise<Article[]> =>
+      listPosts({ data: { category: "gallery", perPage: 48, compact: true } }) as Promise<Article[]>,
     staleTime: GALLERY_POCKET_MS,
   });
 
