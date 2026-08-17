@@ -106,6 +106,19 @@ export function GalleryHero({
   if (!picture) return null;
   const position = items.findIndex((a) => a.slug === article.slug);
 
+  // The picked photo depends on the clock, so the first paint keeps a plain
+  // placeholder and the picture appears once the slot timer is live.
+  if (!mounted) {
+    return (
+      <div
+        className={`aspect-[4/5] w-full rounded-lg border border-border bg-surface-tint sm:aspect-[3/4] ${className}`}
+        aria-hidden
+      />
+    );
+  }
+
+
+
 
 
   return (
