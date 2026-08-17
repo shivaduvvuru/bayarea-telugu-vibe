@@ -514,6 +514,24 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_likes: {
+        Row: {
+          likes: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          likes?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          likes?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -540,6 +558,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bump_photo_like: {
+        Args: { _delta: number; _slug: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
