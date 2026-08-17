@@ -13,8 +13,6 @@ const ROTATE_MS = 20_000;
 /** Later slots change halfway through the cycle, 10s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
 
-/** How many recently shown pictures a single hero avoids repeating. */
-const HISTORY_LIMIT = 24;
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
