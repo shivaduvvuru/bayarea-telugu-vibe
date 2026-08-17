@@ -13,8 +13,13 @@ const ROTATE_MS = 20_000;
 /** Later slots change halfway through the cycle, 10s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
 
-/** How many recently shown pictures a single hero avoids repeating. */
-const HISTORY_LIMIT = 24;
+/**
+ * Picture each full-size slot currently holds, keyed by slot number. Plain
+ * module state on purpose: writing it costs no re-render, so slots can avoid
+ * each other's photos without the state loop that used to blank the page.
+ */
+const activePicks = new Map<number, string>();
+
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
@@ -48,8 +53,6 @@ export function GalleryHero({
   items,
   onOpen,
   offset = 0,
-  exclude,
-  onPick,
   className = "",
 }: {
   items: Article[];
@@ -57,17 +60,14 @@ export function GalleryHero({
   onOpen?: (index: number) => void;
   /** Slot number: shifts both the picture picked and its 10s stagger. */
   offset?: number;
-  /** Photo URLs already used elsewhere on the page. */
-  exclude?: string[];
-  /** Reports the photo this slot is showing so sibling slots can avoid it. */
-  onPick?: (picture: string | null) => void;
   className?: string;
 }) {
   // Start from the slot number so server and client paint the same initial
   // picture, and two heroes never begin with the same photo.
   const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
-  const [history, setHistory] = useState<Set<string>>(new Set());
+  
+
   // Photos the reader hearted, so the slots can bring them back.
   const { favorites } = useFavoritePhotos();
 
@@ -80,42 +80,28 @@ export function GalleryHero({
     return () => window.clearInterval(id);
   }, [items.length, offset]);
 
-  const used = new Set(exclude ?? []);
   const seen = new Set<string>();
 
   const baseEligible = (a: Article) => {
     const picture = galleryImage(a.image);
-    if (!picture || failedPictures.includes(picture) || used.has(picture)) return false;
+    if (!picture || failedPictures.includes(picture)) return false;
     if (seen.has(picture)) return false;
     seen.add(picture);
     return true;
   };
 
-  const eligible = (a: Article) => {
-    const picture = galleryImage(a.image);
-    return baseEligible(a) && !history.has(picture ?? "");
-  };
-
   // Full-size slots only carry solo-woman portraits; landscape frames and
   // mixed-company stills are rejected (landscape ones drop out on load below).
   let withPictures = items.filter(
-    (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
+    (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && baseEligible(a),
   );
-  if (withPictures.length < 2) {
-    // History has covered too much of a small pool; ignore it for now.
-    seen.clear();
-    withPictures = items.filter(
-      (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && baseEligible(a),
-    );
-  }
   if (withPictures.length === 0) {
     seen.clear();
     withPictures = items.filter(baseEligible);
   }
   if (withPictures.length === 0) {
-    // Last resort: the reader has hidden or the browser has failed everything
-    // eligible. The full-size slot must never disappear, so fall back to any
-    // Glamour picture we have, ignoring history, failures and page exclusions.
+    // Last resort: the browser has failed everything eligible. The full-size
+    // slot must never disappear, so fall back to any Glamour picture we have.
     seen.clear();
     withPictures = items.filter((a) => {
       const picture = galleryImage(a.image);
@@ -125,46 +111,44 @@ export function GalleryHero({
     });
   }
 
-  // Random pick per cycle. The shuffle is reseeded on every cycle and the
-  // read position also walks forward, so the slot keeps drawing a different
-  // photo out of the Glamour folder instead of settling on a few favourites.
-  // Slots of the same cycle share the shuffle, so two heroes on screen never
-  // land on the same photo.
+  // Random pick per cycle. The shuffle is reseeded on every cycle, so the slot
+  // keeps drawing a different photo out of the Glamour folder.
   const cycle = slot - offset;
 
   // Pictures the reader hearted come back into the full-size slots: every other
-  // cycle draws from the liked set (when there is one) before going back to the
-  // wider Glamour folder.
+  // cycle draws from the liked set (when it holds at least two photos) before
+  // going back to the wider Glamour folder. Every slot makes the same choice,
+  // so all slots share one pool and one shuffle — that is what keeps two
+  // on-screen heroes on two different pictures.
   const likedSlugs = new Set(favorites.map((p) => p.slug));
   const liked = withPictures.filter((a) => likedSlugs.has(a.slug));
-  const pool = liked.length && ((cycle % 2) + 2) % 2 === 0 ? liked : withPictures;
+  const pool = liked.length > 1 && ((cycle % 2) + 2) % 2 === 0 ? liked : withPictures;
 
   const order = seededOrder(pool.length || 1, cycle);
-  const pick = pool.length ? (((cycle + offset) % pool.length) + pool.length) % pool.length : 0;
-  const index = order[pick]!;
-  const article = pool[index] ?? null;
-  const picture = article ? galleryImage(article.image) : null;
-  const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
+  // Slots step through the shared shuffle by their slot number. Because slots
+  // are staggered they can sit on neighbouring cycles, so also walk forward past
+  // any picture another slot currently holds — two heroes on screen never show
+  // the same photo.
+  const taken = new Set(
+    [...activePicks.entries()].filter(([key]) => key !== offset).map(([, url]) => url),
+  );
+  let article: Article | null = null;
+  let picture: string | null = null;
+  for (let step = 0; step < (pool.length || 1); step += 1) {
+    const pick = pool.length
+      ? (((cycle + offset + step) % pool.length) + pool.length) % pool.length
+      : 0;
+    const candidate = pool[order[pick]!] ?? null;
+    const candidatePicture = candidate ? galleryImage(candidate.image) : null;
+    if (!candidate || !candidatePicture) continue;
+    article = candidate;
+    picture = candidatePicture;
+    if (!taken.has(candidatePicture)) break;
+  }
+  if (picture) activePicks.set(offset, picture);
+  const position = article && picture ? items.findIndex((a) => a.slug === article!.slug) : -1;
 
-  // Remember the picked photo so this hero doesn't repeat it again quickly, and
-  // tell the page which photo this slot holds so the other full-size slot can
-  // exclude it (two heroes must never show the same picture).
-  useEffect(() => {
-    onPick?.(picture ?? null);
-    if (!picture) return;
-    setHistory((prev) => {
-      if (prev.has(picture)) return prev;
-      const next = new Set(prev);
-      next.add(picture);
-      if (next.size > HISTORY_LIMIT) {
-        const iter = next.values();
-        next.delete(iter.next().value!);
-      }
-      return next;
-    });
-    // `onPick` is a fresh closure on every render; depending on it would loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [picture]);
+
 
   if (withPictures.length === 0 || !article || !picture) return null;
 
