@@ -17,6 +17,16 @@ const MICRO_TEXT =
 /** Publishers and trade desks that cover the short-vertical business. */
 const MICRO_HOSTS = /reelshort|dramabox|flickreels|flicktv|holywater|micro-?drama/i;
 
+/**
+ * Artist cues: the desk also carries the women who front these verticals in the
+ * US, India and China. A story counts when a leading-lady word sits next to a
+ * short-vertical cue, so ordinary film-star coverage stays in Cinema.
+ */
+const MICRO_ARTIST =
+  /\b(actress|actresses|heroine|heroines|leading lady|female lead|star cast|glamour|glam)\b/i;
+const MICRO_ARTIST_CONTEXT =
+  /vertical|short[- ]?form|short[- ]?drama|micro|duanju|reelshort|dramabox|goodshort|shortmax|flick ?tv|kuku|pocket ?fm|sharechat|1[- ]?minute|60[- ]?second|episode drop/i;
+
 /** True when a story is about the vertical micro-drama format or its players. */
 export function isMicroDrama(
   title: string | null | undefined,
@@ -25,5 +35,7 @@ export function isMicroDrama(
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
   if (MICRO_TEXT.test(text)) return true;
+  if (MICRO_ARTIST.test(text) && MICRO_ARTIST_CONTEXT.test(text)) return true;
   return MICRO_HOSTS.test((sourceUrl ?? "").toLowerCase());
 }
+
