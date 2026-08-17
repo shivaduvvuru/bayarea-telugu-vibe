@@ -470,12 +470,12 @@ function Home() {
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
 
   const pinnedSlugs = new Set<string>();
-  const pinned = [
-    ...galleryPool.slice(0, 2),
-    ...galleryPool.filter((a) => favoriteSlugs.has(a.slug)),
-  ]
+  // Only pictures you liked stay pinned. Everything else shuffles, so the grid
+  // is never the same six photos on a later visit.
+  const pinned = galleryPool
+    .filter((a) => favoriteSlugs.has(a.slug))
     .filter((a) => (pinnedSlugs.has(a.slug) ? false : pinnedSlugs.add(a.slug)))
-    .slice(0, 4);
+    .slice(0, 2);
   const rotatable = galleryPool.filter((a) => !pinnedSlugs.has(a.slug));
   const fillCount = Math.max(0, 6 - pinned.length);
   const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;
