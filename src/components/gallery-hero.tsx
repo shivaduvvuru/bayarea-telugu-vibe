@@ -7,6 +7,7 @@ import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos } from "@/lib/photo-favorites";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
+import { markShown, shownAt, shownThisWeek } from "@/lib/photo-history";
 
 /** The slots run continuously: a new picture takes the slot every 20 seconds. */
 const ROTATE_MS = 20_000;
@@ -115,14 +116,33 @@ export function GalleryHero({
   // keeps drawing a different photo out of the Glamour folder.
   const cycle = slot - offset;
 
-  // Pictures the reader hearted come back into the full-size slots: every other
-  // cycle draws from the liked set (when it holds at least two photos) before
-  // going back to the wider Glamour folder. Every slot makes the same choice,
-  // so all slots share one pool and one shuffle — that is what keeps two
-  // on-screen heroes on two different pictures.
+  // A photo that has already held a full-size slot this week is out of the
+  // rotation until the week is up, so the slots never re-run the same picture.
+  const fresh = (list: Article[]) =>
+    list.filter((a) => {
+      const picture = galleryImage(a.image);
+      return !!picture && !shownThisWeek(picture);
+    });
+
+  // Hearted pictures lead: the slots work through every liked photo that has
+  // not run this week before going back to the wider Glamour folder.
   const likedSlugs = new Set(favorites.map((p) => p.slug));
   const liked = withPictures.filter((a) => likedSlugs.has(a.slug));
-  const pool = liked.length > 1 && ((cycle % 2) + 2) % 2 === 0 ? liked : withPictures;
+  const freshLiked = fresh(liked);
+  const freshAll = fresh(withPictures);
+
+  let pool: Article[];
+  if (freshLiked.length) {
+    // Liked photos take two of every three cycles while unseen ones remain.
+    pool = freshAll.length && ((cycle % 3) + 3) % 3 === 2 ? freshAll : freshLiked;
+  } else if (freshAll.length) {
+    pool = freshAll;
+  } else {
+    // The whole folder has run this week: come back to it oldest-shown first.
+    pool = [...withPictures].sort(
+      (a, b) => shownAt(galleryImage(a.image) ?? "") - shownAt(galleryImage(b.image) ?? ""),
+    );
+  }
 
   const order = seededOrder(pool.length || 1, cycle);
   // Slots step through the shared shuffle by their slot number. Because slots
@@ -147,6 +167,13 @@ export function GalleryHero({
   }
   if (picture) activePicks.set(offset, picture);
   const position = article && picture ? items.findIndex((a) => a.slug === article!.slug) : -1;
+
+  // Log the picture once it is on screen so it stays out of the rotation for a
+  // week. Done in an effect: the shown log is browser-only state.
+  useEffect(() => {
+    if (picture) markShown(picture);
+  }, [picture]);
+
 
 
 

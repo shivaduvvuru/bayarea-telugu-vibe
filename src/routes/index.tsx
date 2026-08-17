@@ -101,15 +101,41 @@ export const GALLERY_POCKET_MS = 8 * 60 * 60 * 1000;
 /** Which 8-hour pocket we are in (same value on server and client). */
 const currentPocket = () => Math.floor(Date.now() / GALLERY_POCKET_MS);
 
+/** How many 48-photo windows of the folder the pockets walk through. */
+const GALLERY_WINDOWS = 3;
+
+/**
+ * Wide pool used only by the full-size slots: a week of no-repeat rotation needs
+ * far more than the 48 photos the grid shows. Loaded in the background, so it
+ * never delays the first paint.
+ */
+const heroGalleryQuery = queryOptions({
+  queryKey: ["wp", "posts", "gallery", "heroes"],
+  queryFn: (): Promise<Article[]> =>
+    listPosts({ data: { category: "gallery", perPage: 200, compact: true } }) as Promise<Article[]>,
+  staleTime: GALLERY_POCKET_MS,
+});
+
+
 const galleryQueryFor = (pocket: number) =>
   queryOptions({
     // The pocket number is part of the key, so a brand new window of photos is
     // read three times a day while each pocket itself stays cached.
     queryKey: ["wp", "posts", "gallery", "home", pocket],
     queryFn: (): Promise<Article[]> =>
-      listPosts({ data: { category: "gallery", perPage: 48, compact: true } }) as Promise<Article[]>,
+      listPosts({
+        data: {
+          category: "gallery",
+          perPage: 48,
+          compact: true,
+          // Each pocket reads a different slice of the folder, so photos already
+          // shown this week are not simply re-read as the newest 48 again.
+          page: ((pocket % GALLERY_WINDOWS) + GALLERY_WINDOWS) % GALLERY_WINDOWS,
+        },
+      }) as Promise<Article[]>,
     staleTime: GALLERY_POCKET_MS,
   });
+
 
 
 /**
@@ -410,6 +436,9 @@ function Home() {
     return () => window.clearInterval(id);
   }, []);
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
+  // Background-only: the wide hero pool loads after paint.
+  const { data: heroItems = [] } = useQuery(heroGalleryQuery);
+
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // Photo currently held by each full-size slot, keyed by slot number.
@@ -518,11 +547,17 @@ function Home() {
   // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
   // If dislikes/dedupe empty that pool, fall back to the raw picture desk so the
   // two full-size slots never vanish from the page.
-  const heroPool = galleryPool.length
-    ? galleryPool
-    : galleryItems.filter(notDislikedPicture).length
-      ? galleryItems.filter(notDislikedPicture)
-      : galleryItems;
+  // Prefer the wide background pool (up to 200 photos) so a picture that has run
+  // this week is never re-shown just because the 48-photo grid window is small.
+  const widePool = heroItems.filter(notDislikedPicture);
+  const heroPool = widePool.length
+    ? widePool
+    : galleryPool.length
+      ? galleryPool
+      : galleryItems.filter(notDislikedPicture).length
+        ? galleryItems.filter(notDislikedPicture)
+        : galleryItems;
+
 
   // Every slot shares one pool and one per-cycle shuffle, stepping through it by
   // its slot number — that is what keeps the two full-size pictures different
