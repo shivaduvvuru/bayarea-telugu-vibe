@@ -48,6 +48,7 @@ export function GalleryHero({
   onOpen,
   offset = 0,
   exclude,
+  onPick,
   className = "",
 }: {
   items: Article[];
@@ -57,6 +58,8 @@ export function GalleryHero({
   offset?: number;
   /** Photo URLs already used elsewhere on the page. */
   exclude?: string[];
+  /** Reports the photo this slot is showing so sibling slots can avoid it. */
+  onPick?: (picture: string | null) => void;
   className?: string;
 }) {
   // Start from the slot number so server and client paint the same initial
