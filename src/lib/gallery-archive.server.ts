@@ -13,7 +13,9 @@ type Client = {
 };
 
 /** Live photos kept in the Glamour folder at any time. */
-export const GALLERY_CAPACITY = 120;
+export const GALLERY_CAPACITY = 300;
+/** The folder must never hold fewer than this many live photos. */
+export const GALLERY_MINIMUM = 300;
 /** Archived photos become eligible for re-entry after this many days. */
 export const ARCHIVE_COOLDOWN_DAYS = 15;
 
