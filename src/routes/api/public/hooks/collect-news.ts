@@ -255,6 +255,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { sweepDuplicates } = await import("@/lib/dedupe-sweep.server");
           const hidden = await sweepDuplicates(supabaseAdmin as never);
 
+          // Keep the Glamour folder at capacity: overflow moves to the archive,
+          // and archived photos return after 15 days, most-liked first.
+          let galleryRotation = { archived: 0, restored: 0, live: 0 };
+          try {
+            const { rotateGalleryFolder } = await import("@/lib/gallery-archive.server");
+            galleryRotation = await rotateGalleryFolder(supabaseAdmin as never);
+          } catch (e) {
+            console.error("gallery archive rotation failed", e);
+          }
+
+
           // Verify the actual approval backlog after ingestion. This is the
           // authoritative check the desk uses to distinguish a genuinely
           // empty queue from a temporary read/display failure.
@@ -293,7 +304,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           console.error("collect-news failed", message);
