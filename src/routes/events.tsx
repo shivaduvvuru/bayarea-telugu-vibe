@@ -13,14 +13,14 @@ import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
 
 /** Events published by the newsroom desk (collected city guides + submissions). */
 const liveEventsQuery = queryOptions({
-  queryKey: ["cms", "events", "page"],
-  queryFn: () => listCommunityItems({ data: { kind: "event", limit: 40 } }),
+  queryKey: ["cms", "events", "page", "wide"],
+  queryFn: () => listCommunityItems({ data: { kind: "event", limit: 200 } }),
   staleTime: 5 * 60 * 1000,
 });
 
 const eventPostsQuery = queryOptions({
-  queryKey: ["wp", "posts", "events-community"],
-  queryFn: () => listPosts({ data: { category: "events-community", perPage: 24, compact: true } }),
+  queryKey: ["wp", "posts", "events-community", "wide"],
+  queryFn: () => listPosts({ data: { category: "events-community", perPage: 40, compact: true } }),
   staleTime: 5 * 60 * 1000,
 });
 
