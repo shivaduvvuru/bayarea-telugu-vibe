@@ -397,16 +397,24 @@ function Home() {
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   // Same picture desk used in /category/gallery.
   // Non-blocking: pictures stream in after the headlines are on screen.
-  const { data: galleryItems = [] } = useQuery(galleryQuery);
+  // The pocket of 48 pictures is replaced three times a day (every 8 hours),
+  // which lets archived photos rotate back in without extra reads.
+  const [pocket, setPocket] = useState(() => currentPocket());
+  useEffect(() => {
+    const id = window.setInterval(() => setPocket(currentPocket()), 5 * 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const { data: galleryItems = [] } = useQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
-  // full-size hero slots still change every 20s) so the page isn't re-rendering
-  // the whole digest every few seconds.
+  // full-size hero slots change faster) so the page isn't re-rendering the
+  // whole digest every few seconds.
   useEffect(() => {
     const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
   // client render agree, then picks up the time-based slot after mount.
   const [primeSlot, setPrimeSlot] = useState(0);
