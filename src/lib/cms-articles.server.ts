@@ -5,7 +5,7 @@
  */
 import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
-import { isBayArea, isBayAreaSource } from "./bay-area";
+import { isBayArea, isBayAreaSource, BAY_HOSTS } from "./bay-area";
 import { publicClient } from "./cms.server";
 import { sanitizeHtml } from "./sanitize";
 import { galleryImage, sourceLabel, usableImage } from "./story-image";
