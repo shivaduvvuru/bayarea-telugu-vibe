@@ -193,7 +193,7 @@ export function GalleryHero({
     lastPocketRequest = Date.now();
     void requestPocket({ data: undefined })
       .then((res) => {
-        if (res?.restored) void queryClient.invalidateQueries({ queryKey: ["posts"] });
+        if (res?.restored) void queryClient.invalidateQueries({ queryKey: ["wp", "posts", "gallery"] });
       })
       .catch(() => undefined);
   }, [exhausted, requestPocket, queryClient]);
