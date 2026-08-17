@@ -253,8 +253,12 @@ export async function cmsPosts(
     const auto = rows.filter(
       (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
     );
-    return dedupeArticles([...filedRows, ...auto].map(toArticle)).slice(0, limit);
+    // Illustrated stories lead the desk: the page shows photo cards first and
+    // keeps text-only items as short snippets underneath.
+    const all = dedupeArticles([...filedRows, ...auto].map(toArticle));
+    return [...all.filter((a) => a.image), ...all.filter((a) => !a.image)].slice(0, limit);
   }
+
 
   if (category === "city-news") {
     // The newest 400 city-filed rows are dominated by India/cinema syndication,
