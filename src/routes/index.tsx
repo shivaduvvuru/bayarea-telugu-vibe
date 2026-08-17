@@ -390,6 +390,12 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // The Glamour grid shuffles itself every 5 minutes as well, so the folder
+  // keeps moving without waiting for the "Refresh gallery" button.
+  useEffect(() => {
+    const id = window.setInterval(() => setGalleryPage((p) => p + 1), 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, []);
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
   // client render agree, then picks up the time-based slot after mount.
   const [primeSlot, setPrimeSlot] = useState(0);
@@ -464,12 +470,12 @@ function Home() {
   const favoriteSlugs = new Set(favorites.map((f) => f.slug));
 
   const pinnedSlugs = new Set<string>();
-  const pinned = [
-    ...galleryPool.slice(0, 2),
-    ...galleryPool.filter((a) => favoriteSlugs.has(a.slug)),
-  ]
+  // Only pictures you liked stay pinned. Everything else shuffles, so the grid
+  // is never the same six photos on a later visit.
+  const pinned = galleryPool
+    .filter((a) => favoriteSlugs.has(a.slug))
     .filter((a) => (pinnedSlugs.has(a.slug) ? false : pinnedSlugs.add(a.slug)))
-    .slice(0, 4);
+    .slice(0, 2);
   const rotatable = galleryPool.filter((a) => !pinnedSlugs.has(a.slug));
   const fillCount = Math.max(0, 6 - pinned.length);
   const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;

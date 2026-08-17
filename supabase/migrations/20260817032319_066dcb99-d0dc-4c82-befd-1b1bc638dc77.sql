@@ -1,0 +1,2 @@
+update public.content_items set status='pending', updated_at=now()
+where id in ('f7299b6c-93f9-45d9-ad52-2fcb8b50aa99','651556df-eb32-434d-b2e6-76672a291737','eb790463-df79-4da4-bd39-f4cc086a229e','451fafb6-1333-44b9-889d-5c88132aacfd','963d6262-0f2d-41e4-a0bc-301b6cea67c0','d0abbda1-66b5-4de6-8eb7-28076b84951e','16b9e558-46e6-413b-9957-f9517b89120b');

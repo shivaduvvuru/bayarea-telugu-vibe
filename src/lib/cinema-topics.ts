@@ -107,6 +107,14 @@ const MULTI_SUBJECT =
   /\b(?:actresses|heroines|divas|beauties|stars|celebs|celebrities|girls|women|ladies|sisters|duo|trio|couple|couples|pair|family|together|with\s+(?:her|his)?\s*(?:husband|hubby|wife|boyfriend|co-?star|friend|mother|father|son|daughter|kids?)|and\s+(?:her|his)\b|top\s*\d+|\d+\s*(?:actresses|heroines|beauties|stars|pics|photos)\s+(?:who|that|you)|these\b|list\b|group|team|cast|event|premiere|red\s*carpet|press\s*meet|audio\s*launch|awards?)\b|&|,\s*\w+\s+(?:and|&)\s+\w+/i;
 
 /**
+ * A man anywhere in the frame disqualifies the picture. Named male stars are
+ * caught by MALE_SUBJECT; these are the unnamed cues — pronouns, relationships
+ * and couple/wedding framing — that let "woman with a man" shots slip through.
+ */
+const MALE_PRESENT =
+  /\b(?:he|his|him|himself|husband|hubby|boyfriend|bf|beau|fiance|fianc[eé]e?|partner|groom|bridegroom|spouse|male|man|men|guy|boy|brother|bro|father|dad|son|uncle|co-?star|hero|actor|singer|director|producer|rapper|cricketer|businessman|mr\.?|sir)\b|\b(?:couple|couples|romance|romantic|dating|date night|engagement|engaged|wedding|weds|marriage|married|honeymoon|pre-?wedding|reception|anniversary|kiss|kissing|hug|hugging|lip lock|liplock|holding hands|walk hand)\b|\bwith\s+(?:her|his)\b|భర్త|ప్రియుడు|జంట|పెళ్లి|వివాహ|నటుడు/i;
+
+/**
  * True when a picture post reads as a solo female star portrait — the only kind
  * that may go into the Glamour folder without an editor's approval.
  */
@@ -118,5 +126,7 @@ export function isSingleWoman(
   if (!isStarGallery(title, summary, sourceUrl)) return false;
   const text = `${title ?? ""} ${summary ?? ""}`;
   if (MULTI_SUBJECT.test(text)) return false;
+  // Any male presence — named or implied — keeps the photo in the picture desk.
+  if (MALE_SUBJECT.test(text) || MALE_PRESENT.test(text)) return false;
   return true;
 }
