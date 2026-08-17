@@ -46,19 +46,25 @@ function toSnapshot(a: Article | FavoritePhoto): FavoritePhoto {
 
 function subscribe(fn: () => void) {
   window.addEventListener(EVENT, fn);
-  window.addEventListener("storage", fn);
   return () => {
     window.removeEventListener(EVENT, fn);
-    window.removeEventListener("storage", fn);
   };
 }
+
 
 /** Whole favorites list, kept in sync across components and tabs. */
 export function useFavoritePhotos() {
   const [list, setList] = useState<FavoritePhoto[]>([]);
 
   useEffect(() => {
-    const sync = () => setList(read());
+    const sync = () => {
+      const next = read();
+      setList((prev) =>
+        prev.length === next.length && prev.every((p, i) => p.slug === next[i]?.slug)
+          ? prev
+          : next,
+      );
+    };
     sync();
     return subscribe(sync);
   }, []);
@@ -71,6 +77,7 @@ export function useFavoritePhotos() {
 
   return { favorites: list, remove, clear };
 }
+
 
 /** Favorite state for one photo. */
 export function useFavoritePhoto(article: Article | FavoritePhoto) {
@@ -127,19 +134,23 @@ function writeHidden(list: string[]) {
 
 function subscribeHidden(fn: () => void) {
   window.addEventListener(HIDDEN_EVENT, fn);
-  window.addEventListener("storage", fn);
   return () => {
     window.removeEventListener(HIDDEN_EVENT, fn);
-    window.removeEventListener("storage", fn);
   };
 }
+
 
 /** Slugs the reader disliked — dropped from grids on the next refresh. */
 export function useHiddenPhotos() {
   const [hidden, setHidden] = useState<string[]>([]);
 
   useEffect(() => {
-    const sync = () => setHidden(readHidden());
+    const sync = () => {
+      const next = readHidden();
+      setHidden((prev) =>
+        prev.length === next.length && prev.every((s, i) => s === next[i]) ? prev : next,
+      );
+    };
     sync();
     return subscribeHidden(sync);
   }, []);
@@ -152,6 +163,7 @@ export function useHiddenPhotos() {
 
   return { hidden, restore, clear };
 }
+
 
 /** Dislike state for one photo. Disliking also drops it from favorites. */
 export function useHiddenPhoto(article: Article | FavoritePhoto) {

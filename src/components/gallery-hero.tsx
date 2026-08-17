@@ -7,10 +7,13 @@ import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
 import { isSingleWoman } from "@/lib/cinema-topics";
 
-/** The slots run continuously: a new picture takes the slot every 10 seconds. */
-const ROTATE_MS = 10_000;
-/** Later slots change halfway through the cycle, 5s after the one above them. */
+/** The slots run continuously: a new picture takes the slot every 20 seconds. */
+const ROTATE_MS = 20_000;
+/** Later slots change halfway through the cycle, 10s after the one above them. */
 export const HERO_STAGGER_MS = ROTATE_MS / 2;
+
+/** How many recently shown pictures a single hero avoids repeating. */
+const HISTORY_LIMIT = 24;
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
@@ -33,12 +36,12 @@ function seededOrder(length: number, seed: number) {
 
 /**
  * Wide picture break placed inside the city-news column: shows one photo from
- * the cinema gallery and swaps itself for another every 5 minutes, so the page
- * looks different on a later visit without a reload.
+ * the Glamour folder and swaps itself for another every 20 seconds.
  *
- * Baseline (8-15-2026): every full-size slot rotates on a 5 minute cycle, the
- * picture is drawn at random (not the next one in the list), and consecutive
- * slots are staggered 2.5 minutes apart.
+ * Baseline (8-15-2026): every full-size slot rotates on a 20-second cycle,
+ * the picture is drawn at random (not the next one in the list), and consecutive
+ * slots are staggered 10 seconds apart. The same photo never repeats within the
+ * last 24 picks.
  */
 export function GalleryHero({
   items,
@@ -50,46 +53,59 @@ export function GalleryHero({
   items: Article[];
   /** Opens the swipeable viewer at this photo's position in `items`. */
   onOpen?: (index: number) => void;
-  /** Slot number: shifts both the picture picked and its 2.5 min stagger. */
+  /** Slot number: shifts both the picture picked and its 10s stagger. */
   offset?: number;
   /** Photo URLs already used elsewhere on the page. */
   exclude?: string[];
   className?: string;
 }) {
-  const [slot, setSlot] = useState(0);
-  const [mounted, setMounted] = useState(false);
+  // Start from the slot number so server and client paint the same initial
+  // picture, and two heroes never begin with the same photo.
+  const [slot, setSlot] = useState(offset);
   const [failedPictures, setFailedPictures] = useState<string[]>([]);
+  const [history, setHistory] = useState<Set<string>>(new Set());
 
+  // All hooks must run before any early return to keep hook order stable.
   useEffect(() => {
-    setMounted(true);
     if (items.length < 2) return;
     const current = () => Math.floor((Date.now() + offset * HERO_STAGGER_MS) / ROTATE_MS);
     setSlot(current());
-    const id = window.setInterval(() => setSlot(current()), 2_000);
+    const id = window.setInterval(() => setSlot(current()), 5_000);
     return () => window.clearInterval(id);
   }, [items.length, offset]);
 
-
   const used = new Set(exclude ?? []);
   const seen = new Set<string>();
-  const eligible = (a: Article) => {
+
+  const baseEligible = (a: Article) => {
     const picture = galleryImage(a.image);
-    if (!picture || failedPictures.includes(picture) || used.has(picture) || seen.has(picture)) {
-      return false;
-    }
+    if (!picture || failedPictures.includes(picture) || used.has(picture)) return false;
+    if (seen.has(picture)) return false;
     seen.add(picture);
     return true;
   };
+
+  const eligible = (a: Article) => {
+    const picture = galleryImage(a.image);
+    return baseEligible(a) && !history.has(picture ?? "");
+  };
+
   // Full-size slots only carry solo-woman portraits; landscape frames and
   // mixed-company stills are rejected (landscape ones drop out on load below).
   let withPictures = items.filter(
     (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && eligible(a),
   );
+  if (withPictures.length < 2) {
+    // History has covered too much of a small pool; ignore it for now.
+    seen.clear();
+    withPictures = items.filter(
+      (a) => isSingleWoman(a.title, a.excerpt, a.sourceUrl) && baseEligible(a),
+    );
+  }
   if (withPictures.length === 0) {
     seen.clear();
-    withPictures = items.filter(eligible);
+    withPictures = items.filter(baseEligible);
   }
-  if (withPictures.length === 0) return null;
 
   // Random pick per cycle. The shuffle is reseeded on every cycle and the
   // read position also walks forward, so the slot keeps drawing a different
@@ -97,29 +113,31 @@ export function GalleryHero({
   // Slots of the same cycle share the shuffle, so two heroes on screen never
   // land on the same photo.
   const cycle = slot - offset;
-  const order = seededOrder(withPictures.length, cycle);
-  const pick = ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length;
+  const order = seededOrder(withPictures.length || 1, cycle);
+  const pick = withPictures.length
+    ? ((cycle + offset) % withPictures.length + withPictures.length) % withPictures.length
+    : 0;
   const index = order[pick]!;
-  const article = withPictures[index] ?? withPictures[0];
-  if (!article) return null;
-  const picture = galleryImage(article.image);
-  if (!picture) return null;
-  const position = items.findIndex((a) => a.slug === article.slug);
+  const article = withPictures[index] ?? null;
+  const picture = article ? galleryImage(article.image) : null;
+  const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
 
-  // The picked photo depends on the clock, so the first paint keeps a plain
-  // placeholder and the picture appears once the slot timer is live.
-  if (!mounted) {
-    return (
-      <div
-        className={`aspect-[4/5] w-full rounded-lg border border-border bg-surface-tint sm:aspect-[3/4] ${className}`}
-        aria-hidden
-      />
-    );
-  }
+  // Remember the picked photo so this hero doesn't repeat it again quickly.
+  useEffect(() => {
+    if (!picture) return;
+    setHistory((prev) => {
+      if (prev.has(picture)) return prev;
+      const next = new Set(prev);
+      next.add(picture);
+      if (next.size > HISTORY_LIMIT) {
+        const iter = next.values();
+        next.delete(iter.next().value!);
+      }
+      return next;
+    });
+  }, [picture]);
 
-
-
-
+  if (withPictures.length === 0 || !article || !picture) return null;
 
   return (
     <figure
@@ -166,7 +184,7 @@ export function GalleryHero({
           <span className="line-clamp-1 text-[13px] font-semibold text-ink">{article.title}</span>
           <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
             <SourceChip article={article} />
-            <span>New picture every 10 sec</span>
+            <span>New picture every 20 sec</span>
           </span>
         </span>
         <Link
@@ -174,7 +192,7 @@ export function GalleryHero({
           params={{ category: "gallery" }}
           className="shrink-0 text-[11px] font-bold uppercase tracking-[0.12em] text-primary"
         >
-          Gallery
+          Glamour
         </Link>
       </figcaption>
     </figure>

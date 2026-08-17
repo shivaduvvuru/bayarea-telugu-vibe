@@ -185,14 +185,19 @@ function EmptyState({ title, note }: { title: string; note?: string }) {
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    // Only the text digest blocks the first paint. The Glamour folder is warmed
-    // in the background so pictures never delay the headlines.
-    void context.queryClient.prefetchQuery(galleryQueryFor(currentPocket()));
+    // The text digest and the Glamour folder both block the first paint so the
+    // two full-size hero slots are present in the server-rendered HTML and avoid
+    // hydration mismatches.
+    const pocket = currentPocket();
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
+      context.queryClient.ensureQueryData(galleryQueryFor(pocket)),
     ]);
+    return { pocket };
   },
+
+
   head: () => ({
     meta: [
       { title: TITLE },
@@ -395,16 +400,16 @@ function Home() {
   const { data: articles } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
-  // Same picture desk used in /category/gallery.
-  // Non-blocking: pictures stream in after the headlines are on screen.
-  // The pocket of 48 pictures is replaced three times a day (every 8 hours),
-  // which lets archived photos rotate back in without extra reads.
-  const [pocket, setPocket] = useState(() => currentPocket());
+  const { pocket: loaderPocket } = Route.useLoaderData();
+  // Same picture desk used in /category/gallery. The pocket of 48 pictures is
+  // replaced three times a day (every 8 hours), which lets archived photos
+  // rotate back in without extra reads.
+  const [pocket, setPocket] = useState(loaderPocket);
   useEffect(() => {
     const id = window.setInterval(() => setPocket(currentPocket()), 5 * 60_000);
     return () => window.clearInterval(id);
   }, []);
-  const { data: galleryItems = [] } = useQuery(galleryQueryFor(pocket));
+  const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
@@ -412,6 +417,7 @@ function Home() {
   // whole digest every few seconds.
   useEffect(() => {
     const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
+
     return () => window.clearInterval(id);
   }, []);
 
