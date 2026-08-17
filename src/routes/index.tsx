@@ -390,6 +390,12 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQuery);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // The Glamour grid shuffles itself every 5 minutes as well, so the folder
+  // keeps moving without waiting for the "Refresh gallery" button.
+  useEffect(() => {
+    const id = window.setInterval(() => setGalleryPage((p) => p + 1), 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, []);
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
   // client render agree, then picks up the time-based slot after mount.
   const [primeSlot, setPrimeSlot] = useState(0);
