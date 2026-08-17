@@ -48,6 +48,7 @@ export function GalleryHero({
   onOpen,
   offset = 0,
   exclude,
+  onPick,
   className = "",
 }: {
   items: Article[];
@@ -57,6 +58,8 @@ export function GalleryHero({
   offset?: number;
   /** Photo URLs already used elsewhere on the page. */
   exclude?: string[];
+  /** Reports the photo this slot is showing so sibling slots can avoid it. */
+  onPick?: (picture: string | null) => void;
   className?: string;
 }) {
   // Start from the slot number so server and client paint the same initial
@@ -135,8 +138,11 @@ export function GalleryHero({
   const picture = article ? galleryImage(article.image) : null;
   const position = article && picture ? items.findIndex((a) => a.slug === article.slug) : -1;
 
-  // Remember the picked photo so this hero doesn't repeat it again quickly.
+  // Remember the picked photo so this hero doesn't repeat it again quickly, and
+  // tell the page which photo this slot holds so the other full-size slot can
+  // exclude it (two heroes must never show the same picture).
   useEffect(() => {
+    onPick?.(picture ?? null);
     if (!picture) return;
     setHistory((prev) => {
       if (prev.has(picture)) return prev;
@@ -148,6 +154,8 @@ export function GalleryHero({
       }
       return next;
     });
+    // `onPick` is a fresh closure on every render; depending on it would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picture]);
 
   if (withPictures.length === 0 || !article || !picture) return null;

@@ -412,6 +412,8 @@ function Home() {
   const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [galleryPage, setGalleryPage] = useState(0);
+  // Photo currently held by each full-size slot, keyed by slot number.
+  const [heroPicks, setHeroPicks] = useState<Record<number, string>>({});
   // The Glamour grid keeps moving on its own. It shuffles once a minute (the
   // full-size hero slots change faster) so the page isn't re-rendering the
   // whole digest every few seconds.
@@ -522,6 +524,22 @@ function Home() {
       ? galleryItems.filter(notDislikedPicture)
       : galleryItems;
 
+  // Each full-size slot reports the photo it is showing; every other slot then
+  // excludes it, so the two heroes always hold two different pictures even when
+  // their own pools diverge.
+  const heroProps = (slot: number) => ({
+    items: heroPool,
+    onOpen: setViewerIndex,
+    offset: slot,
+    exclude: Object.entries(heroPicks)
+      .filter(([key, url]) => Number(key) !== slot && !!url)
+      .map(([, url]) => url),
+    onPick: (picture: string | null) =>
+      setHeroPicks((prev) =>
+        prev[slot] === (picture ?? "") ? prev : { ...prev, [slot]: picture ?? "" },
+      ),
+  });
+
 
 
   const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
@@ -574,7 +592,7 @@ function Home() {
 
         {/* Baseline: the full-size glamour picture always sits at the top of the
             homepage and swaps itself every 5 minutes. Never remove this. */}
-        <GalleryHero items={heroPool} onOpen={setViewerIndex} className="mt-4" />
+        <GalleryHero {...heroProps(0)} className="mt-4" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
@@ -594,12 +612,7 @@ function Home() {
                   <div key={a.slug}>
                     <Row a={a} />
                     {heroHere ? (
-                      <GalleryHero
-                        items={heroPool}
-                        onOpen={setViewerIndex}
-                        offset={heroSlot}
-                        className="my-4"
-                      />
+                      <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
                   </div>
                 );
@@ -610,12 +623,7 @@ function Home() {
                 every available picture story, so it is never adjacent to the
                 first hero merely because collection volume is low. */}
             {localPictureStories.length < 4 ? (
-              <GalleryHero
-                items={heroPool}
-                onOpen={setViewerIndex}
-                offset={1}
-                className="my-4"
-              />
+              <GalleryHero {...heroProps(1)} className="my-4" />
             ) : null}
 
 
