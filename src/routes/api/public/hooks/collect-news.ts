@@ -209,11 +209,28 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const { errorMessage } = await import("@/lib/error-message");
             // News, events and temple notices publish without editor approval,
             // so any legacy rows still sitting as "pending" are released here.
-            await supabaseAdmin
-              .from("digest_queue")
-              .update({ status: "approved" })
-              .eq("status", "pending")
-              .in("kind", ["news", "event", "temple"]);
+            // Photo rows are stored with kind "news" too, so they must be
+            // excluded — otherwise every held picture is auto-released and the
+            // picture desk always looks empty.
+            {
+              const { data: stillPending } = await supabaseAdmin
+                .from("digest_queue")
+                .select("item_id,title,summary,source_url,payload,kind")
+                .eq("status", "pending")
+                .in("kind", ["news", "event", "temple"])
+                .limit(1000);
+              const releasable = (stillPending ?? [])
+                .filter((r) => !isPicture(r as unknown as Record<string, unknown>))
+                .map((r) => String((r as { item_id?: string }).item_id ?? ""))
+                .filter(Boolean);
+              for (let i = 0; i < releasable.length; i += 200) {
+                await supabaseAdmin
+                  .from("digest_queue")
+                  .update({ status: "approved" })
+                  .in("item_id", releasable.slice(i, i + 200));
+              }
+            }
+
             // Every approved row that has not gone out yet — the ones just
             // auto-approved plus anything an editor approved in the desk.
             const { data: queued } = await supabaseAdmin
