@@ -7,26 +7,35 @@ type PhotoCandidate = {
   image: string;
 };
 
+/** Machine-readable reasons a photo may be blocked before the review desk. */
+export type PhotoRejectReason =
+  | "minor_or_age_uncertain"
+  | "explicit_content"
+  | "no_primary_woman"
+  | "image_corrupt";
+
 export type PhotoVerification = {
+  /** Cleared for the review desk (includes fail-open, unchecked photos). */
   accepted: Set<string>;
+  /** Blocked with a definitive safety/subject reason. */
   rejected: Set<string>;
+  reasons: Map<string, PhotoRejectReason>;
+  /** Photos the model could not judge — admitted for editorial review. */
   unchecked: Set<string>;
 };
 
-// One image per call prevents a model from swapping or rewriting IDs between
-// adjacent photos, which would otherwise leave valid verdicts "unchecked".
+// One image per call keeps the model from swapping ids between photos.
 const BATCH_SIZE = 1;
-// Visual checks share one workspace rate-limit budget. Launching every photo at
-// once caused nearly the whole pool to be throttled, leaving one random survivor
-// in the desk. A few sequential workers keep throughput steady without bursts.
-const MAX_CONCURRENT_CHECKS = 3;
+// Visual checks share one workspace rate-limit budget; a few sequential workers
+// keep throughput steady without bursts that get throttled.
+const MAX_CONCURRENT_CHECKS = 4;
 
 const verdictSchema = z.object({
   id: z.string(),
-  realPhotograph: z.boolean(),
-  adultWomen: z.number().int().min(0),
-  otherPeople: z.number().int().min(0),
-  uncertain: z.boolean(),
+  isPhotograph: z.boolean(),
+  primaryAdultWoman: z.boolean(),
+  minorOrAgeUncertain: z.boolean(),
+  explicitContent: z.boolean(),
 });
 
 function parseVerdicts(raw: string) {
@@ -42,9 +51,12 @@ function parseVerdicts(raw: string) {
 }
 
 /**
- * Looks at the actual artwork instead of trusting a headline. A picture passes
- * only when it visibly contains exactly one adult woman and no other person.
- * Unreadable images and uncertain model answers fail closed.
+ * Safety screen, not a taste filter. A photo reaches the review desk whenever
+ * one adult woman is the dominant subject; background passers-by, posters,
+ * reflections, crops, orientation, styling and picture quality are irrelevant.
+ * Only age doubt, explicit content, a missing female lead subject or an
+ * unusable file block a photo. Model failures fail OPEN so the editor — not a
+ * rate limit — makes the call.
  */
 export async function verifySoloWomanPhotos(
   candidates: PhotoCandidate[],
@@ -52,8 +64,13 @@ export async function verifySoloWomanPhotos(
 ): Promise<PhotoVerification> {
   const accepted = new Set<string>();
   const rejected = new Set<string>();
+  const reasons = new Map<string, PhotoRejectReason>();
   const unchecked = new Set(candidates.map((candidate) => candidate.id));
-  if (!apiKey) return { accepted, rejected, unchecked };
+  // No key: admit everything for human review rather than starving the desk.
+  if (!apiKey) {
+    for (const candidate of candidates) accepted.add(candidate.id);
+    return { accepted, rejected, reasons, unchecked };
+  }
 
   const gateway = createLovableAiGatewayProvider(apiKey);
   const batches: PhotoCandidate[][] = [];
@@ -70,13 +87,16 @@ export async function verifySoloWomanPhotos(
         const { text } = await generateText({
           model: gateway("google/gemini-3.6-flash"),
           system:
-            "You are a strict photo-subject validator. Inspect every supplied image independently. " +
-            "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
-            "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
-            "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
-            "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
-            "Clothing and glamour level do not affect the count. " +
-            "Return one result for every supplied photo id, preserving each id exactly.",
+            "You screen photographs for an editorial picture desk. Be permissive: the human editor decides suitability. " +
+            "primaryAdultWoman is true when one adult woman is the dominant subject of the frame — headshots, close-ups, " +
+            "full-body, fashion, beauty, lifestyle, red carpet, travel, studio, social-media and casual photos all qualify, " +
+            "in any orientation, styling, lighting or background. Incidental background people, partial people, reflections, " +
+            "posters and photos-within-photos do NOT disqualify it. " +
+            "minorOrAgeUncertain is true only if the dominant subject looks under 18 or her adulthood cannot reasonably be established. " +
+            "explicitContent is true only for sexually explicit imagery or nudity. " +
+            "isPhotograph is false only for corrupt/blank files, pure graphics, charts, logos or text-only images. " +
+            "Return a JSON array, one object per supplied photo id, preserving each id exactly, with keys " +
+            "id, isPhotograph, primaryAdultWoman, minorOrAgeUncertain, explicitContent.",
           messages: [
             {
               role: "user",
@@ -93,22 +113,29 @@ export async function verifySoloWomanPhotos(
           if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
           seen.add(verdict.id);
           unchecked.delete(verdict.id);
-          if (
-            verdict.realPhotograph &&
-            verdict.adultWomen === 1 &&
-            verdict.otherPeople === 0 &&
-            !verdict.uncertain
-          ) {
-            accepted.add(verdict.id);
-          } else rejected.add(verdict.id);
+          const reason: PhotoRejectReason | null = !verdict.isPhotograph
+            ? "image_corrupt"
+            : verdict.minorOrAgeUncertain
+              ? "minor_or_age_uncertain"
+              : verdict.explicitContent
+                ? "explicit_content"
+                : !verdict.primaryAdultWoman
+                  ? "no_primary_woman"
+                  : null;
+          if (reason) {
+            rejected.add(verdict.id);
+            reasons.set(verdict.id, reason);
+          } else accepted.add(verdict.id);
         }
       } catch (error) {
-        console.error("photo subject validation failed", error);
+        console.error("photo screening failed", error);
       }
     }
   };
   await Promise.all(
     Array.from({ length: Math.min(MAX_CONCURRENT_CHECKS, batches.length) }, () => worker()),
   );
-  return { accepted, rejected, unchecked };
+  // Fail open: anything the model never judged still goes to the editor.
+  for (const id of unchecked) accepted.add(id);
+  return { accepted, rejected, reasons, unchecked };
 }
