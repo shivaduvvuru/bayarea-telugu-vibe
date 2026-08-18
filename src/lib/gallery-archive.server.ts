@@ -173,6 +173,15 @@ export async function swapGalleryPocket(
     })
     .slice(0, size);
 
+  // Bring the next pocket in FIRST, then retire the old one. Doing it the other
+  // way round leaves the live folder momentarily empty, and a reader refreshing
+  // in that instant sees no pictures at all.
+  const { error: restoreError } = await client
+    .from("content_items")
+    .update({ status: "published", published_at: new Date().toISOString() } as never)
+    .in("id", picks.map((r) => r.id));
+  if (restoreError) throw restoreError;
+
   let archived = 0;
   if (live.length) {
     const { error } = await client
@@ -182,12 +191,6 @@ export async function swapGalleryPocket(
     if (error) throw error;
     archived = live.length;
   }
-
-  const { error: restoreError } = await client
-    .from("content_items")
-    .update({ status: "published", published_at: new Date().toISOString() } as never)
-    .in("id", picks.map((r) => r.id));
-  if (restoreError) throw restoreError;
 
   return { archived, restored: picks.length, live: picks.length };
 }
