@@ -1846,17 +1846,16 @@ export async function collectGallery(
     rows.push(...batches.flat());
   }
 
-  // Only solo-woman glamour pictures belong in this pass: the desk is a
-  // single-woman picture desk and nothing else is held for approval.
-  const { isSingleWoman } = await import("./cinema-topics");
+  // Do not infer the people in a photograph from its headline. Dedicated
+  // picture-desk items with usable artwork proceed to the visual verifier,
+  // which is the sole authority for admitting exactly one adult woman.
   const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
       (r) =>
         // Quality check: the attached picture must read as people photography,
         // not stock nature / graphic filler.
-        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
-        isSingleWoman(r.title, r.summary, r.source_url ?? ""),
+        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null),
     ),
   );
 }
