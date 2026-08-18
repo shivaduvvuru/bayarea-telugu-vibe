@@ -16,6 +16,10 @@ export type PhotoVerification = {
 // One image per call prevents a model from swapping or rewriting IDs between
 // adjacent photos, which would otherwise leave valid verdicts "unchecked".
 const BATCH_SIZE = 1;
+// Visual checks share one workspace rate-limit budget. Launching every photo at
+// once caused nearly the whole pool to be throttled, leaving one random survivor
+// in the desk. A few sequential workers keep throughput steady without bursts.
+const MAX_CONCURRENT_CHECKS = 3;
 
 const verdictSchema = z.object({
   id: z.string(),
@@ -56,47 +60,55 @@ export async function verifySoloWomanPhotos(
   for (let offset = 0; offset < candidates.length; offset += BATCH_SIZE) {
     batches.push(candidates.slice(offset, offset + BATCH_SIZE));
   }
-  await Promise.all(batches.map(async (batch) => {
-    try {
-      const { text } = await generateText({
-        model: gateway("google/gemini-3.6-flash"),
-        system:
-          "You are a strict photo-subject validator. Inspect every supplied image independently. " +
-          "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
-          "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
-          "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
-          "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
-          "Clothing and glamour level do not affect the count. " +
-          "Return one result for every supplied photo id, preserving each id exactly.",
-        messages: [
-          {
-            role: "user",
-            content: batch.flatMap((candidate) => [
-              { type: "text" as const, text: `Photo id: ${candidate.id}` },
-              { type: "image" as const, image: new URL(candidate.image) },
-            ]),
-          },
-        ],
-      });
-      const allowedIds = new Set(batch.map((candidate) => candidate.id));
-      const seen = new Set<string>();
-      for (const verdict of parseVerdicts(text)) {
-        if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
-        seen.add(verdict.id);
-        unchecked.delete(verdict.id);
-        if (
-          verdict.realPhotograph &&
-          verdict.adultWomen === 1 &&
-          verdict.otherPeople === 0 &&
-          !verdict.uncertain
-        ) {
-          accepted.add(verdict.id);
+  let nextBatch = 0;
+  const worker = async () => {
+    while (nextBatch < batches.length) {
+      const batch = batches[nextBatch];
+      nextBatch += 1;
+      if (!batch) continue;
+      try {
+        const { text } = await generateText({
+          model: gateway("google/gemini-3.6-flash"),
+          system:
+            "You are a strict photo-subject validator. Inspect every supplied image independently. " +
+            "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
+            "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
+            "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
+            "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
+            "Clothing and glamour level do not affect the count. " +
+            "Return one result for every supplied photo id, preserving each id exactly.",
+          messages: [
+            {
+              role: "user",
+              content: batch.flatMap((candidate) => [
+                { type: "text" as const, text: `Photo id: ${candidate.id}` },
+                { type: "image" as const, image: new URL(candidate.image) },
+              ]),
+            },
+          ],
+        });
+        const allowedIds = new Set(batch.map((candidate) => candidate.id));
+        const seen = new Set<string>();
+        for (const verdict of parseVerdicts(text)) {
+          if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
+          seen.add(verdict.id);
+          unchecked.delete(verdict.id);
+          if (
+            verdict.realPhotograph &&
+            verdict.adultWomen === 1 &&
+            verdict.otherPeople === 0 &&
+            !verdict.uncertain
+          ) {
+            accepted.add(verdict.id);
+          } else rejected.add(verdict.id);
         }
-        else rejected.add(verdict.id);
+      } catch (error) {
+        console.error("photo subject validation failed", error);
       }
-    } catch (error) {
-      console.error("photo subject validation failed", error);
     }
-  }));
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(MAX_CONCURRENT_CHECKS, batches.length) }, () => worker()),
+  );
   return { accepted, rejected, unchecked };
 }
