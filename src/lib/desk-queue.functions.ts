@@ -135,14 +135,21 @@ export const listDeskItems = createServerFn({ method: "POST" })
       .limit(1000);
     if (error) throw new Error(error.message);
     const queue = (rows ?? []) as unknown as DeskQueueRow[];
-    const legacyPictures = queue.flatMap((row) => {
-      const payload = row.payload ?? {};
-      const image = payload["image"];
-      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
-        return [];
-      }
-      return [{ id: row.item_id, image }];
-    });
+    const legacyPictures = queue
+      .flatMap((row) => {
+        const payload = row.payload ?? {};
+        const image = payload["image"];
+        if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
+          return [];
+        }
+        return [{ id: row.item_id, image }];
+      })
+      // Verification is a visual AI call per photo. Checking an unbounded
+      // backlog inside the desk request made the desk hang and time out, which
+      // is why pictures looked like they never arrived. Check a slice per load;
+      // the rest are picked up on the next visit.
+      .slice(0, 24);
+
 
     if (legacyPictures.length) {
       const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
@@ -173,21 +180,15 @@ export const listDeskItems = createServerFn({ method: "POST" })
           ),
         );
       }
+      // A visual verdict is about one lead thumbnail, which on gallery posts is
+      // often a collage or ad frame. Drop the row from the desk, but do NOT
+      // blacklist the story: blacklisting permanently blocked genuine glamour
+      // galleries from ever being re-collected with a better photo.
       for (let offset = 0; offset < rejectedIds.length; offset += 100) {
         const ids = rejectedIds.slice(offset, offset + 100);
-        const rejectedRows = queue.filter((row) => ids.includes(row.item_id));
-        if (rejectedRows.length) {
-          await db.from("digest_rejects").upsert(
-            rejectedRows.map((row) => ({
-              dedupe_key: row.item_id,
-              item_id: row.item_id,
-              title: `[not-solo] ${row.title}`,
-            })) as never,
-            { onConflict: "dedupe_key", ignoreDuplicates: true },
-          );
-        }
         await db.from("digest_queue").delete().in("item_id", ids);
       }
+
     }
 
     return {

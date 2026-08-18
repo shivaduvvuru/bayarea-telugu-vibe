@@ -182,15 +182,24 @@ export async function swapGalleryPocket(
     .in("id", picks.map((r) => r.id));
   if (restoreError) throw restoreError;
 
+  // Freshly approved photos must never be retired by the very next swap: an
+  // editor approval that is archived before anyone sees it looks like approval
+  // does nothing. Anything published in the last day stays in the live pocket.
+  const freshCutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const retiring = live.filter(
+    (r) => new Date(r.published_at ?? 0).getTime() < freshCutoff,
+  );
+
   let archived = 0;
-  if (live.length) {
+  if (retiring.length) {
     const { error } = await client
       .from("content_items")
       .update({ status: ARCHIVED } as never)
-      .in("id", live.map((r) => r.id));
+      .in("id", retiring.map((r) => r.id));
     if (error) throw error;
-    archived = live.length;
+    archived = retiring.length;
   }
 
-  return { archived, restored: picks.length, live: picks.length };
+  return { archived, restored: picks.length, live: picks.length + (live.length - archived) };
 }
+
