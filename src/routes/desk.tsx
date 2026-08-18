@@ -554,17 +554,26 @@ function DeskWorkspace({
             {visible.map((item) => {
               const Icon = KIND_ICON[item.kind] ?? Newspaper;
               const c = cityBySlug(item.citySlug);
+              const wood = industryLabel(item.title, item.summary, item.sourceUrl);
+              const star = celebrityName(item.title, item.summary);
               return (
                 <li key={item.id}>
                   <Card className="gap-3 p-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="gap-1">
-                        <Icon className="size-3" /> {KIND_LABEL[item.kind] ?? item.kind}
+                      <Badge className="gap-1 bg-primary text-primary-foreground">
+                        <Icon className="size-3" /> {wood}
+                      </Badge>
+                      {star && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Star className="size-3" /> {star}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="gap-1">
+                        <MapPin className="size-3" /> {c?.region ?? c?.en ?? item.citySlug}
                       </Badge>
                       <Badge variant="outline" className="gap-1">
-                        <MapPin className="size-3" /> {c?.en ?? item.citySlug}
+                        <CalendarDays className="size-3" /> {item.collectedAt}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">{c?.region}</span>
                       <Badge
                         variant={item.status === "approved" ? "default" : "outline"}
                         className="ml-auto capitalize"
@@ -572,6 +581,7 @@ function DeskWorkspace({
                         {item.status}
                       </Badge>
                     </div>
+
                     {galleryImage(item.image) ? (
                       <img
                         src={galleryImage(item.image) ?? undefined}
