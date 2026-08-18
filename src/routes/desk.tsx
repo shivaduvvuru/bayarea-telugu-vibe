@@ -38,12 +38,12 @@ export const Route = createFileRoute("/desk")({
       {
         name: "description",
         content:
-          "Review, approve or reject collected Bay Area news, events and temple updates before they publish to the site.",
+          "Review and approve visually verified single-woman pictures before they publish to Glamour.",
       },
       { property: "og:title", content: "Editorial review desk — Bay Area Telugu Times" },
       {
         property: "og:description",
-        content: "Moderate collected Bay Area city news, events and temple updates.",
+        content: "Review visually verified single-woman pictures for the Glamour section.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -84,14 +84,17 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 }
 
 /**
- * The desk is a single-woman picture desk only. The collector's permanent
- * picture marker is authoritative; legacy unmarked rows fall back to the
- * solo-woman classifier.
+ * The desk is a single-woman picture desk only. A title can describe one woman
+ * while the artwork shows a couple or group, so only the visual-verification
+ * marker is authoritative. Legacy rows stay hidden until the server checks the
+ * actual image.
  */
 function isPictureItem(item: DeskItem): boolean {
-  if (item.reviewType === "picture") return true;
   return (
-    !!galleryImage(item.image) && isSingleWoman(item.title, item.summary, item.sourceUrl)
+    item.reviewType === "picture" &&
+    item.soloVerified === true &&
+    !!galleryImage(item.image) &&
+    isSingleWoman(item.title, item.summary, item.sourceUrl)
   );
 }
 
@@ -248,6 +251,7 @@ function DeskWorkspace({
             collectedAt: r.digest_date,
             ...(p["image"] ? { image: p["image"] } : {}),
             ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
+            ...(p["solo_verified"] === "visual-v1" ? { soloVerified: true as const } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,
@@ -436,7 +440,7 @@ function DeskWorkspace({
             Editorial desk
           </p>
           <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight text-foreground">
-            Daily digest — review &amp; approve
+            Glamour picture review
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {new Date(date).toLocaleDateString("en-US", {
@@ -462,7 +466,7 @@ function DeskWorkspace({
           </div>
           {refreshing && (
             <p className="mt-2 text-xs font-medium text-primary" role="status">
-              {retryNote || "Checking News and Pictures intake before approval…"}
+              {retryNote || "Checking single-woman picture intake before approval…"}
             </p>
           )}
 

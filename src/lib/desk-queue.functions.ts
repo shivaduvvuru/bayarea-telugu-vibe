@@ -71,6 +71,18 @@ export const setQueueStatus = createServerFn({ method: "POST" })
       if (delError) throw new Error(delError.message);
       return { updated: data.itemIds.length };
     }
+    if (data.status === "approved") {
+      const { data: rows, error: readError } = await db
+        .from("digest_queue")
+        .select("item_id,payload")
+        .in("item_id", data.itemIds);
+      if (readError) throw new Error(readError.message);
+      const unverified = (rows ?? []).filter((row) => {
+        const payload = (row as { payload?: Record<string, unknown> | null }).payload ?? {};
+        return payload["review_type"] === "picture" && payload["solo_verified"] !== "visual-v1";
+      });
+      if (unverified.length) throw new Error("One or more pictures have not passed the solo-woman image check");
+    }
     const { error } = await db
       .from("digest_queue")
       .update({ status: data.status } as never)
@@ -122,5 +134,62 @@ export const listDeskItems = createServerFn({ method: "POST" })
       // pending totals can be reconciled exactly by the desk.
       .limit(1000);
     if (error) throw new Error(error.message);
-    return { items: (rows ?? []) as unknown as DeskQueueRow[] };
+    const queue = (rows ?? []) as unknown as DeskQueueRow[];
+    const legacyPictures = queue.flatMap((row) => {
+      const payload = row.payload ?? {};
+      const image = payload["image"];
+      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1" || !image) {
+        return [];
+      }
+      return [{ id: row.item_id, image }];
+    });
+
+    if (legacyPictures.length) {
+      const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
+      const accepted = await verifySoloWomanPhotos(
+        legacyPictures,
+        process.env["LOVABLE_API_KEY"],
+      );
+      const acceptedIds = legacyPictures.filter((item) => accepted.has(item.id)).map((item) => item.id);
+      const rejectedIds = legacyPictures.filter((item) => !accepted.has(item.id)).map((item) => item.id);
+
+      for (const row of queue) {
+        if (!accepted.has(row.item_id)) continue;
+        row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v1" };
+      }
+      for (let offset = 0; offset < acceptedIds.length; offset += 100) {
+        const ids = acceptedIds.slice(offset, offset + 100);
+        const acceptedRows = queue.filter((row) => ids.includes(row.item_id));
+        await Promise.all(
+          acceptedRows.map((row) =>
+            db
+              .from("digest_queue")
+              .update({ payload: row.payload } as never)
+              .eq("item_id", row.item_id),
+          ),
+        );
+      }
+      for (let offset = 0; offset < rejectedIds.length; offset += 100) {
+        const ids = rejectedIds.slice(offset, offset + 100);
+        const rejectedRows = queue.filter((row) => ids.includes(row.item_id));
+        if (rejectedRows.length) {
+          await db.from("digest_rejects").upsert(
+            rejectedRows.map((row) => ({
+              dedupe_key: row.item_id,
+              item_id: row.item_id,
+              title: `[not-solo] ${row.title}`,
+            })) as never,
+            { onConflict: "dedupe_key", ignoreDuplicates: true },
+          );
+        }
+        await db.from("digest_queue").delete().in("item_id", ids);
+      }
+    }
+
+    return {
+      items: queue.filter((row) => {
+        const payload = row.payload ?? {};
+        return payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1";
+      }),
+    };
   });

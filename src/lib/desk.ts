@@ -18,6 +18,8 @@ export type DeskItem = {
   image?: string | null;
   /** Collector-stamped identity so held pictures cannot be mistaken for news. */
   reviewType?: "picture";
+  /** The attached artwork was visually checked as exactly one adult woman. */
+  soloVerified?: true;
   /** Event start / temple seva time. */
   when?: string;
   venue?: string;
