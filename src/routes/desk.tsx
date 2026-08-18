@@ -27,7 +27,6 @@ import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isSingleWoman } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
 import { retryWithBackoff } from "@/lib/retry";
@@ -62,8 +61,6 @@ const KIND_ICON: Record<ItemKind, typeof Newspaper> = {
 
 const WINDOW_DAYS = 7;
 
-/** Desk tabs: pictures are reviewed on their own tab, apart from the news list. */
-type DeskTab = ItemKind | "picture" | "all";
 
 type DeskItemsResponse = {
   items: Array<{
@@ -295,7 +292,6 @@ function DeskWorkspace({
   const ids = useMemo(() => base.map((i) => i.id), [base]);
   const queue = useReviewQueue(ids, `${date}-${ids.length}`, deskToken);
 
-  const [kind, setKind] = useState<DeskTab>("all");
   const [region, setRegion] = useState<string>("all");
   const [city, setCity] = useState<string>("all");
   const [view, setView] = useState<ItemStatus | "all">("all");
@@ -318,7 +314,6 @@ function DeskWorkspace({
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
 
-    if (kind !== "all" && kind !== "picture" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
     return true;
@@ -550,7 +545,7 @@ function DeskWorkspace({
           </Card>
         ) : visible.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
-            Nothing here. Switch tab or filter, or use “Collect now” to pull fresh items.
+            Nothing here. Change the filter, or use “Collect now” to pull fresh items.
           </Card>
         ) : (
           <ul className="space-y-3">
