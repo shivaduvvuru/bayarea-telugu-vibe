@@ -68,25 +68,25 @@ export async function verifySoloWomanPhotos(
       if (!batch) continue;
       try {
         const { text } = await generateText({
-        maxRetries: 0,
-        model: gateway("google/gemini-3.6-flash"),
-        system:
-          "You are a strict photo-subject validator. Inspect every supplied image independently. " +
-          "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
-          "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
-          "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
-          "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
-          "Clothing and glamour level do not affect the count. " +
-          "Return one result for every supplied photo id, preserving each id exactly.",
-        messages: [
-          {
-            role: "user",
-            content: batch.flatMap((candidate) => [
-              { type: "text" as const, text: `Photo id: ${candidate.id}` },
-              { type: "image" as const, image: new URL(candidate.image) },
-            ]),
-          },
-        ],
+          maxRetries: 0,
+          model: gateway("google/gemini-3.6-flash"),
+          system:
+            "You are a strict photo-subject validator. Inspect every supplied image independently. " +
+            "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
+            "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
+            "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
+            "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
+            "Clothing and glamour level do not affect the count. " +
+            "Return one result for every supplied photo id, preserving each id exactly.",
+          messages: [
+            {
+              role: "user",
+              content: batch.flatMap((candidate) => [
+                { type: "text" as const, text: `Photo id: ${candidate.id}` },
+                { type: "image" as const, image: new URL(candidate.image) },
+              ]),
+            },
+          ],
         });
         const allowedIds = new Set(batch.map((candidate) => candidate.id));
         const seen = new Set<string>();
@@ -101,8 +101,7 @@ export async function verifySoloWomanPhotos(
             !verdict.uncertain
           ) {
             accepted.add(verdict.id);
-          }
-          else rejected.add(verdict.id);
+          } else rejected.add(verdict.id);
         }
       } catch (error) {
         console.error("photo subject validation failed", error);
