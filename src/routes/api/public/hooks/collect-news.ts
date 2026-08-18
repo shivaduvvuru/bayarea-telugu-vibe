@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               !!galleryImage(image) &&
               (payload?.gallery === true ||
                 payload?.review_type === "picture" ||
-                payload?.solo_verified === "visual-v1")
+                payload?.solo_verified === "visual-v2")
             );
           };
 
@@ -127,7 +127,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             .filter((row) => verification.accepted.has(row.item_id))
             .map((row) => ({
               ...row,
-              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v1" },
+              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v2" },
             }));
           const collected = dedupeCollected([...newsPool, ...picturePool]);
 
@@ -221,7 +221,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               // into ordinary news when publisher text changed or was sparse,
               // and the legacy news release then emptied the picture desk.
               payload: picture
-                ? { ...payload, review_type: "picture", solo_verified: "visual-v1" }
+                ? { ...payload, review_type: "picture", solo_verified: "visual-v2" }
                 : payload,
               status: auto ? "approved" : "pending",
             };

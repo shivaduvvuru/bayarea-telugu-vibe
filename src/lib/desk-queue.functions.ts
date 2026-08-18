@@ -79,7 +79,7 @@ export const setQueueStatus = createServerFn({ method: "POST" })
       if (readError) throw new Error(readError.message);
       const unverified = (rows ?? []).filter((row) => {
         const payload = (row as { payload?: Record<string, unknown> | null }).payload ?? {};
-        return payload["review_type"] === "picture" && payload["solo_verified"] !== "visual-v1";
+        return payload["review_type"] === "picture" && payload["solo_verified"] !== "visual-v2";
       });
       if (unverified.length) throw new Error("One or more pictures have not passed the solo-woman image check");
     }
@@ -138,7 +138,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
     const legacyPictures = queue.flatMap((row) => {
       const payload = row.payload ?? {};
       const image = payload["image"];
-      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1" || !image) {
+      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
         return [];
       }
       return [{ id: row.item_id, image }];
@@ -159,7 +159,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
 
       for (const row of queue) {
         if (!verification.accepted.has(row.item_id)) continue;
-        row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v1" };
+        row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v2" };
       }
       for (let offset = 0; offset < acceptedIds.length; offset += 100) {
         const ids = acceptedIds.slice(offset, offset + 100);
@@ -193,7 +193,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
     return {
       items: queue.filter((row) => {
         const payload = row.payload ?? {};
-        return payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1";
+        return payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2";
       }),
     };
   });
