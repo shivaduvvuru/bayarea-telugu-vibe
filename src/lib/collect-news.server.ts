@@ -1846,8 +1846,9 @@ export async function collectGallery(
     rows.push(...batches.flat());
   }
 
-  // Only picture-led star stories belong in this pass.
-  const { isPictureCandidate } = await import("./cinema-topics");
+  // Only solo-woman glamour pictures belong in this pass: the desk is a
+  // single-woman picture desk and nothing else is held for approval.
+  const { isSingleWoman } = await import("./cinema-topics");
   const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
@@ -1855,7 +1856,7 @@ export async function collectGallery(
         // Quality check: the attached picture must read as people photography,
         // not stock nature / graphic filler.
         !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
-        isPictureCandidate(r.title, r.summary, r.source_url ?? ""),
+        isSingleWoman(r.title, r.summary, r.source_url ?? ""),
     ),
   );
 }

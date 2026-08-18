@@ -576,9 +576,7 @@ function DeskWorkspace({
                         alt={item.title}
                         loading="lazy"
                         decoding="async"
-                        className={`w-full rounded-md border border-border object-cover ${
-                          kind === "picture" ? "max-h-96 object-top" : "max-h-56"
-                        }`}
+                        className="max-h-96 w-full rounded-md border border-border object-cover object-top"
                       />
                     ) : null}
                     <h2 className="text-base font-semibold leading-snug text-foreground">

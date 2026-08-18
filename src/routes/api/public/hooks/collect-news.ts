@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
-          const { isPictureCandidate } = await import("@/lib/cinema-topics");
+          const { isSingleWoman } = await import("@/lib/cinema-topics");
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               !!galleryImage(image) &&
                (payload?.review_type === "picture" ||
                  payload?.gallery === true ||
-                isPictureCandidate(
+                isSingleWoman(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),
                   String(r["source_url"] ?? ""),
