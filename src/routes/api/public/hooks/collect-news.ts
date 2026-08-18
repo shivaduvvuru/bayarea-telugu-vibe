@@ -32,12 +32,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
-               | { image?: string | null; review_type?: string | null; gallery?: boolean }
+               | { image?: string | null; review_type?: string | null; solo_verified?: string | null; gallery?: boolean }
               | undefined;
             const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
-               (payload?.review_type === "picture" ||
+               (payload?.solo_verified === "visual-v1" ||
                 isSingleWoman(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),
@@ -102,6 +102,23 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             picturePool = dedupeCollected([...picturePool, ...morePictures]);
             healthAttempts += 1;
           }
+          // Headline filters cannot see who is actually in the artwork. Inspect
+          // every new candidate and fail closed unless it visibly contains
+          // exactly one adult woman and no other person.
+          const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
+          const visuallyAccepted = await verifySoloWomanPhotos(
+            picturePool.flatMap((row) => {
+              const image = (row.payload as { image?: string | null } | undefined)?.image;
+              return image ? [{ id: row.item_id, image }] : [];
+            }),
+            process.env["LOVABLE_API_KEY"],
+          );
+          picturePool = picturePool
+            .filter((row) => visuallyAccepted.has(row.item_id))
+            .map((row) => ({
+              ...row,
+              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v1" },
+            }));
           const collected = dedupeCollected([...newsPool, ...picturePool]);
 
 
@@ -193,7 +210,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               // classifier against a queue row used to turn held pictures back
               // into ordinary news when publisher text changed or was sparse,
               // and the legacy news release then emptied the picture desk.
-              payload: picture ? { ...payload, review_type: "picture" } : payload,
+              payload: picture
+                ? { ...payload, review_type: "picture", solo_verified: "visual-v1" }
+                : payload,
               status: auto ? "approved" : "pending",
             };
           });

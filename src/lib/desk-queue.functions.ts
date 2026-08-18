@@ -122,5 +122,50 @@ export const listDeskItems = createServerFn({ method: "POST" })
       // pending totals can be reconciled exactly by the desk.
       .limit(1000);
     if (error) throw new Error(error.message);
-    return { items: (rows ?? []) as unknown as DeskQueueRow[] };
+    const queue = (rows ?? []) as unknown as DeskQueueRow[];
+    const legacyPictures = queue.flatMap((row) => {
+      const payload = row.payload ?? {};
+      const image = payload["image"];
+      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1" || !image) {
+        return [];
+      }
+      return [{ id: row.item_id, image }];
+    });
+
+    if (legacyPictures.length) {
+      const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
+      const accepted = await verifySoloWomanPhotos(
+        legacyPictures,
+        process.env["LOVABLE_API_KEY"],
+      );
+      const acceptedIds = legacyPictures.filter((item) => accepted.has(item.id)).map((item) => item.id);
+      const rejectedIds = legacyPictures.filter((item) => !accepted.has(item.id)).map((item) => item.id);
+
+      for (const row of queue) {
+        if (!accepted.has(row.item_id)) continue;
+        row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v1" };
+      }
+      for (let offset = 0; offset < acceptedIds.length; offset += 100) {
+        const ids = acceptedIds.slice(offset, offset + 100);
+        const acceptedRows = queue.filter((row) => ids.includes(row.item_id));
+        await Promise.all(
+          acceptedRows.map((row) =>
+            db
+              .from("digest_queue")
+              .update({ payload: row.payload } as never)
+              .eq("item_id", row.item_id),
+          ),
+        );
+      }
+      for (let offset = 0; offset < rejectedIds.length; offset += 100) {
+        await db.from("digest_queue").delete().in("item_id", rejectedIds.slice(offset, offset + 100));
+      }
+    }
+
+    return {
+      items: queue.filter((row) => {
+        const payload = row.payload ?? {};
+        return payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v1";
+      }),
+    };
   });

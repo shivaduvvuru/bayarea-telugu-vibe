@@ -84,14 +84,17 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 }
 
 /**
- * The desk is a single-woman picture desk only. The collector's permanent
- * picture marker is authoritative; legacy unmarked rows fall back to the
- * solo-woman classifier.
+ * The desk is a single-woman picture desk only. A title can describe one woman
+ * while the artwork shows a couple or group, so only the visual-verification
+ * marker is authoritative. Legacy rows stay hidden until the server checks the
+ * actual image.
  */
 function isPictureItem(item: DeskItem): boolean {
-  if (item.reviewType === "picture") return true;
   return (
-    !!galleryImage(item.image) && isSingleWoman(item.title, item.summary, item.sourceUrl)
+    item.reviewType === "picture" &&
+    item.soloVerified === true &&
+    !!galleryImage(item.image) &&
+    isSingleWoman(item.title, item.summary, item.sourceUrl)
   );
 }
 
@@ -248,6 +251,7 @@ function DeskWorkspace({
             collectedAt: r.digest_date,
             ...(p["image"] ? { image: p["image"] } : {}),
             ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
+            ...(p["solo_verified"] === "visual-v1" ? { soloVerified: true as const } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,
