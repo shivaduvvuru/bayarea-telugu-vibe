@@ -187,6 +187,17 @@ export function GalleryHero({
     picture = candidatePicture;
     if (!taken.has(candidatePicture)) break;
   }
+  if (article && picture) {
+    lastGoodPick.set(offset, { article, picture });
+  } else {
+    // Nothing eligible right now (folder refreshing, everything failed to load):
+    // keep the picture this slot last showed so the full-size slot never blanks.
+    const previous = mounted ? lastGoodPick.get(offset) : undefined;
+    if (previous) {
+      article = previous.article;
+      picture = previous.picture;
+    }
+  }
   if (picture) activePicks.set(offset, picture);
   const position = article && picture ? items.findIndex((a) => a.slug === article!.slug) : -1;
 
