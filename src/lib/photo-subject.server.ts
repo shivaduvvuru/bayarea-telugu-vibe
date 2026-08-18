@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
@@ -23,6 +23,18 @@ const verdictSchema = z.object({
   uncertain: z.boolean(),
 });
 
+function parseVerdicts(raw: string) {
+  try {
+    const start = raw.indexOf("[");
+    const end = raw.lastIndexOf("]");
+    if (start < 0 || end < start) return [];
+    const parsed = z.array(verdictSchema).safeParse(JSON.parse(raw.slice(start, end + 1)));
+    return parsed.success ? parsed.data : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Looks at the actual artwork instead of trusting a headline. A picture passes
  * only when it visibly contains exactly one adult woman and no other person.
@@ -44,9 +56,8 @@ export async function verifySoloWomanPhotos(
   }
   await Promise.all(batches.map(async (batch) => {
     try {
-      const { output } = await generateText({
+      const { text } = await generateText({
         model: gateway("google/gemini-3.6-flash"),
-        output: Output.array({ element: verdictSchema }),
         system:
           "You are a strict photo-subject validator. Inspect every supplied image independently. " +
           "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
@@ -67,7 +78,7 @@ export async function verifySoloWomanPhotos(
       });
       const allowedIds = new Set(batch.map((candidate) => candidate.id));
       const seen = new Set<string>();
-      for (const verdict of output) {
+      for (const verdict of parseVerdicts(text)) {
         if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
         seen.add(verdict.id);
         unchecked.delete(verdict.id);
