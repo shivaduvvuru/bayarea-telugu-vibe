@@ -160,3 +160,42 @@ export function isPictureCandidate(
     FEMALE_GENERIC.test(text)
   );
 }
+
+/** Film industry ("wood") a picture belongs to, for the review-desk tag row. */
+export function industryLabel(
+  title: string | null | undefined,
+  summary?: string | null,
+  sourceUrl?: string | null,
+): string {
+  const text = `${title ?? ""} ${summary ?? ""} ${sourceUrl ?? ""}`.toLowerCase();
+  if (/tollywood|telugu|hyderabad|amaravathi|టాలీవుడ్/.test(text)) return "Tollywood";
+  if (/kollywood|tamil|chennai/.test(text)) return "Kollywood";
+  if (/mollywood|malayalam|kerala|kochi/.test(text)) return "Mollywood";
+  if (/sandalwood|kannada|bengaluru|bangalore/.test(text)) return "Sandalwood";
+  if (/bollywood|hindi|mumbai/.test(text)) return "Bollywood";
+  if (/hollywood|american actress|red carpet|oscar|variety|deadline|hollywoodreporter/.test(text))
+    return "Hollywood";
+  return "Glamour";
+}
+
+/** Generic words inside the female-subject list that are not celebrity names. */
+const NOT_A_NAME =
+  /^(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she|her|model)$/i;
+
+/**
+ * Best-effort celebrity name for a picture card. Uses the known female-star
+ * list first, then falls back to the leading capitalised words of the headline.
+ */
+export function celebrityName(
+  title: string | null | undefined,
+  summary?: string | null,
+): string | null {
+  const text = `${title ?? ""} ${summary ?? ""}`;
+  const named = text.match(FEMALE_SUBJECT);
+  const hit = named?.[0]?.trim();
+  if (hit && !NOT_A_NAME.test(hit)) {
+    return hit.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  const lead = (title ?? "").match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/);
+  return lead?.[1] ?? null;
+}
