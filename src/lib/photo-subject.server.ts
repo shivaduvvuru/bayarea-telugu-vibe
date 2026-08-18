@@ -13,7 +13,9 @@ export type PhotoVerification = {
   unchecked: Set<string>;
 };
 
-const BATCH_SIZE = 2;
+// One image per call prevents a model from swapping or rewriting IDs between
+// adjacent photos, which would otherwise leave valid verdicts "unchecked".
+const BATCH_SIZE = 1;
 
 const verdictSchema = z.object({
   id: z.string(),
