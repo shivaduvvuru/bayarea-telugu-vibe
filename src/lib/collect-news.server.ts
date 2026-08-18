@@ -1839,19 +1839,16 @@ export async function collectGallery(
     rows.push(...batches.flat());
   }
 
-  // Do not infer the people in a photograph from its headline. Dedicated
-  // picture-desk items with usable artwork proceed to the visual verifier,
-  // which is the sole authority for admitting exactly one adult woman.
+  // Do not infer the people in a photograph from its headline. Every candidate
+  // carrying usable artwork flows to the desk: the visual verifier is the sole
+  // authority for admitting exactly one adult woman, so intake stays lenient
+  // (hard news and male-only posts are the only text-level rejections).
   const { galleryImage } = await import("./story-image");
-  const { isStarGallery } = await import("./cinema-topics");
+  const { isPictureCandidate } = await import("./cinema-topics");
   return dedupeCollected(
     rows.filter(
       (r) =>
-        // Broad entertainment publishers also carry politics, crime, tech and
-        // ordinary movie news. Require a genuine photo/glamour feature before
-        // spending a visual check, so a lone unrelated portrait cannot become
-        // the only item in the editor's picture desk.
-        isStarGallery(r.title, r.summary, r.source_url) &&
+        isPictureCandidate(r.title, r.summary, r.source_url) &&
         // Quality check: the attached picture must read as people photography,
         // not stock nature / graphic filler.
         !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null),
