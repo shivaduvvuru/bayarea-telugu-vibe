@@ -113,6 +113,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             }),
             process.env["LOVABLE_API_KEY"],
           );
+          const visuallyRejected = picturePool.filter((row) => !visuallyAccepted.has(row.item_id));
+          if (visuallyRejected.length) {
+            await supabaseAdmin.from("digest_rejects").upsert(
+              visuallyRejected.map((row) => ({
+                dedupe_key: row.dedupe_key,
+                item_id: row.item_id,
+                title: `[not-solo] ${row.title}`,
+              })) as never,
+              { onConflict: "dedupe_key", ignoreDuplicates: true },
+            );
+          }
           picturePool = picturePool
             .filter((row) => visuallyAccepted.has(row.item_id))
             .map((row) => ({

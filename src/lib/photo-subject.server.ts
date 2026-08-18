@@ -12,6 +12,7 @@ type PhotoVerdict = {
 };
 
 const BATCH_SIZE = 6;
+const MAX_PER_PASS = 30;
 
 function parseVerdicts(raw: string): PhotoVerdict[] {
   try {
@@ -43,8 +44,11 @@ export async function verifySoloWomanPhotos(
   if (!apiKey) return accepted;
 
   const gateway = createLovableAiGatewayProvider(apiKey);
-  for (let offset = 0; offset < candidates.length; offset += BATCH_SIZE) {
-    const batch = candidates.slice(offset, offset + BATCH_SIZE);
+  const batches: PhotoCandidate[][] = [];
+  for (let offset = 0; offset < Math.min(candidates.length, MAX_PER_PASS); offset += BATCH_SIZE) {
+    batches.push(candidates.slice(offset, offset + BATCH_SIZE));
+  }
+  await Promise.all(batches.map(async (batch) => {
     try {
       const { text } = await Promise.race([
         generateText({
@@ -76,6 +80,6 @@ export async function verifySoloWomanPhotos(
     } catch (error) {
       console.error("photo subject validation failed", error);
     }
-  }
+  }));
   return accepted;
 }

@@ -71,6 +71,18 @@ export const setQueueStatus = createServerFn({ method: "POST" })
       if (delError) throw new Error(delError.message);
       return { updated: data.itemIds.length };
     }
+    if (data.status === "approved") {
+      const { data: rows, error: readError } = await db
+        .from("digest_queue")
+        .select("item_id,payload")
+        .in("item_id", data.itemIds);
+      if (readError) throw new Error(readError.message);
+      const unverified = (rows ?? []).filter((row) => {
+        const payload = (row as { payload?: Record<string, unknown> | null }).payload ?? {};
+        return payload["review_type"] === "picture" && payload["solo_verified"] !== "visual-v1";
+      });
+      if (unverified.length) throw new Error("One or more pictures have not passed the solo-woman image check");
+    }
     const { error } = await db
       .from("digest_queue")
       .update({ status: data.status } as never)
@@ -158,7 +170,19 @@ export const listDeskItems = createServerFn({ method: "POST" })
         );
       }
       for (let offset = 0; offset < rejectedIds.length; offset += 100) {
-        await db.from("digest_queue").delete().in("item_id", rejectedIds.slice(offset, offset + 100));
+        const ids = rejectedIds.slice(offset, offset + 100);
+        const rejectedRows = queue.filter((row) => ids.includes(row.item_id));
+        if (rejectedRows.length) {
+          await db.from("digest_rejects").upsert(
+            rejectedRows.map((row) => ({
+              dedupe_key: row.item_id,
+              item_id: row.item_id,
+              title: `[not-solo] ${row.title}`,
+            })) as never,
+            { onConflict: "dedupe_key", ignoreDuplicates: true },
+          );
+        }
+        await db.from("digest_queue").delete().in("item_id", ids);
       }
     }
 

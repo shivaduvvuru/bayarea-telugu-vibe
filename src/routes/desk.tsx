@@ -38,12 +38,12 @@ export const Route = createFileRoute("/desk")({
       {
         name: "description",
         content:
-          "Review, approve or reject collected Bay Area news, events and temple updates before they publish to the site.",
+          "Review and approve visually verified single-woman pictures before they publish to Glamour.",
       },
       { property: "og:title", content: "Editorial review desk — Bay Area Telugu Times" },
       {
         property: "og:description",
-        content: "Moderate collected Bay Area city news, events and temple updates.",
+        content: "Review visually verified single-woman pictures for the Glamour section.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -440,7 +440,7 @@ function DeskWorkspace({
             Editorial desk
           </p>
           <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight text-foreground">
-            Daily digest — review &amp; approve
+            Glamour picture review
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {new Date(date).toLocaleDateString("en-US", {
@@ -466,7 +466,7 @@ function DeskWorkspace({
           </div>
           {refreshing && (
             <p className="mt-2 text-xs font-medium text-primary" role="status">
-              {retryNote || "Checking News and Pictures intake before approval…"}
+              {retryNote || "Checking single-woman picture intake before approval…"}
             </p>
           )}
 
