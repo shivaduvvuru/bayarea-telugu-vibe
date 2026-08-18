@@ -87,13 +87,16 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 }
 
 /**
- * A queue row belongs on the Pictures tab when it carries a usable photo that
- * passes the Glamourie quality check — those are reviewed as images, not text.
+ * The collector's permanent picture marker is authoritative. Re-running the
+ * URL quality gate here hid valid queued pictures when a publisher image URL
+ * later matched a stricter client-side rule. Legacy unmarked rows still use the
+ * classifier as a fallback.
  */
 function isPictureItem(item: DeskItem): boolean {
+  if (item.reviewType === "picture") return true;
   return (
     !!galleryImage(item.image) &&
-    (item.reviewType === "picture" || isPictureCandidate(item.title, item.summary, item.sourceUrl))
+    isPictureCandidate(item.title, item.summary, item.sourceUrl)
   );
 }
 
