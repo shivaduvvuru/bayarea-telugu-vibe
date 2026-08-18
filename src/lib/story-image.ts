@@ -8,7 +8,9 @@ const BLOCKED =
 
 
 /** Tiny thumbnails and crops: skip them so tiles get a real photo. */
-const TOO_SMALL = /-\d{2,3}x\d{2,3}\.|\b(?:thumb(?:nail)?s?|small|icon|mini|75x75|150x150)\b|[?&](?:w|width)=(?:\d{1,2}|[12]\d\d)\b/i;
+// Only genuinely unusable sizes are rejected now: an icon, sprite or a crop
+// under ~120px. Everything larger is the editor's call, not the pipeline's.
+const TOO_SMALL = /-(?:[1-9]\d?|1[01]\d)x(?:[1-9]\d?|1[01]\d)\.|\b(?:icon|favicon|sprite|75x75|100x100)\b|[?&](?:w|width)=(?:\d{1,2}|1[01]\d)\b/i;
 
 export function looksHighRes(url: string | null | undefined): boolean {
   if (!url) return false;
@@ -67,14 +69,13 @@ export function sourceLabel(url: string | null | undefined): string | null {
 }
 
 /**
- * Quality gate for the Glamourie grid. Picture desks sometimes attach stock
- * artwork that has nothing to do with a star portrait — nature shots, birds,
- * temple/church crosses, maps, weather graphics, sports frames. Those slipped
- * into the photo grid, so reject them by URL/slug cue and keep only pictures
- * that read as people photography.
+ * Minimal sanity gate for the picture desk. Collect broadly: only clearly
+ * non-photographic assets (charts, logos, screenshots, QR codes) are rejected
+ * here. Subject, styling, orientation and quality are decided by the visual
+ * safety screen and finally by the editor in the review desk.
  */
 const NOT_A_PORTRAIT =
-  /\b(?:bird|birds|eagle|parrot|peacock|animal|wildlife|dog|cat|tiger|lion|elephant|nature|landscape|sunset|sunrise|mountain|forest|tree|flower|garden|beachscape|cross|crucifix|church|chapel|cathedral|temple|mosque|masjid|shrine|idol|god|deity|festival-?graphic|map|maps|chart|graph|graphic|infographic|weather|rain|storm|flood|traffic|accident|crash|police|court|stadium|cricket|match|scorecard|trophy|stocks?|market|currency|coin|crypto|car|bike|vehicle|building|construction|flag|poster-?only|screenshot|whatsapp-?image|collage-?graphic)\b/i;
+  /\b(?:chart|graph|infographic|scorecard|logo|wordmark|banner-?ad|screenshot|qr-?code|placeholder|map-?tile)\b/i;
 
 /** Usable image that also passes the Glamourie subject check. */
 export function galleryImage(url: string | null | undefined): string | null {
