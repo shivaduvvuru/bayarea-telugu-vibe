@@ -255,6 +255,15 @@ export const lastDiag = {
   images: 0,
   duplicates: 0,
   notes: [] as string[],
+  /** Picture-intake funnel for the ingestion dashboard. */
+  gallery: {
+    discovered: 0,
+    noImage: 0,
+    imageUnusable: 0,
+    hardNews: 0,
+    candidates: 0,
+    bySource: {} as Record<string, { discovered: number; candidates: number }>,
+  },
 };
 
 const UA =
@@ -739,6 +748,120 @@ const PUBLISHER_FEEDS: {
   },
   // Direct "glamour + tollywood" keyword desks: one on Google News, one on Bing
   // News, both feeding the Glamour intake.
+  // Broad discovery desks: fashion / beauty / portrait / lifestyle concepts,
+  // not just explicit "glamour" wording. Volume first, editor decides.
+  {
+    name: "Fashion women (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "fashion woman (photos OR photoshoot OR editorial) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Female models (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "female model (photoshoot OR portfolio OR runway OR photos) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Beauty portraits (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "beauty portrait woman (photos OR shoot) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Female celebrities (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "female celebrity (photos OR appearance OR look) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Actress photos (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "actress photos when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Modeling photography (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "modeling photography woman when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Editorial portraits (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "editorial portrait woman photography when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Women lifestyle (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "women lifestyle (photos OR feature OR style) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Red carpet women (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "red carpet women (photos OR gown OR look) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Female influencers (Google)",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      "female influencer (photos OR photoshoot OR viral) when:7d",
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Fashion photography (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "fashion photography woman",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Beauty photography (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "beauty photography female model",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Portrait photography woman (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "portrait photography woman",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Women fashion week (Bing)",
+    url: `https://www.bing.com/news/search?q=${encodeURIComponent(
+      "women fashion week photos",
+    )}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+    kind: "news",
+    limit: 12,
+  },
   {
     name: "Glamour Tollywood (Google)",
     url: `https://news.google.com/rss/search?q=${encodeURIComponent(
@@ -1692,6 +1815,20 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
 /** Picture desks that feed the Gallery grid. */
 const GALLERY_FEED_NAMES = [
+  "Fashion women (Google)",
+  "Female models (Google)",
+  "Beauty portraits (Google)",
+  "Female celebrities (Google)",
+  "Actress photos (Google)",
+  "Modeling photography (Google)",
+  "Editorial portraits (Google)",
+  "Women lifestyle (Google)",
+  "Red carpet women (Google)",
+  "Female influencers (Google)",
+  "Fashion photography (Bing)",
+  "Beauty photography (Bing)",
+  "Portrait photography woman (Bing)",
+  "Women fashion week (Bing)",
   "123Telugu Gallery",
   "Heroine galleries",
   "Tollywood heroines",
@@ -1844,16 +1981,33 @@ export async function collectGallery(
   // authority for admitting exactly one adult woman, so intake stays lenient
   // (hard news and male-only posts are the only text-level rejections).
   const { galleryImage } = await import("./story-image");
-  const { isPictureCandidate } = await import("./cinema-topics");
-  return dedupeCollected(
-    rows.filter(
-      (r) =>
-        isPictureCandidate(r.title, r.summary, r.source_url) &&
-        // Quality check: the attached picture must read as people photography,
-        // not stock nature / graphic filler.
-        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null),
-    ),
-  );
+  const { pictureCandidateReason } = await import("./cinema-topics");
+  const funnel = lastDiag.gallery;
+  const kept: CollectedItem[] = [];
+  for (const r of rows) {
+    const source = r.source ?? "unknown";
+    const stat = (funnel.bySource[source] ??= { discovered: 0, candidates: 0 });
+    funnel.discovered += 1;
+    stat.discovered += 1;
+    const rawImage = (r.payload as { image?: string | null } | undefined)?.image ?? null;
+    if (!rawImage) {
+      funnel.noImage += 1;
+      continue;
+    }
+    if (!galleryImage(rawImage)) {
+      funnel.imageUnusable += 1;
+      continue;
+    }
+    const reason = pictureCandidateReason(r.title, r.summary);
+    if (reason === "hard_news") {
+      funnel.hardNews += 1;
+      continue;
+    }
+    funnel.candidates += 1;
+    stat.candidates += 1;
+    kept.push(r);
+  }
+  return dedupeCollected(kept);
 }
 
 
