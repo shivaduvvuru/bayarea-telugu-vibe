@@ -131,7 +131,7 @@ export function GalleryHero({
   const fresh = (list: Article[]) =>
     // Browser-only history: skipped on the server render so SSR and hydration
     // paint the same picture.
-    (!mounted ? list : list).filter((a) => {
+    list.filter((a) => {
       if (!mounted) return true;
       const picture = galleryImage(a.image);
       return !!picture && !shownThisWeek(picture);
