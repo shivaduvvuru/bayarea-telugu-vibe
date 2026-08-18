@@ -14,6 +14,7 @@ import {
   Lock,
   Images,
   CopyX,
+  Star,
 
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { galleryImage } from "@/lib/story-image";
+import { celebrityName, industryLabel } from "@/lib/cinema-topics";
 import { retryWithBackoff } from "@/lib/retry";
 
 export const Route = createFileRoute("/desk")({
