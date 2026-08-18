@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isStarGallery } from "@/lib/cinema-topics";
+import { isPictureCandidate } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
 import { retryWithBackoff } from "@/lib/retry";
 
@@ -93,7 +93,7 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 function isPictureItem(item: DeskItem): boolean {
   return (
     !!galleryImage(item.image) &&
-    (item.reviewType === "picture" || isStarGallery(item.title, item.summary, item.sourceUrl))
+    (item.reviewType === "picture" || isPictureCandidate(item.title, item.summary, item.sourceUrl))
   );
 }
 
