@@ -27,8 +27,7 @@ import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { isPictureCandidate } from "@/lib/cinema-topics";
+import { isSingleWoman } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
 import { retryWithBackoff } from "@/lib/retry";
 
@@ -62,8 +61,6 @@ const KIND_ICON: Record<ItemKind, typeof Newspaper> = {
 
 const WINDOW_DAYS = 7;
 
-/** Desk tabs: pictures are reviewed on their own tab, apart from the news list. */
-type DeskTab = ItemKind | "picture" | "all";
 
 type DeskItemsResponse = {
   items: Array<{
@@ -87,18 +84,17 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 }
 
 /**
- * The collector's permanent picture marker is authoritative. Re-running the
- * URL quality gate here hid valid queued pictures when a publisher image URL
- * later matched a stricter client-side rule. Legacy unmarked rows still use the
- * classifier as a fallback.
+ * The desk is a single-woman picture desk only. The collector's permanent
+ * picture marker is authoritative; legacy unmarked rows fall back to the
+ * solo-woman classifier.
  */
 function isPictureItem(item: DeskItem): boolean {
   if (item.reviewType === "picture") return true;
   return (
-    !!galleryImage(item.image) &&
-    isPictureCandidate(item.title, item.summary, item.sourceUrl)
+    !!galleryImage(item.image) && isSingleWoman(item.title, item.summary, item.sourceUrl)
   );
 }
+
 
 function DeskPage() {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
@@ -296,14 +292,17 @@ function DeskWorkspace({
   const ids = useMemo(() => base.map((i) => i.id), [base]);
   const queue = useReviewQueue(ids, `${date}-${ids.length}`, deskToken);
 
-  const [kind, setKind] = useState<DeskTab>("all");
   const [region, setRegion] = useState<string>("all");
   const [city, setCity] = useState<string>("all");
   const [view, setView] = useState<ItemStatus | "all">("all");
 
-  const items: DeskItem[] = base.map((i) => ({ ...i, status: queue.statusOf(i.id) }));
+  // Only single-woman pictures reach the desk; news, events and temple notices
+  // publish automatically and are never held here for approval.
+  const items: DeskItem[] = base
+    .map((i) => ({ ...i, status: queue.statusOf(i.id) }))
+    .filter(isPictureItem);
 
-  const pictureCount = items.filter(isPictureItem).length;
+  const pictureCount = items.length;
 
   const counts = {
     all: items.length,
@@ -314,9 +313,7 @@ function DeskWorkspace({
 
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
-    // Pictures get their own tab; text news never reaches the desk.
-    if (kind === "picture" && !isPictureItem(i)) return false;
-    if (kind !== "all" && kind !== "picture" && i.kind !== kind) return false;
+
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
     return true;
@@ -487,22 +484,10 @@ function DeskWorkspace({
       </header>
 
       <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
-        <Tabs value={kind} onValueChange={(v) => setKind(v as DeskTab)}>
-          <TabsList className="w-full">
-            <TabsTrigger value="all" className="flex-1">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="picture" className="flex-1 gap-1">
-              <Images className="size-3" /> Pictures ({pictureCount})
-            </TabsTrigger>
-            <TabsTrigger value="event" className="flex-1">
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="temple" className="flex-1">
-              Temples
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground">
+          <Images className="size-4" /> Pictures for review ({pictureCount})
+        </div>
+
 
         <div className="flex flex-wrap gap-2">
           <select
@@ -560,7 +545,7 @@ function DeskWorkspace({
           </Card>
         ) : visible.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
-            Nothing here. Switch tab or filter, or use “Collect now” to pull fresh items.
+            Nothing here. Change the filter, or use “Collect now” to pull fresh items.
           </Card>
         ) : (
           <ul className="space-y-3">
@@ -591,9 +576,7 @@ function DeskWorkspace({
                         alt={item.title}
                         loading="lazy"
                         decoding="async"
-                        className={`w-full rounded-md border border-border object-cover ${
-                          kind === "picture" ? "max-h-96 object-top" : "max-h-56"
-                        }`}
+                        className="max-h-96 w-full rounded-md border border-border object-cover object-top"
                       />
                     ) : null}
                     <h2 className="text-base font-semibold leading-snug text-foreground">
