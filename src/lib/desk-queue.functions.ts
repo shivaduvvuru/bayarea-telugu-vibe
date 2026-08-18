@@ -146,15 +146,19 @@ export const listDeskItems = createServerFn({ method: "POST" })
 
     if (legacyPictures.length) {
       const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
-      const accepted = await verifySoloWomanPhotos(
+      const verification = await verifySoloWomanPhotos(
         legacyPictures,
         process.env["LOVABLE_API_KEY"],
       );
-      const acceptedIds = legacyPictures.filter((item) => accepted.has(item.id)).map((item) => item.id);
-      const rejectedIds = legacyPictures.filter((item) => !accepted.has(item.id)).map((item) => item.id);
+      const acceptedIds = legacyPictures
+        .filter((item) => verification.accepted.has(item.id))
+        .map((item) => item.id);
+      const rejectedIds = legacyPictures
+        .filter((item) => verification.rejected.has(item.id))
+        .map((item) => item.id);
 
       for (const row of queue) {
-        if (!accepted.has(row.item_id)) continue;
+        if (!verification.accepted.has(row.item_id)) continue;
         row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v1" };
       }
       for (let offset = 0; offset < acceptedIds.length; offset += 100) {
