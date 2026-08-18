@@ -28,6 +28,13 @@ export const HERO_STAGGER_MS = ROTATE_MS / 2;
  */
 const activePicks = new Map<number, string>();
 
+/**
+ * Last picture each slot successfully showed. If a refresh of the Glamour
+ * folder ever hands the slot an empty list (for example while the next pocket is
+ * being called in), the slot keeps its previous picture instead of vanishing.
+ */
+const lastGoodPick = new Map<number, { article: Article; picture: string }>();
+
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
