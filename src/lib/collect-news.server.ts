@@ -1912,9 +1912,19 @@ const GALLERY_FEED_NAMES = [
  */
 export async function collectGallery(
   _apiKey?: string | undefined,
-  opts?: { slice?: number; sliceSize?: number },
+  opts?: { slice?: number; sliceSize?: number; keepFunnel?: boolean },
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
+  if (!opts?.keepFunnel) {
+    lastDiag.gallery = {
+      discovered: 0,
+      noImage: 0,
+      imageUnusable: 0,
+      hardNews: 0,
+      candidates: 0,
+      bySource: {},
+    };
+  }
   const all = PUBLISHER_FEEDS.filter((f) => GALLERY_FEED_NAMES.includes(f.name)).map((f) => ({
     ...f,
     limit: Math.max(f.limit ?? 6, 60),
