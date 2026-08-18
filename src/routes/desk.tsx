@@ -27,7 +27,6 @@ import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { isSingleWoman } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
 import { retryWithBackoff } from "@/lib/retry";
 
@@ -93,8 +92,7 @@ function isPictureItem(item: DeskItem): boolean {
   return (
     item.reviewType === "picture" &&
     item.soloVerified === true &&
-    !!galleryImage(item.image) &&
-    isSingleWoman(item.title, item.summary, item.sourceUrl)
+    !!galleryImage(item.image)
   );
 }
 
@@ -251,7 +249,7 @@ function DeskWorkspace({
             collectedAt: r.digest_date,
             ...(p["image"] ? { image: p["image"] } : {}),
             ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
-            ...(p["solo_verified"] === "visual-v1" ? { soloVerified: true as const } : {}),
+            ...(p["solo_verified"] === "visual-v2" ? { soloVerified: true as const } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,

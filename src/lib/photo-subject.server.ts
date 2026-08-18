@@ -1,4 +1,5 @@
 import { generateText } from "ai";
+import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 type PhotoCandidate = {
@@ -6,26 +7,31 @@ type PhotoCandidate = {
   image: string;
 };
 
-type PhotoVerdict = {
-  id: string;
-  soloWoman: boolean;
+export type PhotoVerification = {
+  accepted: Set<string>;
+  rejected: Set<string>;
+  unchecked: Set<string>;
 };
 
-const BATCH_SIZE = 6;
-const MAX_PER_PASS = 30;
+// One image per call prevents a model from swapping or rewriting IDs between
+// adjacent photos, which would otherwise leave valid verdicts "unchecked".
+const BATCH_SIZE = 1;
 
-function parseVerdicts(raw: string): PhotoVerdict[] {
+const verdictSchema = z.object({
+  id: z.string(),
+  realPhotograph: z.boolean(),
+  adultWomen: z.number().int().min(0),
+  otherPeople: z.number().int().min(0),
+  uncertain: z.boolean(),
+});
+
+function parseVerdicts(raw: string) {
   try {
-    const jsonText = raw.match(/\{[\s\S]*\}/)?.[0] ?? "{}";
-    const parsed = JSON.parse(jsonText) as { results?: unknown[] };
-    return (parsed.results ?? []).flatMap((entry) => {
-      if (!entry || typeof entry !== "object") return [];
-      const value = entry as Record<string, unknown>;
-      if (typeof value["id"] !== "string" || typeof value["soloWoman"] !== "boolean") {
-        return [];
-      }
-      return [{ id: value["id"], soloWoman: value["soloWoman"] }];
-    });
+    const start = raw.indexOf("[");
+    const end = raw.lastIndexOf("]");
+    if (start < 0 || end < start) return [];
+    const parsed = z.array(verdictSchema).safeParse(JSON.parse(raw.slice(start, end + 1)));
+    return parsed.success ? parsed.data : [];
   } catch {
     return [];
   }
@@ -39,47 +45,58 @@ function parseVerdicts(raw: string): PhotoVerdict[] {
 export async function verifySoloWomanPhotos(
   candidates: PhotoCandidate[],
   apiKey: string | undefined,
-): Promise<Set<string>> {
+): Promise<PhotoVerification> {
   const accepted = new Set<string>();
-  if (!apiKey) return accepted;
+  const rejected = new Set<string>();
+  const unchecked = new Set(candidates.map((candidate) => candidate.id));
+  if (!apiKey) return { accepted, rejected, unchecked };
 
   const gateway = createLovableAiGatewayProvider(apiKey);
   const batches: PhotoCandidate[][] = [];
-  for (let offset = 0; offset < Math.min(candidates.length, MAX_PER_PASS); offset += BATCH_SIZE) {
+  for (let offset = 0; offset < candidates.length; offset += BATCH_SIZE) {
     batches.push(candidates.slice(offset, offset + BATCH_SIZE));
   }
   await Promise.all(batches.map(async (batch) => {
     try {
-      const { text } = await Promise.race([
-        generateText({
-          model: gateway("google/gemini-3.6-flash"),
-          system:
-            "You are a strict photo-subject validator. Inspect each supplied image. " +
-            "soloWoman is true only for a real photograph visibly containing exactly one adult woman and zero other people. " +
-            "Return false for any man, child, second person, crowd, couple, group, collage, split image, poster, illustration, " +
-            "unclear/hidden person, or image you cannot inspect. Clothing or glamour level does not affect this decision. " +
-            'Reply with JSON only: {"results":[{"id":"exact id","soloWoman":true}]}. Include every id.',
-          messages: [
-            {
-              role: "user",
-              content: batch.flatMap((candidate) => [
-                { type: "text" as const, text: `Photo id: ${candidate.id}` },
-                { type: "image" as const, image: new URL(candidate.image) },
-              ]),
-            },
-          ],
-        }),
-        new Promise<{ text: string }>((resolve) =>
-          setTimeout(() => resolve({ text: "" }), 18_000),
-        ),
-      ]);
+      const { text } = await generateText({
+        model: gateway("google/gemini-3.6-flash"),
+        system:
+          "You are a strict photo-subject validator. Inspect every supplied image independently. " +
+          "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
+          "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
+          "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
+          "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
+          "Clothing and glamour level do not affect the count. " +
+          "Return one result for every supplied photo id, preserving each id exactly.",
+        messages: [
+          {
+            role: "user",
+            content: batch.flatMap((candidate) => [
+              { type: "text" as const, text: `Photo id: ${candidate.id}` },
+              { type: "image" as const, image: new URL(candidate.image) },
+            ]),
+          },
+        ],
+      });
       const allowedIds = new Set(batch.map((candidate) => candidate.id));
+      const seen = new Set<string>();
       for (const verdict of parseVerdicts(text)) {
-        if (verdict.soloWoman && allowedIds.has(verdict.id)) accepted.add(verdict.id);
+        if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
+        seen.add(verdict.id);
+        unchecked.delete(verdict.id);
+        if (
+          verdict.realPhotograph &&
+          verdict.adultWomen === 1 &&
+          verdict.otherPeople === 0 &&
+          !verdict.uncertain
+        ) {
+          accepted.add(verdict.id);
+        }
+        else rejected.add(verdict.id);
       }
     } catch (error) {
       console.error("photo subject validation failed", error);
     }
   }));
-  return accepted;
+  return { accepted, rejected, unchecked };
 }

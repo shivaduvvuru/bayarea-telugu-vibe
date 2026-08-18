@@ -28,7 +28,6 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
-          const { isSingleWoman } = await import("@/lib/cinema-topics");
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
@@ -37,12 +36,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
-               (payload?.solo_verified === "visual-v1" ||
-                isSingleWoman(
-                  String(r["title"] ?? ""),
-                  String(r["summary"] ?? ""),
-                  String(r["source_url"] ?? ""),
-                ))
+              (payload?.gallery === true ||
+                payload?.review_type === "picture" ||
+                payload?.solo_verified === "visual-v2")
             );
           };
 
@@ -106,14 +102,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // every new candidate and fail closed unless it visibly contains
           // exactly one adult woman and no other person.
           const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
-          const visuallyAccepted = await verifySoloWomanPhotos(
+          const verification = await verifySoloWomanPhotos(
             picturePool.flatMap((row) => {
               const image = (row.payload as { image?: string | null } | undefined)?.image;
               return image ? [{ id: row.item_id, image }] : [];
             }),
             process.env["LOVABLE_API_KEY"],
           );
-          const visuallyRejected = picturePool.filter((row) => !visuallyAccepted.has(row.item_id));
+          // Only a definitive visual rejection is suppressed forever. A failed
+          // or incomplete AI call remains unchecked and can be retried on the
+          // next collection pass instead of being destroyed as a false reject.
+          const visuallyRejected = picturePool.filter((row) => verification.rejected.has(row.item_id));
           if (visuallyRejected.length) {
             await supabaseAdmin.from("digest_rejects").upsert(
               visuallyRejected.map((row) => ({
@@ -125,10 +124,10 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             );
           }
           picturePool = picturePool
-            .filter((row) => visuallyAccepted.has(row.item_id))
+            .filter((row) => verification.accepted.has(row.item_id))
             .map((row) => ({
               ...row,
-              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v1" },
+              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v2" },
             }));
           const collected = dedupeCollected([...newsPool, ...picturePool]);
 
@@ -222,7 +221,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               // into ordinary news when publisher text changed or was sparse,
               // and the legacy news release then emptied the picture desk.
               payload: picture
-                ? { ...payload, review_type: "picture", solo_verified: "visual-v1" }
+                ? { ...payload, review_type: "picture", solo_verified: "visual-v2" }
                 : payload,
               status: auto ? "approved" : "pending",
             };

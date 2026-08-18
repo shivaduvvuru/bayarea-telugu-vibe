@@ -1389,21 +1389,14 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
 
   try {
     const gateway = createLovableAiGatewayProvider(apiKey);
-    // Hard ceiling: a slow gateway must never shrink or stall the collected
-    // pool. If the note is late we ship the fallback line instead.
-    const { text } = await Promise.race([
-      generateText({
-        model: gateway("google/gemini-3.1-flash-lite"),
-        prompt:
-          `You write short editorial notes for a Telugu-American community news desk in ${city.en}, California.\n` +
-          `For each numbered headline below, write ONE neutral sentence (max 28 words) explaining what it means for local residents. Do not invent facts beyond the headline.\n` +
-          `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
-          items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
-      }),
-      new Promise<{ text: string }>((resolve) =>
-        setTimeout(() => resolve({ text: "" }), 9000),
-      ),
-    ]);
+    const { text } = await generateText({
+      model: gateway("google/gemini-3.1-flash-lite"),
+      prompt:
+        `You write short editorial notes for a Telugu-American community news desk in ${city.en}, California.\n` +
+        `For each numbered headline below, write ONE neutral sentence (max 28 words) explaining what it means for local residents. Do not invent facts beyond the headline.\n` +
+        `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
+        items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
+    });
 
     const map = new Map<number, string>();
     for (const line of text.split("\n")) {
@@ -1846,17 +1839,16 @@ export async function collectGallery(
     rows.push(...batches.flat());
   }
 
-  // Only solo-woman glamour pictures belong in this pass: the desk is a
-  // single-woman picture desk and nothing else is held for approval.
-  const { isSingleWoman } = await import("./cinema-topics");
+  // Do not infer the people in a photograph from its headline. Dedicated
+  // picture-desk items with usable artwork proceed to the visual verifier,
+  // which is the sole authority for admitting exactly one adult woman.
   const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
       (r) =>
         // Quality check: the attached picture must read as people photography,
         // not stock nature / graphic filler.
-        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
-        isSingleWoman(r.title, r.summary, r.source_url ?? ""),
+        !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null),
     ),
   );
 }
