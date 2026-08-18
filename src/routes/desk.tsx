@@ -489,22 +489,10 @@ function DeskWorkspace({
       </header>
 
       <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
-        <Tabs value={kind} onValueChange={(v) => setKind(v as DeskTab)}>
-          <TabsList className="w-full">
-            <TabsTrigger value="all" className="flex-1">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="picture" className="flex-1 gap-1">
-              <Images className="size-3" /> Pictures ({pictureCount})
-            </TabsTrigger>
-            <TabsTrigger value="event" className="flex-1">
-              Events
-            </TabsTrigger>
-            <TabsTrigger value="temple" className="flex-1">
-              Temples
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground">
+          <Images className="size-4" /> Pictures for review ({pictureCount})
+        </div>
+
 
         <div className="flex flex-wrap gap-2">
           <select
