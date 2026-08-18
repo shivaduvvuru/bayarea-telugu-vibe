@@ -135,14 +135,21 @@ export const listDeskItems = createServerFn({ method: "POST" })
       .limit(1000);
     if (error) throw new Error(error.message);
     const queue = (rows ?? []) as unknown as DeskQueueRow[];
-    const legacyPictures = queue.flatMap((row) => {
-      const payload = row.payload ?? {};
-      const image = payload["image"];
-      if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
-        return [];
-      }
-      return [{ id: row.item_id, image }];
-    });
+    const legacyPictures = queue
+      .flatMap((row) => {
+        const payload = row.payload ?? {};
+        const image = payload["image"];
+        if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
+          return [];
+        }
+        return [{ id: row.item_id, image }];
+      })
+      // Verification is a visual AI call per photo. Checking an unbounded
+      // backlog inside the desk request made the desk hang and time out, which
+      // is why pictures looked like they never arrived. Check a slice per load;
+      // the rest are picked up on the next visit.
+      .slice(0, 24);
+
 
     if (legacyPictures.length) {
       const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
