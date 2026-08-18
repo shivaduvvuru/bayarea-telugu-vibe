@@ -20,6 +20,7 @@ export type Database = {
           duplicates_hidden: number
           error: string | null
           finished_at: string
+          funnel: Json
           held: number
           id: string
           mode: string
@@ -32,6 +33,7 @@ export type Database = {
           duplicates_hidden?: number
           error?: string | null
           finished_at?: string
+          funnel?: Json
           held?: number
           id?: string
           mode: string
@@ -44,6 +46,7 @@ export type Database = {
           duplicates_hidden?: number
           error?: string | null
           finished_at?: string
+          funnel?: Json
           held?: number
           id?: string
           mode?: string
@@ -239,18 +242,21 @@ export type Database = {
           created_at: string
           dedupe_key: string
           item_id: string | null
+          reason: string | null
           title: string | null
         }
         Insert: {
           created_at?: string
           dedupe_key: string
           item_id?: string | null
+          reason?: string | null
           title?: string | null
         }
         Update: {
           created_at?: string
           dedupe_key?: string
           item_id?: string | null
+          reason?: string | null
           title?: string | null
         }
         Relationships: []
