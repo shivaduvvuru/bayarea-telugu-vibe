@@ -68,7 +68,6 @@ export async function verifySoloWomanPhotos(
       if (!batch) continue;
       try {
         const { text } = await generateText({
-          maxRetries: 0,
           model: gateway("google/gemini-3.6-flash"),
           system:
             "You are a strict photo-subject validator. Inspect every supplied image independently. " +
