@@ -66,9 +66,13 @@ export function deskRowToIngest(row: Row): IngestRow {
             : cinema
             ? CINEMA_SLUG
             : (indiaSlug ?? "news"),
-    published_at:
-      str(row["published_at"]) ??
-      (str(row["digest_date"]) ? `${str(row["digest_date"])}T00:00:00Z` : null),
+    // Approved pictures must surface at the top of the live Glamour pocket.
+    // Keeping the source's original date buried fresh approvals under older
+    // photos, so an editor's approval looked like it did nothing.
+    published_at: gallery
+      ? new Date().toISOString()
+      : (str(row["published_at"]) ??
+        (str(row["digest_date"]) ? `${str(row["digest_date"])}T00:00:00Z` : null)),
   };
 }
 
