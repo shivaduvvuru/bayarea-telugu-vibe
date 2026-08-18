@@ -135,30 +135,32 @@ export function isSingleWoman(
   return true;
 }
 
+/** Machine-readable reason a candidate never reached the review desk. */
+export type IntakeRejectReason = "hard_news" | "no_image" | "image_unusable" | "duplicate";
+
 /**
- * Lenient intake gate for the picture desk. The editor approves photos by hand,
- * so intake only rejects hard news and male-only posts — everything else that
- * carries a usable photo reaches the desk for review.
+ * Intake gate for the picture desk — deliberately near pass-all. The editor is
+ * the only taste filter, so the pipeline rejects nothing but hard news (crime,
+ * politics, disasters), which is never editorial picture material. No glamour,
+ * beauty, keyword, celebrity, orientation, pose or source-category
+ * requirements are applied here.
  */
 export function isPictureCandidate(
   title: string | null | undefined,
   summary?: string | null,
-  sourceUrl?: string | null,
+  _sourceUrl?: string | null,
 ): boolean {
+  return pictureCandidateReason(title, summary) === null;
+}
+
+/** Same gate, but reports why a candidate was dropped (for the funnel). */
+export function pictureCandidateReason(
+  title: string | null | undefined,
+  summary?: string | null,
+): IntakeRejectReason | null {
   const text = `${title ?? ""} ${summary ?? ""}`;
-  if (NEWSY.test(text)) return false;
-  if (MALE_SUBJECT.test(text) && !FEMALE_SUBJECT.test(text)) return false;
-  // Already-qualified star galleries always pass.
-  if (isStarGallery(title, summary, sourceUrl)) return true;
-  const url = (sourceUrl ?? "").toLowerCase();
-  const entertainmentDesk =
-    CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url) || PHOTO_DESK_URL.test(url);
-  return (
-    entertainmentDesk ||
-    PHOTO_LED.test(text) ||
-    FEMALE_SUBJECT.test(text) ||
-    FEMALE_GENERIC.test(text)
-  );
+  if (NEWSY.test(text)) return "hard_news";
+  return null;
 }
 
 /** Film industry ("wood") a picture belongs to, for the review-desk tag row. */

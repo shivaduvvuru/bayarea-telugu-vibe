@@ -23,6 +23,8 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const galleryOnly = body?.mode === "gallery";
         const trigger = body?.trigger === "manual" ? "manual" : "cron";
         const { dedupeKey } = await import("@/lib/dedupe");
+        const { lastDiag: collectDiag } = await import("@/lib/collect-news.server");
+        const lastDiagSnapshot = () => collectDiag;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         try {
@@ -31,14 +33,14 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
-               | { image?: string | null; review_type?: string | null; solo_verified?: string | null; gallery?: boolean }
+              | { image?: string | null; review_type?: string | null; solo_verified?: string | null; gallery?: boolean }
               | undefined;
             const image = payload?.image ?? null;
             return (
               !!galleryImage(image) &&
               (payload?.gallery === true ||
                 payload?.review_type === "picture" ||
-                payload?.solo_verified === "visual-v2")
+                !!payload?.solo_verified)
             );
           };
 
@@ -98,27 +100,32 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             picturePool = dedupeCollected([...picturePool, ...morePictures]);
             healthAttempts += 1;
           }
-          // Headline filters cannot see who is actually in the artwork. Inspect
-          // every new candidate and fail closed unless it visibly contains
-          // exactly one adult woman and no other person.
+          // Safety screen only: age doubt, explicit content, non-photographs and
+          // frames with no dominant adult woman are blocked. Everything else —
+          // including anything the screen could not judge — goes to the editor.
           const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
+          const discoveredPictures = picturePool.length;
+          const screenable = picturePool.flatMap((row) => {
+            const image = (row.payload as { image?: string | null } | undefined)?.image;
+            return image ? [{ id: row.item_id, image }] : [];
+          });
           const verification = await verifySoloWomanPhotos(
-            picturePool.flatMap((row) => {
-              const image = (row.payload as { image?: string | null } | undefined)?.image;
-              return image ? [{ id: row.item_id, image }] : [];
-            }),
+            screenable,
             process.env["LOVABLE_API_KEY"],
           );
-          // Only a definitive visual rejection is suppressed forever. A failed
-          // or incomplete AI call remains unchecked and can be retried on the
-          // next collection pass instead of being destroyed as a false reject.
-          const visuallyRejected = picturePool.filter((row) => verification.rejected.has(row.item_id));
-          if (visuallyRejected.length) {
+          const blocked = picturePool.filter((row) => verification.rejected.has(row.item_id));
+          const rejectReasons: Record<string, number> = {};
+          for (const row of blocked) {
+            const reason = verification.reasons.get(row.item_id) ?? "no_primary_woman";
+            rejectReasons[reason] = (rejectReasons[reason] ?? 0) + 1;
+          }
+          if (blocked.length) {
             await supabaseAdmin.from("digest_rejects").upsert(
-              visuallyRejected.map((row) => ({
+              blocked.map((row) => ({
                 dedupe_key: row.dedupe_key,
                 item_id: row.item_id,
-                title: `[not-solo] ${row.title}`,
+                reason: verification.reasons.get(row.item_id) ?? "no_primary_woman",
+                title: row.title,
               })) as never,
               { onConflict: "dedupe_key", ignoreDuplicates: true },
             );
@@ -127,8 +134,27 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             .filter((row) => verification.accepted.has(row.item_id))
             .map((row) => ({
               ...row,
-              payload: { ...row.payload, review_type: "picture", solo_verified: "visual-v2" },
+              payload: {
+                ...row.payload,
+                review_type: "picture",
+                ...(verification.unchecked.has(row.item_id)
+                  ? {}
+                  : { solo_verified: "screened-v3" }),
+              },
             }));
+          const pictureFunnel = {
+            discovered: lastDiagSnapshot().gallery.discovered,
+            noImage: lastDiagSnapshot().gallery.noImage,
+            imageUnusable: lastDiagSnapshot().gallery.imageUnusable,
+            hardNews: lastDiagSnapshot().gallery.hardNews,
+            candidates: discoveredPictures,
+            screened: screenable.length - verification.unchecked.size,
+            unscreenedPassed: verification.unchecked.size,
+            safetyBlocked: blocked.length,
+            reasons: rejectReasons,
+            bySource: lastDiagSnapshot().gallery.bySource,
+            toDesk: picturePool.length,
+          };
           const collected = dedupeCollected([...newsPool, ...picturePool]);
 
 
@@ -180,6 +206,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ...(published ?? []).map((r) => (r.source_ref ?? "").replace(/^editorial-desk:/, "")),
           ]);
 
+          const beforeDuplicateFilter = collected.length;
           const rows = dedupeCollected(
             collected.filter(
               (r) => !storedKeys.has(r.dedupe_key) && !storedKeys.has(String(r.item_id ?? "")),
@@ -377,10 +404,16 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             published: publishedCount,
             held: marked.length - autoIds.length,
             duplicates_hidden: hidden,
+            funnel: {
+              ...pictureFunnel,
+              duplicatesRemoved: beforeDuplicateFilter - rows.length,
+              deskPictures: rows.filter((r) => isPicture(r as unknown as Record<string, unknown>))
+                .length,
+            },
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);

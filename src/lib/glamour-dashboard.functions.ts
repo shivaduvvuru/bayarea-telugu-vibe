@@ -107,3 +107,94 @@ export const glamourDashboard = createServerFn({ method: "POST" }).handler(
     };
   },
 );
+
+
+/** One ingestion run's picture funnel, newest first. */
+export type IngestionRun = {
+  at: string;
+  mode: string;
+  trigger: string;
+  discovered: number;
+  noImage: number;
+  imageUnusable: number;
+  hardNews: number;
+  candidates: number;
+  screened: number;
+  unscreenedPassed: number;
+  safetyBlocked: number;
+  duplicatesRemoved: number;
+  toDesk: number;
+  reasons: Record<string, number>;
+  bySource: Record<string, { discovered: number; candidates: number }>;
+  ok: boolean;
+  error: string | null;
+};
+
+/**
+ * Ingestion diagnostics for the review desk: the discovered -> screened ->
+ * duplicate-removed -> review-desk funnel of the most recent collection runs,
+ * with the exact rejection reason counts and per-source success rates.
+ */
+export const ingestionFunnel = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ runs: IngestionRun[]; recentRejects: { reason: string; count: number }[] }> => {
+    const { admin } = await import("@/lib/cms.server");
+    const db = await admin();
+
+    const { data: runRows } = await db
+      .from("collect_runs")
+      .select("mode,trigger,funnel,ok,error,finished_at")
+      .order("finished_at", { ascending: false })
+      .limit(20);
+
+    const runs: IngestionRun[] = ((runRows ?? []) as {
+      mode: string;
+      trigger: string;
+      funnel: Record<string, unknown> | null;
+      ok: boolean;
+      error: string | null;
+      finished_at: string;
+    }[]).map((row) => {
+      const f = (row.funnel ?? {}) as Record<string, number | undefined> & {
+        reasons?: Record<string, number>;
+        bySource?: Record<string, { discovered: number; candidates: number }>;
+      };
+      return {
+        at: row.finished_at,
+        mode: row.mode,
+        trigger: row.trigger,
+        discovered: f["discovered"] ?? 0,
+        noImage: f["noImage"] ?? 0,
+        imageUnusable: f["imageUnusable"] ?? 0,
+        hardNews: f["hardNews"] ?? 0,
+        candidates: f["candidates"] ?? 0,
+        screened: f["screened"] ?? 0,
+        unscreenedPassed: f["unscreenedPassed"] ?? 0,
+        safetyBlocked: f["safetyBlocked"] ?? 0,
+        duplicatesRemoved: f["duplicatesRemoved"] ?? 0,
+        toDesk: f["deskPictures"] ?? f["toDesk"] ?? 0,
+        reasons: f.reasons ?? {},
+        bySource: f.bySource ?? {},
+        ok: row.ok,
+        error: row.error,
+      };
+    });
+
+    const { data: rejectRows } = await db
+      .from("digest_rejects")
+      .select("reason,created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    const tally = new Map<string, number>();
+    for (const row of (rejectRows ?? []) as { reason: string | null }[]) {
+      const key = row.reason ?? "unlabelled";
+      tally.set(key, (tally.get(key) ?? 0) + 1);
+    }
+
+    return {
+      runs,
+      recentRejects: [...tally.entries()]
+        .map(([reason, count]) => ({ reason, count }))
+        .sort((a, b) => b.count - a.count),
+    };
+  },
+);

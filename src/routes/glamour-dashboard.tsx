@@ -7,7 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { glamourDashboard, type GlamourDashboard } from "@/lib/glamour-dashboard.functions";
+import {
+  glamourDashboard,
+  ingestionFunnel,
+  type GlamourDashboard,
+  type IngestionRun,
+} from "@/lib/glamour-dashboard.functions";
 
 export const Route = createFileRoute("/glamour-dashboard")({
   head: () => ({
@@ -49,6 +54,12 @@ function countdown(iso: string | null) {
 function GlamourDashboardPage() {
   const fetchDashboard = useServerFn(glamourDashboard);
   const [filter, setFilter] = useState<Filter>("all");
+  const fetchFunnel = useServerFn(ingestionFunnel);
+  const { data: funnel } = useQuery({
+    queryKey: ["ingestion-funnel"],
+    refetchInterval: 60_000,
+    queryFn: async () => await fetchFunnel({}),
+  });
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["glamour-dashboard"],
@@ -120,6 +131,11 @@ function GlamourDashboardPage() {
         </Card>
       </div>
 
+      <IngestionFunnelPanel
+        runs={funnel?.runs ?? []}
+        rejects={funnel?.recentRejects ?? []}
+      />
+
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="mt-5">
         <TabsList className="flex w-full flex-wrap">
           <TabsTrigger value="all">All ({data?.photos.length ?? 0})</TabsTrigger>
@@ -179,5 +195,130 @@ function GlamourDashboardPage() {
         </ul>
       )}
     </main>
+  );
+}
+
+
+function pct(part: number, whole: number) {
+  if (!whole) return "0%";
+  return `${Math.round((part / whole) * 100)}%`;
+}
+
+/**
+ * Ingestion funnel: shows exactly how many photos each stage removes, so a
+ * rule that is throttling review-desk intake is visible at a glance.
+ */
+function IngestionFunnelPanel({
+  runs,
+  rejects,
+}: {
+  runs: IngestionRun[];
+  rejects: { reason: string; count: number }[];
+}) {
+  const latest = runs.find((r) => r.discovered > 0) ?? runs[0];
+  const window = runs.slice(0, 10).filter((r) => r.discovered > 0);
+  const totals = window.reduce(
+    (acc, r) => ({
+      discovered: acc.discovered + r.discovered,
+      toDesk: acc.toDesk + r.toDesk,
+      minutes: acc.minutes + 1,
+    }),
+    { discovered: 0, toDesk: 0, minutes: 0 },
+  );
+  if (!latest) return null;
+
+  const stages: { label: string; value: number; lost?: number; lostLabel?: string }[] = [
+    { label: "Discovered", value: latest.discovered },
+    {
+      label: "Has usable image",
+      value: latest.discovered - latest.noImage - latest.imageUnusable,
+      lost: latest.noImage + latest.imageUnusable,
+      lostLabel: "download_failed / resolution_unusable",
+    },
+    {
+      label: "Editorial (not hard news)",
+      value: latest.candidates,
+      lost: latest.hardNews,
+      lostLabel: "hard_news",
+    },
+    {
+      label: "Safety + solo-woman screen",
+      value: latest.candidates - latest.safetyBlocked,
+      lost: latest.safetyBlocked,
+      lostLabel: "minor / explicit / no_primary_woman",
+    },
+    {
+      label: "After duplicate removal",
+      value: Math.max(latest.candidates - latest.safetyBlocked - latest.duplicatesRemoved, 0),
+      lost: latest.duplicatesRemoved,
+      lostLabel: "duplicate",
+    },
+    { label: "Reached Review Desk", value: latest.toDesk },
+  ];
+
+  const sources = Object.entries(latest.bySource)
+    .sort((a, b) => b[1].discovered - a[1].discovered)
+    .slice(0, 12);
+
+  return (
+    <Card className="mt-5 p-4">
+      <h2 className="mb-1 text-sm font-bold uppercase tracking-wide">Ingestion funnel</h2>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Last run {when(latest.at)} · {latest.mode}/{latest.trigger} ·{" "}
+        {latest.unscreenedPassed} photo(s) passed unscreened (fail-open) ·{" "}
+        {totals.minutes ? (totals.toDesk / totals.minutes).toFixed(1) : "0"} to desk per run ·
+        acceptance {pct(totals.toDesk, totals.discovered)}
+      </p>
+      <ol className="space-y-1.5">
+        {stages.map((stage) => (
+          <li key={stage.label} className="flex items-center gap-2 text-sm">
+            <span className="w-52 shrink-0 text-muted-foreground">{stage.label}</span>
+            <span className="font-bold tabular-nums">{stage.value}</span>
+            {stage.lost ? (
+              <Badge variant="outline" className="text-[11px]">
+                −{stage.lost} ({pct(stage.lost, latest.discovered)}) {stage.lostLabel}
+              </Badge>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+
+      {rejects.length ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {rejects.map((r) => (
+            <Badge key={r.reason} variant="secondary" className="text-[11px]">
+              {r.reason}: {r.count}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+
+      {sources.length ? (
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="text-muted-foreground">
+              <tr>
+                <th className="py-1 text-left font-medium">Source</th>
+                <th className="py-1 text-right font-medium">Discovered</th>
+                <th className="py-1 text-right font-medium">Candidates</th>
+                <th className="py-1 text-right font-medium">Success</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map(([name, stat]) => (
+                <tr key={name} className="border-t border-border/60">
+                  <td className="py-1 pr-2">{name}</td>
+                  <td className="py-1 text-right tabular-nums">{stat.discovered}</td>
+                  <td className="py-1 text-right tabular-nums">{stat.candidates}</td>
+                  <td className="py-1 text-right tabular-nums">
+                    {pct(stat.candidates, stat.discovered)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </Card>
   );
 }

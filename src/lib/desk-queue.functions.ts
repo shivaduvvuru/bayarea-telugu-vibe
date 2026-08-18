@@ -77,11 +77,10 @@ export const setQueueStatus = createServerFn({ method: "POST" })
         .select("item_id,payload")
         .in("item_id", data.itemIds);
       if (readError) throw new Error(readError.message);
-      const unverified = (rows ?? []).filter((row) => {
-        const payload = (row as { payload?: Record<string, unknown> | null }).payload ?? {};
-        return payload["review_type"] === "picture" && payload["solo_verified"] !== "visual-v2";
-      });
-      if (unverified.length) throw new Error("One or more pictures have not passed the solo-woman image check");
+      // The editor is the final authority: an unscreened or unscreenable photo
+      // may still be approved. (Rows the safety screen blocked never reach the
+      // desk in the first place.)
+      void rows;
     }
     const { error } = await db
       .from("digest_queue")
@@ -139,7 +138,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
       .flatMap((row) => {
         const payload = row.payload ?? {};
         const image = payload["image"];
-        if (payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2" || !image) {
+        if (payload["review_type"] !== "picture" || payload["solo_verified"] || !image) {
           return [];
         }
         return [{ id: row.item_id, image }];
@@ -166,7 +165,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
 
       for (const row of queue) {
         if (!verification.accepted.has(row.item_id)) continue;
-        row.payload = { ...(row.payload ?? {}), solo_verified: "visual-v2" };
+        row.payload = { ...(row.payload ?? {}), solo_verified: "screened-v3" };
       }
       for (let offset = 0; offset < acceptedIds.length; offset += 100) {
         const ids = acceptedIds.slice(offset, offset + 100);
@@ -180,10 +179,8 @@ export const listDeskItems = createServerFn({ method: "POST" })
           ),
         );
       }
-      // A visual verdict is about one lead thumbnail, which on gallery posts is
-      // often a collage or ad frame. Drop the row from the desk, but do NOT
-      // blacklist the story: blacklisting permanently blocked genuine glamour
-      // galleries from ever being re-collected with a better photo.
+      // Only a safety block (age doubt, explicit content, non-photo, no female
+      // lead subject) removes a row. Everything else stays for the editor.
       for (let offset = 0; offset < rejectedIds.length; offset += 100) {
         const ids = rejectedIds.slice(offset, offset + 100);
         await db.from("digest_queue").delete().in("item_id", ids);
@@ -191,10 +188,7 @@ export const listDeskItems = createServerFn({ method: "POST" })
 
     }
 
-    return {
-      items: queue.filter((row) => {
-        const payload = row.payload ?? {};
-        return payload["review_type"] !== "picture" || payload["solo_verified"] === "visual-v2";
-      }),
-    };
+    // Nothing is hidden from the editor any more: unscreened photos are shown
+    // alongside screened ones, which is what keeps desk intake high.
+    return { items: queue };
   });

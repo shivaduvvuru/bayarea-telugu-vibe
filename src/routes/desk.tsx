@@ -251,7 +251,7 @@ function DeskWorkspace({
             collectedAt: r.digest_date,
             ...(p["image"] ? { image: p["image"] } : {}),
             ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
-            ...(p["solo_verified"] === "visual-v2" ? { soloVerified: true as const } : {}),
+            ...(p["solo_verified"] ? { soloVerified: true as const } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,
