@@ -13,7 +13,7 @@ export type PhotoVerification = {
   unchecked: Set<string>;
 };
 
-const BATCH_SIZE = 1;
+const BATCH_SIZE = 2;
 
 const verdictSchema = z.object({
   results: z.array(
