@@ -180,21 +180,15 @@ export const listDeskItems = createServerFn({ method: "POST" })
           ),
         );
       }
+      // A visual verdict is about one lead thumbnail, which on gallery posts is
+      // often a collage or ad frame. Drop the row from the desk, but do NOT
+      // blacklist the story: blacklisting permanently blocked genuine glamour
+      // galleries from ever being re-collected with a better photo.
       for (let offset = 0; offset < rejectedIds.length; offset += 100) {
         const ids = rejectedIds.slice(offset, offset + 100);
-        const rejectedRows = queue.filter((row) => ids.includes(row.item_id));
-        if (rejectedRows.length) {
-          await db.from("digest_rejects").upsert(
-            rejectedRows.map((row) => ({
-              dedupe_key: row.item_id,
-              item_id: row.item_id,
-              title: `[not-solo] ${row.title}`,
-            })) as never,
-            { onConflict: "dedupe_key", ignoreDuplicates: true },
-          );
-        }
         await db.from("digest_queue").delete().in("item_id", ids);
       }
+
     }
 
     return {
