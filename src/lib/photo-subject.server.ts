@@ -16,15 +16,11 @@ export type PhotoVerification = {
 const BATCH_SIZE = 2;
 
 const verdictSchema = z.object({
-  results: z.array(
-    z.object({
-      id: z.string(),
-      realPhotograph: z.boolean(),
-      adultWomen: z.number().int().min(0),
-      otherPeople: z.number().int().min(0),
-      uncertain: z.boolean(),
-    }),
-  ),
+  id: z.string(),
+  realPhotograph: z.boolean(),
+  adultWomen: z.number().int().min(0),
+  otherPeople: z.number().int().min(0),
+  uncertain: z.boolean(),
 });
 
 /**
@@ -50,7 +46,7 @@ export async function verifySoloWomanPhotos(
     try {
       const { output } = await generateText({
         model: gateway("google/gemini-3.6-flash"),
-        output: Output.object({ schema: verdictSchema }),
+        output: Output.array({ element: verdictSchema }),
         system:
           "You are a strict photo-subject validator. Inspect every supplied image independently. " +
           "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
@@ -71,7 +67,7 @@ export async function verifySoloWomanPhotos(
       });
       const allowedIds = new Set(batch.map((candidate) => candidate.id));
       const seen = new Set<string>();
-      for (const verdict of output.results) {
+      for (const verdict of output) {
         if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
         seen.add(verdict.id);
         unchecked.delete(verdict.id);
