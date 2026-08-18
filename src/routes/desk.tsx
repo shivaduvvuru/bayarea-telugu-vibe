@@ -300,9 +300,13 @@ function DeskWorkspace({
   const [city, setCity] = useState<string>("all");
   const [view, setView] = useState<ItemStatus | "all">("all");
 
-  const items: DeskItem[] = base.map((i) => ({ ...i, status: queue.statusOf(i.id) }));
+  // Only single-woman pictures reach the desk; news, events and temple notices
+  // publish automatically and are never held here for approval.
+  const items: DeskItem[] = base
+    .map((i) => ({ ...i, status: queue.statusOf(i.id) }))
+    .filter(isPictureItem);
 
-  const pictureCount = items.filter(isPictureItem).length;
+  const pictureCount = items.length;
 
   const counts = {
     all: items.length,
@@ -313,8 +317,7 @@ function DeskWorkspace({
 
   const visible = items.filter((i) => {
     if (view !== "all" && i.status !== view) return false;
-    // Pictures get their own tab; text news never reaches the desk.
-    if (kind === "picture" && !isPictureItem(i)) return false;
+
     if (kind !== "all" && kind !== "picture" && i.kind !== kind) return false;
     if (city !== "all") return i.citySlug === city;
     if (region !== "all") return cityBySlug(i.citySlug)?.region === region;
