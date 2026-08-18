@@ -7,24 +7,22 @@ type PhotoCandidate = {
   image: string;
 };
 
-type PhotoVerdict = {
-  id: string;
-  soloWoman: boolean;
-};
-
 export type PhotoVerification = {
   accepted: Set<string>;
   rejected: Set<string>;
   unchecked: Set<string>;
 };
 
-const BATCH_SIZE = 4;
+const BATCH_SIZE = 1;
 
 const verdictSchema = z.object({
   results: z.array(
     z.object({
       id: z.string(),
-      soloWoman: z.boolean(),
+      realPhotograph: z.boolean(),
+      adultWomen: z.number().int().min(0),
+      otherPeople: z.number().int().min(0),
+      uncertain: z.boolean(),
     }),
   ),
 });
@@ -55,9 +53,11 @@ export async function verifySoloWomanPhotos(
         output: Output.object({ schema: verdictSchema }),
         system:
           "You are a strict photo-subject validator. Inspect every supplied image independently. " +
-          "soloWoman is true only when the image visibly contains exactly one adult woman and no other person. " +
-          "Return false for a man, child, second person, crowd, couple, group, collage, split image, poster, illustration, " +
-          "statue, object, landscape, unreadable image, or any uncertainty. Clothing and glamour level do not affect the decision. " +
+          "Count every visible person, including small, background, cropped, reflected, partially hidden, and inset people. " +
+          "adultWomen is the count of visible adult women. otherPeople is every visible person who is not that one adult woman. " +
+          "Set realPhotograph false for collages, split images, posters, illustrations, statues, objects, or landscapes. " +
+          "Set uncertain true if the image is unreadable or any person/count cannot be determined confidently. " +
+          "Clothing and glamour level do not affect the count. " +
           "Return one result for every supplied photo id, preserving each id exactly.",
         messages: [
           {
@@ -71,11 +71,18 @@ export async function verifySoloWomanPhotos(
       });
       const allowedIds = new Set(batch.map((candidate) => candidate.id));
       const seen = new Set<string>();
-      for (const verdict of output.results as PhotoVerdict[]) {
+      for (const verdict of output.results) {
         if (!allowedIds.has(verdict.id) || seen.has(verdict.id)) continue;
         seen.add(verdict.id);
         unchecked.delete(verdict.id);
-        if (verdict.soloWoman) accepted.add(verdict.id);
+        if (
+          verdict.realPhotograph &&
+          verdict.adultWomen === 1 &&
+          verdict.otherPeople === 0 &&
+          !verdict.uncertain
+        ) {
+          accepted.add(verdict.id);
+        }
         else rejected.add(verdict.id);
       }
     } catch (error) {
