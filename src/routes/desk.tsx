@@ -27,7 +27,6 @@ import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { isSingleWoman } from "@/lib/cinema-topics";
 import { galleryImage } from "@/lib/story-image";
 import { retryWithBackoff } from "@/lib/retry";
 
@@ -93,8 +92,7 @@ function isPictureItem(item: DeskItem): boolean {
   return (
     item.reviewType === "picture" &&
     item.soloVerified === true &&
-    !!galleryImage(item.image) &&
-    isSingleWoman(item.title, item.summary, item.sourceUrl)
+    !!galleryImage(item.image)
   );
 }
 
