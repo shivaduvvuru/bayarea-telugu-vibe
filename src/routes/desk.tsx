@@ -87,18 +87,17 @@ function unwrapDeskItems(value: unknown): DeskItemsResponse | null {
 }
 
 /**
- * The collector's permanent picture marker is authoritative. Re-running the
- * URL quality gate here hid valid queued pictures when a publisher image URL
- * later matched a stricter client-side rule. Legacy unmarked rows still use the
- * classifier as a fallback.
+ * The desk is a single-woman picture desk only. The collector's permanent
+ * picture marker is authoritative; legacy unmarked rows fall back to the
+ * solo-woman classifier.
  */
 function isPictureItem(item: DeskItem): boolean {
   if (item.reviewType === "picture") return true;
   return (
-    !!galleryImage(item.image) &&
-    isPictureCandidate(item.title, item.summary, item.sourceUrl)
+    !!galleryImage(item.image) && isSingleWoman(item.title, item.summary, item.sourceUrl)
   );
 }
+
 
 function DeskPage() {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
