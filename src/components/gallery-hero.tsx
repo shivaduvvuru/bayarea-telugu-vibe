@@ -28,6 +28,13 @@ export const HERO_STAGGER_MS = ROTATE_MS / 2;
  */
 const activePicks = new Map<number, string>();
 
+/**
+ * Last picture each slot successfully showed. If a refresh of the Glamour
+ * folder ever hands the slot an empty list (for example while the next pocket is
+ * being called in), the slot keeps its previous picture instead of vanishing.
+ */
+const lastGoodPick = new Map<number, { article: Article; picture: string }>();
+
 
 /** Deterministic 32-bit hash so server and client agree on the shuffle. */
 function seededOrder(length: number, seed: number) {
@@ -180,6 +187,17 @@ export function GalleryHero({
     picture = candidatePicture;
     if (!taken.has(candidatePicture)) break;
   }
+  if (article && picture) {
+    lastGoodPick.set(offset, { article, picture });
+  } else {
+    // Nothing eligible right now (folder refreshing, everything failed to load):
+    // keep the picture this slot last showed so the full-size slot never blanks.
+    const previous = mounted ? lastGoodPick.get(offset) : undefined;
+    if (previous) {
+      article = previous.article;
+      picture = previous.picture;
+    }
+  }
   if (picture) activePicks.set(offset, picture);
   const position = article && picture ? items.findIndex((a) => a.slug === article!.slug) : -1;
 
@@ -210,7 +228,7 @@ export function GalleryHero({
 
 
 
-  if (withPictures.length === 0 || !article || !picture) return null;
+  if (!article || !picture) return null;
 
   return (
     <figure
