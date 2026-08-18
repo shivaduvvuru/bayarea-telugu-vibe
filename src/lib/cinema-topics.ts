@@ -134,3 +134,29 @@ export function isSingleWoman(
   if (MALE_SUBJECT.test(text) || MALE_PRESENT.test(text)) return false;
   return true;
 }
+
+/**
+ * Lenient intake gate for the picture desk. The editor approves photos by hand,
+ * so intake only rejects hard news and male-only posts — everything else that
+ * carries a usable photo reaches the desk for review.
+ */
+export function isPictureCandidate(
+  title: string | null | undefined,
+  summary?: string | null,
+  sourceUrl?: string | null,
+): boolean {
+  const text = `${title ?? ""} ${summary ?? ""}`;
+  if (NEWSY.test(text)) return false;
+  if (MALE_SUBJECT.test(text) && !FEMALE_SUBJECT.test(text)) return false;
+  // Already-qualified star galleries always pass.
+  if (isStarGallery(title, summary, sourceUrl)) return true;
+  const url = (sourceUrl ?? "").toLowerCase();
+  const entertainmentDesk =
+    CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url) || PHOTO_DESK_URL.test(url);
+  return (
+    entertainmentDesk ||
+    PHOTO_LED.test(text) ||
+    FEMALE_SUBJECT.test(text) ||
+    FEMALE_GENERIC.test(text)
+  );
+}
