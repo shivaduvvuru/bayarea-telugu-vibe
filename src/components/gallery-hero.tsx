@@ -129,14 +129,17 @@ export function GalleryHero({
   // A photo that has already held a full-size slot this week is out of the
   // rotation until the week is up, so the slots never re-run the same picture.
   const fresh = (list: Article[]) =>
-    list.filter((a) => {
+    // Browser-only history: skipped on the server render so SSR and hydration
+    // paint the same picture.
+    (!mounted ? list : list).filter((a) => {
+      if (!mounted) return true;
       const picture = galleryImage(a.image);
       return !!picture && !shownThisWeek(picture);
     });
 
   // Hearted pictures lead: the slots work through every liked photo that has
   // not run this week before going back to the wider Glamour folder.
-  const likedSlugs = new Set(favorites.map((p) => p.slug));
+  const likedSlugs = new Set(mounted ? favorites.map((p) => p.slug) : []);
   const liked = withPictures.filter((a) => likedSlugs.has(a.slug));
   const freshLiked = fresh(liked);
   const freshAll = fresh(withPictures);
