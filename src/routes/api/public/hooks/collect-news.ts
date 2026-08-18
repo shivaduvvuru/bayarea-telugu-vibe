@@ -38,7 +38,6 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             return (
               !!galleryImage(image) &&
                (payload?.review_type === "picture" ||
-                 payload?.gallery === true ||
                 isSingleWoman(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),
