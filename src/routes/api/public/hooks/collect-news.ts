@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
-          const { isStarGallery } = await import("@/lib/cinema-topics");
+          const { isPictureCandidate } = await import("@/lib/cinema-topics");
           const { galleryImage } = await import("@/lib/story-image");
           const isPicture = (r: Record<string, unknown>) => {
             const payload = r["payload"] as
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               !!galleryImage(image) &&
                (payload?.review_type === "picture" ||
                  payload?.gallery === true ||
-                isStarGallery(
+                isPictureCandidate(
                   String(r["title"] ?? ""),
                   String(r["summary"] ?? ""),
                   String(r["source_url"] ?? ""),
@@ -175,18 +175,13 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Temple notices, events and ordinary news publish without an editor.
           // Only sensitive news stays pending in the review desk.
           const { canAutoPublish } = await import("@/lib/auto-publish");
-          const { isSingleWoman } = await import("@/lib/cinema-topics");
           const marked = rows.map((r) => {
             const row = r as unknown as Record<string, unknown>;
             const picture = isPicture(row);
-            // Pictures: a solo female-star portrait goes straight into the
-            // Glamour folder; group / unclear shots wait in the picture desk.
+            // Every picture waits in the review desk for the editor's approval;
+            // news, events and temple notices still publish automatically.
             const auto = picture
-              ? isSingleWoman(
-                  String(row["title"] ?? ""),
-                  String(row["summary"] ?? ""),
-                  String(row["source_url"] ?? ""),
-                )
+              ? false
               : canAutoPublish(
                   String((r as { kind?: string }).kind ?? "news"),
                   (r as { title?: string }).title,

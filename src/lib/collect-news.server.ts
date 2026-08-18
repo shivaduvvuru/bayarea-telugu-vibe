@@ -1847,7 +1847,7 @@ export async function collectGallery(
   }
 
   // Only picture-led star stories belong in this pass.
-  const { isStarGallery } = await import("./cinema-topics");
+  const { isPictureCandidate } = await import("./cinema-topics");
   const { galleryImage } = await import("./story-image");
   return dedupeCollected(
     rows.filter(
@@ -1855,7 +1855,7 @@ export async function collectGallery(
         // Quality check: the attached picture must read as people photography,
         // not stock nature / graphic filler.
         !!galleryImage((r.payload as { image?: string | null } | undefined)?.image ?? null) &&
-        isStarGallery(r.title, r.summary, r.source_url ?? ""),
+        isPictureCandidate(r.title, r.summary, r.source_url ?? ""),
     ),
   );
 }
