@@ -23,7 +23,7 @@ import { useReviewQueue } from "@/lib/desk-queue";
 import { listDeskItems } from "@/lib/desk-queue.functions";
 
 import { CITIES, CITY_REGIONS, cityBySlug } from "@/lib/desk-cities";
-import { KIND_LABEL, todayISO, type DeskItem, type ItemKind, type ItemStatus } from "@/lib/desk";
+import { todayISO, type DeskItem, type ItemKind, type ItemStatus } from "@/lib/desk";
 import { unlockDesk, checkDesk, lockDesk } from "@/lib/desk-gate.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
