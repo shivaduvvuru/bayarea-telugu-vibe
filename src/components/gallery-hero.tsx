@@ -228,7 +228,7 @@ export function GalleryHero({
 
 
 
-  if (withPictures.length === 0 || !article || !picture) return null;
+  if (!article || !picture) return null;
 
   return (
     <figure
