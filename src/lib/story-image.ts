@@ -4,7 +4,7 @@
  * card fall back to its typographic tile instead.
  */
 const BLOCKED =
-  /(?:^|\.)patch\.com$|patch\.com|patchcdn|patch-?(?:am|logo)|logo|sprite|favicon|placeholder|default[-_]?(?:image|thumb)|avatar|blank\.|1x1|spacer|watermark|header[-_]?ad|\/ads?\/|consent\.yahoo\.com|yahoo_frontpage/i;
+  /(?:^|\.)patch\.com$|patch\.com|patchcdn|patch-?(?:am|logo)|logo|sprite|favicon|placeholder|default[-_]?(?:image|thumb)|avatar|blank\.|1x1|spacer|watermark|header[-_]?ad|\/ads\/|\/advert|\/adserver|doubleclick|consent\.yahoo\.com|yahoo_frontpage/i;
 
 
 /** Tiny thumbnails and crops: skip them so tiles get a real photo. */
