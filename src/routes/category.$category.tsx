@@ -152,6 +152,7 @@ function CategoryPage() {
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
         ) : null}
+        {cat.slug === "city-news" ? <CityNewsGlamourSlides /> : null}
 
 
 
