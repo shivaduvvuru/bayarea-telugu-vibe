@@ -31,6 +31,7 @@ import { Card } from "@/components/ui/card";
 import { galleryImage } from "@/lib/story-image";
 import { celebrityName, eventLabel, industryLabel } from "@/lib/cinema-topics";
 import { retryWithBackoff } from "@/lib/retry";
+import { IntakeDiagnostics } from "@/components/intake-diagnostics";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
@@ -491,9 +492,12 @@ function DeskWorkspace({
       </header>
 
       <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
+        <IntakeDiagnostics onFetch={refresh} fetching={refreshing} />
+
         <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground">
           <Images className="size-4" /> Pictures for review ({pictureCount})
         </div>
+
 
 
         <div className="flex flex-wrap gap-2">
