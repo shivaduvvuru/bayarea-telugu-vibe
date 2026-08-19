@@ -628,6 +628,13 @@ function Home() {
         <GalleryHero {...heroProps(0)} className="mt-4" />
       </div>
 
+      {/* Pair slideshow: two hero-size Glamour pictures that advance together
+          every 30 seconds, with Prev/Next and a pair indicator. */}
+      <div className="mx-auto mt-6 max-w-3xl">
+        <GalleryDualHero items={heroPool} onOpen={setViewerIndex} />
+
+      </div>
+
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
