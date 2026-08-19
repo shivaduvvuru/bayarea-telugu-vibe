@@ -175,14 +175,41 @@ export function industryLabel(
   if (/mollywood|malayalam|kerala|kochi/.test(text)) return "Mollywood";
   if (/sandalwood|kannada|bengaluru|bangalore/.test(text)) return "Sandalwood";
   if (/bollywood|hindi|mumbai/.test(text)) return "Bollywood";
+  if (
+    /k-?drama|k-?pop|korean|kbs|sbs drama|tvn |baeksang|blue dragon|seoul|soompi|allkpop|hallyu|idol group|girl group/.test(
+      text,
+    )
+  )
+    return "K-Entertainment";
+  if (/miss world|miss universe|femina|pageant|fashion week|met gala/.test(text))
+    return "Fashion & Pageant";
   if (/hollywood|american actress|red carpet|oscar|variety|deadline|hollywoodreporter/.test(text))
     return "Hollywood";
   return "Glamour";
 }
 
+/** Event / photoshoot context for the review-desk tag row, when the copy names one. */
+export function eventLabel(
+  title: string | null | undefined,
+  summary?: string | null,
+): string | null {
+  const text = `${title ?? ""} ${summary ?? ""}`;
+  const named = text.match(
+    /\b(Met Gala|Oscars?|Academy Awards|Golden Globes|Cannes|Grammys?|Emmys?|Baeksang|Blue Dragon|Filmfare|SIIMA|IIFA|Miss Universe|Miss World|[A-Z][a-z]+ Fashion Week|Fashion Week|red carpet|premiere|photoshoot|photo shoot|magazine cover|cover shoot|ramp walk|press meet|pre-release event|audio launch|award(?:s)? (?:night|function)|music video|comeback (?:teaser|concept) photos?)\b/i,
+  );
+  const hit = named?.[1]?.trim();
+  if (!hit) return null;
+  return hit.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+
 /** Generic words inside the female-subject list that are not celebrity names. */
 const NOT_A_NAME =
   /^(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she|her|model)$/i;
+
+/** Headline lead-ins that are section labels, not celebrity names. */
+const NOT_A_LEAD =
+  /^(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|interview|review|exclusive|watch|video|glamorous pics?|hot pics?|news|update|breaking|special|first look|trailer|teaser|top \d+)$/i;
 
 /**
  * Best-effort celebrity name for a picture card. Uses the known female-star
@@ -199,5 +226,7 @@ export function celebrityName(
     return hit.replace(/\b\w/g, (c) => c.toUpperCase());
   }
   const lead = (title ?? "").match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/);
-  return lead?.[1] ?? null;
+  const guess = lead?.[1]?.trim();
+  if (!guess || NOT_A_LEAD.test(guess)) return null;
+  return guess;
 }

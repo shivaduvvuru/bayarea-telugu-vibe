@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Intake is pushed hard: a wider slice of photo desks per pass and a
           // faster rotation window, so the whole desk list is read every few
           // minutes instead of every couple of hours.
-          const sliceSize = 14;
+          const sliceSize = 22;
           // The hook runs every minute. Advance on every run instead of reading
           // the same desks five times; a complete source rotation now finishes
           // in roughly five minutes while dedupe still prevents repeats.
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // News publishes automatically, so a thin news pull is never retried
           // or reported as unhealthy — only the picture desk is gated.
           const minimumNews = 0;
-          const minimumPictures = 12;
+          const minimumPictures = 24;
 
           let healthAttempts = 1;
           // Hard time budget: the retry loop used to keep re-reading the feeds
@@ -79,7 +79,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             pictures: picturePool.filter((r) => isPicture(r as unknown as Record<string, unknown>)).length,
           });
           while (
-            healthAttempts < 4 &&
+            healthAttempts < 6 &&
             withinBudget() &&
             (poolCounts().news < minimumNews || poolCounts().pictures < minimumPictures)
           ) {

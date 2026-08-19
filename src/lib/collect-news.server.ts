@@ -1,6 +1,7 @@
 import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
+import { celebrityName, industryLabel, eventLabel } from "./cinema-topics";
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
@@ -746,6 +747,71 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 7,
   },
+  // ── South Korea (K-entertainment): drama actresses, idols, award red carpets
+  // and agency photoshoot drops.
+  {
+    name: "K-drama actresses",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("K-drama" OR "Korean drama" OR "Korean actress") (photos OR pictorial OR photoshoot OR stills OR gallery OR "new look") when:7d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "K-pop female idols",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("K-pop" OR "girl group" OR idol) (member OR singer OR actress) (pictorial OR "concept photos" OR "teaser photos" OR photoshoot OR photos) when:7d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Korean red carpets",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '(Baeksang OR "Blue Dragon" OR "Grand Bell" OR "Asia Artist Awards" OR "Seoul International Drama Awards") (actress OR idol) (red carpet OR photos OR looks) when:14d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "K-entertainment pictorials (Bing)",
+    url: "https://www.bing.com/news/search?q=(Korean+actress+OR+%22K-pop%22+idol)+(pictorial+OR+photoshoot+OR+%22magazine+cover%22)&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  // ── USA / Hollywood: premieres, galas, press drops and studio photoshoots.
+  {
+    name: "Hollywood premieres & galas",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '(actress OR star) ("movie premiere" OR "world premiere" OR "Met Gala" OR Oscars OR "Golden Globes" OR "Vanity Fair party" OR "fashion week") (red carpet OR photos OR look OR gown) when:14d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Hollywood photoshoot galleries",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Hollywood actress" OR "American actress" OR "movie star") (photoshoot OR "cover story" OR "magazine cover" OR "photo gallery" OR portrait) when:7d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Hollywood press drops (Bing)",
+    url: "https://www.bing.com/news/search?q=(Hollywood+actress+OR+%22leading+lady%22)+(%22red+carpet%22+OR+premiere+OR+photoshoot+OR+%22photo+gallery%22)&format=RSS&cc=us&setmkt=en-us&setlang=en-us",
+    kind: "news",
+    limit: 10,
+  },
+  // ── India: pageant and fashion circuits alongside the film desks.
+  {
+    name: "India pageant & fashion",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Miss India" OR "Miss Universe" OR "Miss World" OR "Femina" OR "Lakme Fashion Week" OR "India Couture Week") (winner OR model OR actress) (photos OR gallery OR look OR gown) when:14d',
+    )}&hl=en-IN&gl=IN&ceid=IN:en`,
+    kind: "news",
+    limit: 10,
+  },
+
   // Direct "glamour + tollywood" keyword desks: one on Google News, one on Bing
   // News, both feeding the Glamour intake.
   // Broad discovery desks: fashion / beauty / portrait / lifestyle concepts,
@@ -1849,6 +1915,14 @@ const GALLERY_FEED_NAMES = [
   "Mollywood heroines",
   "Sandalwood heroines",
   "South stars glamour",
+  "K-drama actresses",
+  "K-pop female idols",
+  "Korean red carpets",
+  "K-entertainment pictorials (Bing)",
+  "Hollywood premieres & galas",
+  "Hollywood photoshoot galleries",
+  "Hollywood press drops (Bing)",
+  "India pageant & fashion",
   "Tollywood heroine names",
   "Kollywood heroine names",
   "Mollywood heroine names",
@@ -1978,7 +2052,13 @@ export async function collectGallery(
               image: it.image,
               gallery: true,
               collectedAt: today,
+              // Glamour tags stamped at intake so the desk card and the
+              // published picture carry star / region / event context.
+              star: celebrityName(it.title, summary) ?? undefined,
+              industry: industryLabel(it.title, summary, it.link),
+              event: eventLabel(it.title, summary) ?? undefined,
             },
+
           } satisfies CollectedItem;
         });
       }),

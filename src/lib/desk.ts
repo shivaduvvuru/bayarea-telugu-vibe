@@ -20,6 +20,10 @@ export type DeskItem = {
   reviewType?: "picture";
   /** The attached artwork was visually checked as exactly one adult woman. */
   soloVerified?: true;
+  /** Glamour tags stamped at intake: celebrity, industry/region, event or shoot. */
+  star?: string;
+  industry?: string;
+  event?: string;
   /** Event start / temple seva time. */
   when?: string;
   venue?: string;

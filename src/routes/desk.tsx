@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { galleryImage } from "@/lib/story-image";
-import { celebrityName, industryLabel } from "@/lib/cinema-topics";
+import { celebrityName, eventLabel, industryLabel } from "@/lib/cinema-topics";
 import { retryWithBackoff } from "@/lib/retry";
 
 export const Route = createFileRoute("/desk")({
@@ -252,6 +252,9 @@ function DeskWorkspace({
             ...(p["image"] ? { image: p["image"] } : {}),
             ...(p["review_type"] === "picture" ? { reviewType: "picture" as const } : {}),
             ...(p["solo_verified"] ? { soloVerified: true as const } : {}),
+            ...(p["star"] ? { star: p["star"] } : {}),
+            ...(p["industry"] ? { industry: p["industry"] } : {}),
+            ...(p["event"] ? { event: p["event"] } : {}),
             ...(p["when"] ? { when: p["when"] } : {}),
             ...(p["venue"] ? { venue: p["venue"] } : {}),
             status: "pending" as const,
@@ -556,8 +559,9 @@ function DeskWorkspace({
             {visible.map((item) => {
               const Icon = KIND_ICON[item.kind] ?? Newspaper;
               const c = cityBySlug(item.citySlug);
-              const wood = industryLabel(item.title, item.summary, item.sourceUrl);
-              const star = celebrityName(item.title, item.summary);
+              const wood = item.industry ?? industryLabel(item.title, item.summary, item.sourceUrl);
+              const star = item.star ?? celebrityName(item.title, item.summary);
+              const shootEvent = item.event ?? eventLabel(item.title, item.summary);
               return (
                 <li key={item.id}>
                   <Card className="gap-3 p-4">
@@ -568,6 +572,11 @@ function DeskWorkspace({
                       {star && (
                         <Badge variant="secondary" className="gap-1">
                           <Star className="size-3" /> {star}
+                        </Badge>
+                      )}
+                      {shootEvent && (
+                        <Badge variant="secondary" className="gap-1">
+                          <CalendarDays className="size-3" /> {shootEvent}
                         </Badge>
                       )}
                       <Badge variant="outline" className="gap-1">
