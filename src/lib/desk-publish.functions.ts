@@ -49,6 +49,10 @@ export const publishApproved = createServerFn({ method: "POST" })
       .from("digest_queue")
       .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
       .in("item_id", ids);
+    await db
+      .from("picture_intake")
+      .update({ stage: "approved", reviewed_at: new Date().toISOString() } as never)
+      .in("queue_item_id", ids);
 
     return { sent: ids.length, error: null as string | null };
   });
