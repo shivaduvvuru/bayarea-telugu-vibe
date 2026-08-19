@@ -115,6 +115,7 @@ export async function movePictureIntake(
       }));
       await db.from("digest_rejects").upsert(rejects as never, { onConflict: "dedupe_key" });
       await db.from("digest_queue").delete().in("item_id", queueIds);
+    }
   }
 
   const now = new Date().toISOString();
