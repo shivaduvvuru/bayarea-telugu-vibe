@@ -139,3 +139,72 @@ export async function verifySoloWomanPhotos(
   for (const id of unchecked) accepted.add(id);
   return { accepted, rejected, reasons, unchecked };
 }
+
+const peopleSchema = z.object({
+  id: z.string(),
+  people: z.number(),
+});
+
+function parsePeople(raw: string) {
+  try {
+    const start = raw.indexOf("[");
+    const end = raw.lastIndexOf("]");
+    if (start < 0 || end < start) return [];
+    const parsed = z.array(peopleSchema).safeParse(JSON.parse(raw.slice(start, end + 1)));
+    return parsed.success ? parsed.data : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Counts the people visible in each photo. Used to keep the Glamour folder
+ * strictly solo: any frame with two or more people belongs in Cinema/OTT.
+ * Photos the model cannot judge are left uncounted (null) and stay put.
+ */
+export async function countPeopleInPhotos(
+  candidates: PhotoCandidate[],
+  apiKey: string | undefined,
+): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  if (!apiKey || candidates.length === 0) return counts;
+  const gateway = createLovableAiGatewayProvider(apiKey);
+
+  let next = 0;
+  const worker = async () => {
+    while (next < candidates.length) {
+      const candidate = candidates[next];
+      next += 1;
+      if (!candidate) continue;
+      try {
+        const { text } = await generateText({
+          model: gateway("google/gemini-3.6-flash"),
+          system:
+            "You count people in a photograph for a picture desk. Count every recognisable person in the frame, " +
+            "including people beside, behind or partly visible next to the main subject. Do NOT count posters, " +
+            "reflections, statues, drawings or photos-within-photos. Return a JSON array with one object per " +
+            "supplied photo id, keys: id (exact), people (integer).",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text" as const, text: `Photo id: ${candidate.id}` },
+                { type: "image" as const, image: new URL(candidate.image) },
+              ],
+            },
+          ],
+        });
+        for (const verdict of parsePeople(text)) {
+          if (verdict.id !== candidate.id) continue;
+          counts.set(candidate.id, Math.max(0, Math.round(verdict.people)));
+        }
+      } catch (error) {
+        console.error("people count failed", error);
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(MAX_CONCURRENT_CHECKS, candidates.length) }, () => worker()),
+  );
+  return counts;
+}

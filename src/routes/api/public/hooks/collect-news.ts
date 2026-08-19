@@ -369,6 +369,16 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           }
 
 
+          // Glamour stays strictly solo: any published photo with two or more
+          // people is re-filed under Cinema/OTT, where group shots belong.
+          let soloSweep = { checked: 0, moved: 0, solo: 0, unchecked: 0 };
+          try {
+            const { sweepGlamourGroupPhotos } = await import("@/lib/glamour-solo-sweep.server");
+            soloSweep = await sweepGlamourGroupPhotos(withinBudget() ? 12 : 4);
+          } catch (e) {
+            console.error("glamour solo sweep failed", e);
+          }
+
           // Verify the actual approval backlog after ingestion. This is the
           // authoritative check the desk uses to distinguish a genuinely
           // empty queue from a temporary read/display failure.
@@ -413,7 +423,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, wpRemoved, intakeHealth, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);
