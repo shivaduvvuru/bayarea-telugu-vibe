@@ -198,3 +198,12 @@ export const ingestionFunnel = createServerFn({ method: "POST" }).handler(
     };
   },
 );
+
+/**
+ * Screens Glamour pictures for group shots and re-files any photo with two or
+ * more people under Cinema/OTT, leaving only solo pictures in the folder.
+ */
+export const sweepGlamourSolo = createServerFn({ method: "POST" }).handler(async () => {
+  const { sweepGlamourGroupPhotos } = await import("@/lib/glamour-solo-sweep.server");
+  return sweepGlamourGroupPhotos(30);
+});
