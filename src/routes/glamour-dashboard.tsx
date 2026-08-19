@@ -67,6 +67,26 @@ function GlamourDashboardPage() {
     queryFn: async (): Promise<GlamourDashboard> => (await fetchDashboard({})) as GlamourDashboard,
   });
 
+  // Editor-triggered pass: screens Glamour photos and re-files group shots.
+  const runSoloSweep = useServerFn(sweepGlamourSolo);
+  const [sweeping, setSweeping] = useState(false);
+  const [sweep, setSweep] = useState<{
+    checked: number;
+    moved: number;
+    solo: number;
+    unchecked: number;
+  } | null>(null);
+  const runSweep = async () => {
+    setSweeping(true);
+    try {
+      setSweep((await runSoloSweep({})) as typeof sweep);
+      await refetch();
+    } finally {
+      setSweeping(false);
+    }
+  };
+
+
   const photos = useMemo(() => {
     const list = data?.photos ?? [];
     if (filter === "all") return list;
