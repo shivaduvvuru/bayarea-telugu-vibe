@@ -77,6 +77,25 @@ export function sourceLabel(url: string | null | undefined): string | null {
 const NOT_A_PORTRAIT =
   /\b(?:chart|graph|infographic|scorecard|logo|wordmark|banner-?ad|screenshot|qr-?code|placeholder|map-?tile)\b/i;
 
+/**
+ * Low-quality asset cues in the URL: thumbnails, avatars, sprite sheets and
+ * stamped/watermarked previews. Glamour intake wants the full-size frame.
+ */
+const LOW_QUALITY = /\b(?:thumb|thumbnail|tiny|icon|avatar|sprite|favicon|watermark|preview-?small|low-?res)\b/i;
+
+/** Explicit small dimensions in the path or query (e.g. 150x150, w=120). */
+function tooSmall(raw: string): boolean {
+  const dims = raw.match(/(\d{2,4})\s*[x×]\s*(\d{2,4})/);
+  if (dims) {
+    const w = Number(dims[1]);
+    const h = Number(dims[2]);
+    if (w && h && (w < 320 || h < 320)) return true;
+  }
+  const width = raw.match(/[?&](?:w|width|resize)=(\d{2,4})/i);
+  if (width && Number(width[1]) < 320) return true;
+  return false;
+}
+
 /** Usable image that also passes the Glamourie subject check. */
 export function galleryImage(url: string | null | undefined): string | null {
   const ok = usableImage(url);
@@ -88,6 +107,10 @@ export function galleryImage(url: string | null | undefined): string | null {
   } catch {
     /* keep raw string */
   }
-  if (NOT_A_PORTRAIT.test(decodeURIComponent(path).replace(/[_%20+]/g, "-"))) return null;
+  const readable = decodeURIComponent(path).replace(/[_%20+]/g, "-");
+  if (NOT_A_PORTRAIT.test(readable)) return null;
+  if (LOW_QUALITY.test(readable)) return null;
+  if (tooSmall(ok)) return null;
   return ok;
 }
+
