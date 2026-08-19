@@ -29,6 +29,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
+import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { CollectStatus } from "@/components/collect-status";
 
 
