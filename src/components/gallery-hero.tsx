@@ -228,6 +228,20 @@ export function GalleryHero({
 
 
 
+  // The rotation is time- and browser-state driven, so the server cannot know
+  // which picture the client will land on. Paint a sized placeholder during SSR
+  // and hydration, then swap in the live pick — no hydration mismatch.
+  if (!mounted) {
+    return (
+      <figure
+        className={`m-0 overflow-hidden rounded-lg border border-border bg-surface-tint ${className}`}
+        aria-hidden="true"
+      >
+        <div className="aspect-[4/5] w-full animate-pulse bg-muted sm:aspect-[3/4]" />
+      </figure>
+    );
+  }
+
   if (!article || !picture) return null;
 
   return (
