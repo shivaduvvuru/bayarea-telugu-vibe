@@ -99,6 +99,8 @@ export type Database = {
           image_url: string | null
           kind: string
           link_url: string | null
+          people_checked_at: string | null
+          people_count: number | null
           placement: string
           published_at: string | null
           region: string | null
@@ -125,6 +127,8 @@ export type Database = {
           image_url?: string | null
           kind?: string
           link_url?: string | null
+          people_checked_at?: string | null
+          people_count?: number | null
           placement?: string
           published_at?: string | null
           region?: string | null
@@ -151,6 +155,8 @@ export type Database = {
           image_url?: string | null
           kind?: string
           link_url?: string | null
+          people_checked_at?: string | null
+          people_count?: number | null
           placement?: string
           published_at?: string | null
           region?: string | null
