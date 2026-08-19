@@ -1,6 +1,7 @@
 import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
 import { usableImage } from "./story-image";
+import { celebrityName, industryLabel, eventLabel } from "./cinema-topics";
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
