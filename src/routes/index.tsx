@@ -623,18 +623,21 @@ function Home() {
         </div>
 
         {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
+      </div>
 
+      {/* Pair slideshow: two hero-size Glamour pictures that advance together
+          every 30 seconds, with Prev/Next and a pair indicator. Kept high on the
+          page so readers actually see the slides. */}
+      <div className="mx-auto mt-4 max-w-3xl">
+        <GalleryDualHero items={heroPool} onOpen={setViewerIndex} />
+      </div>
+
+      <div className="mx-auto max-w-3xl">
         {/* Baseline: the full-size glamour picture always sits at the top of the
             homepage and swaps itself every 5 minutes. Never remove this. */}
         <GalleryHero {...heroProps(0)} className="mt-4" />
       </div>
 
-      {/* Pair slideshow: two hero-size Glamour pictures that advance together
-          every 30 seconds, with Prev/Next and a pair indicator. */}
-      <div className="mx-auto mt-6 max-w-3xl">
-        <GalleryDualHero items={heroPool} onOpen={setViewerIndex} />
-
-      </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
