@@ -105,6 +105,35 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // including anything the screen could not judge — goes to the editor.
           const { verifySoloWomanPhotos } = await import("@/lib/photo-subject.server");
           const discoveredPictures = picturePool.length;
+          const intakeRows = picturePool.flatMap((row) => {
+            const payload = (row.payload ?? {}) as Record<string, unknown>;
+            const image = typeof payload["image"] === "string" ? payload["image"] : "";
+            if (!image) return [];
+            return [{
+              item_id: row.item_id,
+              dedupe_key: row.dedupe_key,
+              queue_item_id: row.item_id,
+              stage: "usable",
+              image_url: image,
+              title: row.title,
+              summary: row.summary,
+              source: row.source,
+              source_url: row.source_url,
+              city_slug: row.city_slug,
+              industry: payload["industry"] ?? null,
+              star: payload["star"] ?? null,
+              event: payload["event"] ?? null,
+              screening_state: "screening",
+              metadata: payload,
+              discovered_at: new Date().toISOString(),
+            }];
+          });
+          if (intakeRows.length) {
+            const { error: intakeError } = await supabaseAdmin
+              .from("picture_intake")
+              .upsert(intakeRows as never, { onConflict: "item_id" });
+            if (intakeError) throw intakeError;
+          }
           const screenable = picturePool.flatMap((row) => {
             const image = (row.payload as { image?: string | null } | undefined)?.image;
             return image ? [{ id: row.item_id, image }] : [];
@@ -120,14 +149,17 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             rejectReasons[reason] = (rejectReasons[reason] ?? 0) + 1;
           }
           if (blocked.length) {
-            await supabaseAdmin.from("digest_rejects").upsert(
-              blocked.map((row) => ({
-                dedupe_key: row.dedupe_key,
-                item_id: row.item_id,
-                reason: verification.reasons.get(row.item_id) ?? "no_primary_woman",
-                title: row.title,
-              })) as never,
-              { onConflict: "dedupe_key", ignoreDuplicates: true },
+            await Promise.all(
+              blocked.map((row) =>
+                supabaseAdmin
+                  .from("picture_intake")
+                  .update({
+                    stage: "safety_blocked",
+                    screening_state: "blocked",
+                    safety_reason: verification.reasons.get(row.item_id) ?? "no_primary_woman",
+                  } as never)
+                  .eq("item_id", row.item_id),
+              ),
             );
           }
           picturePool = picturePool
@@ -224,6 +256,25 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               ],
             },
           );
+          const pendingPictureIds = new Set(
+            rows
+              .filter((row) => isPicture(row as unknown as Record<string, unknown>))
+              .map((row) => row.item_id),
+          );
+          const acceptedPictureIds = picturePool.map((row) => row.item_id);
+          const duplicatePictureIds = acceptedPictureIds.filter((id) => !pendingPictureIds.has(id));
+          if (pendingPictureIds.size) {
+            await supabaseAdmin
+              .from("picture_intake")
+              .update({ stage: "pending", screening_state: "passed", safety_reason: null } as never)
+              .in("item_id", [...pendingPictureIds]);
+          }
+          if (duplicatePictureIds.length) {
+            await supabaseAdmin
+              .from("picture_intake")
+              .update({ stage: "duplicate" } as never)
+              .in("item_id", duplicatePictureIds);
+          }
 
           // Temple notices, events and ordinary news publish without an editor.
           // Only sensitive news stays pending in the review desk.
@@ -423,7 +474,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);

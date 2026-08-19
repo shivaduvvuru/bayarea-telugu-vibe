@@ -32,6 +32,7 @@ import { galleryImage } from "@/lib/story-image";
 import { celebrityName, eventLabel, industryLabel } from "@/lib/cinema-topics";
 import { retryWithBackoff } from "@/lib/retry";
 import { IntakeDiagnostics } from "@/components/intake-diagnostics";
+import { PictureDeskWorkspace } from "@/components/picture-desk-workspace";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
@@ -157,7 +158,7 @@ function DeskPage() {
     return <DeskPasscodeForm onUnlock={onUnlock} sessionError={sessionError} />;
   }
 
-  return <DeskWorkspace deskToken={deskToken} onLock={onLock} onSessionExpired={onSessionExpired} />;
+  return <PictureDeskWorkspace deskToken={deskToken} onLock={onLock} onSessionExpired={onSessionExpired} />;
 }
 
 function DeskPasscodeForm({
