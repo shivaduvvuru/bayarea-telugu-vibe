@@ -10,9 +10,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   glamourDashboard,
   ingestionFunnel,
+  sweepGlamourSolo,
   type GlamourDashboard,
   type IngestionRun,
 } from "@/lib/glamour-dashboard.functions";
+
 
 export const Route = createFileRoute("/glamour-dashboard")({
   head: () => ({
