@@ -40,6 +40,17 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
   );
 }
 
+/** Glamour pair slideshow embedded on the City News page. */
+function CityNewsGlamourSlides() {
+  const { data } = useSuspenseQuery(postsQuery("gallery"));
+  const { hidden, hiddenImages } = useHiddenPhotos();
+  const items = data.filter(
+    (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
+  );
+  if (!items.length) return null;
+  return <GalleryDualHero items={items} />;
+}
+
 const postsQuery = (category: string) =>
   queryOptions({
     // Gallery is a picture desk: show a much deeper set so repeat visits keep
