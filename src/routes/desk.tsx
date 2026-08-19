@@ -31,6 +31,7 @@ import { Card } from "@/components/ui/card";
 import { galleryImage } from "@/lib/story-image";
 import { celebrityName, eventLabel, industryLabel } from "@/lib/cinema-topics";
 import { retryWithBackoff } from "@/lib/retry";
+import { IntakeDiagnostics } from "@/components/intake-diagnostics";
 
 export const Route = createFileRoute("/desk")({
   head: () => ({
