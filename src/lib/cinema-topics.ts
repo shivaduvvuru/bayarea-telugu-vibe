@@ -207,6 +207,10 @@ export function eventLabel(
 const NOT_A_NAME =
   /^(?:actress|heroine|glam(?:our|orous)?|beauty|diva|she|her|model)$/i;
 
+/** Headline lead-ins that are section labels, not celebrity names. */
+const NOT_A_LEAD =
+  /^(?:photos?|pics?|pictures?|stills?|gallery|galleries|photoshoot|interview|review|exclusive|watch|video|glamorous pics?|hot pics?|news|update|breaking|special|first look|trailer|teaser|top \d+)$/i;
+
 /**
  * Best-effort celebrity name for a picture card. Uses the known female-star
  * list first, then falls back to the leading capitalised words of the headline.
@@ -222,5 +226,7 @@ export function celebrityName(
     return hit.replace(/\b\w/g, (c) => c.toUpperCase());
   }
   const lead = (title ?? "").match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/);
-  return lead?.[1] ?? null;
+  const guess = lead?.[1]?.trim();
+  if (!guess || NOT_A_LEAD.test(guess)) return null;
+  return guess;
 }
