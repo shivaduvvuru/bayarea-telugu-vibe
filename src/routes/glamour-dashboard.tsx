@@ -92,10 +92,26 @@ function GlamourDashboardPage() {
             <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} aria-hidden />
             Refresh
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void runSweep()}
+            disabled={sweeping}
+          >
+            <Users className={`mr-1.5 h-3.5 w-3.5 ${sweeping ? "animate-pulse" : ""}`} aria-hidden />
+            {sweeping ? "Screening…" : "Move group photos to Cinema"}
+          </Button>
           <Button asChild variant="ghost" size="sm">
             <Link to="/desk">Review desk</Link>
           </Button>
         </div>
+        {sweep ? (
+          <p className="w-full text-xs text-muted-foreground">
+            Last screen: {sweep.checked} checked · {sweep.moved} moved to Cinema/OTT ·{" "}
+            {sweep.solo} confirmed solo · {sweep.unchecked} unjudged
+          </p>
+        ) : null}
+
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
