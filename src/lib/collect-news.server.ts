@@ -2043,7 +2043,13 @@ export async function collectGallery(
               image: it.image,
               gallery: true,
               collectedAt: today,
+              // Glamour tags stamped at intake so the desk card and the
+              // published picture carry star / region / event context.
+              star: celebrityName(it.title, summary) ?? undefined,
+              industry: industryLabel(it.title, summary, it.link),
+              event: eventLabel(it.title, summary) ?? undefined,
             },
+
           } satisfies CollectedItem;
         });
       }),
