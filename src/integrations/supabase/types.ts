@@ -544,6 +544,75 @@ export type Database = {
         }
         Relationships: []
       }
+      picture_intake: {
+        Row: {
+          city_slug: string | null
+          created_at: string
+          dedupe_key: string | null
+          discovered_at: string
+          event: string | null
+          image_url: string
+          industry: string | null
+          item_id: string
+          metadata: Json
+          queue_item_id: string | null
+          reviewed_at: string | null
+          safety_reason: string | null
+          screening_state: string
+          source: string | null
+          source_url: string | null
+          stage: string
+          star: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city_slug?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          discovered_at?: string
+          event?: string | null
+          image_url: string
+          industry?: string | null
+          item_id: string
+          metadata?: Json
+          queue_item_id?: string | null
+          reviewed_at?: string | null
+          safety_reason?: string | null
+          screening_state?: string
+          source?: string | null
+          source_url?: string | null
+          stage?: string
+          star?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city_slug?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          discovered_at?: string
+          event?: string | null
+          image_url?: string
+          industry?: string | null
+          item_id?: string
+          metadata?: Json
+          queue_item_id?: string | null
+          reviewed_at?: string | null
+          safety_reason?: string | null
+          screening_state?: string
+          source?: string | null
+          source_url?: string | null
+          stage?: string
+          star?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
