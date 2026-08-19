@@ -148,6 +148,11 @@ function CategoryPage() {
         </nav>
       ) : null}
       <div className="mt-6">
+        {cat.slug === "gallery" && articles.length > 0 ? (
+          <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
+        ) : null}
+
+
 
         <SectionHeading
           te={cat.slug === "gallery" ? "సినిమా ఫొటోలు" : "కథనాలు"}
