@@ -41,7 +41,7 @@ export async function listPictureIntake(
       { count: "exact" },
     );
   if (input.bucket === "usable") query = query.in("stage", ["usable", "pending"]);
-  else query = query.eq("stage", input.bucket);
+  else if (input.bucket !== "discovered") query = query.eq("stage", input.bucket);
   const { data, error, count } = await query
     .order("updated_at", { ascending: false })
     .range(from, from + input.pageSize - 1);
@@ -63,6 +63,7 @@ export async function pictureIntakeCounts(db: Db) {
   );
   const counts = Object.fromEntries(pairs) as Record<string, number>;
   counts["usable"] = (counts["usable"] ?? 0) + (counts["pending"] ?? 0);
+  counts["discovered"] = Object.values(counts).reduce((sum, value) => sum + value, 0) - counts["usable"];
   return counts;
 }
 
