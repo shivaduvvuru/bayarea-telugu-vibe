@@ -183,7 +183,10 @@ export function PictureDeskWorkspace({
     try {
       await moveItems({ data: { itemIds: ids, stage, deskToken } });
       if (stage === "approved") {
-        const result = await publishApproved({ data: { itemIds: ids, deskToken } });
+        const queueIds = items
+          .filter((item) => ids.includes(item.item_id))
+          .map((item) => item.queue_item_id ?? item.item_id);
+        const result = await publishApproved({ data: { itemIds: queueIds, deskToken } });
         if (result.error) throw new Error(result.error);
       }
       toast.success(`${ids.length} picture${ids.length === 1 ? "" : "s"} ${stage === "pending" ? "moved to review" : stage}`);

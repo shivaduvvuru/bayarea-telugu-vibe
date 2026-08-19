@@ -80,7 +80,7 @@ export async function movePictureIntake(
   if (readError) throw new Error(readError.message);
   const rows = (intakeRows ?? []) as unknown as Array<Record<string, unknown>>;
 
-  if (input.stage === "pending") {
+  if (input.stage === "pending" || input.stage === "approved") {
     const queueRows = rows.map((row) => ({
       item_id: String(row["queue_item_id"] ?? row["item_id"]),
       dedupe_key: row["dedupe_key"],
@@ -91,7 +91,7 @@ export async function movePictureIntake(
       summary: row["summary"],
       source: row["source"],
       source_url: row["source_url"],
-      status: "pending",
+      status: input.stage,
       payload: {
         ...((row["metadata"] ?? {}) as Record<string, unknown>),
         image: row["image_url"],
@@ -115,10 +115,6 @@ export async function movePictureIntake(
       }));
       await db.from("digest_rejects").upsert(rejects as never, { onConflict: "dedupe_key" });
       await db.from("digest_queue").delete().in("item_id", queueIds);
-    } else {
-      const { error } = await db.from("digest_queue").update({ status: "approved" } as never).in("item_id", queueIds);
-      if (error) throw new Error(error.message);
-    }
   }
 
   const now = new Date().toISOString();
