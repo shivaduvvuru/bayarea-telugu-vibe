@@ -8,6 +8,7 @@ import { SectionHeading, StoryCard, Thumb, RelativeDate, ListRow } from "@/compo
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
+import { GalleryDualHero } from "@/components/gallery-dual-hero";
 
 import { PhotoActions } from "@/components/photo-actions";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
@@ -148,6 +149,11 @@ function CategoryPage() {
         </nav>
       ) : null}
       <div className="mt-6">
+        {cat.slug === "gallery" && articles.length > 0 ? (
+          <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
+        ) : null}
+
+
 
         <SectionHeading
           te={cat.slug === "gallery" ? "సినిమా ఫొటోలు" : "కథనాలు"}
