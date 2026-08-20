@@ -30,6 +30,14 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
+import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
+
+/** Live news feeds a manual/pull refresh re-reads on the homepage. */
+const HOME_LIVE_KEYS: unknown[][] = [
+  ["home", "posts"],
+  ["wp", "posts", "city-news"],
+  ["wp", "posts", "india-states", "home"],
+];
 import { CollectStatus } from "@/components/collect-status";
 
 
