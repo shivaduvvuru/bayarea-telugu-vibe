@@ -13,8 +13,10 @@ import {
   RefreshCw,
   RotateCcw,
   Star,
+  Trash2,
   X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -64,12 +66,30 @@ const REASON_LABEL: Record<string, string> = {
   image_corrupt: "Image could not be read",
 };
 
+type Category = "all" | "glamour" | "cinema" | "micro";
+const CATEGORIES: Array<{ key: Category; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "glamour", label: "Glamour (Single Woman)" },
+  { key: "cinema", label: "Cinema / OTT" },
+  { key: "micro", label: "Micro Drama" },
+];
+
+const MICRO = /micro[- ]?drama|duanju|short[- ]?drama|vertical drama|short-?form drama|reelshort|dramabox/i;
+
+function categoryOf(item: IntakeItem): Exclude<Category, "all"> {
+  const text = `${item.title} ${item.summary ?? ""} ${item.source ?? ""} ${item.event ?? ""}`;
+  if (MICRO.test(text)) return "micro";
+  if (item.screening_state === "passed" && !item.safety_reason) return "glamour";
+  return "cinema";
+}
+
 function unwrap<T>(value: unknown, key: string): T | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   if (key in record) return record as T;
   return unwrap<T>(record["data"] ?? record["result"], key);
 }
+
 
 export function PictureDeskWorkspace({
   deskToken,
@@ -93,6 +113,8 @@ export function PictureDeskWorkspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [category, setCategory] = useState<Category>("all");
+
   const [fetching, setFetching] = useState(false);
   const [acting, setActing] = useState(false);
   const [lastFetch, setLastFetch] = useState("");
@@ -174,9 +196,49 @@ export function PictureDeskWorkspace({
   }, [counts, fetchPictures, fetching, loading]);
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const selectedIds = useMemo(() => [...selected], [selected]);
-  const allOnPageSelected = items.length > 0 && items.every((item) => selected.has(item.item_id));
+  const visibleItems = useMemo(
+    () => (category === "all" ? items : items.filter((item) => categoryOf(item) === category)),
+    [category, items],
+  );
+  const categoryCounts = useMemo(() => {
+    const tally: Record<string, number> = { all: items.length, glamour: 0, cinema: 0, micro: 0 };
+    for (const item of items) tally[categoryOf(item)] = (tally[categoryOf(item)] ?? 0) + 1;
+    return tally;
+  }, [items]);
+  const selectedIds = useMemo(
+    () => visibleItems.filter((item) => selected.has(item.item_id)).map((item) => item.item_id),
+    [selected, visibleItems],
+  );
+  const allVisibleSelected = visibleItems.length > 0 && visibleItems.every((item) => selected.has(item.item_id));
 
+  const dropLocally = (ids: string[]) => {
+    setItems((current) => current.filter((item) => !ids.includes(item.item_id)));
+    setTotal((current) => Math.max(0, current - ids.length));
+    setSelected((current) => {
+      const next = new Set(current);
+      for (const id of ids) next.delete(id);
+      return next;
+    });
+  };
+
+  /** Single-card action: optimistic local removal, background write, no re-fetch. */
+  const quickAct = (stage: "pending" | "approved" | "rejected" | "duplicate", item: IntakeItem) => {
+    dropLocally([item.item_id]);
+    setCounts((current) => ({ ...current, [bucket]: Math.max(0, (current[bucket] ?? 1) - 1) }));
+    void (async () => {
+      try {
+        await moveItems({ data: { itemIds: [item.item_id], stage, deskToken } });
+        if (stage === "approved") {
+          const result = await publishApproved({ data: { itemIds: [item.queue_item_id ?? item.item_id], deskToken } });
+          if (result.error) throw new Error(result.error);
+        }
+      } catch (caught) {
+        toast.error(caught instanceof Error ? caught.message : "Could not save the action");
+      }
+    })();
+  };
+
+  /** Batch action: one request, toast, then sync the desk. */
   const act = async (stage: "pending" | "approved" | "rejected" | "duplicate", ids = selectedIds) => {
     if (!ids.length) return;
     setActing(true);
@@ -197,6 +259,7 @@ export function PictureDeskWorkspace({
       setActing(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -243,13 +306,33 @@ export function PictureDeskWorkspace({
           </div>
         </div>
 
-        {items.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Picture categories">
+          {CATEGORIES.map((entry) => (
+            <Button
+              key={entry.key}
+              type="button"
+              size="sm"
+              role="tab"
+              aria-selected={category === entry.key}
+              variant={category === entry.key ? "default" : "outline"}
+              onClick={() => setCategory(entry.key)}
+            >
+              {entry.label} ({categoryCounts[entry.key] ?? 0})
+            </Button>
+          ))}
+        </div>
+
+        {visibleItems.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-y border-border py-3">
-            <Checkbox checked={allOnPageSelected} onCheckedChange={(checked) => setSelected(checked ? new Set(items.map((item) => item.item_id)) : new Set())} aria-label="Select all pictures on this page" />
-            <span className="mr-2 text-xs text-muted-foreground">{selected.size ? `${selected.size} selected` : "Select this page"}</span>
-            <Button size="sm" onClick={() => void act("approved")} disabled={!selected.size || acting}><Check /> Bulk approve</Button>
-            <Button size="sm" variant="outline" onClick={() => void act("rejected")} disabled={!selected.size || acting}><X /> Bulk reject</Button>
-            {bucket === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => void act("pending")} disabled={!selected.size || acting}><RotateCcw /> Override to pending</Button>}
+            <Checkbox
+              checked={allVisibleSelected}
+              onCheckedChange={(checked) => setSelected(checked ? new Set(visibleItems.map((item) => item.item_id)) : new Set())}
+              aria-label="Select all pictures shown"
+            />
+            <span className="mr-2 text-xs text-muted-foreground">{selected.size ? `${selected.size} selected` : "Select shown pictures"}</span>
+            <Button size="sm" onClick={() => void act("approved")} disabled={!selectedIds.length || acting}><Check /> Bulk approve</Button>
+            <Button size="sm" variant="outline" onClick={() => void act("rejected")} disabled={!selectedIds.length || acting}><X /> Bulk reject</Button>
+            {bucket === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => void act("pending")} disabled={!selectedIds.length || acting}><RotateCcw /> Override to pending</Button>}
           </div>
         )}
 
@@ -257,37 +340,59 @@ export function PictureDeskWorkspace({
           <Card className="p-8 text-center text-sm text-muted-foreground">Loading {BUCKETS.find((entry) => entry.key === bucket)?.label.toLowerCase()}…</Card>
         ) : error ? (
           <Card className="p-8 text-center text-sm text-destructive"><p>{error}</p><Button variant="outline" className="mt-3" onClick={() => void load()}><RotateCcw /> Try again</Button></Card>
-        ) : items.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">No pictures in this bucket.</Card>
+        ) : visibleItems.length === 0 ? (
+          <Card className="p-8 text-center text-sm text-muted-foreground">No pictures in this view.</Card>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
+            {visibleItems.map((item) => {
+              const isSelected = selected.has(item.item_id);
+              const toggle = () => setSelected((current) => {
+                const next = new Set(current);
+                if (next.has(item.item_id)) next.delete(item.item_id); else next.add(item.item_id);
+                return next;
+              });
+              return (
               <li key={item.item_id}>
-                <Card className="h-full gap-3 overflow-hidden p-3">
+                <Card className={`h-full gap-3 overflow-hidden p-3 ${isSelected ? "ring-2 ring-primary" : ""}`}>
                   <div className="flex items-start gap-2">
-                    <Checkbox checked={selected.has(item.item_id)} onCheckedChange={(checked) => setSelected((current) => { const next = new Set(current); if (checked) next.add(item.item_id); else next.delete(item.item_id); return next; })} aria-label={`Select ${item.title}`} />
+                    <Checkbox checked={isSelected} onCheckedChange={() => toggle()} aria-label={`Select ${item.title}`} />
                     <div className="flex min-w-0 flex-1 flex-wrap gap-1">
                       <Badge variant="outline">{item.stage.replace("_", " ")}</Badge>
                       {item.industry && <Badge variant="secondary">{item.industry}</Badge>}
                       {item.star && <Badge variant="secondary"><Star className="size-3" /> {item.star}</Badge>}
                     </div>
                   </div>
-                  <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-md border border-border object-cover object-top" />
+                  <div className="relative">
+                    <button type="button" onClick={toggle} className="block w-full" aria-pressed={isSelected} aria-label={`Toggle selection for ${item.title}`}>
+                      <img src={item.image_url} alt={item.title} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-md border border-border object-cover object-top" />
+                    </button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute right-2 top-2 size-8 shadow-md"
+                      title="Delete picture"
+                      onClick={() => quickAct("rejected", item)}
+                    >
+                      <Trash2 className="size-4" /><span className="sr-only">Delete picture</span>
+                    </Button>
+                  </div>
                   {item.safety_reason && <p className="flex items-center gap-1 text-xs font-medium text-destructive"><AlertTriangle className="size-3" /> {REASON_LABEL[item.safety_reason] ?? item.safety_reason}</p>}
                   <h2 className="line-clamp-2 text-sm font-semibold text-foreground">{item.title}</h2>
                   <p className="text-xs text-muted-foreground">{new Date(item.discovered_at).toLocaleString()}</p>
                   {item.source_url && <a href={item.source_url} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-primary hover:underline">{item.source ?? "Source"} <ExternalLink className="size-3" /></a>}
                   <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                    {item.stage !== "approved" && <Button size="sm" onClick={() => void act("approved", [item.item_id])} disabled={acting}><Check /> Approve</Button>}
-                    {item.stage !== "rejected" && <Button size="sm" variant="outline" onClick={() => void act("rejected", [item.item_id])} disabled={acting}><X /> Reject</Button>}
-                    {item.stage === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => void act("pending", [item.item_id])} disabled={acting}><RotateCcw /> Override</Button>}
-                    {item.stage !== "duplicate" && <Button size="icon" variant="ghost" title="Mark duplicate" onClick={() => void act("duplicate", [item.item_id])} disabled={acting}><CopyX /><span className="sr-only">Mark duplicate</span></Button>}
+                    {item.stage !== "approved" && <Button size="sm" onClick={() => quickAct("approved", item)}><Check /> Approve</Button>}
+                    {item.stage !== "rejected" && <Button size="sm" variant="outline" onClick={() => quickAct("rejected", item)}><X /> Reject</Button>}
+                    {item.stage === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => quickAct("pending", item)}><RotateCcw /> Override</Button>}
+                    {item.stage !== "duplicate" && <Button size="icon" variant="ghost" title="Mark duplicate" onClick={() => quickAct("duplicate", item)}><CopyX /><span className="sr-only">Mark duplicate</span></Button>}
                   </div>
                 </Card>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
+
 
         <div className="flex items-center justify-between border-t border-border pt-4">
           <Button variant="outline" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1 || loading}><ChevronLeft /> Previous</Button>
@@ -295,6 +400,30 @@ export function PictureDeskWorkspace({
           <Button variant="outline" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount || loading}>Next <ChevronRight /></Button>
         </div>
       </main>
+
+      {visibleItems.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+            <label className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={(checked) => setSelected(checked ? new Set(visibleItems.map((item) => item.item_id)) : new Set())}
+                aria-label="Select all remaining pictures"
+              />
+              Select All Remaining
+            </label>
+            <span className="text-xs text-muted-foreground">{selectedIds.length} of {visibleItems.length} selected</span>
+            <Button
+              className="ml-auto"
+              onClick={() => void act("approved", selectedIds.length ? selectedIds : visibleItems.map((item) => item.item_id))}
+              disabled={acting}
+            >
+              <Check /> {acting ? "Publishing…" : `Approve & Publish (${selectedIds.length || visibleItems.length})`}
+            </Button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
