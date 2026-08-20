@@ -113,6 +113,8 @@ export function PictureDeskWorkspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [category, setCategory] = useState<Category>("all");
+
   const [fetching, setFetching] = useState(false);
   const [acting, setActing] = useState(false);
   const [lastFetch, setLastFetch] = useState("");
