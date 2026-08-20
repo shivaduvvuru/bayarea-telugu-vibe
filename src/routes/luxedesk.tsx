@@ -114,7 +114,7 @@ function LuxeDeskPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | ReviewStatus>("all");
   const [tier, setTier] = useState<"all" | VerificationTier>("all");
-  const [activeId, setActiveId] = useState(MEMBER_PROFILES[0].id);
+  const [activeId, setActiveId] = useState(MEMBER_PROFILES[0]!.id);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   const metrics = useMemo(

@@ -26,6 +26,7 @@ import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
 import { Route as LiteRouteImport } from './routes/lite'
+import { Route as LuxedeskRouteImport } from './routes/luxedesk'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as SearchRouteImport } from './routes/search'
@@ -129,6 +130,11 @@ const GlamourDashboardRoute = GlamourDashboardRouteImport.update({
 const LiteRoute = LiteRouteImport.update({
   id: '/lite',
   path: '/lite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LuxedeskRoute = LuxedeskRouteImport.update({
+  id: '/luxedesk',
+  path: '/luxedesk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PeopleRoute = PeopleRouteImport.update({
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
+  '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/search': typeof SearchRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
+  '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/search': typeof SearchRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
+  '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/search': typeof SearchRoute
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
+    | '/luxedesk'
     | '/people'
     | '/politics'
     | '/search'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
+    | '/luxedesk'
     | '/people'
     | '/politics'
     | '/search'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
+    | '/luxedesk'
     | '/people'
     | '/politics'
     | '/search'
@@ -484,6 +496,7 @@ export interface RootRouteChildren {
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
   LiteRoute: typeof LiteRoute
+  LuxedeskRoute: typeof LuxedeskRoute
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
   SearchRoute: typeof SearchRoute
@@ -620,6 +633,13 @@ declare module '@tanstack/react-router' {
       path: '/lite'
       fullPath: '/lite'
       preLoaderRoute: typeof LiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/luxedesk': {
+      id: '/luxedesk'
+      path: '/luxedesk'
+      fullPath: '/luxedesk'
+      preLoaderRoute: typeof LuxedeskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/people': {
@@ -811,6 +831,7 @@ const rootRouteChildren: RootRouteChildren = {
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,
   LiteRoute: LiteRoute,
+  LuxedeskRoute: LuxedeskRoute,
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
   SearchRoute: SearchRoute,
