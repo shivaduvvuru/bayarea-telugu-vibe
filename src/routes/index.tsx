@@ -153,7 +153,9 @@ const galleryQueryFor = (pocket: number) =>
 const homeStatesQuery = queryOptions({
   queryKey: ["wp", "posts", "india-states", "home"],
   queryFn: () => listPosts({ data: { category: "india-news", perPage: 40, compact: true } }),
-  staleTime: 10 * 60 * 1000,
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /** Community-submitted and editor-published items from the newsroom CMS. */
