@@ -273,6 +273,8 @@ export function PictureDeskWorkspace({
               {fetching ? "Collecting…" : "Fetch pictures"}
             </Button>
             <Button size="sm" variant="ghost" asChild><Link to="/admin">Newsroom CMS</Link></Button>
+            <Button size="sm" variant="outline" asChild><Link to="/luxedesk">Applicant &amp; member review (LuxeDesk)</Link></Button>
+
             <Button size="sm" variant="ghost" onClick={() => void onLock()}><Lock className="size-3" /> Lock</Button>
           </div>
           {(fetching || lastFetch) && <p className="mt-2 text-xs text-muted-foreground" role="status">{fetching ? "Collecting and saving each intake stage…" : lastFetch}</p>}
