@@ -436,7 +436,7 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
 }
 
 function Home() {
-  const { data: articles } = useSuspenseQuery(homeQuery);
+  const { data: articles, dataUpdatedAt: homeUpdatedAt } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   const { pocket: loaderPocket } = Route.useLoaderData();
