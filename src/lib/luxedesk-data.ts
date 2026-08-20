@@ -1,158 +1,262 @@
 export type ReviewStatus = "Pending" | "Approved" | "Rejected" | "Flagged";
 export type VerificationTier = "Standard" | "VIP Gold" | "VIP Platinum";
+export type Region = "US" | "India" | "Korea" | "Japan" | "China";
 
-export type MemberProfile = {
+/** A curated female glamour / celebrity feature item awaiting editorial review. */
+export type GlamourProfile = {
   id: string;
   name: string;
-  age: number;
-  relationship_status: string;
-  occupation: string;
-  location: string;
-  bio: string;
+  region: Region;
+  /** Entertainment industry label, e.g. "Hollywood", "Tollywood", "K-Drama". */
+  industry: string;
+  /** Profession band, e.g. "Lead Actress", "Character Artist". */
+  profession: string;
+  /** Notable works / credits used as editorial context. */
+  notable_works: string[];
+  /** Image style of the curated frame. */
+  image_style:
+    | "Solo portrait"
+    | "Red carpet"
+    | "High-fashion editorial"
+    | "Photoshoot"
+    | "Media gallery";
+  /** Curated high-resolution glamour image (single subject only). */
   profile_image: string;
   review_status: ReviewStatus;
   verification_tier: VerificationTier;
   tags: string[];
-  joined: string;
-  id_verified: boolean;
-  photo_verified: boolean;
+  /** ISO date the frame was curated into the desk. */
+  curated: string;
+  /** Verified as a single subject in frame (no groups, couples or crowds). */
+  solo_verified: boolean;
+  /** Media rights / source credit cleared. */
+  rights_cleared: boolean;
+  source: string;
 };
 
-export const MEMBER_PROFILES: MemberProfile[] = [
+export const REGION_LABEL: Record<Region, string> = {
+  US: "United States",
+  India: "India",
+  Korea: "South Korea",
+  Japan: "Japan",
+  China: "China",
+};
+
+export const GLAMOUR_PROFILES: GlamourProfile[] = [
   {
-    id: "USR-001",
-    name: "Elena Rostova",
-    age: 28,
-    relationship_status: "Single",
-    occupation: "Fashion PR Director",
-    location: "New York, NY",
-    bio: "High-fashion enthusiast, rooftop jazz lover, and luxury brand strategist.",
+    id: "GLM-001",
+    name: "Ava Sinclair",
+    region: "US",
+    industry: "Hollywood",
+    profession: "Lead Actress",
+    notable_works: ["Midnight Harbor", "The Long Ascent"],
+    image_style: "Red carpet",
     profile_image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&q=80",
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1400&q=80",
     review_status: "Pending",
     verification_tier: "VIP Gold",
-    tags: ["Fashion", "Jazz", "Fine dining"],
-    joined: "2026-08-02",
-    id_verified: true,
-    photo_verified: false,
+    tags: ["Red carpet", "Awards season", "Couture"],
+    curated: "2026-08-18",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Entertainment media gallery",
   },
   {
-    id: "USR-002",
-    name: "Chloe Vance",
-    age: 31,
-    relationship_status: "Single",
-    occupation: "Interior Architect",
-    location: "Miami, FL",
-    bio: "Designing minimalist coastal villas. Passionate about contemporary art and weekend sailing.",
+    id: "GLM-002",
+    name: "Meera Rajan",
+    region: "India",
+    industry: "Tollywood",
+    profession: "Lead Actress",
+    notable_works: ["Veyi Kanulu", "Rathnam"],
+    image_style: "High-fashion editorial",
     profile_image:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1400&q=80",
     review_status: "Pending",
     verification_tier: "VIP Platinum",
-    tags: ["Architecture", "Sailing", "Modern art"],
-    joined: "2026-07-28",
-    id_verified: true,
-    photo_verified: true,
+    tags: ["Editorial", "Telugu cinema", "Designer wear"],
+    curated: "2026-08-19",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Film publicity still",
   },
   {
-    id: "USR-003",
-    name: "Aria Montgomery",
-    age: 26,
-    relationship_status: "Single",
-    occupation: "Creative Producer",
-    location: "Los Angeles, CA",
-    bio: "Film set director by week, culinary traveler by weekend. Seeking curated connections.",
+    id: "GLM-003",
+    name: "Han Seo-yeon",
+    region: "Korea",
+    industry: "K-Drama",
+    profession: "Lead Actress",
+    notable_works: ["Winter Letters", "Seoul After Dark"],
+    image_style: "Photoshoot",
     profile_image:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&q=80",
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=80",
     review_status: "Approved",
-    verification_tier: "Standard",
-    tags: ["Film", "Travel", "Culinary"],
-    joined: "2026-06-11",
-    id_verified: true,
-    photo_verified: true,
-  },
-  {
-    id: "USR-004",
-    name: "Isabella Cruz",
-    age: 29,
-    relationship_status: "Single",
-    occupation: "Private Wealth Advisor",
-    location: "San Francisco, CA",
-    bio: "Numbers by day, Napa cabernet by night. Marathon runner and opera subscriber.",
-    profile_image:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200&q=80",
-    review_status: "Pending",
     verification_tier: "VIP Gold",
-    tags: ["Finance", "Running", "Opera"],
-    joined: "2026-08-09",
-    id_verified: false,
-    photo_verified: true,
+    tags: ["K-Drama", "Beauty campaign", "Studio"],
+    curated: "2026-08-14",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Studio press kit",
   },
   {
-    id: "USR-005",
-    name: "Nadia Farrow",
-    age: 33,
-    relationship_status: "Single",
-    occupation: "Gallery Owner",
-    location: "Chicago, IL",
-    bio: "Curating emerging photography. Collector of vintage Leicas and quiet Sunday mornings.",
+    id: "GLM-004",
+    name: "Aiko Tanaka",
+    region: "Japan",
+    industry: "J-Drama",
+    profession: "Character Artist",
+    notable_works: ["Kyoto Rain", "The Quiet Ward"],
+    image_style: "Solo portrait",
     profile_image:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=1200&q=80",
+      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=1400&q=80",
+    review_status: "Pending",
+    verification_tier: "Standard",
+    tags: ["Portrait", "Character role", "Monochrome"],
+    curated: "2026-08-17",
+    solo_verified: true,
+    rights_cleared: false,
+    source: "Entertainment media gallery",
+  },
+  {
+    id: "GLM-005",
+    name: "Liu Wenxin",
+    region: "China",
+    industry: "C-Drama",
+    profession: "Lead Actress",
+    notable_works: ["Palace of Cranes", "Neon Provinces"],
+    image_style: "Media gallery",
+    profile_image:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1400&q=80",
     review_status: "Flagged",
     verification_tier: "VIP Platinum",
-    tags: ["Photography", "Collecting", "Wine"],
-    joined: "2026-05-30",
-    id_verified: true,
-    photo_verified: false,
+    tags: ["C-Drama", "Period drama", "Gala"],
+    curated: "2026-08-16",
+    solo_verified: false,
+    rights_cleared: true,
+    source: "Festival media wall",
   },
   {
-    id: "USR-006",
-    name: "Sofia Lindqvist",
-    age: 27,
-    relationship_status: "Single",
-    occupation: "Luxury Travel Curator",
-    location: "Austin, TX",
-    bio: "Booking private islands for a living. Yoga at sunrise, vinyl at midnight.",
+    id: "GLM-006",
+    name: "Ananya Kapoor",
+    region: "India",
+    industry: "Bollywood",
+    profession: "Lead Actress",
+    notable_works: ["Dil Ke Raaste", "Bombay Velvet Nights"],
+    image_style: "Red carpet",
     profile_image:
-      "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=1200&q=80",
+      "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=1400&q=80",
     review_status: "Approved",
     verification_tier: "VIP Gold",
-    tags: ["Travel", "Yoga", "Vinyl"],
-    joined: "2026-07-04",
-    id_verified: true,
-    photo_verified: true,
+    tags: ["Bollywood", "Premiere", "Couture"],
+    curated: "2026-08-12",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Premiere media gallery",
   },
   {
-    id: "USR-007",
-    name: "Camille Beaumont",
-    age: 30,
-    relationship_status: "Single",
-    occupation: "Sommelier & Restaurateur",
-    location: "Seattle, WA",
-    bio: "Second-generation restaurateur. Burgundy purist with a soft spot for street food.",
+    id: "GLM-007",
+    name: "Divya Menon",
+    region: "India",
+    industry: "Mollywood",
+    profession: "Character Artist",
+    notable_works: ["Kayal", "Onam Diaries"],
+    image_style: "Photoshoot",
     profile_image:
-      "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=1200&q=80",
+      "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=1400&q=80",
     review_status: "Rejected",
     verification_tier: "Standard",
-    tags: ["Wine", "Hospitality", "Cycling"],
-    joined: "2026-04-19",
-    id_verified: false,
-    photo_verified: false,
+    tags: ["Malayalam cinema", "Studio", "Traditional"],
+    curated: "2026-08-10",
+    solo_verified: false,
+    rights_cleared: false,
+    source: "Entertainment media gallery",
   },
   {
-    id: "USR-008",
-    name: "Priya Raghavan",
-    age: 32,
-    relationship_status: "Single",
-    occupation: "Biotech Founder",
-    location: "Boston, MA",
-    bio: "Building diagnostics that matter. Classical dancer, chess club regular, espresso snob.",
+    id: "GLM-008",
+    name: "Nila Karthik",
+    region: "India",
+    industry: "Kollywood",
+    profession: "Lead Actress",
+    notable_works: ["Vaanam Vazhi", "Chennai Express Lane"],
+    image_style: "High-fashion editorial",
     profile_image:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&q=80",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1400&q=80",
+    review_status: "Pending",
+    verification_tier: "VIP Gold",
+    tags: ["Tamil cinema", "Editorial", "High fashion"],
+    curated: "2026-08-19",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Magazine editorial",
+  },
+  {
+    id: "GLM-009",
+    name: "Keerthi Gowda",
+    region: "India",
+    industry: "Sandalwood",
+    profession: "Lead Actress",
+    notable_works: ["Mysuru Monsoon", "Kaveri"],
+    image_style: "Solo portrait",
+    profile_image:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1400&q=80",
+    review_status: "Pending",
+    verification_tier: "Standard",
+    tags: ["Kannada cinema", "Portrait", "Natural light"],
+    curated: "2026-08-18",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Film publicity still",
+  },
+  {
+    id: "GLM-010",
+    name: "Scarlett Vaughn",
+    region: "US",
+    industry: "Hollywood",
+    profession: "Character Artist",
+    notable_works: ["Ember County", "The Understudy"],
+    image_style: "Media gallery",
+    profile_image:
+      "https://images.unsplash.com/photo-1513379733131-47fc74b45fc7?w=1400&q=80",
+    review_status: "Approved",
+    verification_tier: "VIP Platinum",
+    tags: ["Hollywood", "Festival", "Press line"],
+    curated: "2026-08-15",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Festival media wall",
+  },
+  {
+    id: "GLM-011",
+    name: "Park Ji-woo",
+    region: "Korea",
+    industry: "Korean Cinema",
+    profession: "Lead Actress",
+    notable_works: ["Tidal", "The Glass House"],
+    image_style: "High-fashion editorial",
+    profile_image:
+      "https://images.unsplash.com/photo-1546961329-78bef0414d7c?w=1400&q=80",
+    review_status: "Pending",
+    verification_tier: "VIP Gold",
+    tags: ["Korean cinema", "Editorial", "Minimal"],
+    curated: "2026-08-19",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Magazine editorial",
+  },
+  {
+    id: "GLM-012",
+    name: "Zhang Yiran",
+    region: "China",
+    industry: "Chinese Cinema",
+    profession: "Lead Actress",
+    notable_works: ["Silk Road Echo", "Shanghai Sonata"],
+    image_style: "Photoshoot",
+    profile_image:
+      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1400&q=80",
     review_status: "Pending",
     verification_tier: "VIP Platinum",
-    tags: ["Biotech", "Dance", "Chess"],
-    joined: "2026-08-14",
-    id_verified: true,
-    photo_verified: true,
+    tags: ["Chinese cinema", "Studio", "Gown"],
+    curated: "2026-08-19",
+    solo_verified: true,
+    rights_cleared: true,
+    source: "Studio press kit",
   },
 ];

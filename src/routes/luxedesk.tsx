@@ -5,19 +5,22 @@ import {
   BadgeCheck,
   Check,
   Crown,
+  Film,
   Flag,
   Gem,
-  MapPin,
+  Globe2,
+  Images,
   RotateCcw,
   Search,
   ShieldCheck,
   Sparkles,
-  Users,
   X,
 } from "lucide-react";
 import {
-  MEMBER_PROFILES,
-  type MemberProfile,
+  GLAMOUR_PROFILES,
+  REGION_LABEL,
+  type GlamourProfile,
+  type Region,
   type ReviewStatus,
   type VerificationTier,
 } from "@/lib/luxedesk-data";
@@ -38,17 +41,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/luxedesk")({
   head: () => ({
     meta: [
-      { title: "LuxeDesk — Applicant & Member Review Desk" },
+      { title: "LuxeDesk — Glamour Celebrity Review Desk" },
       {
         name: "description",
         content:
-          "Moderation console for reviewing, verifying and approving luxury member applications with tier badges, notes and audit metadata.",
+          "Editorial console for reviewing curated female glamour and celebrity portraits from Hollywood, Indian cinema, Korea, Japan and China.",
       },
-      { property: "og:title", content: "LuxeDesk — Member Review Desk" },
+      { property: "og:title", content: "LuxeDesk — Glamour Celebrity Review Desk" },
       {
         property: "og:description",
         content:
-          "Review member applications, verify identity tiers and record moderation notes in one dark-luxury console.",
+          "Review curated solo glamour portraits by region, verify rights and single-subject framing, and approve for publication.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -69,6 +72,17 @@ const TIER_ICON: Record<VerificationTier, typeof Crown> = {
   Standard: Sparkles,
   "VIP Gold": Crown,
   "VIP Platinum": Gem,
+};
+
+const REGION_FILTERS: Array<"all" | Region> = ["all", "US", "India", "Korea", "Japan", "China"];
+
+const REGION_CHIP: Record<"all" | Region, string> = {
+  all: "All",
+  US: "US",
+  India: "India",
+  Korea: "Korea",
+  Japan: "Japan",
+  China: "China",
 };
 
 function StatusBadge({ status }: { status: ReviewStatus }) {
@@ -96,7 +110,7 @@ function Metric({
 }: {
   label: string;
   value: number;
-  icon: typeof Users;
+  icon: typeof Images;
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
@@ -110,11 +124,12 @@ function Metric({
 }
 
 function LuxeDeskPage() {
-  const [profiles, setProfiles] = useState<MemberProfile[]>(MEMBER_PROFILES);
+  const [profiles, setProfiles] = useState<GlamourProfile[]>(GLAMOUR_PROFILES);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | ReviewStatus>("all");
   const [tier, setTier] = useState<"all" | VerificationTier>("all");
-  const [activeId, setActiveId] = useState(MEMBER_PROFILES[0]!.id);
+  const [region, setRegion] = useState<"all" | Region>("all");
+  const [activeId, setActiveId] = useState(GLAMOUR_PROFILES[0]!.id);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   const metrics = useMemo(
@@ -132,10 +147,13 @@ function LuxeDeskPage() {
     return profiles.filter((p) => {
       if (status !== "all" && p.review_status !== status) return false;
       if (tier !== "all" && p.verification_tier !== tier) return false;
+      if (region !== "all" && p.region !== region) return false;
       if (!q) return true;
-      return [p.name, p.occupation, p.location].some((f) => f.toLowerCase().includes(q));
+      return [p.name, p.industry, p.profession, ...p.notable_works].some((f) =>
+        f.toLowerCase().includes(q),
+      );
     });
-  }, [profiles, query, status, tier]);
+  }, [profiles, query, status, tier, region]);
 
   const active = profiles.find((p) => p.id === activeId) ?? filtered[0] ?? profiles[0];
 
@@ -158,13 +176,13 @@ function LuxeDeskPage() {
             <div className="leading-tight">
               <h1 className="text-lg font-semibold tracking-tight text-foreground">LuxeDesk</h1>
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                Member review
+                Glamour celebrity review
               </p>
             </div>
           </div>
 
           <div className="order-3 grid w-full grid-cols-2 gap-2 sm:order-none sm:ml-auto sm:w-auto sm:grid-cols-4">
-            <Metric label="Profiles" value={metrics.total} icon={Users} />
+            <Metric label="Frames" value={metrics.total} icon={Images} />
             <Metric label="Pending" value={metrics.pending} icon={ShieldCheck} />
             <Metric label="Approved" value={metrics.approved} icon={BadgeCheck} />
             <Metric label="Flagged" value={metrics.flagged} icon={Flag} />
@@ -172,14 +190,33 @@ function LuxeDeskPage() {
 
           <Avatar className="ml-auto size-9 border border-border sm:ml-3">
             <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
-              AD
+              ED
             </AvatarFallback>
           </Avatar>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-5">
-        <section className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+        <nav aria-label="Filter by region" className="flex flex-wrap gap-2">
+          {REGION_FILTERS.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRegion(r)}
+              aria-pressed={region === r}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                region === r
+                  ? "border-primary/60 bg-primary/15 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/35",
+              )}
+            >
+              {REGION_CHIP[r]}
+            </button>
+          ))}
+        </nav>
+
+        <section className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -188,8 +225,8 @@ function LuxeDeskPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name, occupation or city"
-              aria-label="Search profiles"
+              placeholder="Search name, industry, profession or credits"
+              aria-label="Search glamour profiles"
               className="pl-9"
             />
           </div>
@@ -219,13 +256,13 @@ function LuxeDeskPage() {
         </section>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-          <section aria-label="Profile queue" className="space-y-3">
+          <section aria-label="Glamour queue" className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Queue ({filtered.length})
             </h2>
             {filtered.length === 0 && (
               <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-                No applicants match these filters.
+                No curated frames match these filters.
               </p>
             )}
             <ul className="space-y-3 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
@@ -244,18 +281,21 @@ function LuxeDeskPage() {
                   >
                     <img
                       src={p.profile_image}
-                      alt={`${p.name}, ${p.occupation}`}
+                      alt={`${p.name} — ${p.image_style.toLowerCase()} glamour frame`}
                       loading="lazy"
                       className="size-16 shrink-0 rounded-lg object-cover"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-card-foreground">
-                        {p.name}, {p.age}
+                        {p.name}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">{p.occupation}</p>
                       <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <MapPin className="size-3" aria-hidden="true" />
-                        {p.location}
+                        <Globe2 className="size-3" aria-hidden="true" />
+                        {p.industry} · {REGION_LABEL[p.region]}
+                      </p>
+                      <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                        <Film className="size-3" aria-hidden="true" />
+                        {p.profession}
                       </p>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <StatusBadge status={p.review_status} />
@@ -270,13 +310,13 @@ function LuxeDeskPage() {
 
           {active && (
             <section
-              aria-label="Review and verification inspector"
+              aria-label="Glamour frame inspector"
               className="rounded-2xl border border-border bg-card p-4"
             >
               <div className="overflow-hidden rounded-xl border border-border">
                 <img
                   src={active.profile_image}
-                  alt={`${active.name} — full profile photo`}
+                  alt={`${active.name} — full curated glamour image`}
                   className="max-h-[420px] w-full object-cover"
                 />
               </div>
@@ -287,8 +327,7 @@ function LuxeDeskPage() {
                     {active.name}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {active.age} · {active.relationship_status} · {active.occupation} ·{" "}
-                    {active.location}
+                    {active.industry} · {REGION_LABEL[active.region]} · {active.profession}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -297,10 +336,12 @@ function LuxeDeskPage() {
                 </div>
               </div>
 
-              <p className="mt-3 text-sm leading-relaxed text-foreground/90">{active.bio}</p>
+              <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+                Notable works: {active.notable_works.join(", ")}.
+              </p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {active.tags.map((t) => (
+                {active.tags.map((t: string) => (
                   <Badge key={t} variant="secondary" className="rounded-full text-[11px]">
                     {t}
                   </Badge>
@@ -310,10 +351,12 @@ function LuxeDeskPage() {
               <dl className="mt-4 grid gap-2 rounded-xl border border-border bg-background/40 p-3 text-xs sm:grid-cols-2">
                 {(
                   [
-                    ["Member ID", active.id],
-                    ["Applied", new Date(active.joined).toLocaleDateString()],
-                    ["ID verified", active.id_verified ? "Yes" : "Outstanding"],
-                    ["Photo verified", active.photo_verified ? "Yes" : "Outstanding"],
+                    ["Frame ID", active.id],
+                    ["Curated", new Date(active.curated).toLocaleDateString()],
+                    ["Image style", active.image_style],
+                    ["Source", active.source],
+                    ["Single subject", active.solo_verified ? "Verified" : "Needs check"],
+                    ["Rights cleared", active.rights_cleared ? "Yes" : "Outstanding"],
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between gap-2">
@@ -324,20 +367,20 @@ function LuxeDeskPage() {
               </dl>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button onClick={() => decide("Approved", "approved for membership")}>
+                <Button onClick={() => decide("Approved", "approved for publication")}>
                   <Check className="size-4" aria-hidden="true" /> Approve
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => decide("Flagged", "re-verification requested")}
+                  onClick={() => decide("Flagged", "flagged for single-subject re-check")}
                 >
-                  <RotateCcw className="size-4" aria-hidden="true" /> Request re-verification
+                  <RotateCcw className="size-4" aria-hidden="true" /> Flag for re-check
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => decide("Rejected", "application declined")}
+                  onClick={() => decide("Rejected", "frame rejected")}
                 >
-                  <X className="size-4" aria-hidden="true" /> Decline
+                  <X className="size-4" aria-hidden="true" /> Reject
                 </Button>
               </div>
 
@@ -346,13 +389,13 @@ function LuxeDeskPage() {
                   htmlFor="mod-notes"
                   className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
                 >
-                  Moderation notes
+                  Editorial notes
                 </label>
                 <Textarea
                   id="mod-notes"
                   rows={4}
                   className="mt-2"
-                  placeholder="Record verification evidence, escalation reasons or follow-ups…"
+                  placeholder="Record framing checks, rights notes, obscenity concerns or follow-ups…"
                   value={notes[active.id] ?? ""}
                   onChange={(e) => setNotes((n) => ({ ...n, [active.id]: e.target.value }))}
                 />
