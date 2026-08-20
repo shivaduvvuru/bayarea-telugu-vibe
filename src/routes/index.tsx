@@ -80,7 +80,11 @@ function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
   queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
-  staleTime: 30 * 60 * 1000,
+  // Home digest tracks the fast desks: fresh for 5 minutes, quiet background
+  // poll every 15, and a re-read whenever a parked tab is focused again.
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /**
@@ -90,7 +94,9 @@ const homeQuery = queryOptions({
 const cityNewsQuery = queryOptions({
   queryKey: ["wp", "posts", "city-news"],
   queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
-  staleTime: 30 * 60 * 1000,
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /**
