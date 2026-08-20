@@ -81,7 +81,9 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
   heading: "Editorial",
   items: [
     { to: "/desk", label: "Review desk" },
+    { to: "/luxedesk", label: "Applicant & member review" },
     { to: "/admin", label: "Newsroom CMS" },
+
   ],
 };
 
