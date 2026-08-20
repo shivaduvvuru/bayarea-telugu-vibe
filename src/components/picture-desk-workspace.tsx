@@ -66,12 +66,30 @@ const REASON_LABEL: Record<string, string> = {
   image_corrupt: "Image could not be read",
 };
 
+type Category = "all" | "glamour" | "cinema" | "micro";
+const CATEGORIES: Array<{ key: Category; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "glamour", label: "Glamour (Single Woman)" },
+  { key: "cinema", label: "Cinema / OTT" },
+  { key: "micro", label: "Micro Drama" },
+];
+
+const MICRO = /micro[- ]?drama|duanju|short[- ]?drama|vertical drama|short-?form drama|reelshort|dramabox/i;
+
+function categoryOf(item: IntakeItem): Exclude<Category, "all"> {
+  const text = `${item.title} ${item.summary ?? ""} ${item.source ?? ""} ${item.event ?? ""}`;
+  if (MICRO.test(text)) return "micro";
+  if (item.screening_state === "passed" && !item.safety_reason) return "glamour";
+  return "cinema";
+}
+
 function unwrap<T>(value: unknown, key: string): T | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
   if (key in record) return record as T;
   return unwrap<T>(record["data"] ?? record["result"], key);
 }
+
 
 export function PictureDeskWorkspace({
   deskToken,
