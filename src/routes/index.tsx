@@ -30,6 +30,14 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
+import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
+
+/** Live news feeds a manual/pull refresh re-reads on the homepage. */
+const HOME_LIVE_KEYS: unknown[][] = [
+  ["home", "posts"],
+  ["wp", "posts", "city-news"],
+  ["wp", "posts", "india-states", "home"],
+];
 import { CollectStatus } from "@/components/collect-status";
 
 
@@ -80,7 +88,11 @@ function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
 const homeQuery = queryOptions({
   queryKey: ["home", "posts"],
   queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
-  staleTime: 30 * 60 * 1000,
+  // Home digest tracks the fast desks: fresh for 5 minutes, quiet background
+  // poll every 15, and a re-read whenever a parked tab is focused again.
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /**
@@ -90,7 +102,9 @@ const homeQuery = queryOptions({
 const cityNewsQuery = queryOptions({
   queryKey: ["wp", "posts", "city-news"],
   queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
-  staleTime: 30 * 60 * 1000,
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /**
@@ -147,7 +161,9 @@ const galleryQueryFor = (pocket: number) =>
 const homeStatesQuery = queryOptions({
   queryKey: ["wp", "posts", "india-states", "home"],
   queryFn: () => listPosts({ data: { category: "india-news", perPage: 40, compact: true } }),
-  staleTime: 10 * 60 * 1000,
+  staleTime: 5 * 60 * 1000,
+  refetchInterval: 15 * 60 * 1000,
+  refetchOnWindowFocus: true,
 });
 
 /** Community-submitted and editor-published items from the newsroom CMS. */
@@ -428,7 +444,7 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
 }
 
 function Home() {
-  const { data: articles } = useSuspenseQuery(homeQuery);
+  const { data: articles, dataUpdatedAt: homeUpdatedAt } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
   const { data: cityNews } = useSuspenseQuery(cityNewsQuery);
   const { pocket: loaderPocket } = Route.useLoaderData();
@@ -612,6 +628,7 @@ function Home() {
   return (
     <div className="rise mx-auto max-w-6xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+      <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">
         <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
@@ -620,7 +637,13 @@ function Home() {
           </p>
           <DigestNote className="mt-0.5" />
           <CollectStatus mode="all" className="mt-2" />
+          <NewsFreshness
+            className="mt-2"
+            queryKeys={HOME_LIVE_KEYS}
+            updatedAt={homeUpdatedAt}
+          />
         </div>
+
 
         {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
       </div>
