@@ -114,9 +114,12 @@ export const Route = createFileRoute("/category/$category")({
   component: CategoryPage,
 });
 
+/** Desks that turn over quickly enough to warrant polling and a refresh control. */
+const LIVE_DESKS = ["city-news", "india-news", "cinema", "micro-drama"];
+
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
-  const { data: allArticles } = useSuspenseQuery(postsQuery(cat.slug));
+  const { data: allArticles, dataUpdatedAt } = useSuspenseQuery(postsQuery(cat.slug));
   const { hidden, hiddenImages } = useHiddenPhotos();
   // Disliked pictures are dropped from the picture desk — by slug and by picture
   // URL, so a re-collected copy of the same photo never comes back.
@@ -128,14 +131,20 @@ function CategoryPage() {
       : allArticles;
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const live = LIVE_DESKS.includes(cat.slug);
+  const liveKeys = [["wp", "posts", cat.slug]];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      {live ? <PullToRefresh queryKeys={liveKeys} /> : null}
       <h1 className="text-3xl font-bold text-ink">
         {cat.en}
       </h1>
       <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
       <DigestNote className="mt-2 max-w-2xl" />
+      {live ? (
+        <NewsFreshness className="mt-3" queryKeys={liveKeys} updatedAt={dataUpdatedAt} />
+      ) : null}
       {cat.slug === "gallery" ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Link
@@ -147,6 +156,7 @@ function CategoryPage() {
           <RefreshGalleryButton />
         </div>
       ) : null}
+
 
       {cat.children?.length ? (
         <nav
