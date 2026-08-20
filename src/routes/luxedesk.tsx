@@ -255,164 +255,180 @@ function LuxeDeskPage() {
           </Select>
         </section>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-          <section aria-label="Glamour queue" className="space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Queue ({filtered.length})
-            </h2>
-            {filtered.length === 0 && (
-              <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-                No curated frames match these filters.
-              </p>
-            )}
-            <ul className="space-y-3 lg:max-h-[70vh] lg:overflow-y-auto lg:pr-1">
-              {filtered.map((p) => (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(p.id)}
-                    aria-current={active?.id === p.id}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition-colors",
-                      active?.id === p.id
-                        ? "border-primary/60 ring-1 ring-primary/30"
-                        : "border-border hover:border-primary/35",
-                    )}
-                  >
-                    <img
-                      src={p.profile_image}
-                      alt={`${p.name} — ${p.image_style.toLowerCase()} glamour frame`}
-                      loading="lazy"
-                      className="size-16 shrink-0 rounded-lg object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-card-foreground">
-                        {p.name}
-                      </p>
-                      <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <Globe2 className="size-3" aria-hidden="true" />
-                        {p.industry} · {REGION_LABEL[p.region]}
-                      </p>
-                      <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <Film className="size-3" aria-hidden="true" />
-                        {p.profession}
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <StatusBadge status={p.review_status} />
-                        <TierBadge tier={p.verification_tier} />
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {active && (
-            <section
-              aria-label="Glamour frame inspector"
-              className="rounded-2xl border border-border bg-card p-4"
-            >
-              <div className="overflow-hidden rounded-xl border border-border">
-                <img
-                  src={active.profile_image}
-                  alt={`${active.name} — full curated glamour image`}
-                  className="max-h-[420px] w-full object-cover"
-                />
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-semibold tracking-tight text-card-foreground">
-                    {active.name}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {active.industry} · {REGION_LABEL[active.region]} · {active.profession}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={active.review_status} />
-                  <TierBadge tier={active.verification_tier} />
-                </div>
-              </div>
-
-              <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-                Notable works: {active.notable_works.join(", ")}.
-              </p>
-
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {active.tags.map((t: string) => (
-                  <Badge key={t} variant="secondary" className="rounded-full text-[11px]">
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-
-              <dl className="mt-4 grid gap-2 rounded-xl border border-border bg-background/40 p-3 text-xs sm:grid-cols-2">
-                {(
-                  [
-                    ["Frame ID", active.id],
-                    ["Curated", new Date(active.curated).toLocaleDateString()],
-                    ["Image style", active.image_style],
-                    ["Source", active.source],
-                    ["Single subject", active.solo_verified ? "Verified" : "Needs check"],
-                    ["Rights cleared", active.rights_cleared ? "Yes" : "Outstanding"],
-                  ] as const
-                ).map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between gap-2">
-                    <dt className="text-muted-foreground">{k}</dt>
-                    <dd className="font-medium text-foreground">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button onClick={() => decide("Approved", "approved for publication")}>
-                  <Check className="size-4" aria-hidden="true" /> Approve
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => decide("Flagged", "flagged for single-subject re-check")}
-                >
-                  <RotateCcw className="size-4" aria-hidden="true" /> Flag for re-check
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => decide("Rejected", "frame rejected")}
-                >
-                  <X className="size-4" aria-hidden="true" /> Reject
-                </Button>
-              </div>
-
-              <div className="mt-5">
-                <label
-                  htmlFor="mod-notes"
-                  className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-                >
-                  Editorial notes
-                </label>
-                <Textarea
-                  id="mod-notes"
-                  rows={4}
-                  className="mt-2"
-                  placeholder="Record framing checks, rights notes, obscenity concerns or follow-ups…"
-                  value={notes[active.id] ?? ""}
-                  onChange={(e) => setNotes((n) => ({ ...n, [active.id]: e.target.value }))}
-                />
-                <div className="mt-2 flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toast.success("Note saved to the review log.")}
-                  >
-                    Save note
-                  </Button>
-                </div>
-              </div>
-            </section>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Images className="size-4" aria-hidden="true" /> Glamour frames ({filtered.length})
+          </div>
+          {filtered.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(checked) =>
+                  setSelected(checked ? new Set(filtered.map((p) => p.id)) : new Set())
+                }
+                aria-label="Select all frames shown"
+              />
+              <span>{selected.size ? `${selected.size} selected` : "Select shown frames"}</span>
+              <Button size="sm" onClick={() => bulk("Approved", "approved")} disabled={!selectedIds.length}>
+                <Check className="size-4" aria-hidden="true" /> Bulk approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => bulk("Rejected", "rejected")}
+                disabled={!selectedIds.length}
+              >
+                <X className="size-4" aria-hidden="true" /> Bulk reject
+              </Button>
+            </div>
           )}
         </div>
+
+        {filtered.length === 0 ? (
+          <Card className="mt-4 p-8 text-center text-sm text-muted-foreground">
+            No curated frames match these filters.
+          </Card>
+        ) : (
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p) => {
+              const isSelected = selected.has(p.id);
+              const Tier = TIER_ICON[p.verification_tier];
+              const toggle = () =>
+                setSelected((current) => {
+                  const next = new Set(current);
+                  if (next.has(p.id)) next.delete(p.id);
+                  else next.add(p.id);
+                  return next;
+                });
+              return (
+                <li key={p.id}>
+                  <Card
+                    className={cn(
+                      "h-full gap-3 overflow-hidden p-3",
+                      isSelected && "ring-2 ring-primary",
+                    )}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggle()}
+                        aria-label={`Select ${p.name}`}
+                      />
+                      <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                        <StatusBadge status={p.review_status} />
+                        <Badge variant="secondary" className="rounded-full text-[11px]">
+                          <Globe2 className="size-3" aria-hidden="true" /> {REGION_LABEL[p.region]}
+                        </Badge>
+                        <Badge variant="outline" className="rounded-full text-[11px]">
+                          <Tier className="size-3" aria-hidden="true" /> {p.verification_tier}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        aria-pressed={isSelected}
+                        aria-label={`Toggle selection for ${p.name}`}
+                        className="block w-full"
+                      >
+                        <img
+                          src={p.profile_image}
+                          alt={`${p.name} — ${p.image_style.toLowerCase()} glamour frame`}
+                          loading="lazy"
+                          decoding="async"
+                          className="aspect-[4/5] w-full rounded-md border border-border object-cover object-top"
+                        />
+                      </button>
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute right-2 top-2 size-8 shadow-md"
+                        title="Reject frame"
+                        onClick={() => decide(p.id, "Rejected", "frame rejected")}
+                      >
+                        <Trash2 className="size-4" aria-hidden="true" />
+                        <span className="sr-only">Reject frame</span>
+                      </Button>
+                    </div>
+
+                    <h2 className="text-sm font-semibold text-card-foreground">{p.name}</h2>
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Film className="size-3" aria-hidden="true" />
+                      {p.industry} · {p.profession}
+                    </p>
+                    <p className="line-clamp-2 text-xs text-muted-foreground">
+                      Notable works: {p.notable_works.join(", ")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.solo_verified ? "Single subject verified" : "Single subject needs check"} ·{" "}
+                      {p.rights_cleared ? "Rights cleared" : "Rights outstanding"}
+                    </p>
+
+                    <div className="mt-auto flex flex-wrap gap-2 pt-1">
+                      {p.review_status !== "Approved" && (
+                        <Button size="sm" onClick={() => decide(p.id, "Approved", "approved for publication")}>
+                          <Check className="size-4" aria-hidden="true" /> Approve
+                        </Button>
+                      )}
+                      {p.review_status !== "Rejected" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => decide(p.id, "Rejected", "frame rejected")}
+                        >
+                          <X className="size-4" aria-hidden="true" /> Reject
+                        </Button>
+                      )}
+                      {p.review_status !== "Flagged" && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Flag for re-check"
+                          onClick={() => decide(p.id, "Flagged", "flagged for single-subject re-check")}
+                        >
+                          <RotateCcw className="size-4" aria-hidden="true" />
+                          <span className="sr-only">Flag for re-check</span>
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </main>
+
+      {filtered.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
+            <label className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(checked) =>
+                  setSelected(checked ? new Set(filtered.map((p) => p.id)) : new Set())
+                }
+                aria-label="Select all remaining frames"
+              />
+              Select all remaining
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {selectedIds.length} of {filtered.length} selected
+            </span>
+            <Button
+              className="ml-auto"
+              onClick={() =>
+                bulk("Approved", "approved", selectedIds.length ? selectedIds : filtered.map((p) => p.id))
+              }
+            >
+              <Check className="size-4" aria-hidden="true" /> Approve &amp; publish (
+              {selectedIds.length || filtered.length})
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
