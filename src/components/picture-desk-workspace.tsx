@@ -400,6 +400,30 @@ export function PictureDeskWorkspace({
           <Button variant="outline" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount || loading}>Next <ChevronRight /></Button>
         </div>
       </main>
+
+      {visibleItems.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
+            <label className="flex items-center gap-2 text-xs font-medium text-foreground">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={(checked) => setSelected(checked ? new Set(visibleItems.map((item) => item.item_id)) : new Set())}
+                aria-label="Select all remaining pictures"
+              />
+              Select All Remaining
+            </label>
+            <span className="text-xs text-muted-foreground">{selectedIds.length} of {visibleItems.length} selected</span>
+            <Button
+              className="ml-auto"
+              onClick={() => void act("approved", selectedIds.length ? selectedIds : visibleItems.map((item) => item.item_id))}
+              disabled={acting}
+            >
+              <Check /> {acting ? "Publishing…" : `Approve & Publish (${selectedIds.length || visibleItems.length})`}
+            </Button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
