@@ -196,9 +196,49 @@ export function PictureDeskWorkspace({
   }, [counts, fetchPictures, fetching, loading]);
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const selectedIds = useMemo(() => [...selected], [selected]);
-  const allOnPageSelected = items.length > 0 && items.every((item) => selected.has(item.item_id));
+  const visibleItems = useMemo(
+    () => (category === "all" ? items : items.filter((item) => categoryOf(item) === category)),
+    [category, items],
+  );
+  const categoryCounts = useMemo(() => {
+    const tally: Record<string, number> = { all: items.length, glamour: 0, cinema: 0, micro: 0 };
+    for (const item of items) tally[categoryOf(item)] = (tally[categoryOf(item)] ?? 0) + 1;
+    return tally;
+  }, [items]);
+  const selectedIds = useMemo(
+    () => visibleItems.filter((item) => selected.has(item.item_id)).map((item) => item.item_id),
+    [selected, visibleItems],
+  );
+  const allVisibleSelected = visibleItems.length > 0 && visibleItems.every((item) => selected.has(item.item_id));
 
+  const dropLocally = (ids: string[]) => {
+    setItems((current) => current.filter((item) => !ids.includes(item.item_id)));
+    setTotal((current) => Math.max(0, current - ids.length));
+    setSelected((current) => {
+      const next = new Set(current);
+      for (const id of ids) next.delete(id);
+      return next;
+    });
+  };
+
+  /** Single-card action: optimistic local removal, background write, no re-fetch. */
+  const quickAct = (stage: "pending" | "approved" | "rejected" | "duplicate", item: IntakeItem) => {
+    dropLocally([item.item_id]);
+    setCounts((current) => ({ ...current, [bucket]: Math.max(0, (current[bucket] ?? 1) - 1) }));
+    void (async () => {
+      try {
+        await moveItems({ data: { itemIds: [item.item_id], stage, deskToken } });
+        if (stage === "approved") {
+          const result = await publishApproved({ data: { itemIds: [item.queue_item_id ?? item.item_id], deskToken } });
+          if (result.error) throw new Error(result.error);
+        }
+      } catch (caught) {
+        toast.error(caught instanceof Error ? caught.message : "Could not save the action");
+      }
+    })();
+  };
+
+  /** Batch action: one request, toast, then sync the desk. */
   const act = async (stage: "pending" | "approved" | "rejected" | "duplicate", ids = selectedIds) => {
     if (!ids.length) return;
     setActing(true);
@@ -219,6 +259,7 @@ export function PictureDeskWorkspace({
       setActing(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
