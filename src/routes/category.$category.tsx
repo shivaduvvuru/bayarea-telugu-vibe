@@ -12,6 +12,7 @@ import { GalleryDualHero } from "@/components/gallery-dual-hero";
 
 import { PhotoActions } from "@/components/photo-actions";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
+import { NewsFreshness, PullToRefresh, newsRefreshMs } from "@/components/refresh-news";
 
 import type { Article } from "@/lib/content";
 
