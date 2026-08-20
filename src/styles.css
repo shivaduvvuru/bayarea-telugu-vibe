@@ -249,3 +249,28 @@
     }
   }
 }
+
+/* Scoped dark-luxury palette for the LuxeDesk review dashboard. */
+.luxedesk {
+  --background: oklch(0.14 0.006 285);
+  --foreground: oklch(0.97 0.004 285);
+  --card: oklch(0.19 0.006 285);
+  --card-foreground: oklch(0.97 0.004 285);
+  --popover: oklch(0.19 0.006 285);
+  --popover-foreground: oklch(0.97 0.004 285);
+  --primary: oklch(0.79 0.11 88);
+  --primary-foreground: oklch(0.17 0.02 80);
+  --secondary: oklch(0.25 0.006 285);
+  --secondary-foreground: oklch(0.97 0.004 285);
+  --muted: oklch(0.24 0.006 285);
+  --muted-foreground: oklch(0.71 0.008 285);
+  --accent: oklch(0.28 0.02 85);
+  --accent-foreground: oklch(0.97 0.004 285);
+  --destructive: oklch(0.58 0.19 25);
+  --destructive-foreground: oklch(0.98 0.004 285);
+  --border: oklch(0.29 0.006 285);
+  --input: oklch(0.29 0.006 285);
+  --ring: oklch(0.79 0.11 88);
+  background-color: var(--background);
+  color: var(--foreground);
+}
