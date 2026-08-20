@@ -620,6 +620,7 @@ function Home() {
   return (
     <div className="rise mx-auto max-w-6xl px-3 py-3">
       <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+      <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">
         <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
@@ -628,7 +629,13 @@ function Home() {
           </p>
           <DigestNote className="mt-0.5" />
           <CollectStatus mode="all" className="mt-2" />
+          <NewsFreshness
+            className="mt-2"
+            queryKeys={HOME_LIVE_KEYS}
+            updatedAt={homeUpdatedAt}
+          />
         </div>
+
 
         {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
       </div>
