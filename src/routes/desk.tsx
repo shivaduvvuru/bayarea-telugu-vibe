@@ -465,6 +465,10 @@ function DeskWorkspace({
             <Button size="sm" variant="ghost" asChild>
               <Link to="/admin">Newsroom CMS</Link>
             </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/luxedesk">Applicant & member review (LuxeDesk)</Link>
+            </Button>
+
             <Button size="sm" variant="ghost" onClick={() => void onLock()}>
               <Lock className="size-3" /> Lock
             </Button>

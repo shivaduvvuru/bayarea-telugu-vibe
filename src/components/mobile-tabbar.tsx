@@ -17,6 +17,8 @@ import {
   Home,
   Newspaper,
   Lock,
+  Users,
+
 } from "lucide-react";
 
 
@@ -55,8 +57,10 @@ const MORE = [
 /** Editorial tools — only for signed-in staff. */
 const STAFF = [
   { to: "/desk", icon: ClipboardCheck, label: "Review desk" },
+  { to: "/luxedesk", icon: Users, label: "Member review" },
   { to: "/admin", icon: Settings, label: "Newsroom" },
 ] as const;
+
 
 
 const textLinkClass =
