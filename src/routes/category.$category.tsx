@@ -58,6 +58,11 @@ const postsQuery = (category: string) =>
     queryKey: ["wp", "posts", category],
     queryFn: () =>
       listPosts({ data: { category, perPage: category === "gallery" ? 60 : 24 } }),
+    // Fast-moving desks poll in the background (city/India 15 min, cinema and
+    // micro-drama 30 min) and re-read when a parked tab is focused again.
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: newsRefreshMs(category),
+    refetchOnWindowFocus: true,
     ...(category === "gallery"
       ? { staleTime: 60_000, refetchOnMount: "always" as const }
       : {}),
