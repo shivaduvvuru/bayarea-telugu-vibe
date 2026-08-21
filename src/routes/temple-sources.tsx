@@ -184,7 +184,7 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           <h1 className="text-2xl font-bold text-ink">Temple Calendar desk</h1>
           <p className="text-sm text-muted-foreground">
             {sources.length} temple sources ·{" "}
-            <Link to="/events/temple-calendar" className="font-semibold text-primary">
+            <Link to="/temples/calendar" className="font-semibold text-primary">
               view public calendar
             </Link>
           </p>
