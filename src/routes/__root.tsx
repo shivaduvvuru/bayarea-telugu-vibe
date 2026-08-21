@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LiteHeader } from "../components/lite-header";
 import { SiteFooter } from "../components/site-footer";
 import { MobileTabBar } from "../components/mobile-tabbar";
+import { HeadlineTicker } from "../components/headline-ticker";
 import { Toaster } from "../components/ui/sonner";
 import { LanguageProvider } from "../lib/language";
 
