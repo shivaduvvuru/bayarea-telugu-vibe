@@ -45,7 +45,7 @@ export function duplicateIds(rows: Row[]): string[] {
   return drop;
 }
 
-/** Hides duplicate published rows. Returns how many were hidden. */
+/** Permanently deletes duplicate published rows. Returns how many were removed. */
 export async function sweepDuplicates(
   admin: { from: (t: string) => any },
 ): Promise<number> {
@@ -61,7 +61,7 @@ export async function sweepDuplicates(
   for (let i = 0; i < ids.length; i += 200) {
     await admin
       .from("content_items")
-      .update({ placement: "hidden" })
+      .delete()
       .in("id", ids.slice(i, i + 200));
   }
   return ids.length;

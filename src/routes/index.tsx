@@ -31,6 +31,7 @@ import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
+import { PropertyHero } from "@/components/property-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
 /** Live news feeds a manual/pull refresh re-reads on the homepage. */
@@ -712,22 +713,24 @@ function Home() {
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
             {localPictureStories.map((a, i) => {
-                // Only two hero-size Glamour pictures run inside the city feed,
-                // and they sit ten news items apart. No other Glamour artwork
-                // appears while scrolling city news.
-                const heroSlot = i === 9 ? 0 : i === 19 ? 1 : null;
+                // Hero-size Glamour slides inside the city feed: one after the
+                // third story, then the ten-items-apart pair. A property
+                // hero-size slide follows the first Glamour slide.
+                const heroSlot = i === 2 ? 2 : i === 9 ? 0 : i === 19 ? 1 : null;
 
                 return (
                   <div key={a.slug}>
                     <Row a={a} />
-                    {/* Compact property-show module, four items into the feed. */}
-                    {i === 3 ? <PropertyPromo className="my-4" /> : null}
                     {heroSlot !== null ? (
                       <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
+                    {i === 2 ? <PropertyHero className="my-4" /> : null}
+                    {/* Compact property-show module, four items into the feed. */}
+                    {i === 3 ? <PropertyPromo className="my-4" /> : null}
                   </div>
                 );
               })}
+
 
             {/* Short feed day: still show the two slides, ten items apart is not
                 possible so they follow the available stories. */}
