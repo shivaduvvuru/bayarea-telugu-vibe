@@ -198,7 +198,50 @@ export const reviewItem = createServerFn({ method: "POST" })
     return { ok: true, published, error: null };
   });
 
+/** Editor dislike: permanently delete queue items and any published copy. */
+export const purgeQueueItems = createServerFn({ method: "POST" })
+  .inputValidator((data: Gate & { ids: string[] }) => data)
+  .handler(async ({ data }) => {
+    await requireDesk(data.deskToken);
+    const { purgeRawItems } = await import("@/lib/purge.server");
+    return purgeRawItems((data.ids ?? []).slice(0, 200).map(String));
+  });
+
+/** Mass approve & publish everything currently awaiting a decision. */
+export const massApproveQueue = createServerFn({ method: "POST" })
+  .inputValidator((data: Gate & { city?: string; limit?: number }) => data)
+  .handler(async ({ data }) => {
+    await requireDesk(data.deskToken);
+    const { admin } = await import("@/lib/ingest.server");
+    const db = await admin();
+    let q = db
+      .from("raw_ingestion_items")
+      .select("id")
+      .in("processing_status", ["new", "needs_review", "recommended", "approved"])
+      .neq("dedupe_status", "duplicate")
+      .order("priority_score", { ascending: false })
+      .limit(Math.min(Math.max(Number(data.limit) || 200, 1), 500));
+    if (data.city && data.city !== "all") q = q.eq("city", data.city);
+    const { data: rows, error } = await q;
+    if (error) return { ok: false, published: 0, approved: 0, error: error.message };
+    const ids = ((rows ?? []) as Array<{ id: string }>).map((row) => row.id);
+    if (!ids.length) return { ok: true, published: 0, approved: 0, error: null };
+
+    const { error: updateError } = await db
+      .from("raw_ingestion_items")
+      .update({ processing_status: "published" })
+      .in("id", ids);
+    if (updateError) return { ok: false, published: 0, approved: 0, error: updateError.message };
+    await db.from("editorial_reviews").insert(
+      ids.map((id) => ({ raw_item_id: id, action: "publish" })),
+    );
+    const { publishRawItems } = await import("@/lib/ingest-publish.server");
+    const published = await publishRawItems(ids);
+    return { ok: true, published, approved: ids.length, error: null };
+  });
+
 /** Manual "collect now" from the Command Center. */
+
 export const runIngestNow = createServerFn({ method: "POST" })
   .inputValidator((data: Gate & { sourceId?: string }) => data)
   .handler(async ({ data }) => {
