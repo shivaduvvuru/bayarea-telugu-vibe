@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, MapPin } from "lucide-react";
 import { getFeaturedCampaign } from "@/lib/property.functions";
-import { campaignPath, eventDateLabel, promoVisible } from "@/lib/property";
+import { campaignPath, campaignPhase, eventDateLabel, promoVisible } from "@/lib/property";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +21,9 @@ export function PropertyPromo({ className }: { className?: string }) {
   if (!campaign || !promoVisible(campaign)) return null;
 
   const dates = eventDateLabel(campaign);
+  // After the show the module keeps working as an evergreen highlights link,
+  // with every "visit the show" prompt removed.
+  const past = campaignPhase(campaign) === "past";
   const projects = data?.properties.length ?? 0;
 
   return (
@@ -32,12 +35,12 @@ export function PropertyPromo({ className }: { className?: string }) {
       )}
     >
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-        Property focus
+        {past ? "Property highlights" : "Property focus"}
       </p>
       <h3 className="mt-1 text-[17px] font-bold leading-snug text-ink">
         {campaign.promo_title ?? campaign.name}
       </h3>
-      {campaign.promo_line ? (
+      {campaign.promo_line && !past ? (
         <p className="mt-1 text-sm text-muted-foreground">{campaign.promo_line}</p>
       ) : null}
       <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -55,7 +58,11 @@ export function PropertyPromo({ className }: { className?: string }) {
         ) : null}
       </p>
       <span className="mt-2 inline-block text-xs font-bold text-primary">
-        {projects > 0 ? `Browse ${projects} projects →` : "See the details →"}
+        {past
+          ? "See highlights & featured projects →"
+          : projects > 0
+            ? `Browse ${projects} projects →`
+            : "See the details →"}
       </span>
     </Link>
   );

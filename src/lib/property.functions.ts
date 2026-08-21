@@ -140,6 +140,8 @@ export const updateCampaign = createServerFn({ method: "POST" })
             opening_hours: z.string().trim().max(120).optional(),
             official_url: z.string().trim().max(400).optional(),
             participation_note: z.string().trim().max(600).optional(),
+            live_mode: z.boolean().optional(),
+            live_note: z.string().trim().max(300).optional(),
             homepage_visible: z.boolean().optional(),
             post_event: z.boolean().optional(),
             active: z.boolean().optional(),
@@ -162,5 +164,106 @@ export const updateCampaign = createServerFn({ method: "POST" })
       .update(patch)
       .eq("slug", data.campaignSlug);
     if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
+/** Public live feed for the campaign page (published posts only). */
+export const getLiveFeed = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) => z.object({ campaignSlug: slug }).parse(input))
+  .handler(async ({ data }) => {
+    const { readLivePosts } = await import("@/lib/property.server");
+    try {
+      return { posts: await readLivePosts(data.campaignSlug) };
+    } catch (err) {
+      console.error("getLiveFeed failed", err);
+      return { posts: [] as Awaited<ReturnType<typeof readLivePosts>> };
+    }
+  });
+
+/** Editors publish photos, short videos and booth highlights during the show. */
+export const saveLivePostFn = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        deskToken: z.string().max(400).optional(),
+        id: z.string().uuid().optional(),
+        campaignSlug: slug,
+        kind: z.enum(["photo", "video", "booth"]),
+        title: z.string().trim().min(2).max(160),
+        body: z.string().trim().max(1200).optional(),
+        mediaUrl: z.string().trim().max(600).url().optional(),
+        posterUrl: z.string().trim().max(600).url().optional(),
+        developer: z.string().trim().max(160).optional(),
+        booth: z.string().trim().max(60).optional(),
+        status: z.enum(["published", "draft"]).optional(),
+        pinned: z.boolean().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { saveLivePost } = await import("@/lib/property.server");
+    await saveLivePost(data);
+    return { ok: true as const };
+  });
+
+export const deleteLivePostFn = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({ deskToken: z.string().max(400).optional(), id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { deleteLivePost } = await import("@/lib/property.server");
+    await deleteLivePost(data.id);
+    return { ok: true as const };
+  });
+
+/** Desk view of every live post, drafts included. */
+export const listLivePostsFn = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({ deskToken: z.string().max(400).optional(), campaignSlug: slug }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { readLivePosts } = await import("@/lib/property.server");
+    return { posts: await readLivePosts(data.campaignSlug, true) };
+  });
+
+/** Follow-up queue: every enquiry with its contact status. */
+export const listPropertyLeads = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({ deskToken: z.string().max(400).optional(), campaignSlug: slug }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { readLeads } = await import("@/lib/property.server");
+    return { leads: await readLeads(data.campaignSlug) };
+  });
+
+export const updatePropertyLead = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        deskToken: z.string().max(400).optional(),
+        id: z.string().uuid(),
+        contactStatus: z
+          .enum(["new", "contacted", "in_progress", "closed", "not_reachable"])
+          .optional(),
+        followUpNote: z.string().trim().max(600).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { updateLead } = await import("@/lib/property.server");
+    await updateLead(data.id, {
+      ...(data.contactStatus ? { contact_status: data.contactStatus } : {}),
+      ...(data.followUpNote !== undefined ? { follow_up_note: data.followUpNote } : {}),
+    });
     return { ok: true as const };
   });

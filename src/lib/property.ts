@@ -29,7 +29,36 @@ export type PropertyCampaign = {
   post_event: boolean;
   campaign_start: string | null;
   campaign_end: string | null;
+  /** Editors flip this on during the show to publish on-site updates. */
+  live_mode: boolean;
+  live_note: string | null;
 };
+
+export type LivePostKind = "photo" | "video" | "booth";
+
+export type LivePost = {
+  id: string;
+  campaign_slug: string;
+  kind: LivePostKind;
+  title: string;
+  body: string | null;
+  media_url: string | null;
+  poster_url: string | null;
+  developer: string | null;
+  booth: string | null;
+  status: string;
+  pinned: boolean;
+  created_at: string;
+};
+
+export const LIVE_POST_COLUMNS =
+  "id, campaign_slug, kind, title, body, media_url, poster_url, developer, booth, status, pinned, created_at";
+
+export const LIVE_POST_KINDS: { key: LivePostKind; label: string }[] = [
+  { key: "photo", label: "Photo" },
+  { key: "video", label: "Short video" },
+  { key: "booth", label: "Booth highlight" },
+];
 
 export type Property = {
   id: string;
@@ -62,7 +91,7 @@ export type Property = {
 };
 
 export const CAMPAIGN_COLUMNS =
-  "slug, name, headline, subheading, promo_title, promo_line, venue, city, organizer, event_start, event_end, event_month_label, opening_hours, official_url, map_url, participation_note, hero_image_url, active, homepage_visible, post_event, campaign_start, campaign_end";
+  "slug, name, headline, subheading, promo_title, promo_line, venue, city, organizer, event_start, event_end, event_month_label, opening_hours, official_url, map_url, participation_note, hero_image_url, active, homepage_visible, post_event, campaign_start, campaign_end, live_mode, live_note";
 
 export const PROPERTY_COLUMNS =
   "id, campaign_slug, slug, project_name, developer, developer_logo_url, locality, zone, property_type, price_from_lakh, price_note, configuration, project_status, rera_number, image_url, gallery_urls, description, amenities, is_tt_advertiser, is_credai_participant, website_url, enquiry_url, contact_phone, source_url, source_name, priority, status";
@@ -255,3 +284,90 @@ export const NRI_GUIDES = [
     body: "Ask about carpet vs super built-up area, maintenance charges, parking, hand-over schedule and penalty clauses for delay.",
   },
 ] as const;
+
+/** Short label + expandable detail for the NRI education cards. */
+export const NRI_TOPIC_ORDER = [
+  "PAN and banking",
+  "Power of Attorney",
+  "Home loans",
+  "TDS on purchase",
+  "RERA verification",
+  "Repatriation basics",
+  "Registration process",
+] as const;
+
+/** The seven core topics first, then the remaining guides. */
+export function orderedNriGuides() {
+  const rank = (t: string) => {
+    const i = (NRI_TOPIC_ORDER as readonly string[]).indexOf(t);
+    return i === -1 ? 99 : i;
+  };
+  return [...NRI_GUIDES].sort((a, b) => rank(a.title) - rank(b.title));
+}
+
+export type DeveloperSummary = {
+  name: string;
+  logo: string | null;
+  isAdvertiser: boolean;
+  isParticipant: boolean;
+  projects: Property[];
+  localities: string[];
+};
+
+/**
+ * "Meet these developers" — one entry per confirmed developer, advertisers
+ * first, each keeping links to its own project cards.
+ */
+export function developerLineup(items: Property[]): DeveloperSummary[] {
+  const map = new Map<string, DeveloperSummary>();
+  for (const p of items) {
+    if (!p.developer) continue;
+    const entry =
+      map.get(p.developer) ??
+      ({
+        name: p.developer,
+        logo: null,
+        isAdvertiser: false,
+        isParticipant: false,
+        projects: [],
+        localities: [],
+      } satisfies DeveloperSummary);
+    entry.logo ??= p.developer_logo_url;
+    entry.isAdvertiser = entry.isAdvertiser || p.is_tt_advertiser;
+    entry.isParticipant = entry.isParticipant || p.is_credai_participant;
+    entry.projects.push(p);
+    if (p.locality && !entry.localities.includes(p.locality)) entry.localities.push(p.locality);
+    map.set(p.developer, entry);
+  }
+  return [...map.values()].sort(
+    (a, b) =>
+      Number(b.isAdvertiser) - Number(a.isAdvertiser) ||
+      Number(b.isParticipant) - Number(a.isParticipant) ||
+      b.projects.length - a.projects.length ||
+      a.name.localeCompare(b.name),
+  );
+}
+
+export const LEAD_STATUSES = ["new", "contacted", "in_progress", "closed", "not_reachable"] as const;
+export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export function leadStatusLabel(s: string) {
+  return (
+    {
+      new: "New",
+      contacted: "Contacted",
+      in_progress: "In progress",
+      closed: "Closed",
+      not_reachable: "Not reachable",
+    }[s] ?? s
+  );
+}
+
+/** Coarse attribution for reporting: U.S. diaspora vs India vs elsewhere. */
+export function leadRegion(country: string | null | undefined): "USA" | "India" | "Other" {
+  const v = (country ?? "").trim().toLowerCase();
+  if (!v) return "Other";
+  if (/(^|\b)(usa|us|u\.s\.|united states|america)\b/.test(v)) return "USA";
+  if (/(^|\b)(india|bharat|in)\b/.test(v)) return "India";
+  return "Other";
+}

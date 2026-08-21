@@ -4,7 +4,6 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, ExternalLink, MapPin, ShieldCheck } from "lucide-react";
 import { getCampaign, trackPropertyEvent } from "@/lib/property.functions";
 import {
-  NRI_GUIDES,
   PROJECT_STATUSES,
   PROPERTY_TYPES,
   campaignPhase,
@@ -16,6 +15,9 @@ import {
   type PropertyFilters,
 } from "@/lib/property";
 import { PropertyCard } from "@/components/property-card";
+import { DeveloperLineup } from "@/components/developer-lineup";
+import { NriGuides } from "@/components/nri-guides";
+import { PropertyLiveFeed } from "@/components/property-live-feed";
 import { PropertyEnquiry } from "@/components/property-enquiry";
 import { WhatsAppShare } from "@/components/whatsapp-share";
 import { canonical, SITE_NAME } from "@/lib/site";
@@ -40,10 +42,17 @@ export const Route = createFileRoute("/property/$campaign/")({
     }
     const c = loaderData.campaign;
     const dates = eventDateLabel(c);
-    const title = `${c.name} — Projects, Dates & Enquiries | ${SITE_NAME}`;
-    const description = `${c.name}${dates ? `, ${dates}` : ""}${
-      c.venue ? ` at ${c.venue}` : ""
-    }. Browse Hyderabad projects from developers featured in Telugu Times and send an enquiry.`;
+    // Once the show is over the page stays indexable, but as an evergreen
+    // highlights and featured-projects page rather than an event invitation.
+    const isPast = campaignPhase(c) === "past";
+    const title = isPast
+      ? `${c.name} — Highlights & Featured Projects | ${SITE_NAME}`
+      : `${c.name} — Projects, Dates & Enquiries | ${SITE_NAME}`;
+    const description = isPast
+      ? `Highlights from ${c.name}${dates ? ` (${dates})` : ""} plus the Hyderabad projects featured in Telugu Times, with developer details and enquiries.`
+      : `${c.name}${dates ? `, ${dates}` : ""}${
+          c.venue ? ` at ${c.venue}` : ""
+        }. Browse Hyderabad projects from developers featured in Telugu Times and send an enquiry.`;
     const url = canonical(`/property/${params.campaign}`);
     return {
       meta: [
@@ -117,7 +126,9 @@ function CampaignPage() {
     data.properties.some((p) => p.project_status === s),
   );
   const phase = campaignPhase(campaign);
+  const past = phase === "past";
   const dates = eventDateLabel(campaign);
+  const venueLabel = (campaign.venue ?? "the venue").split(",")[0]!.trim();
 
   function toggle(p: Property) {
     setSelected((prev) =>
@@ -144,12 +155,12 @@ function CampaignPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10" />
         <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/80">
-            {phase === "past" ? "Show highlights" : campaign.organizer ?? "Property show"}
+            {past ? "Highlights & featured projects" : campaign.organizer ?? "Property show"}
           </p>
           <h1 className="mt-1 max-w-3xl text-2xl font-black leading-tight text-white sm:text-4xl">
-            {campaign.headline}
+            {past ? `${campaign.name} — highlights & featured projects` : campaign.headline}
           </h1>
-          {campaign.subheading ? (
+          {campaign.subheading && !past ? (
             <p className="mt-2 max-w-2xl text-sm text-white/85">{campaign.subheading}</p>
           ) : null}
           <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-white/90">
@@ -178,7 +189,7 @@ function CampaignPage() {
               href="#projects"
               className="rounded-full bg-white/15 px-4 py-2 text-xs font-bold text-white backdrop-blur hover:bg-white/25"
             >
-              Browse projects
+              {past ? "Featured projects" : "Browse projects"}
             </a>
             <WhatsAppShare
               path={`/property/${slug}`}
@@ -194,7 +205,9 @@ function CampaignPage() {
       {/* Event facts + venue */}
       <section className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-3">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-primary">When</p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+            {past ? "Show dates" : "When"}
+          </p>
           <p className="mt-1 text-sm font-semibold text-ink">
             {dates || "Dates to be announced"}
           </p>
@@ -239,14 +252,24 @@ function CampaignPage() {
         </p>
       ) : null}
 
+      <PropertyLiveFeed
+        campaignSlug={slug}
+        live={campaign.live_mode && !past}
+        note={campaign.live_note}
+        venueLabel={venueLabel}
+      />
+
+      <DeveloperLineup campaignSlug={slug} properties={data.properties} />
+
       {/* Projects */}
       <section id="projects" className="mt-8">
         <h2 className="border-b-2 border-primary pb-1 text-sm font-bold uppercase tracking-wide text-ink">
           Featured projects
         </h2>
         <p className="mt-2 text-xs text-muted-foreground">
-          Projects promoted by developers advertising with Telugu Times. Details are as published by
-          the developer — verify approvals, pricing and timelines before you commit.
+          {past
+            ? "Projects that featured in this showcase remain listed here. Details are as published by the developer — verify approvals, pricing and timelines before you commit."
+            : "Projects promoted by developers advertising with Telugu Times. Details are as published by the developer — verify approvals, pricing and timelines before you commit."}
         </p>
 
         <div className="mt-3 space-y-2">
@@ -356,6 +379,8 @@ function CampaignPage() {
         )}
       </section>
 
+      <NriGuides />
+
       {/* Enquiry */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]">
         <PropertyEnquiry
@@ -365,22 +390,6 @@ function CampaignPage() {
         />
 
         <aside className="space-y-4">
-          <section className="rounded-lg border border-border bg-card p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-ink">
-              NRI buyer guides
-            </h2>
-            <ul className="mt-2 space-y-2.5">
-              {NRI_GUIDES.map((g) => (
-                <li key={g.title}>
-                  <p className="text-[13px] font-bold text-ink">{g.title}</p>
-                  <p className="text-xs text-muted-foreground">{g.body}</p>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              General information only, not legal, tax or investment advice.
-            </p>
-          </section>
 
           <section className="rounded-lg border border-primary/30 bg-surface-tint p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-ink">

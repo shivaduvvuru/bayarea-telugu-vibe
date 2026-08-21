@@ -221,3 +221,105 @@ export async function readCampaignStats(campaignSlug: string): Promise<CampaignS
     recentLeads: (leads ?? []) as CampaignStats["recentLeads"],
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * Live from the venue
+ * ------------------------------------------------------------------ */
+
+export async function readLivePosts(campaignSlug: string, includeDrafts = false) {
+  const { LIVE_POST_COLUMNS } = await import("@/lib/property");
+  const client = includeDrafts ? await db() : await pub();
+  let q = client
+    .from("property_live_posts")
+    .select(LIVE_POST_COLUMNS)
+    .eq("campaign_slug", campaignSlug)
+    .order("pinned", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(120);
+  if (!includeDrafts) q = q.eq("status", "published");
+  const { data } = await q;
+  return (data ?? []) as unknown as import("@/lib/property").LivePost[];
+}
+
+export type LivePostInput = {
+  id?: string | undefined;
+  campaignSlug: string;
+  kind: string;
+  title: string;
+  body?: string | undefined;
+  mediaUrl?: string | undefined;
+  posterUrl?: string | undefined;
+  developer?: string | undefined;
+  booth?: string | undefined;
+  status?: string | undefined;
+  pinned?: boolean | undefined;
+};
+
+export async function saveLivePost(input: LivePostInput) {
+  const client = await db();
+  const row = {
+    campaign_slug: input.campaignSlug,
+    kind: input.kind,
+    title: input.title,
+    body: input.body ?? null,
+    media_url: input.mediaUrl ?? null,
+    poster_url: input.posterUrl ?? null,
+    developer: input.developer ?? null,
+    booth: input.booth ?? null,
+    status: input.status ?? "published",
+    pinned: input.pinned ?? false,
+  };
+  const { error } = input.id
+    ? await client.from("property_live_posts").update(row).eq("id", input.id)
+    : await client.from("property_live_posts").insert(row);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteLivePost(id: string) {
+  const { error } = await (await db()).from("property_live_posts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/* ------------------------------------------------------------------ *
+ * Lead follow-up queue
+ * ------------------------------------------------------------------ */
+
+export type LeadRow = {
+  id: string;
+  created_at: string;
+  campaign_code: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  budget: string | null;
+  preferred_contact: string | null;
+  message: string | null;
+  project_names: string[];
+  developers: string[];
+  contact_status: string;
+  follow_up_note: string | null;
+};
+
+const LEAD_COLUMNS =
+  "id, created_at, campaign_code, name, email, phone, country, city, budget, preferred_contact, message, project_names, developers, contact_status, follow_up_note";
+
+export async function readLeads(campaignSlug: string): Promise<LeadRow[]> {
+  const { data, error } = await (await db())
+    .from("property_leads")
+    .select(LEAD_COLUMNS)
+    .eq("campaign_slug", campaignSlug)
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as unknown as LeadRow[];
+}
+
+export async function updateLead(id: string, patch: { contact_status?: string; follow_up_note?: string }) {
+  const { error } = await (await db())
+    .from("property_leads")
+    .update(patch as never)
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
