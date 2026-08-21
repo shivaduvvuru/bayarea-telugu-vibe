@@ -1717,6 +1717,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_staff_role: { Args: { _user_id: string }; Returns: boolean }
       hook_token: { Args: { _name: string }; Returns: string }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
