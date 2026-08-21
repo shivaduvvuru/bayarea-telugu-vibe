@@ -697,6 +697,10 @@ function Home() {
             sized so the next section is visible without a full-screen scroll. */}
         <StoryHeroSlider articles={heroSliderPool} />
 
+        {/* Sponsor carousel: CREDAI banner first, then the vertical anniversary
+            edition features. */}
+        <SponsorHeroCarousel className="mt-4" />
+
         {/* The hand-built prime feature keeps its slot only while fresh. */}
         {bannerFresh ? <div className="mt-4"><HousingHero /></div> : null}
       </div>
