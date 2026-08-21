@@ -24,7 +24,7 @@ const eventPostsQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
 });
 
-const TITLE = "Bay Area Events Calendar — festivals, meetups & temple programs";
+const TITLE = "Bay Area Events Calendar — festivals, meetups & community";
 const DESC =
   "Verified community events across San Francisco, San Jose, Fremont and the Tri-Valley: dates, venues, ticket prices and directions.";
 
@@ -142,8 +142,8 @@ function EventsPage() {
       </h1>
       <p className="mt-2 text-base text-muted-foreground">
         {t(
-          "Festivals, temple programs, association meetups and community services across San Francisco, San Jose, Fremont and the Tri-Valley.",
-          "శాన్ ఫ్రాన్సిస్కో, శాన్ జోస్, ఫ్రీమాంట్, ట్రై-వ్యాలీ అంతటా పండుగలు, ఆలయ కార్యక్రమాలు, సంఘ సమావేశాలు.",
+          "Festivals, association meetups and community services across San Francisco, San Jose, Fremont and the Tri-Valley.",
+          "శాన్ ఫ్రాన్సిస్కో, శాన్ జోస్, ఫ్రీమాంట్, ట్రై-వ్యాలీ అంతటా పండుగలు, సంఘ సమావేశాలు.",
         )}
       </p>
 
