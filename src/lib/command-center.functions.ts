@@ -251,5 +251,12 @@ export const runIngestNow = createServerFn({ method: "POST" })
       budgetMs: 40_000,
       ...(data.sourceId ? { sourceId: data.sourceId } : {}),
     });
-    return summary;
+    // No manual approval step: remove duplicates, publish the rest.
+    const { autoApproveNewsQueue } = await import("@/lib/auto-approve.server");
+    const autoApproved = await autoApproveNewsQueue().catch(() => ({
+      duplicates: 0,
+      approved: 0,
+      published: 0,
+    }));
+    return { ...summary, autoApproved };
   });

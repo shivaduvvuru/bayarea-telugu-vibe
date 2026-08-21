@@ -27,9 +27,15 @@ export function StoryHeroSlider({
   exclude?: Set<string>;
   className?: string;
 }) {
+  // The rest window lives in this browser's storage, which the server cannot
+  // read. First paint ignores it so both renders match; after hydration the
+  // client re-picks with rest rules applied.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+
   const slides = useMemo(
-    () => buildHeroSet(articles, { max: HERO_MAX_SLIDES, exclude }),
-    [articles, exclude],
+    () => buildHeroSet(articles, { max: HERO_MAX_SLIDES, exclude, ignoreRest: !hydrated }),
+    [articles, exclude, hydrated],
   );
 
   const [index, setIndex] = useState(0);

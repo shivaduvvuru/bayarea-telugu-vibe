@@ -155,6 +155,11 @@ export function buildHeroSet(
     max?: number | undefined;
     /** Images already spoken for by other homepage slots. */
     exclude?: Set<string> | undefined;
+    /**
+     * Skip the per-browser rest window. Used for the server/first-paint render
+     * so both sides agree; the client re-picks with rest rules after hydration.
+     */
+    ignoreRest?: boolean | undefined;
   } = {},
 ): HeroSlide[] {
   const now = options.now ?? new Date();
@@ -176,7 +181,8 @@ export function buildHeroSet(
       const image = candidate.image!;
       if (exclude.has(image) || usedImages.has(image)) continue;
       if (usedSlugs.has(candidate.a.slug)) continue;
-      if (!allowResting && isResting(image, "hero", now.getTime())) continue;
+      if (!allowResting && !options.ignoreRest && isResting(image, "hero", now.getTime()))
+        continue;
       const { subject, label } = subjectOf(candidate.a);
       if (!allowSubjectRepeat && usedSubjects.has(subject)) continue;
       slides.push({ article: candidate.a, image, subject, label });
