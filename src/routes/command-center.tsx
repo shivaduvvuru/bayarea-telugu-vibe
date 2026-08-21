@@ -239,6 +239,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
   const persistSource = useServerFn(saveSource);
   const toggleSource = useServerFn(setSourceActive);
   const removeSource = useServerFn(deleteSource);
+  const approveAll = useServerFn(massApproveQueue);
+  const purgeItems = useServerFn(purgeQueueItems);
+
 
   const load = useCallback(async () => {
     setBusy(true);
