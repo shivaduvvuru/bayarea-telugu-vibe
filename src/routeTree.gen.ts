@@ -43,6 +43,7 @@ import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
+import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
@@ -223,6 +224,11 @@ const ForumsIndexRoute = ForumsIndexRouteImport.update({
   path: '/forums/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertyCampaignRoute = PropertyCampaignRouteImport.update({
+  id: '/property/$campaign',
+  path: '/property/$campaign',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplesIndexRoute = TemplesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/property/$campaign': typeof PropertyCampaignRoute
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/property/$campaign': typeof PropertyCampaignRoute
   '/temples/$city': typeof TemplesCityRoute
   '/events': typeof EventsIndexRoute
   '/forums': typeof ForumsIndexRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/property/$campaign': typeof PropertyCampaignRoute
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -447,6 +456,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/property/$campaign'
     | '/temples/$city'
     | '/events/'
     | '/forums/'
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/property/$campaign'
     | '/temples/$city'
     | '/events'
     | '/forums'
@@ -536,6 +547,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/property/$campaign'
     | '/temples/$city'
     | '/events/'
     | '/forums/'
@@ -580,6 +592,7 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
+  PropertyCampaignRoute: typeof PropertyCampaignRoute
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
@@ -830,6 +843,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForumsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/property/$campaign': {
+      id: '/property/$campaign'
+      path: '/property/$campaign'
+      fullPath: '/property/$campaign'
+      preLoaderRoute: typeof PropertyCampaignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/temples/': {
       id: '/temples/'
       path: '/'
@@ -974,6 +994,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
+  PropertyCampaignRoute: PropertyCampaignRoute,
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
