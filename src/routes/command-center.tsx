@@ -525,10 +525,8 @@ function QueueList({
           <CheckCheck className="size-4" aria-hidden="true" /> Approve &amp; publish all shown
         </Button>
       </div>
+      <ul className="mt-4 space-y-3">
 
-
-  return (
-    <ul className="mt-4 space-y-3">
       {rows.map((row) => (
         <li key={row.id}>
           <Card className="gap-3 p-3">
