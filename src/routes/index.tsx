@@ -10,8 +10,8 @@ import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
+import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
-import { PrimeHero } from "@/components/prime-hero";
 import {
   isPrimeBannerFresh,
   pickPrimeStory,
@@ -29,6 +29,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
+import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
@@ -532,6 +533,16 @@ function Home() {
     return <EmptyState title="No stories yet" />;
   }
 
+  // Candidate pool for the curated hero slider: the lead first, then local Bay
+  // Area stories, then the wider digest. Selection itself (score, least-recently
+  // -used artwork, subject diversity) lives in @/lib/hero-select.
+  const heroSliderPool = (() => {
+    const seenSlugs = new Set<string>();
+    return [lead, ...local, ...leadCandidates].filter((a) =>
+      seenSlugs.has(a.slug) ? false : seenSlugs.add(a.slug),
+    );
+  })();
+
   // The lead has already been reserved by the local pass. Every later section
   // uses the same set, preventing a renamed/cross-posted story or reused photo
   // from appearing again under More news, Community, Events or Gallery.
@@ -623,6 +634,43 @@ function Home() {
     homepageSeen,
     8,
   );
+  // "Happening soon": compact, chronological, utility-first. Upcoming events only
+  // (an event drops off after its own day) and each row carries its classified
+  // label (Temple / Spiritual, Community Event, FunZone, …).
+  const happeningSoon = [
+    ...uniqueCmsEvents
+      .filter((e) => isUpcoming(e.event_start))
+      .map((e) => {
+        const c = classifyItem({
+          title: e.title,
+          summary: e.summary,
+          kind: e.kind,
+          eventStart: e.event_start,
+        });
+        return {
+          key: `cms-${e.id}`,
+          title: e.title,
+          start: e.event_start as string,
+          city: e.city ?? c.tags[0] ?? "",
+          when: whenLabel(e.event_start as string),
+          label: c.label,
+        };
+      }),
+    ...uniqueFallbackEvents.map((e) => {
+      const c = classifyItem({ title: e.title, eventStart: e.start });
+      return {
+        key: `local-${e.id}`,
+        title: e.title,
+        start: e.start,
+        city: e.city,
+        when: whenLabel(e.start),
+        label: c.label,
+      };
+    }),
+  ]
+    .sort((a, b) => +new Date(a.start) - +new Date(b.start))
+    .slice(0, 6);
+
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
@@ -644,9 +692,14 @@ function Home() {
           />
         </div>
 
+        {/* Compact editorial hero: a curated 4–5 story slider (6s cross-fade),
+            sized so the next section is visible without a full-screen scroll. */}
+        <StoryHeroSlider articles={heroSliderPool} />
 
-        {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
+        {/* The hand-built prime feature keeps its slot only while fresh. */}
+        {bannerFresh ? <div className="mt-4"><HousingHero /></div> : null}
       </div>
+
 
       {/* Pair slideshow: two hero-size Glamour pictures that advance together
           every 30 seconds, with Prev/Next and a pair indicator. Kept high on the
@@ -773,33 +826,39 @@ function Home() {
           </section>
         )}
 
-        {(uniqueCmsEvents.length > 0 || events.length > 0) && (
+        {happeningSoon.length > 0 && (
           <section className="mt-5">
-            <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-            {uniqueCmsEvents.length > 0
-              ? uniqueCmsEvents.map((e) => (
-                  <LinkRow
-                    key={e.id}
-                    href={e.link_url && !e.link_url.startsWith("/") ? e.link_url : "/events"}
-                    internal={!e.link_url || e.link_url.startsWith("/")}
-                    title={e.title}
-                    image={e.image_url}
-                    meta={[e.city, e.event_start ? formatDate(e.event_start) : e.venue]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  />
-                ))
-              : uniqueFallbackEvents.map((e) => (
-                  <LinkRow
-                    key={e.id}
-                    href="/events"
-                    internal
-                    title={e.title}
-                    meta={`${e.city} · ${formatDate(e.start)}`}
-                  />
-                ))}
+            <Head more={<MoreTo to="/events" label="All events →" />}>Happening soon</Head>
+            <ul className="divide-y divide-border">
+              {happeningSoon.map((e) => (
+                <li key={e.key}>
+                  <Link
+                    to="/events"
+                    className="lift flex items-center gap-3 rounded-md px-1 py-2.5"
+                  >
+                    <span className="flex w-14 shrink-0 flex-col items-center rounded-md border border-border bg-surface-tint py-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                        {new Date(e.start).toLocaleDateString(undefined, { month: "short" })}
+                      </span>
+                      <span className="text-lg font-extrabold leading-none text-ink">
+                        {new Date(e.start).getDate()}
+                      </span>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink">
+                        {e.title}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] uppercase tracking-wide text-muted-foreground">
+                        {[e.when, e.city, e.label].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
+
 
         {uniqueTemples.length > 0 && (
           <section className="mt-5">
