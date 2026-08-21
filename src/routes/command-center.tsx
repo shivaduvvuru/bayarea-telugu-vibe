@@ -6,6 +6,7 @@ import {
   Activity,
   AlertTriangle,
   Check,
+  CheckCheck,
   CopyX,
   ExternalLink,
   Lock,
@@ -13,6 +14,8 @@ import {
   RefreshCw,
   Rss,
   Sparkles,
+  ThumbsDown,
+  ThumbsUp,
   X,
 } from "lucide-react";
 import { checkDesk, lockDesk, unlockDesk } from "@/lib/desk-gate.functions";
@@ -21,12 +24,15 @@ import {
   deleteSource,
   listRegistry,
   listReviewQueue,
+  massApproveQueue,
+  purgeQueueItems,
   reviewItem,
   runIngestNow,
   saveSource,
   setSourceActive,
   type SourceInput,
 } from "@/lib/command-center.functions";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -233,6 +239,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
   const persistSource = useServerFn(saveSource);
   const toggleSource = useServerFn(setSourceActive);
   const removeSource = useServerFn(deleteSource);
+  const approveAll = useServerFn(massApproveQueue);
+  const purgeItems = useServerFn(purgeQueueItems);
+
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -282,6 +291,37 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
     await load();
   };
 
+  /** Editor dislike — permanent, site-wide deletion. */
+  const dislike = async (ids: string[]) => {
+    if (!ids.length) return;
+    setRows((list) => list.filter((r) => !ids.includes(r.id)));
+    setSelected(new Set());
+    try {
+      const res = await purgeItems({ data: { deskToken, ids } });
+      if (res.error) throw new Error(res.error);
+      toast.success(`Deleted ${res.deleted || ids.length} item${ids.length === 1 ? "" : "s"} permanently`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete");
+    }
+    await load();
+  };
+
+  const massApprove = async () => {
+    setBusy(true);
+    try {
+      const res = await approveAll({ data: { deskToken } });
+      if (res.error) throw new Error(res.error);
+      toast.success(`Approved ${res.approved} · published ${res.published}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Mass approve failed");
+    } finally {
+      setBusy(false);
+      await load();
+    }
+  };
+
+
+
   const runCollect = async () => {
     setCollecting(true);
     try {
@@ -313,9 +353,20 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
               <RefreshCw className={`size-4 ${collecting ? "animate-spin" : ""}`} aria-hidden="true" />
               {collecting ? "Collecting…" : "Collect now"}
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                if (window.confirm("Approve and publish every story awaiting a decision?")) void massApprove();
+              }}
+              disabled={busy}
+            >
+              <CheckCheck className="size-4" aria-hidden="true" /> Mass approve
+            </Button>
             <Button size="sm" variant="outline" asChild>
               <Link to="/desk">Picture desk</Link>
             </Button>
+
             <Button size="sm" variant="ghost" onClick={onLock}>
               Lock
             </Button>
@@ -365,7 +416,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             selected={selected}
             setSelected={setSelected}
             onAct={act}
+            onDislike={dislike}
           />
+
         ) : (
           <SourceRegistry
             sources={sources}
@@ -392,7 +445,7 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground">{selectedIds.length} selected</span>
             <Button size="sm" className="ml-auto" onClick={() => act("publish", selectedIds)}>
-              <Check className="size-4" aria-hidden="true" /> Approve &amp; publish
+              <ThumbsUp className="size-4" aria-hidden="true" /> Like — approve &amp; publish
             </Button>
             <Button size="sm" variant="outline" onClick={() => act("approve", selectedIds)}>
               Approve only
@@ -400,8 +453,18 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             <Button size="sm" variant="outline" onClick={() => act("duplicate", selectedIds, "Duplicate")}>
               <CopyX className="size-4" aria-hidden="true" /> Duplicate
             </Button>
-            <Button size="sm" variant="destructive" onClick={() => act("reject", selectedIds, "Not useful")}>
+            <Button size="sm" variant="outline" onClick={() => act("reject", selectedIds, "Not useful")}>
               <X className="size-4" aria-hidden="true" /> Reject
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                if (window.confirm(`Permanently delete ${selectedIds.length} item(s) site-wide?`))
+                  void dislike(selectedIds);
+              }}
+            >
+              <ThumbsDown className="size-4" aria-hidden="true" /> Dislike — delete
             </Button>
           </div>
         </div>
@@ -416,6 +479,7 @@ function QueueList({
   selected,
   setSelected,
   onAct,
+  onDislike,
 }: {
   rows: QueueRow[];
   busy: boolean;
@@ -426,6 +490,7 @@ function QueueList({
     ids: string[],
     reason?: string,
   ) => void;
+  onDislike: (ids: string[]) => void;
 }) {
   if (busy && !rows.length)
     return <p className="mt-6 text-sm text-muted-foreground">Loading candidates…</p>;
@@ -443,8 +508,25 @@ function QueueList({
     setSelected(next);
   };
 
+  const allSelected = rows.length > 0 && rows.every((row) => selected.has(row.id));
+
   return (
-    <ul className="mt-4 space-y-3">
+    <>
+      <div className="mt-4 flex items-center gap-2 border-y border-border py-2">
+        <Checkbox
+          checked={allSelected}
+          onCheckedChange={(checked) => setSelected(checked ? new Set(rows.map((row) => row.id)) : new Set())}
+          aria-label="Select all stories shown"
+        />
+        <span className="text-xs text-muted-foreground">
+          {allSelected ? "All shown selected" : `Select all ${rows.length} shown`}
+        </span>
+        <Button size="sm" className="ml-auto" onClick={() => onAct("publish", rows.map((row) => row.id))}>
+          <CheckCheck className="size-4" aria-hidden="true" /> Approve &amp; publish all shown
+        </Button>
+      </div>
+      <ul className="mt-4 space-y-3">
+
       {rows.map((row) => (
         <li key={row.id}>
           <Card className="gap-3 p-3">
@@ -495,13 +577,21 @@ function QueueList({
                     <span>{new Date(row.publication_datetime).toLocaleString()}</span>
                   )}
                 </div>
-
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Button size="sm" onClick={() => onAct("publish", [row.id])}>
-                    <Check className="size-4" aria-hidden="true" /> Approve &amp; publish
+                    <ThumbsUp className="size-4" aria-hidden="true" /> Like — approve &amp; publish
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => onAct("approve", [row.id])}>
-                    Approve
+                    <Check className="size-4" aria-hidden="true" /> Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      if (window.confirm("Permanently delete this story site-wide?")) onDislike([row.id]);
+                    }}
+                  >
+                    <ThumbsDown className="size-4" aria-hidden="true" /> Dislike — delete
                   </Button>
                   <Button
                     size="sm"
@@ -537,7 +627,9 @@ function QueueList({
           </Card>
         </li>
       ))}
-    </ul>
+      </ul>
+    </>
+
   );
 }
 

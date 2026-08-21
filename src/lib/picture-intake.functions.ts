@@ -46,3 +46,15 @@ export const setPictureBucket = createServerFn({ method: "POST" })
     const { movePictureIntake } = await import("@/lib/picture-intake.server");
     return movePictureIntake(await admin(), data as Parameters<typeof movePictureIntake>[1]);
   });
+/** Editor dislike: permanently delete pictures (intake + published copies). */
+export const purgePictures = createServerFn({ method: "POST" })
+  .inputValidator((data: { itemIds?: string[]; deskToken?: string }) => ({
+    itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 200).map(String) : [],
+    deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
+  }))
+  .handler(async ({ data }) => {
+    const { assertDesk } = await import("@/lib/desk-session.server");
+    await assertDesk(data.deskToken);
+    const { purgePictureItems } = await import("@/lib/purge.server");
+    return purgePictureItems(data.itemIds);
+  });
