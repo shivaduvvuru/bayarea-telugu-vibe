@@ -155,6 +155,11 @@ export function buildHeroSet(
     max?: number | undefined;
     /** Images already spoken for by other homepage slots. */
     exclude?: Set<string> | undefined;
+    /**
+     * Skip the per-browser rest window. Used for the server/first-paint render
+     * so both sides agree; the client re-picks with rest rules after hydration.
+     */
+    ignoreRest?: boolean | undefined;
   } = {},
 ): HeroSlide[] {
   const now = options.now ?? new Date();
