@@ -48,6 +48,8 @@ import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
+import { Route as PropertyCampaignIndexRouteImport } from './routes/property.$campaign.index'
+import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$campaign.$slug'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
@@ -249,6 +251,16 @@ const ForumsThreadThreadIdRoute = ForumsThreadThreadIdRouteImport.update({
   path: '/forums/thread/$threadId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertyCampaignIndexRoute = PropertyCampaignIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PropertyCampaignRoute,
+} as any)
+const PropertyCampaignSlugRoute = PropertyCampaignSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PropertyCampaignRoute,
+} as any)
 const TemplesTempleSlugRoute = TemplesTempleSlugRouteImport.update({
   id: '/temple/$slug',
   path: '/temple/$slug',
@@ -316,14 +328,16 @@ export interface FileRoutesByFullPath {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
-  '/property/$campaign': typeof PropertyCampaignRoute
+  '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -360,14 +374,15 @@ export interface FileRoutesByTo {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
-  '/property/$campaign': typeof PropertyCampaignRoute
   '/temples/$city': typeof TemplesCityRoute
   '/events': typeof EventsIndexRoute
   '/forums': typeof ForumsIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -408,14 +423,16 @@ export interface FileRoutesById {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
-  '/property/$campaign': typeof PropertyCampaignRoute
+  '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -463,7 +480,9 @@ export interface FileRouteTypes {
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -500,14 +519,15 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
-    | '/property/$campaign'
     | '/temples/$city'
     | '/events'
     | '/forums'
     | '/temples'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -554,7 +574,9 @@ export interface FileRouteTypes {
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -592,7 +614,7 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
-  PropertyCampaignRoute: typeof PropertyCampaignRoute
+  PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
@@ -878,6 +900,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForumsThreadThreadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/property/$campaign/': {
+      id: '/property/$campaign/'
+      path: '/'
+      fullPath: '/property/$campaign/'
+      preLoaderRoute: typeof PropertyCampaignIndexRouteImport
+      parentRoute: typeof PropertyCampaignRoute
+    }
+    '/property/$campaign/$slug': {
+      id: '/property/$campaign/$slug'
+      path: '/$slug'
+      fullPath: '/property/$campaign/$slug'
+      preLoaderRoute: typeof PropertyCampaignSlugRouteImport
+      parentRoute: typeof PropertyCampaignRoute
+    }
     '/temples/temple/$slug': {
       id: '/temples/temple/$slug'
       path: '/temple/$slug'
@@ -964,6 +1000,19 @@ const TemplesRouteChildren: TemplesRouteChildren = {
 const TemplesRouteWithChildren =
   TemplesRoute._addFileChildren(TemplesRouteChildren)
 
+interface PropertyCampaignRouteChildren {
+  PropertyCampaignSlugRoute: typeof PropertyCampaignSlugRoute
+  PropertyCampaignIndexRoute: typeof PropertyCampaignIndexRoute
+}
+
+const PropertyCampaignRouteChildren: PropertyCampaignRouteChildren = {
+  PropertyCampaignSlugRoute: PropertyCampaignSlugRoute,
+  PropertyCampaignIndexRoute: PropertyCampaignIndexRoute,
+}
+
+const PropertyCampaignRouteWithChildren =
+  PropertyCampaignRoute._addFileChildren(PropertyCampaignRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -994,7 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
-  PropertyCampaignRoute: PropertyCampaignRoute,
+  PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
