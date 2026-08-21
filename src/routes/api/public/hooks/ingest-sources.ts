@@ -25,7 +25,14 @@ export const Route = createFileRoute("/api/public/hooks/ingest-sources")({
             budgetMs: Math.min(Math.max(body.budgetMs ?? 60_000, 5_000), 90_000),
             ...(body.sourceId ? { sourceId: body.sourceId } : {}),
           });
-          return Response.json({ ok: true, ...summary });
+          // The review queue approves itself: duplicates are removed, the rest
+          // is published immediately.
+          const { autoApproveNewsQueue } = await import("@/lib/auto-approve.server");
+          const autoApproved = await autoApproveNewsQueue().catch((e) => {
+            console.error("auto approve failed", e);
+            return { duplicates: 0, approved: 0, published: 0 };
+          });
+          return Response.json({ ok: true, ...summary, autoApproved });
         } catch (e) {
           return Response.json(
             { ok: false, error: e instanceof Error ? e.message : String(e) },
