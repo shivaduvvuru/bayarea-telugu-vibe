@@ -3,7 +3,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { CalendarDays, ExternalLink, List, MapPin, Search } from "lucide-react";
 import { listTempleEvents, listTempleSources } from "@/lib/temple-calendar.functions";
-import { listCommunityItems } from "@/lib/cms.functions";
 import {
   DATE_RANGES,
   DEITY_OPTIONS,

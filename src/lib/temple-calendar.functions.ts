@@ -22,6 +22,13 @@ export type TempleSourceDTO = {
   notes: string | null;
 };
 
+/** Past programs drop off the calendar automatically at midnight local time. */
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 const EVENT_COLUMNS =
   "id,temple_slug,temple_name,city,region,title,description,starts_at,ends_at,all_day,deities,event_type,event_group,level,image_url,register_url,source_url,recurrence,cost_type,language,organizer,status,last_verified_at";
 
@@ -82,7 +89,7 @@ export const listTempleEvents = createServerFn({ method: "GET" })
         .from("temple_events")
         .select(EVENT_COLUMNS)
         .eq("status", "published")
-        .gte("starts_at", new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString())
+        .gte("starts_at", startOfToday())
         .order("starts_at", { ascending: true })
         .limit(data.limit ?? 300);
       if (data.templeSlug) q = q.eq("temple_slug", data.templeSlug);
