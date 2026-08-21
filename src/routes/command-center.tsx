@@ -6,6 +6,7 @@ import {
   Activity,
   AlertTriangle,
   Check,
+  CheckCheck,
   CopyX,
   ExternalLink,
   Lock,
@@ -13,6 +14,8 @@ import {
   RefreshCw,
   Rss,
   Sparkles,
+  ThumbsDown,
+  ThumbsUp,
   X,
 } from "lucide-react";
 import { checkDesk, lockDesk, unlockDesk } from "@/lib/desk-gate.functions";
@@ -21,12 +24,15 @@ import {
   deleteSource,
   listRegistry,
   listReviewQueue,
+  massApproveQueue,
+  purgeQueueItems,
   reviewItem,
   runIngestNow,
   saveSource,
   setSourceActive,
   type SourceInput,
 } from "@/lib/command-center.functions";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
