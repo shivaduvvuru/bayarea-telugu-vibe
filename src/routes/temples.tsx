@@ -3,7 +3,9 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 const TABS = [
   { to: "/temples", label: "Temple Directory", exact: true },
   { to: "/temples/calendar", label: "Temple Calendar", exact: false },
+  { to: "/temples/news", label: "Temple News", exact: false },
 ] as const;
+
 
 export const Route = createFileRoute("/temples")({
   component: TemplesLayout,
