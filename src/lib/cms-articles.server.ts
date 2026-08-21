@@ -314,7 +314,7 @@ export async function cmsPosts(
   if (category === "cinema") {
     // No picture, no cinema story — there is plenty of illustrated film news.
     return articles
-      .filter((a) => a.category === "cinema" && a.image && !isMicroDrama(a.title, a.excerpt, a.sourceUrl))
+      .filter((a) => a.category === "cinema" && a.image)
       .slice(0, limit);
   }
 
