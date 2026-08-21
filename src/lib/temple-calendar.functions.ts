@@ -78,11 +78,14 @@ export const listTempleEvents = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<TempleEventDTO[]> => {
     try {
       const db = await publicDb();
+      // Past programs drop off the calendar automatically at midnight.
+      const midnight = new Date();
+      midnight.setHours(0, 0, 0, 0);
       let q = db
         .from("temple_events")
         .select(EVENT_COLUMNS)
         .eq("status", "published")
-        .gte("starts_at", new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString())
+        .gte("starts_at", midnight.toISOString())
         .order("starts_at", { ascending: true })
         .limit(data.limit ?? 300);
       if (data.templeSlug) q = q.eq("temple_slug", data.templeSlug);

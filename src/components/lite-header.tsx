@@ -18,8 +18,10 @@ const RAIL = [
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
   { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
   { to: "/events", label: "Events" },
-  { to: "/temples", label: "Temples" },
+  { to: "/temples", label: "Temple Directory" },
   { to: "/temples/calendar", label: "Temple Calendar" },
+  { to: "/temples/news", label: "Temple News" },
+
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
