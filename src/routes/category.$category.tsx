@@ -80,6 +80,14 @@ export const Route = createFileRoute("/category/$category")({
     };
     const to = dedicated[params.category];
     if (to) throw redirect({ to, replace: true });
+    // Micro-drama is now part of the Cinema/OTT desk.
+    if (params.category === "micro-drama") {
+      throw redirect({
+        to: "/category/$category",
+        params: { category: "cinema" },
+        replace: true,
+      });
+    }
   },
   loader: async ({ params, context }) => {
     const cat = categoryBySlug(params.category);
