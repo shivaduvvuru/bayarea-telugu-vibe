@@ -1,13 +1,15 @@
 import credaiHero from "@/assets/hyderabad-skyline.jpg";
-import sky1 from "@/assets/ads/epaper-skyscraper-1.jpg.asset.json";
-import sky2 from "@/assets/ads/epaper-skyscraper-2.jpg.asset.json";
+import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 
 /**
  * Sponsor hero carousel slides.
  *
- * Slide 1 is always the CREDAI property-show banner; the slides that follow are
- * full-page (skyscraper) features lifted from the Telugu Times 23rd Anniversary
- * Special edition, so the vertical artwork is shown intact rather than cropped.
+ * Slide 1 is always the CREDAI property-show banner; every slide after it is a
+ * single skyscraper property feature from the Telugu Times 23rd Anniversary
+ * Special edition, shown full-page so the vertical artwork stays intact.
+ *
+ * The carousel rotates slowly on purpose — one slide every 30 minutes — so a
+ * sponsor page holds the slot long enough to be read.
  */
 export interface HeroSlide {
   id: string;
@@ -28,42 +30,37 @@ export interface HeroSlide {
 export const EPAPER_ANNIVERSARY_URL =
   "https://www.telugutimes.net/epaper/16-31-23rd-anniv-special";
 
-export const heroSlides: HeroSlide[] = [
-  {
-    id: "credai-main",
-    type: "banner",
-    title: "CREDAI Hyderabad Property Show & Features",
-    subtitle: "Connecting NRI investors with premier real estate opportunities",
-    imageUrl: credaiHero,
-    ctaText: "Explore Projects",
-    linkUrl: "/property/credai-hyderabad-2026",
-    isCredai: true,
-    sponsorName: "CREDAI Hyderabad",
-    highlights: ["Aug 28–30, 2026 · HITEX Hyderabad", "NRI buying desk & verified builders"],
-    tint: "#4c4b51",
-  },
-  {
-    id: "anniv-skyscraper-1",
-    type: "skyscraper_feature",
-    sponsorName: "My Home Group · My Home Udyan",
-    title: "The Park Life — premium homes at Tellapur",
-    subtitle: "Featured in the Telugu Times 23rd Anniversary Special",
-    imageUrl: sky1.url,
-    ctaText: "View Details",
-    linkUrl: EPAPER_ANNIVERSARY_URL,
-    highlights: ["2, 2.5, 3 & 4 BHK · 1350–2915 sq.ft.", "24.12 acres · 80% open area"],
-    tint: "#b2c9d6",
-  },
-  {
-    id: "anniv-skyscraper-2",
-    type: "skyscraper_feature",
-    sponsorName: "PNG Jewelers",
-    title: "Ugadi festive collection — Sunnyvale showroom",
-    subtitle: "Featured in the Telugu Times 23rd Anniversary Special",
-    imageUrl: sky2.url,
-    ctaText: "Learn More",
-    linkUrl: EPAPER_ANNIVERSARY_URL,
-    highlights: ["40% off diamond jewellery making charges", "791 E El Camino Real, Sunnyvale CA"],
-    tint: "#ac8264",
-  },
-];
+/** Rotation interval for the sponsor carousel: one slide every 30 minutes. */
+export const SPONSOR_ROTATE_MS = 30 * 60 * 1000;
+
+const TINTS = ["#b2c9d6", "#ac8264", "#8f9bb3", "#c3a982", "#9db8a4"];
+
+const credaiSlide: HeroSlide = {
+  id: "credai-main",
+  type: "banner",
+  title: "CREDAI Hyderabad Property Show & Features",
+  subtitle: "Connecting NRI investors with premier real estate opportunities",
+  imageUrl: credaiHero,
+  ctaText: "Explore Projects",
+  linkUrl: "/property/credai-hyderabad-2026",
+  isCredai: true,
+  sponsorName: "CREDAI Hyderabad",
+  highlights: ["Aug 28–30, 2026 · HITEX Hyderabad", "NRI buying desk & verified builders"],
+  tint: "#4c4b51",
+};
+
+/** One hero-size slide per skyscraper project, in printed order after CREDAI. */
+const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p, i) => ({
+  id: `property-${p.id}`,
+  type: "skyscraper_feature",
+  sponsorName: p.developer,
+  title: p.project,
+  subtitle: p.location ?? "Featured in the Telugu Times 23rd Anniversary Special",
+  imageUrl: propertyImage(p.id),
+  ctaText: "View Details",
+  linkUrl: p.site ?? EPAPER_ANNIVERSARY_URL,
+  highlights: [p.note, p.location].filter((x): x is string => !!x),
+  tint: TINTS[i % TINTS.length]!,
+}));
+
+export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
