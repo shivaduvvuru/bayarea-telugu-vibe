@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LiteHeader } from "../components/lite-header";
 import { SiteFooter } from "../components/site-footer";
 import { MobileTabBar } from "../components/mobile-tabbar";
+import { HeadlineTicker } from "../components/headline-ticker";
 import { Toaster } from "../components/ui/sonner";
 import { LanguageProvider } from "../lib/language";
 
@@ -188,6 +189,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <div className="flex min-h-dvh flex-col pb-32 md:pb-0">
+          <HeadlineTicker />
           <LiteHeader />
           <main className="flex-1">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

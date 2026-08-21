@@ -33,6 +33,7 @@ import {
   type SourceInput,
 } from "@/lib/command-center.functions";
 
+import { CityHeadlinePicker } from "@/components/city-headline-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -214,7 +215,7 @@ function Metric({ label, value, tone }: { label: string; value: number; tone?: "
 }
 
 function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Promise<void> }) {
-  const [tab, setTab] = useState<"queue" | "sources">("queue");
+  const [tab, setTab] = useState<"queue" | "sources" | "headline">("queue");
   const [counters, setCounters] = useState({
     collected: 0,
     duplicates: 0,
@@ -391,6 +392,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           <Button size="sm" variant={tab === "sources" ? "default" : "outline"} onClick={() => setTab("sources")}>
             <Rss className="size-4" aria-hidden="true" /> Source registry ({sources.length})
           </Button>
+          <Button size="sm" variant={tab === "headline" ? "default" : "outline"} onClick={() => setTab("headline")}>
+            <Sparkles className="size-4" aria-hidden="true" /> City headline
+          </Button>
           {tab === "queue" && (
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="ml-auto w-44" aria-label="Filter queue">
@@ -419,6 +423,10 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             onDislike={dislike}
           />
 
+        ) : tab === "headline" ? (
+          <div className="mt-4">
+            <CityHeadlinePicker deskToken={deskToken} />
+          </div>
         ) : (
           <SourceRegistry
             sources={sources}

@@ -698,6 +698,35 @@ export type Database = {
         }
         Relationships: []
       }
+      headline_picks: {
+        Row: {
+          content_id: string | null
+          label: string | null
+          slot: string
+          updated_at: string
+        }
+        Insert: {
+          content_id?: string | null
+          label?: string | null
+          slot: string
+          updated_at?: string
+        }
+        Update: {
+          content_id?: string | null
+          label?: string | null
+          slot?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "headline_picks_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hook_tokens: {
         Row: {
           created_at: string

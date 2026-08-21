@@ -13,6 +13,7 @@ import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { PhotoActions } from "@/components/photo-actions";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
 import { NewsFreshness, PullToRefresh, newsRefreshMs } from "@/components/refresh-news";
+import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
 
 import type { Article } from "@/lib/content";
 
@@ -84,6 +85,9 @@ export const Route = createFileRoute("/category/$category")({
     const cat = categoryBySlug(params.category);
     if (!cat) throw notFound();
     await context.queryClient.ensureQueryData(postsQuery(cat.slug));
+    if (cat.slug === "city-news") {
+      await context.queryClient.ensureQueryData(cityHeadlineQuery);
+    }
     return { cat };
   },
   head: ({ loaderData }) => {
@@ -176,6 +180,7 @@ function CategoryPage() {
         </nav>
       ) : null}
       <div className="mt-6">
+        {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
         ) : null}
