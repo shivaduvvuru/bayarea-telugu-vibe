@@ -61,7 +61,7 @@ export async function sweepDuplicates(
   for (let i = 0; i < ids.length; i += 200) {
     await admin
       .from("content_items")
-      .update({ placement: "hidden" })
+      .delete()
       .in("id", ids.slice(i, i + 200));
   }
   return ids.length;
