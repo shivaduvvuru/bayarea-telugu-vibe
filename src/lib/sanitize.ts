@@ -17,8 +17,15 @@ export type WpPost = {
   _embedded?: Embedded;
 };
 
+/** Turns numeric HTML entities (&#8217; / &#x2019; / &#8217 without semicolon) into characters. */
+function decodeNumeric(s: string) {
+  return s
+    .replace(/&#x([0-9a-f]+);?/gi, (_m, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);?/g, (_m, dec) => String.fromCodePoint(Number(dec)));
+}
+
 export function decode(html: string) {
-  return html
+  return decodeNumeric(html)
     .replace(/<[^>]+>/g, "")
     .replace(/&#8217;|&#039;|&#39;/g, "\u2019")
     .replace(/&#8216;/g, "\u2018")
@@ -26,7 +33,14 @@ export function decode(html: string) {
     .replace(/&#8221;/g, "\u201d")
     .replace(/&#8211;/g, "\u2013")
     .replace(/&#8230;/g, "\u2026")
-    .replace(/&nbsp;/g, " ")
+    .replace(/&(rsquo|apos);?/g, "\u2019")
+    .replace(/&lsquo;?/g, "\u2018")
+    .replace(/&ldquo;?/g, "\u201c")
+    .replace(/&rdquo;?/g, "\u201d")
+    .replace(/&ndash;?/g, "\u2013")
+    .replace(/&mdash;?/g, "\u2014")
+    .replace(/&hellip;?/g, "\u2026")
+    .replace(/&nbsp;?/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, "<")
