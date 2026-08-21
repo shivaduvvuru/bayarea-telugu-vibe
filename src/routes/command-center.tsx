@@ -353,9 +353,20 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
               <RefreshCw className={`size-4 ${collecting ? "animate-spin" : ""}`} aria-hidden="true" />
               {collecting ? "Collecting…" : "Collect now"}
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                if (window.confirm("Approve and publish every story awaiting a decision?")) void massApprove();
+              }}
+              disabled={busy}
+            >
+              <CheckCheck className="size-4" aria-hidden="true" /> Mass approve
+            </Button>
             <Button size="sm" variant="outline" asChild>
               <Link to="/desk">Picture desk</Link>
             </Button>
+
             <Button size="sm" variant="ghost" onClick={onLock}>
               Lock
             </Button>
