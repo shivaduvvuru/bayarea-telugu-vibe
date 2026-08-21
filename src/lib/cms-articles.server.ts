@@ -7,7 +7,7 @@ import type { Article } from "./content";
 import { categoryBySlug, CITY_CATEGORIES } from "./content";
 import { isBayArea, isBayAreaSource, BAY_HOSTS } from "./bay-area";
 import { publicClient } from "./cms.server";
-import { sanitizeHtml } from "./sanitize";
+import { sanitizeHtml, decode } from "./sanitize";
 import { galleryImage, sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
