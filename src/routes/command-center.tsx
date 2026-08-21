@@ -577,13 +577,21 @@ function QueueList({
                     <span>{new Date(row.publication_datetime).toLocaleString()}</span>
                   )}
                 </div>
-
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Button size="sm" onClick={() => onAct("publish", [row.id])}>
-                    <Check className="size-4" aria-hidden="true" /> Approve &amp; publish
+                    <ThumbsUp className="size-4" aria-hidden="true" /> Like — approve &amp; publish
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => onAct("approve", [row.id])}>
-                    Approve
+                    <Check className="size-4" aria-hidden="true" /> Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      if (window.confirm("Permanently delete this story site-wide?")) onDislike([row.id]);
+                    }}
+                  >
+                    <ThumbsDown className="size-4" aria-hidden="true" /> Dislike — delete
                   </Button>
                   <Button
                     size="sm"
@@ -619,7 +627,9 @@ function QueueList({
           </Card>
         </li>
       ))}
-    </ul>
+      </ul>
+    </>
+
   );
 }
 
