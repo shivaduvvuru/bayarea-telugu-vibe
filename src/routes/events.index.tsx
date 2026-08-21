@@ -10,8 +10,6 @@ import { listPosts } from "@/lib/content.functions";
 import { formatDate } from "@/lib/content";
 import { classifyIndia } from "@/lib/india-topics";
 import { isBayArea, isBayAreaSource } from "@/lib/bay-area";
-import { listTempleEvents } from "@/lib/temple-calendar.functions";
-import { formatEventDay, formatEventTime } from "@/lib/temple-calendar";
 
 /** Events published by the newsroom desk (collected city guides + submissions). */
 const liveEventsQuery = queryOptions({
@@ -24,16 +22,6 @@ const eventPostsQuery = queryOptions({
   queryKey: ["wp", "posts", "events-community", "wide"],
   queryFn: () => listPosts({ data: { category: "events-community", perPage: 40, compact: true } }),
   staleTime: 5 * 60 * 1000,
-});
-
-/**
- * Only the major temple programs surface here — the full temple schedule lives
- * in the Temple Calendar so recurring pujas never flood general Events.
- */
-const featuredTempleQuery = queryOptions({
-  queryKey: ["temple-events", "featured"],
-  queryFn: () => listTempleEvents({ data: { featuredOnly: true, limit: 8 } }),
-  staleTime: 30 * 60 * 1000,
 });
 
 const TITLE = "Bay Area Events Calendar — festivals, meetups & temple programs";
@@ -103,7 +91,6 @@ function EventsPage() {
   const { t } = useLang();
   const { data: live = [] } = useQuery(liveEventsQuery);
   const { data: eventPosts = [] } = useQuery(eventPostsQuery);
-  const { data: templeFeatured = [] } = useQuery(featuredTempleQuery);
   const seen = new Set<string>();
   const liveRows = [
     ...live.map((e) => ({
@@ -163,39 +150,6 @@ function EventsPage() {
       <div className="mt-6">
         <EventFilterBar filter={filter} onChange={setFilter} />
       </div>
-
-      {templeFeatured.length > 0 && (
-        <section className="mt-8">
-          <SectionHeading te="ప్రధాన ఆలయ కార్యక్రమాలు" en="Major temple programs" />
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
-            {templeFeatured.map((e) => {
-              const day = formatEventDay(e.startsAt);
-              return (
-                <li key={e.id} className="flex items-start gap-3 p-3">
-                  <div className="w-14 flex-none rounded-md bg-primary/10 px-2 py-1 text-center">
-                    <p className="text-[10px] font-bold tracking-wide text-primary">{day.dow}</p>
-                    <p className="text-xs font-semibold text-ink">{day.date}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold text-ink">{e.title}</p>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {[e.templeName, e.city, formatEventTime(e.startsAt, e.allDay)]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          <Link
-            to="/temples/calendar"
-            className="mt-3 inline-block text-sm font-semibold text-primary"
-          >
-            {t("View the full Temple Calendar →", "పూర్తి ఆలయ క్యాలెండర్ →")}
-          </Link>
-        </section>
-      )}
 
       {liveRows.length > 0 && (
         <section className="mt-8">
