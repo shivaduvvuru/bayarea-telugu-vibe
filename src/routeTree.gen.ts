@@ -29,6 +29,7 @@ import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
 import { Route as LiteRouteImport } from './routes/lite'
 import { Route as LuxedeskRouteImport } from './routes/luxedesk'
+import { Route as NriRealEstateRouteImport } from './routes/nri-real-estate'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as PropertyDeskRouteImport } from './routes/property-desk'
@@ -160,6 +161,11 @@ const LiteRoute = LiteRouteImport.update({
 const LuxedeskRoute = LuxedeskRouteImport.update({
   id: '/luxedesk',
   path: '/luxedesk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NriRealEstateRoute = NriRealEstateRouteImport.update({
+  id: '/nri-real-estate',
+  path: '/nri-real-estate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PeopleRoute = PeopleRouteImport.update({
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/luxedesk': typeof LuxedeskRoute
+  '/nri-real-estate': typeof NriRealEstateRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
@@ -406,6 +413,7 @@ export interface FileRoutesByTo {
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/luxedesk': typeof LuxedeskRoute
+  '/nri-real-estate': typeof NriRealEstateRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
@@ -460,6 +468,7 @@ export interface FileRoutesById {
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
   '/luxedesk': typeof LuxedeskRoute
+  '/nri-real-estate': typeof NriRealEstateRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
@@ -516,6 +525,7 @@ export interface FileRouteTypes {
     | '/glamour-dashboard'
     | '/lite'
     | '/luxedesk'
+    | '/nri-real-estate'
     | '/people'
     | '/politics'
     | '/property-desk'
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/glamour-dashboard'
     | '/lite'
     | '/luxedesk'
+    | '/nri-real-estate'
     | '/people'
     | '/politics'
     | '/property-desk'
@@ -622,6 +633,7 @@ export interface FileRouteTypes {
     | '/glamour-dashboard'
     | '/lite'
     | '/luxedesk'
+    | '/nri-real-estate'
     | '/people'
     | '/politics'
     | '/property-desk'
@@ -678,6 +690,7 @@ export interface RootRouteChildren {
   GlamourDashboardRoute: typeof GlamourDashboardRoute
   LiteRoute: typeof LiteRoute
   LuxedeskRoute: typeof LuxedeskRoute
+  NriRealEstateRoute: typeof NriRealEstateRoute
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
   PropertyDeskRoute: typeof PropertyDeskRoute
@@ -842,6 +855,13 @@ declare module '@tanstack/react-router' {
       path: '/luxedesk'
       fullPath: '/luxedesk'
       preLoaderRoute: typeof LuxedeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nri-real-estate': {
+      id: '/nri-real-estate'
+      path: '/nri-real-estate'
+      fullPath: '/nri-real-estate'
+      preLoaderRoute: typeof NriRealEstateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/people': {
@@ -1157,6 +1177,7 @@ const rootRouteChildren: RootRouteChildren = {
   GlamourDashboardRoute: GlamourDashboardRoute,
   LiteRoute: LiteRoute,
   LuxedeskRoute: LuxedeskRoute,
+  NriRealEstateRoute: NriRealEstateRoute,
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
   PropertyDeskRoute: PropertyDeskRoute,
