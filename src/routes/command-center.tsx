@@ -291,6 +291,37 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
     await load();
   };
 
+  /** Editor dislike — permanent, site-wide deletion. */
+  const dislike = async (ids: string[]) => {
+    if (!ids.length) return;
+    setRows((list) => list.filter((r) => !ids.includes(r.id)));
+    setSelected(new Set());
+    try {
+      const res = await purgeItems({ data: { deskToken, ids } });
+      if (res.error) throw new Error(res.error);
+      toast.success(`Deleted ${res.deleted || ids.length} item${ids.length === 1 ? "" : "s"} permanently`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete");
+    }
+    await load();
+  };
+
+  const massApprove = async () => {
+    setBusy(true);
+    try {
+      const res = await approveAll({ data: { deskToken } });
+      if (res.error) throw new Error(res.error);
+      toast.success(`Approved ${res.approved} · published ${res.published}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Mass approve failed");
+    } finally {
+      setBusy(false);
+      await load();
+    }
+  };
+
+
+
   const runCollect = async () => {
     setCollecting(true);
     try {
