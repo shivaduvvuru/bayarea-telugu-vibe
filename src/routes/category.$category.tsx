@@ -140,12 +140,16 @@ const LIVE_DESKS = ["city-news", "india-news", "cinema", "micro-drama"];
  * scroll stays varied without losing its local lead.
  */
 function mixInto(local: Article[], guests: Article[], every = 3): Article[] {
-  if (!guests.length) return local;
-  const seen = new Set(local.map((a) => a.slug));
-  const queue = guests.filter((a) => !seen.has(a.slug));
+  // One shared ledger of headlines, links and pictures: a guest desk can never
+  // re-run a story the local feed already carries, nor a re-worded copy of one
+  // another guest already contributed.
+  const seen = new Set<string>();
+  const base = uniqueByContent(local, seen);
+  if (!guests.length) return base;
+  const queue = uniqueByContent(guests, seen).filter((a) => !base.some((b) => b.slug === a.slug));
   const out: Article[] = [];
   let g = 0;
-  local.forEach((a, i) => {
+  base.forEach((a, i) => {
     out.push(a);
     if ((i + 1) % every === 0 && g < queue.length) out.push(queue[g++]!);
   });
