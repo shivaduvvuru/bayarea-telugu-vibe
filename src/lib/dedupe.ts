@@ -52,3 +52,34 @@ export function dedupeBy<T>(
   }
   return { unique, duplicates };
 }
+/** Content keys used to spot the same story arriving with a re-worded headline. */
+export function contentDedupeKeys(item: {
+  title?: string | null;
+  sourceUrl?: string | null;
+  image?: string | null;
+}): string[] {
+  const title = dedupeKey(item.title ?? "");
+  return [
+    title ? `t:${title}` : "",
+    // Near-duplicate headlines (same story, different tail) collapse too.
+    title.length > 28 ? `p:${title.slice(0, 28)}` : "",
+    item.sourceUrl
+      ? `u:${item.sourceUrl.split("?")[0]?.replace(/\/$/, "").toLowerCase()}`
+      : "",
+    item.image ? `i:${item.image.split("?")[0]?.toLowerCase()}` : "",
+  ].filter(Boolean);
+}
+
+/** Keeps the first copy of each story across any number of feeds. */
+export function uniqueByContent<
+  T extends { title?: string | null; sourceUrl?: string | null; image?: string | null },
+>(items: T[], seen = new Set<string>()): T[] {
+  const out: T[] = [];
+  for (const item of items) {
+    const keys = contentDedupeKeys(item);
+    if (keys.some((k) => seen.has(k))) continue;
+    keys.forEach((k) => seen.add(k));
+    out.push(item);
+  }
+  return out;
+}

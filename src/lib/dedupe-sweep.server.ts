@@ -30,9 +30,12 @@ export function duplicateIds(rows: Row[]): string[] {
   const seen = new Set<string>();
   const drop: string[] = [];
   for (const r of sorted) {
+    const title = dedupeKey(r.title ?? "");
     const keys = [
       r.dedupe_key || "",
-      dedupeKey(r.title ?? ""),
+      title,
+      // Same story re-worded by another desk: match on the headline's lead.
+      title.length > 28 ? `p:${title.slice(0, 28)}` : "",
       r.link_url ? `u:${urlKey(r.link_url)}` : "",
       r.image_url ? `i:${urlKey(r.image_url)}` : "",
     ].filter(Boolean);
