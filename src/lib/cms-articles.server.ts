@@ -104,11 +104,12 @@ function toArticle(row: Row): Article {
       ? CINEMA_SLUG
       : (citySlugOf(row.city) ?? stored ?? "community");
   const cat = categoryBySlug(slug);
-  const text = row.summary ?? "";
+  // Feed text arrives with HTML entities (&#8217; etc.); render real characters.
+  const text = decode(row.summary ?? "");
   return {
     id: numericId(row.id),
     slug: cmsSlug(row.id),
-    title: row.title,
+    title: decode(row.title ?? ""),
     excerpt: text.slice(0, 300),
     html: sanitizeHtml(row.body ?? (text ? `<p>${text}</p>` : "")),
     date: row.published_at ?? row.created_at,
