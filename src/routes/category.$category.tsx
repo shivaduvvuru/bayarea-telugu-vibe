@@ -71,30 +71,7 @@ export const Route = createFileRoute("/category/$category")({
   component: CategoryPage,
 });
 
-/** Desks that turn over quickly enough to warrant polling and a refresh control. */
-const LIVE_DESKS = ["city-news", "india-news", "cinema", "micro-drama"];
 
-/**
- * City News reads as a Bay Area scroll, but a pure local feed goes stale fast:
- * one Cinema/OTT or India story is folded in after every third city story so the
- * scroll stays varied without losing its local lead.
- */
-function mixInto(local: Article[], guests: Article[], every = 3): Article[] {
-  // One shared ledger of headlines, links and pictures: a guest desk can never
-  // re-run a story the local feed already carries, nor a re-worded copy of one
-  // another guest already contributed.
-  const seen = new Set<string>();
-  const base = uniqueByContent(local, seen);
-  if (!guests.length) return base;
-  const queue = uniqueByContent(guests, seen).filter((a) => !base.some((b) => b.slug === a.slug));
-  const out: Article[] = [];
-  let g = 0;
-  base.forEach((a, i) => {
-    out.push(a);
-    if ((i + 1) % every === 0 && g < queue.length) out.push(queue[g++]!);
-  });
-  return out;
-}
 
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
