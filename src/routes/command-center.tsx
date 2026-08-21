@@ -416,7 +416,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             selected={selected}
             setSelected={setSelected}
             onAct={act}
+            onDislike={dislike}
           />
+
         ) : (
           <SourceRegistry
             sources={sources}
