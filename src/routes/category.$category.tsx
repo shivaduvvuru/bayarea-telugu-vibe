@@ -17,6 +17,7 @@ import { NewsFreshness, PullToRefresh, newsRefreshMs } from "@/components/refres
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
 
 import type { Article } from "@/lib/content";
+import { uniqueByContent } from "@/lib/dedupe";
 
 /** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
 function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
