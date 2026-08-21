@@ -40,6 +40,7 @@ const HOME_LIVE_KEYS: unknown[][] = [
   ["wp", "posts", "india-states", "home"],
 ];
 import { CollectStatus } from "@/components/collect-status";
+import { PropertyPromo } from "@/components/property-promo";
 
 
 const TITLE = "Times Bay Area — Digest of newspapers & journals";

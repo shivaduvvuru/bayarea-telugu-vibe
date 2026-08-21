@@ -25,6 +25,11 @@ const RAIL = [
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations & Community" },
   { to: "/connect", label: "Services" },
+  {
+    to: "/property/$campaign",
+    params: { campaign: "credai-hyderabad-2026" },
+    label: "Property Show",
+  },
   { to: "/forums", label: "Forums" },
 ] as const;
 
