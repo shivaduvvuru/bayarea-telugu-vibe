@@ -732,6 +732,8 @@ function Home() {
                 return (
                   <div key={a.slug}>
                     <Row a={a} />
+                    {/* Compact property-show module, four items into the feed. */}
+                    {i === 3 ? <PropertyPromo className="my-4" /> : null}
                     {heroHere ? (
                       <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
