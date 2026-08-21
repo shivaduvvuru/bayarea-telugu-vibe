@@ -30,6 +30,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
+import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
@@ -696,6 +697,10 @@ function Home() {
         {/* Compact editorial hero: a curated 4–5 story slider (6s cross-fade),
             sized so the next section is visible without a full-screen scroll. */}
         <StoryHeroSlider articles={heroSliderPool} />
+
+        {/* Sponsor carousel: CREDAI banner first, then the vertical anniversary
+            edition features. */}
+        <SponsorHeroCarousel className="mt-4" />
 
         {/* The hand-built prime feature keeps its slot only while fresh. */}
         {bannerFresh ? <div className="mt-4"><HousingHero /></div> : null}
