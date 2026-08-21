@@ -153,9 +153,13 @@ export const updateCampaign = createServerFn({ method: "POST" })
     await assertDesk(data.deskToken);
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
+    // Drop keys the editor left untouched so a partial save never blanks a field.
+    const patch = Object.fromEntries(
+      Object.entries(data.patch).filter(([, v]) => v !== undefined),
+    ) as Record<string, string | boolean>;
     const { error } = await db
       .from("property_campaigns")
-      .update(data.patch)
+      .update(patch)
       .eq("slug", data.campaignSlug);
     if (error) throw new Error(error.message);
     return { ok: true as const };
