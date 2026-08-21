@@ -214,7 +214,7 @@ function Metric({ label, value, tone }: { label: string; value: number; tone?: "
 }
 
 function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Promise<void> }) {
-  const [tab, setTab] = useState<"queue" | "sources">("queue");
+  const [tab, setTab] = useState<"queue" | "sources" | "headline">("queue");
   const [counters, setCounters] = useState({
     collected: 0,
     duplicates: 0,
