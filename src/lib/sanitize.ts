@@ -17,8 +17,15 @@ export type WpPost = {
   _embedded?: Embedded;
 };
 
+/** Turns numeric HTML entities (&#8217; / &#x2019; / &#8217 without semicolon) into characters. */
+function decodeNumeric(s: string) {
+  return s
+    .replace(/&#x([0-9a-f]+);?/gi, (_m, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);?/g, (_m, dec) => String.fromCodePoint(Number(dec)));
+}
+
 export function decode(html: string) {
-  return html
+  return decodeNumeric(html)
     .replace(/<[^>]+>/g, "")
     .replace(/&#8217;|&#039;|&#39;/g, "\u2019")
     .replace(/&#8216;/g, "\u2018")
