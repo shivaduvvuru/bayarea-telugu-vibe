@@ -707,55 +707,41 @@ function Home() {
       </div>
 
 
-      {/* Pair slideshow: two hero-size Glamour pictures that advance together
-          every 30 seconds, with Prev/Next and a pair indicator. Kept high on the
-          page so readers actually see the slides. */}
-      <div className="mx-auto mt-4 max-w-3xl">
-        <GalleryDualHero items={heroPool} onOpen={setViewerIndex} />
-      </div>
-
-      <div className="mx-auto max-w-3xl">
-        {/* Baseline: the full-size glamour picture always sits at the top of the
-            homepage and swaps itself every 5 minutes. Never remove this. */}
-        <GalleryHero {...heroProps(0)} className="mt-4" />
-      </div>
-
-
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
           <div className={bannerFresh ? "mt-4" : ""}>
             {localPictureStories.map((a, i) => {
-                // Baseline: full-size glamour pictures are never adjacent —
-                // at least three news items sit between them.
-                const heroHere = (i + 1) % 4 === 0;
-                // Each hero slot is shifted, so a later full-size picture is
-                // never the same photo as the ones above it.
-                const heroSlot = Math.floor((i + 1) / 4);
+                // Only two hero-size Glamour pictures run inside the city feed,
+                // and they sit ten news items apart. No other Glamour artwork
+                // appears while scrolling city news.
+                const heroSlot = i === 9 ? 0 : i === 19 ? 1 : null;
 
                 return (
                   <div key={a.slug}>
                     <Row a={a} />
                     {/* Compact property-show module, four items into the feed. */}
                     {i === 3 ? <PropertyPromo className="my-4" /> : null}
-                    {heroHere ? (
+                    {heroSlot !== null ? (
                       <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
                   </div>
                 );
               })}
 
-            {/* Keep the frozen second full-size slot visible even when today's
-                city feed has fewer than four image-bearing stories. It follows
-                every available picture story, so it is never adjacent to the
-                first hero merely because collection volume is low. */}
-            {localPictureStories.length < 4 ? (
+            {/* Short feed day: still show the two slides, ten items apart is not
+                possible so they follow the available stories. */}
+            {localPictureStories.length < 10 ? (
               <>
                 <PropertyPromo className="my-4" />
-                <GalleryHero {...heroProps(1)} className="my-4" />
+                <GalleryHero {...heroProps(0)} className="my-4" />
               </>
             ) : null}
+            {localPictureStories.length >= 10 && localPictureStories.length < 20 ? (
+              <GalleryHero {...heroProps(1)} className="my-4" />
+            ) : null}
+
 
 
           </div>
