@@ -12,7 +12,7 @@ import { galleryImage, sourceLabel, usableImage } from "./story-image";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
-import { dedupeKey } from "./dedupe";
+import { uniqueByContent } from "./dedupe";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
