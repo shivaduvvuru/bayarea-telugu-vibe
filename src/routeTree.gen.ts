@@ -45,6 +45,7 @@ import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
+import { Route as PropertyIndexRouteImport } from './routes/property.index'
 import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
@@ -241,6 +242,11 @@ const ForumsIndexRoute = ForumsIndexRouteImport.update({
   path: '/forums/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertyIndexRoute = PropertyIndexRouteImport.update({
+  id: '/property/',
+  path: '/property/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PropertyCampaignRoute = PropertyCampaignRouteImport.update({
   id: '/property/$campaign',
   path: '/property/$campaign',
@@ -367,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
+  '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
@@ -417,6 +424,7 @@ export interface FileRoutesByTo {
   '/temples/news': typeof TemplesNewsRoute
   '/events': typeof EventsIndexRoute
   '/forums': typeof ForumsIndexRoute
+  '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
@@ -472,6 +480,7 @@ export interface FileRoutesById {
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
+  '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
@@ -527,6 +536,7 @@ export interface FileRouteTypes {
     | '/temples/news'
     | '/events/'
     | '/forums/'
+    | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
@@ -577,6 +587,7 @@ export interface FileRouteTypes {
     | '/temples/news'
     | '/events'
     | '/forums'
+    | '/property'
     | '/temples'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/temples/news'
     | '/events/'
     | '/forums/'
+    | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
@@ -679,6 +691,7 @@ export interface RootRouteChildren {
   CityCityRoute: typeof CityCityRoute
   PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
   ForumsIndexRoute: typeof ForumsIndexRoute
+  PropertyIndexRoute: typeof PropertyIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
@@ -943,6 +956,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForumsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/property/': {
+      id: '/property/'
+      path: '/property'
+      fullPath: '/property/'
+      preLoaderRoute: typeof PropertyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/property/$campaign': {
       id: '/property/$campaign'
       path: '/property/$campaign'
@@ -1150,6 +1170,7 @@ const rootRouteChildren: RootRouteChildren = {
   CityCityRoute: CityCityRoute,
   PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
   ForumsIndexRoute: ForumsIndexRoute,
+  PropertyIndexRoute: PropertyIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
