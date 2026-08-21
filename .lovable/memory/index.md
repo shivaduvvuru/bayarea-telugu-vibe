@@ -2,7 +2,8 @@
 
 ## Core
 - Site brand: "Bay Area Telugu Times". Tagline in English only, no Telugu.
-- Homepage baseline: hero-size glamour photo under the banner, rotating continuously (20s cycle, slots staggered). Never remove.
+- Homepage/City News: only TWO hero-size glamour slides, placed 10 news items apart; no other glamour artwork while scrolling city news.
+- Sponsor hero carousel: CREDAI slide first, then one hero-size skyscraper property slide per project; rotates every 30 minutes.
 - Homepage top slot is a COMPACT curated story slider (never a billboard): mobile ~320px, desktop ~460px / max 58vh, 6s slides.
 - Never sign the editor out automatically — only the explicit Sign out button ends a session.
 - Never repeat a story, source URL, or photo across homepage sections; deduplication is a release checklist rule.
