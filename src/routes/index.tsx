@@ -30,6 +30,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
+import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
