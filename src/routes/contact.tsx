@@ -2,9 +2,9 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-const TITLE = "Contact & Advertise — Bay Area Telugu Times";
+const TITLE = "Contact & Advertise — Times Bay Area";
 const DESC =
-  "Send a news tip, submit a community event, or advertise with the Bay Area Telugu Times.";
+  "Send a news tip, submit a community event, or advertise with the Times Bay Area.";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({

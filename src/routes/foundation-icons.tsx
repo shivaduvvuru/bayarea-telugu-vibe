@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-const TITLE = "Bay Area Foundation Icons — Bay Area Telugu Times";
+const TITLE = "Bay Area Foundation Icons — Times Bay Area";
 const DESC =
   "Honouring the Telugu pioneers who reached the Bay Area in the 70s, 80s and 90s and built the community that thrives today.";
 

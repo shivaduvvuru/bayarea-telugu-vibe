@@ -24,7 +24,7 @@ export function SiteFooter() {
     <footer className="mt-12 border-t-4 border-primary bg-ink text-background">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 md:grid-cols-4">
         <div>
-          <h3 className="text-lg text-background">Bay Area Telugu Times</h3>
+          <h3 className="text-lg text-background">Times Bay Area</h3>
           <p className="mt-2 text-xs text-background/70">
             News, culture and community coverage for Telugu families across the Bay Area.
           </p>
@@ -101,7 +101,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-background/15 py-4 text-center text-xs text-background/60">
-        <p>© {new Date().getFullYear()} Bay Area Telugu Times. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Times Bay Area. All rights reserved.</p>
       </div>
     </footer>
   );

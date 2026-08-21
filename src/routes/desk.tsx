@@ -37,13 +37,13 @@ import { PictureDeskWorkspace } from "@/components/picture-desk-workspace";
 export const Route = createFileRoute("/desk")({
   head: () => ({
     meta: [
-      { title: "Editorial review desk — Bay Area Telugu Times" },
+      { title: "Editorial review desk — Times Bay Area" },
       {
         name: "description",
         content:
           "Review and approve visually verified single-woman pictures before they publish to Glamour.",
       },
-      { property: "og:title", content: "Editorial review desk — Bay Area Telugu Times" },
+      { property: "og:title", content: "Editorial review desk — Times Bay Area" },
       {
         property: "og:description",
         content: "Review visually verified single-woman pictures for the Glamour section.",

@@ -19,7 +19,7 @@ export function googleCalendarUrl(e: EventItem) {
     text: e.title,
     dates: `${start}/${end}`,
     location: `${e.venue}, ${e.address}`,
-    details: `${e.organiser} · Listed on Bay Area Telugu Times`,
+    details: `${e.organiser} · Listed on Times Bay Area`,
     ctz: "America/Los_Angeles",
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;

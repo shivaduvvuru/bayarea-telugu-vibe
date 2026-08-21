@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const TITLE = "About Us — Bay Area Telugu Times";
+const TITLE = "About Us — Times Bay Area";
 const DESC =
   "The Bay Area edition of Telugu Times, serving the Telugu community of Northern California.";
 
@@ -22,7 +22,7 @@ function AboutPage() {
       <h1 className="text-3xl font-bold text-ink">మా గురించి</h1>
       <div className="mt-6 space-y-4 text-[17px] leading-relaxed text-foreground">
         <p>
-          Bay Area Telugu Times is the Northern California edition of Telugu Times, the first
+          Times Bay Area is the Northern California edition of Telugu Times, the first
           global Telugu newspaper for the NRI community in the USA.
         </p>
         <p>

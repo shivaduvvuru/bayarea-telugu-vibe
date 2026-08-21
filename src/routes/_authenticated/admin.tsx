@@ -25,13 +25,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Newsroom CMS — Bay Area Telugu Times" },
+      { title: "Newsroom CMS — Times Bay Area" },
       {
         name: "description",
         content:
           "Review automatically pulled Bay Area headlines, approve community submissions and publish new stories, events and ads.",
       },
-      { property: "og:title", content: "Newsroom CMS — Bay Area Telugu Times" },
+      { property: "og:title", content: "Newsroom CMS — Times Bay Area" },
       { property: "og:description", content: "Content review and publishing console." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

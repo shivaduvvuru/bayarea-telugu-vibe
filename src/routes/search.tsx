@@ -7,7 +7,7 @@ import { searchPosts } from "@/lib/content.functions";
 import { StoryCard } from "@/components/news";
 import { useLang } from "@/lib/language";
 
-const TITLE = "Search — Bay Area Telugu Times";
+const TITLE = "Search — Times Bay Area";
 const DESC =
   "Search Bay Area Telugu news, community announcements, temple programs, events and classifieds.";
 

@@ -64,7 +64,7 @@ export function LeaderboardBanner() {
 
 /** Wide banners shown directly under the main menu (greatandhra.com style). */
 const LEADERBOARD_BANNERS: Banner[] = [
-  { name: "Advertise on Bay Area Telugu Times", href: "/contact", note: "728x90 leaderboard — reach 50k+ Telugu families" },
+  { name: "Advertise on Times Bay Area", href: "/contact", note: "728x90 leaderboard — reach 50k+ Telugu families" },
   { name: "Telugu Times E-Paper", href: "https://telugutimes.net/", note: "Read today's edition free" },
   { name: "Your Business Here", href: "/contact", note: "Weekly & monthly banner slots available" },
 ];

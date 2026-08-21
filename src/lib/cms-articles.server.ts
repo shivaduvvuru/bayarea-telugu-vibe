@@ -122,7 +122,7 @@ function toArticle(row: Row): Article {
     excerpt: text.slice(0, 300),
     html: sanitizeHtml(row.body ?? (text ? `<p>${text}</p>` : "")),
     date: row.published_at ?? row.created_at,
-    author: "Bay Area Telugu Times",
+    author: "Times Bay Area",
     image: usableImage(row.image_url),
     category: slug,
     categoryName: cat?.en ?? "Community",
