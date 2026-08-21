@@ -1604,9 +1604,30 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
 }
 
 /** Collect fresh items for every city. Returns rows ready for a dedupe-safe upsert. */
-export async function collectAll(apiKey: string | undefined): Promise<CollectedItem[]> {
+/**
+ * Full news pass, read in rotating slices inside a hard time budget.
+ *
+ * Reading every city, guide, topic group and publisher in one request took
+ * minutes, so the scheduled call was always cut short and nothing reached the
+ * publishing stage — which is how the sections went stale. Each run now starts
+ * at the next offset and stops when the budget runs out, so every desk is still
+ * covered across a few runs and every run finishes.
+ */
+export async function collectAll(
+  apiKey: string | undefined,
+  opts?: { deadlineMs?: number; slice?: number },
+): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows: CollectedItem[] = [];
+  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
+  const inBudget = () => Date.now() < deadline;
+  const slice = opts?.slice ?? Math.floor(Date.now() / (20 * 60 * 1000));
+  /** Rotates a list so successive runs start where the last one stopped. */
+  const rotate = <T,>(list: T[], step: number): T[] => {
+    if (!list.length) return list;
+    const start = ((slice * step) % list.length + list.length) % list.length;
+    return [...list.slice(start), ...list.slice(0, start)];
+  };
   lastDiag.fetched = 0;
   lastDiag.raw = 0;
   lastDiag.kept = 0;
@@ -1615,8 +1636,9 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   lastDiag.notes = [];
 
 
-  for (let b = 0; b < CITIES.length; b += 4) {
-    const batch = CITIES.slice(b, b + 4);
+  const cityList = rotate(CITIES, 4);
+  for (let b = 0; b < cityList.length && inBudget(); b += 4) {
+    const batch = cityList.slice(b, b + 4);
     const collected = await Promise.all(
       batch.map(async (city) => {
         const items = await fetchCity(city);
@@ -1656,12 +1678,15 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
   // City activity guides, municipal recreation calendars, and the NRI-interest
   // community events pass for every one of the 16 cities.
-  const guideEntries = [
-    ...CITY_GUIDE_FEEDS.map((e) => ({ kind: "feed" as const, entry: e })),
-    ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "search" as const, entry: c })),
-    ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "nri" as const, entry: c })),
-  ];
-  for (let b = 0; b < guideEntries.length; b += 5) {
+  const guideEntries = rotate(
+    [
+      ...CITY_GUIDE_FEEDS.map((e) => ({ kind: "feed" as const, entry: e })),
+      ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "search" as const, entry: c })),
+      ...GUIDE_SEARCH_CITIES.map((c) => ({ kind: "nri" as const, entry: c })),
+    ],
+    5,
+  );
+  for (let b = 0; b < guideEntries.length && inBudget(); b += 5) {
     const guideRows = await Promise.all(
       guideEntries.slice(b, b + 5).map(async (g) => {
         const items =
@@ -1712,7 +1737,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
 
   // Region-wide NRI, community-event and temple items.
   const topicRows = await Promise.all(
-    TOPIC_GROUPS.map(async (group) => {
+    (inBudget() ? TOPIC_GROUPS : []).map(async (group) => {
       const items = await fetchTopics(group);
       const summaries = await summarize(BAY_AREA, items, apiKey);
       return items.map((it, i) => {
@@ -1749,9 +1774,10 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   // Named publishers read directly: Indian-American papers, Indian dailies and
   // magazines, and official immigration sources.
   const publisherBatches: CollectedItem[][] = [];
-  for (let b = 0; b < PUBLISHER_FEEDS.length; b += 8) {
+  const publisherList = rotate(PUBLISHER_FEEDS, 8);
+  for (let b = 0; b < publisherList.length && inBudget(); b += 8) {
   const publisherRows = await Promise.all(
-    PUBLISHER_FEEDS.slice(b, b + 8).map(async (feed) => {
+    publisherList.slice(b, b + 8).map(async (feed) => {
       const items = await fetchPublisher(feed);
       const summaries = await summarize(BAY_AREA, items, apiKey);
       return items.map((it, i) => {
@@ -1836,7 +1862,7 @@ export async function collectAll(apiKey: string | undefined): Promise<CollectedI
   // news feeds almost never carry seva / utsavam notices.
   try {
     const { fetchAllTemples } = await import("./temples.server");
-    const temples = await fetchAllTemples();
+    const temples = inBudget() ? await fetchAllTemples() : [];
     for (const t of temples) {
       const slug =
         CITIES.find((c) => c.en.toLowerCase() === t.source.city.toLowerCase())?.slug ??
