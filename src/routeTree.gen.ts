@@ -43,6 +43,7 @@ import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
 import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
@@ -229,6 +230,11 @@ const EventsIndexRoute = EventsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => EventsRoute,
 } as any)
+const EventsTempleCalendarRoute = EventsTempleCalendarRouteImport.update({
+  id: '/temple-calendar',
+  path: '/temple-calendar',
+  getParentRoute: () => EventsRoute,
+} as any)
 const ForumsIndexRoute = ForumsIndexRouteImport.update({
   id: '/forums/',
   path: '/forums/',
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/events': typeof EventsIndexRoute
@@ -449,6 +457,7 @@ export interface FileRoutesById {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
@@ -502,6 +511,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/property/$campaign'
     | '/temples/$city'
     | '/temples/calendar'
@@ -551,6 +561,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/temples/$city'
     | '/temples/calendar'
     | '/events'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/property/$campaign'
     | '/temples/$city'
     | '/temples/calendar'
@@ -905,6 +917,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsIndexRouteImport
       parentRoute: typeof EventsRoute
     }
+    '/events/temple-calendar': {
+      id: '/events/temple-calendar'
+      path: '/temple-calendar'
+      fullPath: '/events/temple-calendar'
+      preLoaderRoute: typeof EventsTempleCalendarRouteImport
+      parentRoute: typeof EventsRoute
+    }
     '/forums/': {
       id: '/forums/'
       path: '/forums'
@@ -1034,10 +1053,12 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface EventsRouteChildren {
+  EventsTempleCalendarRoute: typeof EventsTempleCalendarRoute
   EventsIndexRoute: typeof EventsIndexRoute
 }
 
 const EventsRouteChildren: EventsRouteChildren = {
+  EventsTempleCalendarRoute: EventsTempleCalendarRoute,
   EventsIndexRoute: EventsIndexRoute,
 }
 
