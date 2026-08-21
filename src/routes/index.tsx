@@ -11,7 +11,6 @@ import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
 import { HousingHero } from "@/components/housing-hero";
-import { PrimeHero } from "@/components/prime-hero";
 import {
   isPrimeBannerFresh,
   pickPrimeStory,
@@ -29,6 +28,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
+import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
@@ -531,6 +531,16 @@ function Home() {
   if (!lead) {
     return <EmptyState title="No stories yet" />;
   }
+
+  // Candidate pool for the curated hero slider: the lead first, then local Bay
+  // Area stories, then the wider digest. Selection itself (score, least-recently
+  // -used artwork, subject diversity) lives in @/lib/hero-select.
+  const heroSliderPool = (() => {
+    const seenSlugs = new Set<string>();
+    return [lead, ...local, ...leadCandidates].filter((a) =>
+      seenSlugs.has(a.slug) ? false : seenSlugs.add(a.slug),
+    );
+  })();
 
   // The lead has already been reserved by the local pass. Every later section
   // uses the same set, preventing a renamed/cross-posted story or reused photo
