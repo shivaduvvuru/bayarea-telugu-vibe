@@ -24,7 +24,7 @@ export type Classification = {
 const TEMPLE =
   /\b(temple|mandir|brahmotsavam|puja|pooja|abhishekam|homam|navaratri|navratri|ugadi|diwali|deepavali|ganesh|vinayaka|sankranti|discourse|bhajan|satsang|anniversary celebration)\b/i;
 const ASSOCIATION =
-  /\b(association|ata|tana|nats|natא|tesla society|sangam|samithi|independence day|republic day|cultural program(?:me)?|charity|fundraiser|networking|convention|conference|sammelanam)\b/i;
+  /\b(association|ata|tana|nats|tesla society|sangam|samithi|independence day|republic day|cultural program(?:me)?|charity|fundraiser|networking|convention|conference|sammelanam)\b/i;
 const RESTAURANT = /\b(restaurant|cafe|eatery|kitchen|dhaba|buffet|food truck|sweets|tiffin)\b/i;
 const FOOD_EVENT =
   /\b(food festival|hyderabadi food|tasting|cook-?off|dj night|comedy night|live music|karaoke|ladies night|brunch special)\b/i;

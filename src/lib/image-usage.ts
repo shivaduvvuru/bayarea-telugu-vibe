@@ -39,7 +39,7 @@ export type UsageRecord = {
   /** Last time it was used per section. */
   bySection: Partial<Record<UseSection, number>>;
   /** Coarse subject tag, used for visual-diversity checks. */
-  subject?: string;
+  subject?: string | undefined;
 };
 
 type Log = Record<string, UsageRecord>;
