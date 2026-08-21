@@ -445,7 +445,7 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground">{selectedIds.length} selected</span>
             <Button size="sm" className="ml-auto" onClick={() => act("publish", selectedIds)}>
-              <Check className="size-4" aria-hidden="true" /> Approve &amp; publish
+              <ThumbsUp className="size-4" aria-hidden="true" /> Like — approve &amp; publish
             </Button>
             <Button size="sm" variant="outline" onClick={() => act("approve", selectedIds)}>
               Approve only
@@ -453,8 +453,18 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             <Button size="sm" variant="outline" onClick={() => act("duplicate", selectedIds, "Duplicate")}>
               <CopyX className="size-4" aria-hidden="true" /> Duplicate
             </Button>
-            <Button size="sm" variant="destructive" onClick={() => act("reject", selectedIds, "Not useful")}>
+            <Button size="sm" variant="outline" onClick={() => act("reject", selectedIds, "Not useful")}>
               <X className="size-4" aria-hidden="true" /> Reject
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                if (window.confirm(`Permanently delete ${selectedIds.length} item(s) site-wide?`))
+                  void dislike(selectedIds);
+              }}
+            >
+              <ThumbsDown className="size-4" aria-hidden="true" /> Dislike — delete
             </Button>
           </div>
         </div>
@@ -469,6 +479,7 @@ function QueueList({
   selected,
   setSelected,
   onAct,
+  onDislike,
 }: {
   rows: QueueRow[];
   busy: boolean;
@@ -479,6 +490,7 @@ function QueueList({
     ids: string[],
     reason?: string,
   ) => void;
+  onDislike: (ids: string[]) => void;
 }) {
   if (busy && !rows.length)
     return <p className="mt-6 text-sm text-muted-foreground">Loading candidates…</p>;
@@ -495,6 +507,25 @@ function QueueList({
     else next.add(id);
     setSelected(next);
   };
+
+  const allSelected = rows.length > 0 && rows.every((row) => selected.has(row.id));
+
+  return (
+    <>
+      <div className="mt-4 flex items-center gap-2 border-y border-border py-2">
+        <Checkbox
+          checked={allSelected}
+          onCheckedChange={(checked) => setSelected(checked ? new Set(rows.map((row) => row.id)) : new Set())}
+          aria-label="Select all stories shown"
+        />
+        <span className="text-xs text-muted-foreground">
+          {allSelected ? "All shown selected" : `Select all ${rows.length} shown`}
+        </span>
+        <Button size="sm" className="ml-auto" onClick={() => onAct("publish", rows.map((row) => row.id))}>
+          <CheckCheck className="size-4" aria-hidden="true" /> Approve &amp; publish all shown
+        </Button>
+      </div>
+
 
   return (
     <ul className="mt-4 space-y-3">
