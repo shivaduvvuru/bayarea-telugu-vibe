@@ -10,6 +10,8 @@ import type { PropertyCampaign } from "@/lib/property";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PropertyLiveDesk } from "@/components/property-live-desk";
+import { PropertyLeadQueue } from "@/components/property-lead-queue";
 
 const CAMPAIGN = "credai-hyderabad-2026";
 
@@ -192,6 +194,8 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
                     event_end: String(form.get("event_end") ?? ""),
                     opening_hours: String(form.get("opening_hours") ?? ""),
                     official_url: String(form.get("official_url") ?? ""),
+                    live_mode: form.get("live_mode") === "on",
+                    live_note: String(form.get("live_note") ?? ""),
                     homepage_visible: form.get("homepage_visible") === "on",
                     post_event: form.get("post_event") === "on",
                   },
@@ -216,6 +220,11 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             <Field name="event_end" label="End date (YYYY-MM-DD)" defaultValue={campaign.event_end ?? ""} />
             <Field name="opening_hours" label="Opening hours" defaultValue={campaign.opening_hours ?? ""} />
             <Field name="official_url" label="Official URL" defaultValue={campaign.official_url ?? ""} />
+            <Field name="live_note" label="Live banner note" defaultValue={campaign.live_note ?? ""} />
+            <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <input type="checkbox" name="live_mode" defaultChecked={campaign.live_mode} />
+              Live from the venue (on-site updates refresh every minute)
+            </label>
             <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <input type="checkbox" name="homepage_visible" defaultChecked={campaign.homepage_visible} />
               Show the homepage module
@@ -232,6 +241,10 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           </form>
         </Card>
       ) : null}
+
+      <PropertyLiveDesk campaignSlug={CAMPAIGN} deskToken={deskToken} />
+
+      <PropertyLeadQueue campaignSlug={CAMPAIGN} deskToken={deskToken} />
 
       <Card className="mt-6 p-4">
         <h2 className="text-sm font-bold uppercase tracking-wide text-ink">Per-project performance</h2>

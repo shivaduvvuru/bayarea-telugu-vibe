@@ -921,6 +921,8 @@ export type Database = {
           hero_image_url: string | null
           homepage_visible: boolean
           id: string
+          live_mode: boolean
+          live_note: string | null
           map_url: string | null
           name: string
           official_url: string | null
@@ -948,6 +950,8 @@ export type Database = {
           hero_image_url?: string | null
           homepage_visible?: boolean
           id?: string
+          live_mode?: boolean
+          live_note?: string | null
           map_url?: string | null
           name: string
           official_url?: string | null
@@ -975,6 +979,8 @@ export type Database = {
           hero_image_url?: string | null
           homepage_visible?: boolean
           id?: string
+          live_mode?: boolean
+          live_note?: string | null
           map_url?: string | null
           name?: string
           official_url?: string | null
@@ -997,10 +1003,12 @@ export type Database = {
           campaign_code: string
           campaign_slug: string
           city: string | null
+          contact_status: string
           country: string | null
           created_at: string
           developers: string[]
           email: string
+          follow_up_note: string | null
           id: string
           message: string | null
           name: string
@@ -1010,6 +1018,7 @@ export type Database = {
           property_ids: string[]
           referrer: string | null
           source_page: string | null
+          updated_at: string
           utm: Json
         }
         Insert: {
@@ -1017,10 +1026,12 @@ export type Database = {
           campaign_code?: string
           campaign_slug: string
           city?: string | null
+          contact_status?: string
           country?: string | null
           created_at?: string
           developers?: string[]
           email: string
+          follow_up_note?: string | null
           id?: string
           message?: string | null
           name: string
@@ -1030,6 +1041,7 @@ export type Database = {
           property_ids?: string[]
           referrer?: string | null
           source_page?: string | null
+          updated_at?: string
           utm?: Json
         }
         Update: {
@@ -1037,10 +1049,12 @@ export type Database = {
           campaign_code?: string
           campaign_slug?: string
           city?: string | null
+          contact_status?: string
           country?: string | null
           created_at?: string
           developers?: string[]
           email?: string
+          follow_up_note?: string | null
           id?: string
           message?: string | null
           name?: string
@@ -1050,9 +1064,66 @@ export type Database = {
           property_ids?: string[]
           referrer?: string | null
           source_page?: string | null
+          updated_at?: string
           utm?: Json
         }
         Relationships: []
+      }
+      property_live_posts: {
+        Row: {
+          body: string | null
+          booth: string | null
+          campaign_slug: string
+          created_at: string
+          developer: string | null
+          id: string
+          kind: string
+          media_url: string | null
+          pinned: boolean
+          poster_url: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          booth?: string | null
+          campaign_slug: string
+          created_at?: string
+          developer?: string | null
+          id?: string
+          kind?: string
+          media_url?: string | null
+          pinned?: boolean
+          poster_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          booth?: string | null
+          campaign_slug?: string
+          created_at?: string
+          developer?: string | null
+          id?: string
+          kind?: string
+          media_url?: string | null
+          pinned?: boolean
+          poster_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_live_posts_campaign_slug_fkey"
+            columns: ["campaign_slug"]
+            isOneToOne: false
+            referencedRelation: "property_campaigns"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       property_metrics: {
         Row: {
