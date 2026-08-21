@@ -16,7 +16,7 @@ const RAIL = [
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
+  { to: "/property", label: "Property" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temple Directory" },
   { to: "/temples/calendar", label: "Temple Calendar" },
@@ -27,11 +27,6 @@ const RAIL = [
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations & Community" },
   { to: "/connect", label: "Services" },
-  {
-    to: "/property/$campaign",
-    params: { campaign: "credai-hyderabad-2026" },
-    label: "Property Show",
-  },
   { to: "/forums", label: "Forums" },
 ] as const;
 
@@ -41,7 +36,7 @@ const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
+  { to: "/property", label: "Property" },
 ] as const;
 
 
@@ -375,7 +370,7 @@ export function LiteHeader() {
             <Link
               key={i}
               to={item.to}
-              params={item.params}
+              params={"params" in item ? item.params : {}}
               activeProps={{ className: "underline" }}
               className="whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
             >
