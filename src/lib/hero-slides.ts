@@ -49,18 +49,8 @@ const credaiSlide: HeroSlide = {
   tint: "#4c4b51",
 };
 
-/** One hero-size slide per skyscraper project, in printed order after CREDAI. */
-const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p, i) => ({
-  id: `property-${p.id}`,
-  type: "skyscraper_feature",
-  sponsorName: p.developer,
-  title: p.project,
-  subtitle: p.location ?? "Featured in the Telugu Times 23rd Anniversary Special",
-  imageUrl: propertyImage(p.id),
-  ctaText: "View Details",
-  linkUrl: p.site ?? EPAPER_ANNIVERSARY_URL,
-  highlights: [p.note, p.location].filter((x): x is string => !!x),
-  tint: TINTS[i % TINTS.length]!,
-}));
-
-export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
+/**
+ * The CREDAI slot is a single banner: individual skyscraper property features
+ * live in the in-feed property hero and on /property, not in this carousel.
+ */
+export const heroSlides: HeroSlide[] = [credaiSlide];
