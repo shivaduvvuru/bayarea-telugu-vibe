@@ -172,14 +172,15 @@ export async function cmsPosts(
 
   } else if (category === "cinema") {
     // Cinema is a picture desk too: only film stories that carry a usable photo
-    // make the feed. Older film stories were stored as plain "news"; pull both
-    // and let the classifier decide. The pool stays wide because the image
-    // filter drops a lot of rows.
+    // make the feed. Older film stories were stored as plain "news" and vertical
+    // micro-drama coverage now lives on this desk as well; pull all three and
+    // let the classifier decide. The pool stays wide because the image filter
+    // drops a lot of rows.
     q = base()
       .order("published_at", { ascending: false })
       .limit(Math.max(limit * 12, 400))
       .not("image_url", "is", null)
-      .in("category", ["cinema", "news"]);
+      .in("category", ["cinema", MICRO_DRAMA_SLUG, "news"]);
 
   } else if (category === "micro-drama") {
     // Micro-drama is a young desk. Rows already filed to it are read in a
