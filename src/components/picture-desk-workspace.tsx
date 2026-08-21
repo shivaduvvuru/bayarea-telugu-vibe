@@ -13,6 +13,8 @@ import {
   RefreshCw,
   RotateCcw,
   Star,
+  ThumbsDown,
+  ThumbsUp,
   Trash2,
   X,
 } from "lucide-react";
@@ -27,6 +29,7 @@ import { publishApproved as publishApprovedFn } from "@/lib/desk-publish.functio
 import {
   getPictureBucketCounts,
   listPictureBucket,
+  purgePictures,
   setPictureBucket,
 } from "@/lib/picture-intake.functions";
 
@@ -104,6 +107,7 @@ export function PictureDeskWorkspace({
   const readCounts = useServerFn(getPictureBucketCounts);
   const moveItems = useServerFn(setPictureBucket);
   const publishApproved = useServerFn(publishApprovedFn);
+  const purgeItems = useServerFn(purgePictures);
   const [bucket, setBucket] = useState<Bucket>("pending");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(24);
@@ -238,6 +242,20 @@ export function PictureDeskWorkspace({
     })();
   };
 
+  /** Editor dislike: permanent, site-wide deletion of the picture. */
+  const dislike = async (ids: string[]) => {
+    if (!ids.length) return;
+    dropLocally(ids);
+    setCounts((current) => ({ ...current, [bucket]: Math.max(0, (current[bucket] ?? ids.length) - ids.length) }));
+    try {
+      const result = await purgeItems({ data: { itemIds: ids, deskToken } });
+      if (result.error) throw new Error(result.error);
+      toast.success(`Deleted ${result.deleted || ids.length} picture${ids.length === 1 ? "" : "s"} permanently`);
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Could not delete the picture");
+    }
+  };
+
   /** Batch action: one request, toast, then sync the desk. */
   const act = async (stage: "pending" | "approved" | "rejected" | "duplicate", ids = selectedIds) => {
     if (!ids.length) return;
@@ -335,6 +353,7 @@ export function PictureDeskWorkspace({
             <span className="mr-2 text-xs text-muted-foreground">{selected.size ? `${selected.size} selected` : "Select shown pictures"}</span>
             <Button size="sm" onClick={() => void act("approved")} disabled={!selectedIds.length || acting}><Check /> Bulk approve</Button>
             <Button size="sm" variant="outline" onClick={() => void act("rejected")} disabled={!selectedIds.length || acting}><X /> Bulk reject</Button>
+            <Button size="sm" variant="destructive" onClick={() => { if (window.confirm(`Permanently delete ${selectedIds.length} picture(s) site-wide?`)) void dislike(selectedIds); }} disabled={!selectedIds.length || acting}><ThumbsDown /> Dislike &amp; delete</Button>
             {bucket === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => void act("pending")} disabled={!selectedIds.length || acting}><RotateCcw /> Override to pending</Button>}
           </div>
         )}
@@ -373,8 +392,10 @@ export function PictureDeskWorkspace({
                       size="icon"
                       variant="destructive"
                       className="absolute right-2 top-2 size-8 shadow-md"
-                      title="Delete picture"
-                      onClick={() => quickAct("rejected", item)}
+                      title="Dislike — delete permanently"
+                      onClick={() => {
+                        if (window.confirm("Permanently delete this picture site-wide?")) void dislike([item.item_id]);
+                      }}
                     >
                       <Trash2 className="size-4" /><span className="sr-only">Delete picture</span>
                     </Button>
@@ -384,7 +405,8 @@ export function PictureDeskWorkspace({
                   <p className="text-xs text-muted-foreground">{new Date(item.discovered_at).toLocaleString()}</p>
                   {item.source_url && <a href={item.source_url} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1 text-xs font-medium text-primary hover:underline">{item.source ?? "Source"} <ExternalLink className="size-3" /></a>}
                   <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                    {item.stage !== "approved" && <Button size="sm" onClick={() => quickAct("approved", item)}><Check /> Approve</Button>}
+                    {item.stage !== "approved" && <Button size="sm" onClick={() => quickAct("approved", item)}><ThumbsUp /> Like</Button>}
+                    <Button size="sm" variant="destructive" onClick={() => { if (window.confirm("Permanently delete this picture site-wide?")) void dislike([item.item_id]); }}><ThumbsDown /> Dislike</Button>
                     {item.stage !== "rejected" && <Button size="sm" variant="outline" onClick={() => quickAct("rejected", item)}><X /> Reject</Button>}
                     {item.stage === "safety_blocked" && <Button size="sm" variant="secondary" onClick={() => quickAct("pending", item)}><RotateCcw /> Override</Button>}
                     {item.stage !== "duplicate" && <Button size="icon" variant="ghost" title="Mark duplicate" onClick={() => quickAct("duplicate", item)}><CopyX /><span className="sr-only">Mark duplicate</span></Button>}
