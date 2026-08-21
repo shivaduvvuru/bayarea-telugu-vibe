@@ -21,19 +21,9 @@ import { dedupeKey } from "./dedupe";
  * twice even if the store still holds a near-copy.
  */
 function dedupeArticles(items: Article[]): Article[] {
-  const seen = new Set<string>();
-  const out: Article[] = [];
-  for (const a of items) {
-    const keys = [
-      dedupeKey(a.title ?? ""),
-      a.sourceUrl ? `u:${a.sourceUrl.split("?")[0]!.replace(/\/$/, "").toLowerCase()}` : "",
-      a.image ? `i:${a.image.split("?")[0]!.toLowerCase()}` : "",
-    ].filter(Boolean);
-    if (keys.some((k) => seen.has(k))) continue;
-    for (const k of keys) seen.add(k);
-    out.push(a);
-  }
-  return out;
+  // Uses the shared content keys so a re-worded headline of the same story
+  // (same lead, different tail) collapses as well as an exact repeat.
+  return uniqueByContent(items);
 }
 
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
