@@ -258,10 +258,10 @@ export function LiteHeader() {
     <header className="glass-bar sticky top-0 z-40 border-b border-border/70">
 
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
-        <Link to="/" className="shrink-0" aria-label="Bay Area Telugu Times home">
+        <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
           <img
             src={masthead}
-            alt="Bay Area Telugu Times"
+            alt="Times Bay Area"
             width={150}
             height={30}
             className="h-7 w-auto"

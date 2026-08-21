@@ -27,7 +27,7 @@ export const Route = createFileRoute("/article/$slug")({
       return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
     }
     const { article } = loaderData;
-    const title = `${article.title} — Bay Area Telugu Times`;
+    const title = `${article.title} — Times Bay Area`;
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: article.excerpt },
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/article/$slug")({
             author: { "@type": "Person", name: article.author },
             publisher: {
               "@type": "NewsMediaOrganization",
-              name: "Bay Area Telugu Times",
+              name: "Times Bay Area",
               url: "https://bayarea-telugu-vibe.lovable.app",
             },
           }),
@@ -127,7 +127,7 @@ function ArticlePage() {
             <LangBadge article={article} />
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            <span className="font-semibold text-ink">Bay Area Telugu Times newsroom</span>
+            <span className="font-semibold text-ink">Times Bay Area newsroom</span>
             {article.category === "community" && (
               <span className="border border-border px-1.5 py-0.5 font-semibold">
                 Community submission

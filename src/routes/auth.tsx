@@ -12,16 +12,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Editor sign in — Bay Area Telugu Times" },
+      { title: "Editor sign in — Times Bay Area" },
       {
         name: "description",
         content:
-          "Sign in to the Bay Area Telugu Times newsroom to review pulled headlines, approve community submissions and publish local stories.",
+          "Sign in to the Times Bay Area newsroom to review pulled headlines, approve community submissions and publish local stories.",
       },
-      { property: "og:title", content: "Editor sign in — Bay Area Telugu Times" },
+      { property: "og:title", content: "Editor sign in — Times Bay Area" },
       {
         property: "og:description",
-        content: "Newsroom access for Bay Area Telugu Times editors.",
+        content: "Newsroom access for Times Bay Area editors.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -132,7 +132,7 @@ function AuthPage() {
       <div>
         <h1 className="font-serif text-3xl">Newsroom sign in</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          For Bay Area Telugu Times editors. Community members can post without an account
+          For Times Bay Area editors. Community members can post without an account
           from the Submit page.
         </p>
       </div>

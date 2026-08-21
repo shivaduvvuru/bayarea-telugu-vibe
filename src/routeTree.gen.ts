@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AssociationsRouteImport } from './routes/associations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BayAreaIconsRouteImport } from './routes/bay-area-icons'
+import { Route as CommandCenterRouteImport } from './routes/command-center'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DeskRouteImport } from './routes/desk'
@@ -46,6 +47,7 @@ import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
+import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -75,6 +77,11 @@ const AuthRoute = AuthRouteImport.update({
 const BayAreaIconsRoute = BayAreaIconsRouteImport.update({
   id: '/bay-area-icons',
   path: '/bay-area-icons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommandCenterRoute = CommandCenterRouteImport.update({
+  id: '/command-center',
+  path: '/command-center',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnectRoute = ConnectRouteImport.update({
@@ -234,6 +241,12 @@ const ApiPublicHooksCollectNewsRoute =
     path: '/api/public/hooks/collect-news',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIngestSourcesRoute =
+  ApiPublicHooksIngestSourcesRouteImport.update({
+    id: '/api/public/hooks/ingest-sources',
+    path: '/api/public/hooks/ingest-sources',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
   id: '/api/public/media/$',
   path: '/api/public/media/$',
@@ -246,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/associations': typeof AssociationsRoute
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
+  '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/desk': typeof DeskRoute
@@ -277,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
@@ -285,6 +300,7 @@ export interface FileRoutesByTo {
   '/associations': typeof AssociationsRoute
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
+  '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/desk': typeof DeskRoute
@@ -315,6 +331,7 @@ export interface FileRoutesByTo {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
@@ -325,6 +342,7 @@ export interface FileRoutesById {
   '/associations': typeof AssociationsRoute
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
+  '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/desk': typeof DeskRoute
@@ -356,6 +374,7 @@ export interface FileRoutesById {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
@@ -366,6 +385,7 @@ export interface FileRouteTypes {
     | '/associations'
     | '/auth'
     | '/bay-area-icons'
+    | '/command-center'
     | '/connect'
     | '/contact'
     | '/desk'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/ingest-sources'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -405,6 +426,7 @@ export interface FileRouteTypes {
     | '/associations'
     | '/auth'
     | '/bay-area-icons'
+    | '/command-center'
     | '/connect'
     | '/contact'
     | '/desk'
@@ -435,6 +457,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/ingest-sources'
     | '/api/public/media/$'
   id:
     | '__root__'
@@ -444,6 +467,7 @@ export interface FileRouteTypes {
     | '/associations'
     | '/auth'
     | '/bay-area-icons'
+    | '/command-center'
     | '/connect'
     | '/contact'
     | '/desk'
@@ -475,6 +499,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/ingest-sources'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
@@ -485,6 +510,7 @@ export interface RootRouteChildren {
   AssociationsRoute: typeof AssociationsRoute
   AuthRoute: typeof AuthRoute
   BayAreaIconsRoute: typeof BayAreaIconsRoute
+  CommandCenterRoute: typeof CommandCenterRoute
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
   DeskRoute: typeof DeskRoute
@@ -511,6 +537,7 @@ export interface RootRouteChildren {
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
+  ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
@@ -556,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/bay-area-icons'
       fullPath: '/bay-area-icons'
       preLoaderRoute: typeof BayAreaIconsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/command-center': {
+      id: '/command-center'
+      path: '/command-center'
+      fullPath: '/command-center'
+      preLoaderRoute: typeof CommandCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connect': {
@@ -775,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCollectNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/ingest-sources': {
+      id: '/api/public/hooks/ingest-sources'
+      path: '/api/public/hooks/ingest-sources'
+      fullPath: '/api/public/hooks/ingest-sources'
+      preLoaderRoute: typeof ApiPublicHooksIngestSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$': {
       id: '/api/public/media/$'
       path: '/api/public/media/$'
@@ -820,6 +861,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssociationsRoute: AssociationsRoute,
   AuthRoute: AuthRoute,
   BayAreaIconsRoute: BayAreaIconsRoute,
+  CommandCenterRoute: CommandCenterRoute,
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
   DeskRoute: DeskRoute,
@@ -846,6 +888,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
+  ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport

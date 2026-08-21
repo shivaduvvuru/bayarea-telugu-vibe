@@ -77,7 +77,7 @@ export function toArticle(p: WpPost): Article {
     excerpt: decode(p.excerpt?.rendered ?? "").slice(0, 240),
     html: sanitizeHtml(p.content?.rendered ?? ""),
     date: p.date,
-    author: e.author?.[0]?.name ?? "Bay Area Telugu Times",
+    author: e.author?.[0]?.name ?? "Times Bay Area",
     image: safeUrl(e["wp:featuredmedia"]?.[0]?.source_url),
     category: primary?.slug ?? "city-news",
     categoryName: primary ? decode(primary.name) : "News",

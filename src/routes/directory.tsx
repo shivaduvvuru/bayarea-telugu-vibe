@@ -13,7 +13,7 @@ import {
   DIRECTORY_CATEGORIES,
 } from "@/lib/community-data";
 
-const TITLE = "Community Directory — Bay Area Telugu Times";
+const TITLE = "Community Directory — Times Bay Area";
 const DESC =
   "Temples, associations and Telugu community organisations across the San Francisco Bay Area.";
 

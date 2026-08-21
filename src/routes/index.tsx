@@ -41,7 +41,7 @@ const HOME_LIVE_KEYS: unknown[][] = [
 import { CollectStatus } from "@/components/collect-status";
 
 
-const TITLE = "Bay Area Telugu Times — Digest of newspapers & journals";
+const TITLE = "Times Bay Area — Digest of newspapers & journals";
 const DESC =
   "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
@@ -627,7 +627,7 @@ function Home() {
 
   return (
     <div className="rise mx-auto max-w-6xl px-3 py-3">
-      <h1 className="sr-only">Bay Area Telugu Times — digest of newspapers and journals</h1>
+      <h1 className="sr-only">Times Bay Area — digest of newspapers and journals</h1>
       <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">

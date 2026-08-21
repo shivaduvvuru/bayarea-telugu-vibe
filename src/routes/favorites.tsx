@@ -9,9 +9,9 @@ import type { Article } from "@/lib/content";
 
 export const Route = createFileRoute("/favorites")({
   head: () => {
-    const title = "Saved cinema photos — Bay Area Telugu Times";
+    const title = "Saved cinema photos — Times Bay Area";
     const description =
-      "Your saved cinema and gallery pictures from the Bay Area Telugu Times digest, ready to browse and share.";
+      "Your saved cinema and gallery pictures from the Times Bay Area digest, ready to browse and share.";
     return {
       meta: [
         { title },

@@ -10,7 +10,7 @@
 import { usableImage } from "./story-image";
 
 export const WP_SITE = "https://bayarea.telugutimes.net";
-export const WP_SOURCE_NAME = "Bay Area Telugu Times (WordPress)";
+export const WP_SOURCE_NAME = "Times Bay Area (WordPress)";
 
 export type WpPost = {
   title: string;

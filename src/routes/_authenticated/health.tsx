@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/health")({
   head: () => ({
     meta: [
-      { title: "Source health — Bay Area Telugu Times" },
+      { title: "Source health — Times Bay Area" },
       {
         name: "description",
         content:
-          "Live status of every temple, politics and syndication feed powering Bay Area Telugu Times.",
+          "Live status of every temple, politics and syndication feed powering Times Bay Area.",
       },
-      { property: "og:title", content: "Source health — Bay Area Telugu Times" },
+      { property: "og:title", content: "Source health — Times Bay Area" },
       { property: "og:description", content: "Ingestion pipeline monitoring console." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

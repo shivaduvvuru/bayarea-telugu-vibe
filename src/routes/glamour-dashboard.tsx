@@ -19,13 +19,13 @@ import {
 export const Route = createFileRoute("/glamour-dashboard")({
   head: () => ({
     meta: [
-      { title: "Glamour folder dashboard — Bay Area Telugu Times" },
+      { title: "Glamour folder dashboard — Times Bay Area" },
       {
         name: "description",
         content:
           "Every picture in the Glamour folder with its solo-woman status, likes, archive state and the next scheduled collection run.",
       },
-      { property: "og:title", content: "Glamour folder dashboard — Bay Area Telugu Times" },
+      { property: "og:title", content: "Glamour folder dashboard — Times Bay Area" },
       {
         property: "og:description",
         content: "Live and archived Glamour pictures, solo status and collector schedule.",

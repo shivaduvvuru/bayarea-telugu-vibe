@@ -62,7 +62,7 @@ function HeaderSearch({ className = "" }: { className?: string }) {
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        aria-label={t("Search Bay Area Telugu Times", "వెతకండి")}
+        aria-label={t("Search Times Bay Area", "వెతకండి")}
         placeholder={t("Search news, temples, events", "వార్తలు, దేవాలయాలు, ఈవెంట్లు")}
         className="w-44 bg-transparent text-xs text-ink outline-none placeholder:text-muted-foreground lg:w-56"
       />
@@ -246,7 +246,7 @@ export function SiteHeader() {
         <Link to="/" className="flex min-w-0 justify-center">
           <img
             src={masthead}
-            alt="Bay Area Telugu Times"
+            alt="Times Bay Area"
             width={1408}
             height={512}
             loading="eager"
@@ -271,7 +271,7 @@ export function SiteHeader() {
         <Link to="/" className="shrink-0">
           <img
             src={masthead}
-            alt="Bay Area Telugu Times"
+            alt="Times Bay Area"
             width={1408}
             height={512}
             loading="eager"

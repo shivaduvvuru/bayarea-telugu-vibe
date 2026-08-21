@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Newspaper, Download } from "lucide-react";
 
-const TITLE = "E-Paper — Bay Area Telugu Times";
+const TITLE = "E-Paper — Times Bay Area";
 const DESC =
-  "Read the weekly digital edition of the Bay Area Telugu Times newspaper.";
+  "Read the weekly digital edition of the Times Bay Area newspaper.";
 
 const ISSUES = [
   { label: "Aug 1, 2026", note: "Ugadi special edition · 24 pages" },

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const TITLE = "Submit news, events & photos — Bay Area Telugu Times";
+const TITLE = "Submit news, events & photos — Times Bay Area";
 const DESC =
   "Share Bay Area Telugu community news, events, temple announcements, classifieds and photos. Our editors review every submission before it goes live.";
 
@@ -94,7 +94,7 @@ function SubmitPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="font-serif text-3xl">Submit to Bay Area Telugu Times</h1>
+      <h1 className="font-serif text-3xl">Submit to Times Bay Area</h1>
       <p className="mt-2 text-sm text-muted-foreground">{DESC}</p>
 
       <form

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      cities: {
+        Row: {
+          active: boolean
+          created_at: string
+          name: string
+          region: string | null
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          name: string
+          region?: string | null
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          name?: string
+          region?: string | null
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       collect_runs: {
         Row: {
           collected: number
@@ -87,9 +114,14 @@ export type Database = {
       }
       content_items: {
         Row: {
+          ai_generated_at: string | null
           body: string | null
           category: string | null
           city: string | null
+          confidence: Database["public"]["Enums"]["source_confidence"] | null
+          content_label: Database["public"]["Enums"]["content_label"] | null
+          corrected_at: string | null
+          correction_note: string | null
           created_at: string
           dedupe_key: string | null
           duplicate_of: string | null
@@ -102,22 +134,33 @@ export type Database = {
           people_checked_at: string | null
           people_count: number | null
           placement: string
+          priority_score: number | null
           published_at: string | null
           region: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           source: string
+          source_id: string | null
+          source_names: string[] | null
           source_ref: string | null
           status: string
+          story_cluster_id: string | null
           summary: string | null
           title: string
           updated_at: string
           venue: string | null
+          what_to_do: string | null
+          why_it_matters: string | null
         }
         Insert: {
+          ai_generated_at?: string | null
           body?: string | null
           category?: string | null
           city?: string | null
+          confidence?: Database["public"]["Enums"]["source_confidence"] | null
+          content_label?: Database["public"]["Enums"]["content_label"] | null
+          corrected_at?: string | null
+          correction_note?: string | null
           created_at?: string
           dedupe_key?: string | null
           duplicate_of?: string | null
@@ -130,22 +173,33 @@ export type Database = {
           people_checked_at?: string | null
           people_count?: number | null
           placement?: string
+          priority_score?: number | null
           published_at?: string | null
           region?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
+          source_id?: string | null
+          source_names?: string[] | null
           source_ref?: string | null
           status?: string
+          story_cluster_id?: string | null
           summary?: string | null
           title: string
           updated_at?: string
           venue?: string | null
+          what_to_do?: string | null
+          why_it_matters?: string | null
         }
         Update: {
+          ai_generated_at?: string | null
           body?: string | null
           category?: string | null
           city?: string | null
+          confidence?: Database["public"]["Enums"]["source_confidence"] | null
+          content_label?: Database["public"]["Enums"]["content_label"] | null
+          corrected_at?: string | null
+          correction_note?: string | null
           created_at?: string
           dedupe_key?: string | null
           duplicate_of?: string | null
@@ -158,17 +212,23 @@ export type Database = {
           people_checked_at?: string | null
           people_count?: number | null
           placement?: string
+          priority_score?: number | null
           published_at?: string | null
           region?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
+          source_id?: string | null
+          source_names?: string[] | null
           source_ref?: string | null
           status?: string
+          story_cluster_id?: string | null
           summary?: string | null
           title?: string
           updated_at?: string
           venue?: string | null
+          what_to_do?: string | null
+          why_it_matters?: string | null
         }
         Relationships: [
           {
@@ -178,7 +238,99 @@ export type Database = {
             referencedRelation: "content_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "content_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_items_story_cluster_id_fkey"
+            columns: ["story_cluster_id"]
+            isOneToOne: false
+            referencedRelation: "story_clusters"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      content_sources: {
+        Row: {
+          active: boolean
+          api_url: string | null
+          cities: string[]
+          confidence: Database["public"]["Enums"]["source_confidence"]
+          connector_type: Database["public"]["Enums"]["connector_type"]
+          created_at: string
+          duplicates_removed: number
+          frequency_minutes: number
+          id: string
+          items_discovered: number
+          items_published: number
+          last_checked_at: string | null
+          last_error: string | null
+          last_success_at: string | null
+          name: string
+          notes: string | null
+          read_original_clicks: number
+          rss_url: string | null
+          source_class: Database["public"]["Enums"]["source_class"]
+          source_url: string | null
+          status: Database["public"]["Enums"]["source_status"]
+          topics: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          api_url?: string | null
+          cities?: string[]
+          confidence?: Database["public"]["Enums"]["source_confidence"]
+          connector_type?: Database["public"]["Enums"]["connector_type"]
+          created_at?: string
+          duplicates_removed?: number
+          frequency_minutes?: number
+          id?: string
+          items_discovered?: number
+          items_published?: number
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          name: string
+          notes?: string | null
+          read_original_clicks?: number
+          rss_url?: string | null
+          source_class?: Database["public"]["Enums"]["source_class"]
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["source_status"]
+          topics?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          api_url?: string | null
+          cities?: string[]
+          confidence?: Database["public"]["Enums"]["source_confidence"]
+          connector_type?: Database["public"]["Enums"]["connector_type"]
+          created_at?: string
+          duplicates_removed?: number
+          frequency_minutes?: number
+          id?: string
+          items_discovered?: number
+          items_published?: number
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          name?: string
+          notes?: string | null
+          read_original_clicks?: number
+          rss_url?: string | null
+          source_class?: Database["public"]["Enums"]["source_class"]
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["source_status"]
+          topics?: string[]
+          updated_at?: string
+        }
+        Relationships: []
       }
       digest_queue: {
         Row: {
@@ -382,6 +534,44 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      editorial_reviews: {
+        Row: {
+          action: string
+          created_at: string
+          editor_id: string | null
+          id: string
+          notes: string | null
+          raw_item_id: string | null
+          rejection_reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          raw_item_id?: string | null
+          rejection_reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          raw_item_id?: string | null
+          rejection_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_reviews_raw_item_id_fkey"
+            columns: ["raw_item_id"]
+            isOneToOne: false
+            referencedRelation: "raw_ingestion_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       forum_replies: {
         Row: {
@@ -613,6 +803,313 @@ export type Database = {
         }
         Relationships: []
       }
+      raw_ingestion_items: {
+        Row: {
+          ai_generated_at: string | null
+          author: string | null
+          canonical_url: string
+          city: string | null
+          community_relevance: number
+          connector_type: Database["public"]["Enums"]["connector_type"]
+          created_at: string
+          deadline_at: string | null
+          dedupe_key: string | null
+          dedupe_status: Database["public"]["Enums"]["dedupe_status"]
+          digest_headline: string | null
+          discovered_datetime: string
+          duplicate_of: string | null
+          event_start: string | null
+          excerpt: string | null
+          external_item_id: string | null
+          id: string
+          image_url: string | null
+          original_title: string
+          priority_score: number
+          processing_status: Database["public"]["Enums"]["ingest_status"]
+          publication_datetime: string | null
+          published_content_item_id: string | null
+          raw_metadata: Json
+          requires_human_review: boolean
+          source_id: string | null
+          source_name: string
+          story_cluster_id: string | null
+          tags: string[]
+          topic: string | null
+          updated_at: string
+          urgency: string | null
+          what_happened: string | null
+          what_to_do: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          ai_generated_at?: string | null
+          author?: string | null
+          canonical_url: string
+          city?: string | null
+          community_relevance?: number
+          connector_type?: Database["public"]["Enums"]["connector_type"]
+          created_at?: string
+          deadline_at?: string | null
+          dedupe_key?: string | null
+          dedupe_status?: Database["public"]["Enums"]["dedupe_status"]
+          digest_headline?: string | null
+          discovered_datetime?: string
+          duplicate_of?: string | null
+          event_start?: string | null
+          excerpt?: string | null
+          external_item_id?: string | null
+          id?: string
+          image_url?: string | null
+          original_title: string
+          priority_score?: number
+          processing_status?: Database["public"]["Enums"]["ingest_status"]
+          publication_datetime?: string | null
+          published_content_item_id?: string | null
+          raw_metadata?: Json
+          requires_human_review?: boolean
+          source_id?: string | null
+          source_name: string
+          story_cluster_id?: string | null
+          tags?: string[]
+          topic?: string | null
+          updated_at?: string
+          urgency?: string | null
+          what_happened?: string | null
+          what_to_do?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          ai_generated_at?: string | null
+          author?: string | null
+          canonical_url?: string
+          city?: string | null
+          community_relevance?: number
+          connector_type?: Database["public"]["Enums"]["connector_type"]
+          created_at?: string
+          deadline_at?: string | null
+          dedupe_key?: string | null
+          dedupe_status?: Database["public"]["Enums"]["dedupe_status"]
+          digest_headline?: string | null
+          discovered_datetime?: string
+          duplicate_of?: string | null
+          event_start?: string | null
+          excerpt?: string | null
+          external_item_id?: string | null
+          id?: string
+          image_url?: string | null
+          original_title?: string
+          priority_score?: number
+          processing_status?: Database["public"]["Enums"]["ingest_status"]
+          publication_datetime?: string | null
+          published_content_item_id?: string | null
+          raw_metadata?: Json
+          requires_human_review?: boolean
+          source_id?: string | null
+          source_name?: string
+          story_cluster_id?: string | null
+          tags?: string[]
+          topic?: string | null
+          updated_at?: string
+          urgency?: string | null
+          what_happened?: string | null
+          what_to_do?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_ingestion_items_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "raw_ingestion_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_ingestion_items_published_content_item_id_fkey"
+            columns: ["published_content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_ingestion_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_ingestion_items_story_cluster_id_fkey"
+            columns: ["story_cluster_id"]
+            isOneToOne: false
+            referencedRelation: "story_clusters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_items: {
+        Row: {
+          content_item_id: string | null
+          created_at: string
+          external_ref: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_item_id?: string | null
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_item_id?: string | null
+          created_at?: string
+          external_ref?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_items_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_clusters: {
+        Row: {
+          city: string | null
+          created_at: string
+          dedupe_key: string
+          headline: string
+          id: string
+          item_count: number
+          source_names: string[]
+          story_topic_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          dedupe_key: string
+          headline: string
+          id?: string
+          item_count?: number
+          source_names?: string[]
+          story_topic_id?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          dedupe_key?: string
+          headline?: string
+          id?: string
+          item_count?: number
+          source_names?: string[]
+          story_topic_id?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          active: boolean
+          created_at: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      user_actions: {
+        Row: {
+          action: string
+          content_item_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          source_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          source_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_actions_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_actions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "content_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          home_city: string | null
+          interests: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          home_city?: string | null
+          interests?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          home_city?: string | null
+          interests?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -655,7 +1152,39 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor"
+      connector_type:
+        | "direct_rss"
+        | "direct_api"
+        | "goodbarber"
+        | "manual"
+        | "webhook"
+        | "future_connector"
+      content_label:
+        | "official_source"
+        | "aggregated"
+        | "original"
+        | "community_submission"
+        | "sponsored"
+      dedupe_status: "unique" | "possible_duplicate" | "duplicate" | "merged"
+      ingest_status:
+        | "new"
+        | "enriched"
+        | "recommended"
+        | "needs_review"
+        | "approved"
+        | "published"
+        | "rejected"
+        | "duplicate"
       review_status: "pending" | "approved" | "rejected"
+      source_class:
+        | "authority"
+        | "reporter"
+        | "community"
+        | "organizer"
+        | "internal"
+        | "submission"
+      source_confidence: "high" | "medium" | "low"
+      source_status: "healthy" | "error" | "inactive"
       upload_state: "none" | "queued" | "sent" | "failed"
     }
     CompositeTypes: {
@@ -785,7 +1314,43 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor"],
+      connector_type: [
+        "direct_rss",
+        "direct_api",
+        "goodbarber",
+        "manual",
+        "webhook",
+        "future_connector",
+      ],
+      content_label: [
+        "official_source",
+        "aggregated",
+        "original",
+        "community_submission",
+        "sponsored",
+      ],
+      dedupe_status: ["unique", "possible_duplicate", "duplicate", "merged"],
+      ingest_status: [
+        "new",
+        "enriched",
+        "recommended",
+        "needs_review",
+        "approved",
+        "published",
+        "rejected",
+        "duplicate",
+      ],
       review_status: ["pending", "approved", "rejected"],
+      source_class: [
+        "authority",
+        "reporter",
+        "community",
+        "organizer",
+        "internal",
+        "submission",
+      ],
+      source_confidence: ["high", "medium", "low"],
+      source_status: ["healthy", "error", "inactive"],
       upload_state: ["none", "queued", "sent", "failed"],
     },
   },

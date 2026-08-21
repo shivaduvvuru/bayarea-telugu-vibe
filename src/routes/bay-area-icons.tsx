@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CommunityAppeal } from "@/components/ads";
 
-const TITLE = "Bay Area Icons — Bay Area Telugu Times";
+const TITLE = "Bay Area Icons — Times Bay Area";
 const DESC =
   "Telugu community leaders, entrepreneurs, artists and volunteers representing the San Francisco Bay Area today.";
 

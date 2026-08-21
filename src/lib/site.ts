@@ -8,7 +8,7 @@
  */
 const rawOrigin =
   (import.meta.env['VITE_SITE_ORIGIN'] as string | undefined) ??
-  "https://bayarea-telugu-vibe.lovable.app";
+  "https://timesbayarea.com";
 
 const rawBase = (import.meta.env['VITE_BASE_PATH'] as string | undefined) ?? "";
 
@@ -22,8 +22,8 @@ export function canonical(path = "/") {
   return `${SITE_ORIGIN}${BASE_PATH}${clean === "/" ? "/" : clean}`;
 }
 
-export const SITE_NAME = "Bay Area Telugu Times";
-export const SITE_TAGLINE = "Our Bay. Our Voice.";
+export const SITE_NAME = "Times Bay Area";
+export const SITE_TAGLINE = "What matters around you.";
 export const SITE_DESCRIPTION =
   "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.";
 export const HERITAGE_LINE =
