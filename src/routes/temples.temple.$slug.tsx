@@ -1,5 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
+import { listTempleEvents } from "@/lib/temple-calendar.functions";
+import { formatEventDay, formatEventTime } from "@/lib/temple-calendar";
+
 import { BadgeCheck, MapPin, Navigation, Globe, Phone, Clock } from "lucide-react";
 import {
   templeBySlug,
@@ -193,7 +196,10 @@ function TempleDetailPage() {
         </section>
       )}
 
+      <TempleUpcomingPrograms slug={t.slug} />
+
       <section className="mt-8">
+
         <h2 className="border-b-2 border-primary pb-2 text-lg font-bold text-ink">
           Upcoming & recent announcements
         </h2>
@@ -255,3 +261,48 @@ function TempleDetailPage() {
     </div>
   );
 }
+
+/** Next few programs for this temple, read from the master Temple Calendar. */
+function TempleUpcomingPrograms({ slug }: { slug: string }) {
+  const { data: events = [] } = useQuery({
+    queryKey: ["temple-events", "temple", slug],
+    queryFn: () => listTempleEvents({ data: { templeSlug: slug, limit: 10 } }),
+    staleTime: 30 * 60 * 1000,
+  });
+  if (events.length === 0) return null;
+  return (
+    <section className="mt-8">
+      <h2 className="border-b-2 border-primary pb-2 text-lg font-bold text-ink">
+        Upcoming programs at this temple
+      </h2>
+      <ul className="mt-3 divide-y divide-border rounded-sm border border-border bg-card">
+        {events.slice(0, 5).map((e) => {
+          const day = formatEventDay(e.startsAt);
+          return (
+            <li key={e.id} className="flex items-start gap-3 p-3">
+              <div className="w-14 flex-none rounded-md bg-primary/10 px-2 py-1 text-center">
+                <p className="text-[10px] font-bold tracking-wide text-primary">{day.dow}</p>
+                <p className="text-xs font-semibold text-ink">{day.date}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[15px] font-semibold leading-snug text-ink">{e.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {[e.eventType, formatEventTime(e.startsAt, e.allDay), ...e.deities]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <Link
+        to="/events/temple-calendar"
+        className="mt-3 inline-block text-sm font-semibold text-primary"
+      >
+        View full Temple Calendar →
+      </Link>
+    </section>
+  );
+}
+

@@ -1,0 +1,1 @@
+DELETE FROM public.temple_events WHERE source_kind IN ('events_html','site_html');
