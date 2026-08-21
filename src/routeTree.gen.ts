@@ -18,6 +18,7 @@ import { Route as BayAreaIconsRouteImport } from './routes/bay-area-icons'
 import { Route as CommandCenterRouteImport } from './routes/command-center'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderabad-2026'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as EpaperRouteImport } from './routes/epaper'
@@ -30,6 +31,7 @@ import { Route as LiteRouteImport } from './routes/lite'
 import { Route as LuxedeskRouteImport } from './routes/luxedesk'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
+import { Route as PropertyDeskRouteImport } from './routes/property-desk'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
@@ -101,6 +103,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CredaiHyderabad2026Route = CredaiHyderabad2026RouteImport.update({
+  id: '/credai-hyderabad-2026',
+  path: '/credai-hyderabad-2026',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeskRoute = DeskRouteImport.update({
   id: '/desk',
   path: '/desk',
@@ -159,6 +166,11 @@ const PeopleRoute = PeopleRouteImport.update({
 const PoliticsRoute = PoliticsRouteImport.update({
   id: '/politics',
   path: '/politics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyDeskRoute = PropertyDeskRouteImport.update({
+  id: '/property-desk',
+  path: '/property-desk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -305,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -317,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -353,6 +367,7 @@ export interface FileRoutesByTo {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -364,6 +379,7 @@ export interface FileRoutesByTo {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -400,6 +416,7 @@ export interface FileRoutesById {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -412,6 +429,7 @@ export interface FileRoutesById {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -450,6 +468,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -462,6 +481,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -498,6 +518,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -509,6 +530,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -544,6 +566,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -556,6 +579,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -594,6 +618,7 @@ export interface RootRouteChildren {
   CommandCenterRoute: typeof CommandCenterRoute
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
+  CredaiHyderabad2026Route: typeof CredaiHyderabad2026Route
   DeskRoute: typeof DeskRoute
   DirectoryRoute: typeof DirectoryRoute
   EpaperRoute: typeof EpaperRoute
@@ -606,6 +631,7 @@ export interface RootRouteChildren {
   LuxedeskRoute: typeof LuxedeskRoute
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
+  PropertyDeskRoute: typeof PropertyDeskRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
@@ -690,6 +716,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/credai-hyderabad-2026': {
+      id: '/credai-hyderabad-2026'
+      path: '/credai-hyderabad-2026'
+      fullPath: '/credai-hyderabad-2026'
+      preLoaderRoute: typeof CredaiHyderabad2026RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/desk': {
       id: '/desk'
       path: '/desk'
@@ -772,6 +805,13 @@ declare module '@tanstack/react-router' {
       path: '/politics'
       fullPath: '/politics'
       preLoaderRoute: typeof PoliticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property-desk': {
+      id: '/property-desk'
+      path: '/property-desk'
+      fullPath: '/property-desk'
+      preLoaderRoute: typeof PropertyDeskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -1023,6 +1063,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommandCenterRoute: CommandCenterRoute,
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
+  CredaiHyderabad2026Route: CredaiHyderabad2026Route,
   DeskRoute: DeskRoute,
   DirectoryRoute: DirectoryRoute,
   EpaperRoute: EpaperRoute,
@@ -1035,6 +1076,7 @@ const rootRouteChildren: RootRouteChildren = {
   LuxedeskRoute: LuxedeskRoute,
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
+  PropertyDeskRoute: PropertyDeskRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
