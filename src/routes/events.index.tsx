@@ -189,7 +189,7 @@ function EventsPage() {
             })}
           </ul>
           <Link
-            to="/events/temple-calendar"
+            to="/temples/calendar"
             className="mt-3 inline-block text-sm font-semibold text-primary"
           >
             {t("View the full Temple Calendar →", "పూర్తి ఆలయ క్యాలెండర్ →")}

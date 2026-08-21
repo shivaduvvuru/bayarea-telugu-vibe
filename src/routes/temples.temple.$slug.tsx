@@ -297,7 +297,7 @@ function TempleUpcomingPrograms({ slug }: { slug: string }) {
         })}
       </ul>
       <Link
-        to="/events/temple-calendar"
+        to="/temples/calendar"
         className="mt-3 inline-block text-sm font-semibold text-primary"
       >
         View full Temple Calendar →
