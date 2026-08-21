@@ -1017,6 +1017,212 @@ export type Database = {
         }
         Relationships: []
       }
+      temple_events: {
+        Row: {
+          all_day: boolean
+          city: string | null
+          cost_type: string | null
+          created_at: string
+          dedupe_key: string
+          deities: string[]
+          description: string | null
+          ends_at: string | null
+          event_group: string
+          event_type: string
+          external_uid: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          imported: boolean
+          language: string | null
+          last_seen_at: string
+          last_verified_at: string
+          level: string
+          organizer: string | null
+          recurrence: string | null
+          region: string | null
+          register_url: string | null
+          source_id: string | null
+          source_kind: string
+          source_url: string | null
+          starts_at: string
+          status: string
+          temple_name: string
+          temple_slug: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          city?: string | null
+          cost_type?: string | null
+          created_at?: string
+          dedupe_key: string
+          deities?: string[]
+          description?: string | null
+          ends_at?: string | null
+          event_group?: string
+          event_type?: string
+          external_uid?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          imported?: boolean
+          language?: string | null
+          last_seen_at?: string
+          last_verified_at?: string
+          level?: string
+          organizer?: string | null
+          recurrence?: string | null
+          region?: string | null
+          register_url?: string | null
+          source_id?: string | null
+          source_kind?: string
+          source_url?: string | null
+          starts_at: string
+          status?: string
+          temple_name: string
+          temple_slug?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          city?: string | null
+          cost_type?: string | null
+          created_at?: string
+          dedupe_key?: string
+          deities?: string[]
+          description?: string | null
+          ends_at?: string | null
+          event_group?: string
+          event_type?: string
+          external_uid?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          imported?: boolean
+          language?: string | null
+          last_seen_at?: string
+          last_verified_at?: string
+          level?: string
+          organizer?: string | null
+          recurrence?: string | null
+          region?: string | null
+          register_url?: string | null
+          source_id?: string | null
+          source_kind?: string
+          source_url?: string | null
+          starts_at?: string
+          status?: string
+          temple_name?: string
+          temple_slug?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "temple_events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "temple_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      temple_sources: {
+        Row: {
+          active: boolean
+          address: string | null
+          auto_import: boolean
+          city: string | null
+          created_at: string
+          deities: string[]
+          events_url: string | null
+          facebook_url: string | null
+          fail_count: number
+          gcal_url: string | null
+          ics_url: string | null
+          id: string
+          instagram_url: string | null
+          last_checked_at: string | null
+          last_error: string | null
+          last_success_at: string | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          region: string | null
+          rss_url: string | null
+          slug: string
+          status: string
+          temple_type: string | null
+          traditions: string[]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          auto_import?: boolean
+          city?: string | null
+          created_at?: string
+          deities?: string[]
+          events_url?: string | null
+          facebook_url?: string | null
+          fail_count?: number
+          gcal_url?: string | null
+          ics_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          region?: string | null
+          rss_url?: string | null
+          slug: string
+          status?: string
+          temple_type?: string | null
+          traditions?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          auto_import?: boolean
+          city?: string | null
+          created_at?: string
+          deities?: string[]
+          events_url?: string | null
+          facebook_url?: string | null
+          fail_count?: number
+          gcal_url?: string | null
+          ics_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          region?: string | null
+          rss_url?: string | null
+          slug?: string
+          status?: string
+          temple_type?: string | null
+          traditions?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           active: boolean

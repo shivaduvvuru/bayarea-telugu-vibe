@@ -33,12 +33,15 @@ import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
+import { Route as TempleSourcesRouteImport } from './routes/temple-sources'
 import { Route as TemplesRouteImport } from './routes/temples'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated/health'
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
 import { Route as CityCityRouteImport } from './routes/city.$city'
+import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
@@ -48,6 +51,7 @@ import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
+import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -169,6 +173,11 @@ const SubmitRoute = SubmitRouteImport.update({
   path: '/submit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TempleSourcesRoute = TempleSourcesRouteImport.update({
+  id: '/temple-sources',
+  path: '/temple-sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplesRoute = TemplesRouteImport.update({
   id: '/temples',
   path: '/temples',
@@ -198,6 +207,16 @@ const CityCityRoute = CityCityRouteImport.update({
   id: '/city/$city',
   path: '/city/$city',
   getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EventsRoute,
+} as any)
+const EventsTempleCalendarRoute = EventsTempleCalendarRouteImport.update({
+  id: '/temple-calendar',
+  path: '/temple-calendar',
+  getParentRoute: () => EventsRoute,
 } as any)
 const ForumsIndexRoute = ForumsIndexRouteImport.update({
   id: '/forums/',
@@ -247,6 +266,12 @@ const ApiPublicHooksIngestSourcesRoute =
     path: '/api/public/hooks/ingest-sources',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTempleCalendarRoute =
+  ApiPublicHooksTempleCalendarRouteImport.update({
+    id: '/api/public/hooks/temple-calendar',
+    path: '/api/public/hooks/temple-calendar',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
   id: '/api/public/media/$',
   path: '/api/public/media/$',
@@ -265,7 +290,7 @@ export interface FileRoutesByFullPath {
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
@@ -277,13 +302,16 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
+  '/temple-sources': typeof TempleSourcesRoute
   '/temples': typeof TemplesRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/temples/$city': typeof TemplesCityRoute
+  '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -292,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
+  '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
@@ -306,7 +335,6 @@ export interface FileRoutesByTo {
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
-  '/events': typeof EventsRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
@@ -318,12 +346,15 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
+  '/temple-sources': typeof TempleSourcesRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/temples/$city': typeof TemplesCityRoute
+  '/events': typeof EventsIndexRoute
   '/forums': typeof ForumsIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -332,6 +363,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
+  '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
@@ -348,7 +380,7 @@ export interface FileRoutesById {
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/foundation-icons': typeof FoundationIconsRoute
@@ -360,13 +392,16 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
+  '/temple-sources': typeof TempleSourcesRoute
   '/temples': typeof TemplesRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/temples/$city': typeof TemplesCityRoute
+  '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -375,6 +410,7 @@ export interface FileRoutesById {
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
+  '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
@@ -403,13 +439,16 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/submit'
+    | '/temple-sources'
     | '/temples'
     | '/admin'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/temples/$city'
+    | '/events/'
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
@@ -418,6 +457,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
+    | '/api/public/hooks/temple-calendar'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -432,7 +472,6 @@ export interface FileRouteTypes {
     | '/desk'
     | '/directory'
     | '/epaper'
-    | '/events'
     | '/explore'
     | '/favorites'
     | '/foundation-icons'
@@ -444,12 +483,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/submit'
+    | '/temple-sources'
     | '/admin'
     | '/health'
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/temples/$city'
+    | '/events'
     | '/forums'
     | '/temples'
     | '/api/public/refresh-content'
@@ -458,6 +500,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
+    | '/api/public/hooks/temple-calendar'
     | '/api/public/media/$'
   id:
     | '__root__'
@@ -485,13 +528,16 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/submit'
+    | '/temple-sources'
     | '/temples'
     | '/_authenticated/admin'
     | '/_authenticated/health'
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/events/temple-calendar'
     | '/temples/$city'
+    | '/events/'
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
@@ -500,6 +546,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
+    | '/api/public/hooks/temple-calendar'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
@@ -516,7 +563,7 @@ export interface RootRouteChildren {
   DeskRoute: typeof DeskRoute
   DirectoryRoute: typeof DirectoryRoute
   EpaperRoute: typeof EpaperRoute
-  EventsRoute: typeof EventsRoute
+  EventsRoute: typeof EventsRouteWithChildren
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
@@ -528,6 +575,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
+  TempleSourcesRoute: typeof TempleSourcesRoute
   TemplesRoute: typeof TemplesRouteWithChildren
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
@@ -538,6 +586,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
+  ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
@@ -711,6 +760,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubmitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/temple-sources': {
+      id: '/temple-sources'
+      path: '/temple-sources'
+      fullPath: '/temple-sources'
+      preLoaderRoute: typeof TempleSourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/temples': {
       id: '/temples'
       path: '/temples'
@@ -752,6 +808,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/city/$city'
       preLoaderRoute: typeof CityCityRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof EventsRoute
+    }
+    '/events/temple-calendar': {
+      id: '/events/temple-calendar'
+      path: '/temple-calendar'
+      fullPath: '/events/temple-calendar'
+      preLoaderRoute: typeof EventsTempleCalendarRouteImport
+      parentRoute: typeof EventsRoute
     }
     '/forums/': {
       id: '/forums/'
@@ -816,6 +886,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIngestSourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/temple-calendar': {
+      id: '/api/public/hooks/temple-calendar'
+      path: '/api/public/hooks/temple-calendar'
+      fullPath: '/api/public/hooks/temple-calendar'
+      preLoaderRoute: typeof ApiPublicHooksTempleCalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$': {
       id: '/api/public/media/$'
       path: '/api/public/media/$'
@@ -838,6 +915,19 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface EventsRouteChildren {
+  EventsTempleCalendarRoute: typeof EventsTempleCalendarRoute
+  EventsIndexRoute: typeof EventsIndexRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsTempleCalendarRoute: EventsTempleCalendarRoute,
+  EventsIndexRoute: EventsIndexRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
 
 interface TemplesRouteChildren {
   TemplesCityRoute: typeof TemplesCityRoute
@@ -867,7 +957,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeskRoute: DeskRoute,
   DirectoryRoute: DirectoryRoute,
   EpaperRoute: EpaperRoute,
-  EventsRoute: EventsRoute,
+  EventsRoute: EventsRouteWithChildren,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   FoundationIconsRoute: FoundationIconsRoute,
@@ -879,6 +969,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
+  TempleSourcesRoute: TempleSourcesRoute,
   TemplesRoute: TemplesRouteWithChildren,
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
@@ -889,6 +980,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
+  ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -19,6 +19,7 @@ const RAIL = [
   { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
+  { to: "/events/temple-calendar", label: "Temple Calendar" },
   { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
@@ -82,6 +83,7 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
   items: [
     { to: "/desk", label: "Review desk" },
     { to: "/luxedesk", label: "Applicant & member review" },
+    { to: "/temple-sources", label: "Temple sources" },
     { to: "/admin", label: "Newsroom CMS" },
 
   ],
