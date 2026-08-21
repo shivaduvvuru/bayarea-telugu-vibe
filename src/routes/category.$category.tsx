@@ -134,10 +134,31 @@ export const Route = createFileRoute("/category/$category")({
 /** Desks that turn over quickly enough to warrant polling and a refresh control. */
 const LIVE_DESKS = ["city-news", "india-news", "cinema", "micro-drama"];
 
+/**
+ * City News reads as a Bay Area scroll, but a pure local feed goes stale fast:
+ * one Cinema/OTT or India story is folded in after every third city story so the
+ * scroll stays varied without losing its local lead.
+ */
+function mixInto(local: Article[], guests: Article[], every = 3): Article[] {
+  if (!guests.length) return local;
+  const seen = new Set(local.map((a) => a.slug));
+  const queue = guests.filter((a) => !seen.has(a.slug));
+  const out: Article[] = [];
+  let g = 0;
+  local.forEach((a, i) => {
+    out.push(a);
+    if ((i + 1) % every === 0 && g < queue.length) out.push(queue[g++]!);
+  });
+  return out;
+}
+
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
   const { data: allArticles, dataUpdatedAt } = useSuspenseQuery(postsQuery(cat.slug));
   const { hidden, hiddenImages } = useHiddenPhotos();
+  const isCity = cat.slug === "city-news";
+  const { data: cinemaMix = [] } = useQuery({ ...postsQuery("cinema"), enabled: isCity });
+  const { data: indiaMix = [] } = useQuery({ ...postsQuery("india-news"), enabled: isCity });
   // Disliked pictures are dropped from the picture desk — by slug and by picture
   // URL, so a re-collected copy of the same photo never comes back.
   const articles =
@@ -145,7 +166,13 @@ function CategoryPage() {
       ? allArticles.filter(
           (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
         )
-      : allArticles;
+      : isCity
+        ? mixInto(
+            allArticles,
+            // Alternate cinema and India guests so neither desk dominates.
+            cinemaMix.flatMap((c, i) => (indiaMix[i] ? [c, indiaMix[i]!] : [c])),
+          )
+        : allArticles;
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const live = LIVE_DESKS.includes(cat.slug);
