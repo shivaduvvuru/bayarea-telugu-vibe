@@ -72,7 +72,7 @@ interface HeroSlide {
   yield: string;
   rera: string;
   image: string;
-  site?: string;
+  site?: string | undefined;
 }
 
 const heroSlides: HeroSlide[] = [
