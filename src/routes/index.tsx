@@ -788,33 +788,39 @@ function Home() {
           </section>
         )}
 
-        {(uniqueCmsEvents.length > 0 || events.length > 0) && (
+        {happeningSoon.length > 0 && (
           <section className="mt-5">
-            <Head more={<MoreTo to="/events" label="All events" />}>Upcoming events</Head>
-            {uniqueCmsEvents.length > 0
-              ? uniqueCmsEvents.map((e) => (
-                  <LinkRow
-                    key={e.id}
-                    href={e.link_url && !e.link_url.startsWith("/") ? e.link_url : "/events"}
-                    internal={!e.link_url || e.link_url.startsWith("/")}
-                    title={e.title}
-                    image={e.image_url}
-                    meta={[e.city, e.event_start ? formatDate(e.event_start) : e.venue]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  />
-                ))
-              : uniqueFallbackEvents.map((e) => (
-                  <LinkRow
-                    key={e.id}
-                    href="/events"
-                    internal
-                    title={e.title}
-                    meta={`${e.city} · ${formatDate(e.start)}`}
-                  />
-                ))}
+            <Head more={<MoreTo to="/events" label="All events →" />}>Happening soon</Head>
+            <ul className="divide-y divide-border">
+              {happeningSoon.map((e) => (
+                <li key={e.key}>
+                  <Link
+                    to="/events"
+                    className="lift flex items-center gap-3 rounded-md px-1 py-2.5"
+                  >
+                    <span className="flex w-14 shrink-0 flex-col items-center rounded-md border border-border bg-surface-tint py-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                        {new Date(e.start).toLocaleDateString(undefined, { month: "short" })}
+                      </span>
+                      <span className="text-lg font-extrabold leading-none text-ink">
+                        {new Date(e.start).getDate()}
+                      </span>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-ink">
+                        {e.title}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] uppercase tracking-wide text-muted-foreground">
+                        {[e.when, e.city, e.label].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
+
 
         {uniqueTemples.length > 0 && (
           <section className="mt-5">
