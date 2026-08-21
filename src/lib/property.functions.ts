@@ -156,7 +156,7 @@ export const updateCampaign = createServerFn({ method: "POST" })
     // Drop keys the editor left untouched so a partial save never blanks a field.
     const patch = Object.fromEntries(
       Object.entries(data.patch).filter(([, v]) => v !== undefined),
-    ) as Record<string, string | boolean>;
+    ) as never;
     const { error } = await db
       .from("property_campaigns")
       .update(patch)
