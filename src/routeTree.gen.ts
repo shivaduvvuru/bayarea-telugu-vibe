@@ -19,6 +19,7 @@ import { Route as CommandCenterRouteImport } from './routes/command-center'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderabad-2026'
+import { Route as CredaiShowRouteImport } from './routes/credai-show'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as EpaperRouteImport } from './routes/epaper'
@@ -111,6 +112,11 @@ const ContactRoute = ContactRouteImport.update({
 const CredaiHyderabad2026Route = CredaiHyderabad2026RouteImport.update({
   id: '/credai-hyderabad-2026',
   path: '/credai-hyderabad-2026',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CredaiShowRoute = CredaiShowRouteImport.update({
+  id: '/credai-show',
+  path: '/credai-show',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeskRoute = DeskRouteImport.update({
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
+  '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -404,6 +411,7 @@ export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
+  '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -458,6 +466,7 @@ export interface FileRoutesById {
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
+  '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -515,6 +524,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/credai-hyderabad-2026'
+    | '/credai-show'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -570,6 +580,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/credai-hyderabad-2026'
+    | '/credai-show'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/connect'
     | '/contact'
     | '/credai-hyderabad-2026'
+    | '/credai-show'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -680,6 +692,7 @@ export interface RootRouteChildren {
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
   CredaiHyderabad2026Route: typeof CredaiHyderabad2026Route
+  CredaiShowRoute: typeof CredaiShowRoute
   DeskRoute: typeof DeskRoute
   DirectoryRoute: typeof DirectoryRoute
   EpaperRoute: typeof EpaperRoute
@@ -785,6 +798,13 @@ declare module '@tanstack/react-router' {
       path: '/credai-hyderabad-2026'
       fullPath: '/credai-hyderabad-2026'
       preLoaderRoute: typeof CredaiHyderabad2026RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credai-show': {
+      id: '/credai-show'
+      path: '/credai-show'
+      fullPath: '/credai-show'
+      preLoaderRoute: typeof CredaiShowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desk': {
@@ -1167,6 +1187,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
   CredaiHyderabad2026Route: CredaiHyderabad2026Route,
+  CredaiShowRoute: CredaiShowRoute,
   DeskRoute: DeskRoute,
   DirectoryRoute: DirectoryRoute,
   EpaperRoute: EpaperRoute,
