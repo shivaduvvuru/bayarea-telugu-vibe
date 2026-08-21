@@ -9,6 +9,7 @@ import { DigestNote, SourceChip } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
+import { GalleryHero } from "@/components/gallery-hero";
 
 import { PhotoActions } from "@/components/photo-actions";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
@@ -42,15 +43,19 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
   );
 }
 
-/** Glamour pair slideshow embedded on the City News page. */
-function CityNewsGlamourSlides() {
+/**
+ * Hero-size Glamour slide dropped into the City News feed. Exactly two run on
+ * the page and they sit ten news items apart; no other Glamour artwork appears
+ * while scrolling city news.
+ */
+function CityNewsGlamourSlide({ slot }: { slot: number }) {
   const { data } = useSuspenseQuery(postsQuery("gallery"));
   const { hidden, hiddenImages } = useHiddenPhotos();
   const items = data.filter(
     (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
   );
   if (!items.length) return null;
-  return <GalleryDualHero items={items} />;
+  return <GalleryHero items={items} offset={slot} className="my-6" />;
 }
 
 const postsQuery = (category: string) =>
@@ -192,7 +197,6 @@ function CategoryPage() {
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
         ) : null}
-        {cat.slug === "city-news" ? <CityNewsGlamourSlides /> : null}
 
 
 
@@ -211,11 +215,25 @@ function CategoryPage() {
           // Illustrated local reporting leads the page; text-only stories are
           // collected underneath as short snippets instead of empty cards.
           <>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.filter((a) => a.image).map((a) => (
-                <StoryCard key={a.id} article={a} />
-              ))}
-            </div>
+            {(() => {
+              const picture = articles.filter((a) => a.image);
+              // Two hero-size Glamour slides only, ten news items apart.
+              const chunks = [picture.slice(0, 10), picture.slice(10, 20), picture.slice(20)];
+              return chunks.map((chunk, ci) =>
+                chunk.length ? (
+                  <div key={ci}>
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                      {chunk.map((a) => (
+                        <StoryCard key={a.id} article={a} />
+                      ))}
+                    </div>
+                    {cat.slug === "city-news" && ci < 2 ? (
+                      <CityNewsGlamourSlide slot={ci} />
+                    ) : null}
+                  </div>
+                ) : null,
+              );
+            })()}
             {articles.some((a) => !a.image) ? (
               <div className="mt-10">
                 <SectionHeading te="క్లుప్తంగా" en="In brief" />

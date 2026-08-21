@@ -31,7 +31,6 @@ import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
-import { GalleryDualHero } from "@/components/gallery-dual-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
 /** Live news feeds a manual/pull refresh re-reads on the homepage. */
