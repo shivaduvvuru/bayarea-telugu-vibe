@@ -1,80 +1,19 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
-import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
-import { listPosts } from "@/lib/content.functions";
-import { SectionHeading, StoryCard, Thumb, RelativeDate, ListRow } from "@/components/news";
-import { DigestNote, SourceChip } from "@/components/source-credit";
+import { SectionHeading, StoryCard, ListRow } from "@/components/news";
+import { DigestNote } from "@/components/source-credit";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryDualHero } from "@/components/gallery-dual-hero";
-import { GalleryHero } from "@/components/gallery-hero";
-
-import { PhotoActions } from "@/components/photo-actions";
+import { GalleryTile, CityNewsGlamourSlide } from "@/components/category-tiles";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
-import { NewsFreshness, PullToRefresh, newsRefreshMs } from "@/components/refresh-news";
+import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
+import { LIVE_DESKS, mixInto, postsQuery } from "@/lib/category-query";
 
-import type { Article } from "@/lib/content";
-import { uniqueByContent } from "@/lib/dedupe";
-
-/** Picture-desk tile used by the Gallery section — opens the swipeable viewer. */
-function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void }) {
-  return (
-    <figure className="m-0">
-      <div className="relative">
-        <button type="button" onClick={onOpen} className="block w-full text-left">
-          <Thumb article={article} ratio="aspect-[3/4]" sizes="(max-width: 768px) 50vw, 33vw" />
-        </button>
-        <PhotoActions article={article} tone="light" className="absolute right-2 top-2" />
-      </div>
-      <figcaption className="mt-2">
-        <button type="button" onClick={onOpen} className="block w-full text-left">
-          <p className="line-clamp-2 text-sm font-semibold leading-snug headline-link">
-            {article.title}
-          </p>
-        </button>
-        <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <SourceChip article={article} />
-          <RelativeDate iso={article.date} />
-        </span>
-      </figcaption>
-    </figure>
-  );
-}
-
-/**
- * Hero-size Glamour slide dropped into the City News feed. Exactly two run on
- * the page and they sit ten news items apart; no other Glamour artwork appears
- * while scrolling city news.
- */
-function CityNewsGlamourSlide({ slot }: { slot: number }) {
-  const { data } = useSuspenseQuery(postsQuery("gallery"));
-  const { hidden, hiddenImages } = useHiddenPhotos();
-  const items = data.filter(
-    (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
-  );
-  if (!items.length) return null;
-  return <GalleryHero items={items} offset={slot} className="my-6" />;
-}
-
-const postsQuery = (category: string) =>
-  queryOptions({
-    // Gallery is a picture desk: show a much deeper set so repeat visits keep
-    // finding different photos instead of the same newest handful.
-    queryKey: ["wp", "posts", category],
-    queryFn: () =>
-      listPosts({ data: { category, perPage: category === "gallery" ? 60 : 24 } }),
-    // Fast-moving desks poll in the background (city/India 15 min, cinema and
-    // micro-drama 30 min) and re-read when a parked tab is focused again.
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: newsRefreshMs(category),
-    refetchOnWindowFocus: true,
-    ...(category === "gallery"
-      ? { staleTime: 60_000, refetchOnMount: "always" as const }
-      : {}),
-  });
 
 export const Route = createFileRoute("/category/$category")({
   // Sections that have a purpose-built page on this site rather than a WP feed.
@@ -132,30 +71,7 @@ export const Route = createFileRoute("/category/$category")({
   component: CategoryPage,
 });
 
-/** Desks that turn over quickly enough to warrant polling and a refresh control. */
-const LIVE_DESKS = ["city-news", "india-news", "cinema", "micro-drama"];
 
-/**
- * City News reads as a Bay Area scroll, but a pure local feed goes stale fast:
- * one Cinema/OTT or India story is folded in after every third city story so the
- * scroll stays varied without losing its local lead.
- */
-function mixInto(local: Article[], guests: Article[], every = 3): Article[] {
-  // One shared ledger of headlines, links and pictures: a guest desk can never
-  // re-run a story the local feed already carries, nor a re-worded copy of one
-  // another guest already contributed.
-  const seen = new Set<string>();
-  const base = uniqueByContent(local, seen);
-  if (!guests.length) return base;
-  const queue = uniqueByContent(guests, seen).filter((a) => !base.some((b) => b.slug === a.slug));
-  const out: Article[] = [];
-  let g = 0;
-  base.forEach((a, i) => {
-    out.push(a);
-    if ((i + 1) % every === 0 && g < queue.length) out.push(queue[g++]!);
-  });
-  return out;
-}
 
 function CategoryPage() {
   const { cat } = Route.useLoaderData();
