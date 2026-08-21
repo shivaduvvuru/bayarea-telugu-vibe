@@ -37,7 +37,7 @@ export function PropertyCard({
               src={p.image_url}
               alt={`${p.project_name} by ${p.developer}`}
               loading="lazy"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-top"
             />
           ) : null}
         </div>
