@@ -644,9 +644,14 @@ function Home() {
           />
         </div>
 
+        {/* Compact editorial hero: a curated 4–5 story slider (6s cross-fade),
+            sized so the next section is visible without a full-screen scroll. */}
+        <StoryHeroSlider articles={heroSliderPool} />
 
-        {bannerFresh ? <HousingHero /> : <PrimeHero article={lead} />}
+        {/* The hand-built prime feature keeps its slot only while fresh. */}
+        {bannerFresh ? <div className="mt-4"><HousingHero /></div> : null}
       </div>
+
 
       {/* Pair slideshow: two hero-size Glamour pictures that advance together
           every 30 seconds, with Prev/Next and a pair indicator. Kept high on the
