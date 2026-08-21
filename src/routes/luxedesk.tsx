@@ -14,6 +14,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Trash2,
   X,
 } from "lucide-react";
 import {
@@ -27,7 +28,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
@@ -37,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/luxedesk")({
   head: () => ({
@@ -129,8 +132,7 @@ function LuxeDeskPage() {
   const [status, setStatus] = useState<"all" | ReviewStatus>("all");
   const [tier, setTier] = useState<"all" | VerificationTier>("all");
   const [region, setRegion] = useState<"all" | Region>("all");
-  const [activeId, setActiveId] = useState(GLAMOUR_PROFILES[0]!.id);
-  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const metrics = useMemo(
     () => ({
@@ -155,15 +157,26 @@ function LuxeDeskPage() {
     });
   }, [profiles, query, status, tier, region]);
 
-  const active = profiles.find((p) => p.id === activeId) ?? filtered[0] ?? profiles[0];
+  const selectedIds = useMemo(
+    () => filtered.filter((p) => selected.has(p.id)).map((p) => p.id),
+    [filtered, selected],
+  );
+  const allSelected = filtered.length > 0 && selectedIds.length === filtered.length;
 
-  function decide(next: ReviewStatus, message: string) {
-    if (!active) return;
-    setProfiles((list) =>
-      list.map((p) => (p.id === active.id ? { ...p, review_status: next } : p)),
-    );
-    toast.success(`${active.name} — ${message}`);
+  function decide(id: string, next: ReviewStatus, message: string) {
+    const target = profiles.find((p) => p.id === id);
+    setProfiles((list) => list.map((p) => (p.id === id ? { ...p, review_status: next } : p)));
+    toast.success(`${target?.name ?? "Frame"} — ${message}`);
   }
+
+  function bulk(next: ReviewStatus, message: string, ids: string[] = selectedIds) {
+    if (!ids.length) return;
+    const set = new Set(ids);
+    setProfiles((list) => list.map((p) => (set.has(p.id) ? { ...p, review_status: next } : p)));
+    setSelected(new Set());
+    toast.success(`${ids.length} frame${ids.length === 1 ? "" : "s"} ${message}`);
+  }
+
 
   return (
     <div className="luxedesk min-h-screen">
