@@ -248,7 +248,65 @@ function TempleCalendarPage() {
       ) : (
         <MonthGrid events={filtered} />
       )}
+
+      <TempleNews />
     </div>
+  );
+}
+
+/**
+ * Temple news publishes automatically (no approval) and lands as an
+ * announcement in the "temples" category, so it belongs on the Temples menu
+ * rather than general Events.
+ */
+const templeNewsQuery = queryOptions({
+  queryKey: ["cms", "temple-news"],
+  queryFn: () => listCommunityItems({ data: { kind: "announcement", limit: 60 } }),
+  staleTime: 10 * 60 * 1000,
+});
+
+function TempleNews() {
+  const { data = [] } = useQuery(templeNewsQuery);
+  const rows = data.filter((r) => (r.category ?? "").toLowerCase() === "temples").slice(0, 12);
+  if (rows.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="text-xl font-bold text-ink">Temple news</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Announcements and coverage from Bay Area temples, published automatically as they arrive.
+      </p>
+      <ul className="mt-3 divide-y divide-border rounded-lg border border-border bg-card">
+        {rows.map((r) => (
+          <li key={r.id} className="flex items-start gap-3 p-3">
+            {r.image_url && (
+              <img
+                src={r.image_url}
+                alt={r.title}
+                loading="lazy"
+                className="h-16 w-16 flex-none rounded-md object-cover"
+              />
+            )}
+            <div className="min-w-0">
+              {r.link_url ? (
+                <a
+                  href={r.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base font-semibold text-ink"
+                >
+                  {r.title}
+                </a>
+              ) : (
+                <span className="text-base font-semibold text-ink">{r.title}</span>
+              )}
+              {r.summary && (
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.summary}</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
