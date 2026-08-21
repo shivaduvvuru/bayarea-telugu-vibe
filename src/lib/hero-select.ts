@@ -151,10 +151,10 @@ export function heroScore(a: Article, now = new Date()): number {
 export function buildHeroSet(
   articles: Article[],
   options: {
-    now?: Date;
-    max?: number;
+    now?: Date | undefined;
+    max?: number | undefined;
     /** Images already spoken for by other homepage slots. */
-    exclude?: Set<string>;
+    exclude?: Set<string> | undefined;
   } = {},
 ): HeroSlide[] {
   const now = options.now ?? new Date();
