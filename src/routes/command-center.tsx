@@ -391,6 +391,9 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
           <Button size="sm" variant={tab === "sources" ? "default" : "outline"} onClick={() => setTab("sources")}>
             <Rss className="size-4" aria-hidden="true" /> Source registry ({sources.length})
           </Button>
+          <Button size="sm" variant={tab === "headline" ? "default" : "outline"} onClick={() => setTab("headline")}>
+            <Sparkles className="size-4" aria-hidden="true" /> City headline
+          </Button>
           {tab === "queue" && (
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="ml-auto w-44" aria-label="Filter queue">
