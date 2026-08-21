@@ -38,8 +38,10 @@ export async function assertStaff(
       };
     };
   };
-  const { data } = await client.from("user_roles").select("role").eq("user_id", userId).limit(1);
-  if (!data || data.length === 0) throw new Error("Forbidden: staff access required");
+  const { data } = await client.from("user_roles").select("role").eq("user_id", userId).limit(10);
+  const rows = (data ?? []) as Array<{ role?: string }>;
+  const staff = rows.some((r) => r.role === "admin" || r.role === "editor");
+  if (!staff) throw new Error("Forbidden: staff access required");
 }
 
 export type IngestRow = {
