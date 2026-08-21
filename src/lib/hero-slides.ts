@@ -1,5 +1,4 @@
 import credaiHero from "@/assets/hyderabad-skyline.jpg";
-import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 
 /**
  * Sponsor hero carousel slides.
@@ -33,7 +32,6 @@ export const EPAPER_ANNIVERSARY_URL =
 /** Rotation interval for the sponsor carousel: one slide every 30 minutes. */
 export const SPONSOR_ROTATE_MS = 30 * 60 * 1000;
 
-const TINTS = ["#b2c9d6", "#ac8264", "#8f9bb3", "#c3a982", "#9db8a4"];
 
 const credaiSlide: HeroSlide = {
   id: "credai-main",
