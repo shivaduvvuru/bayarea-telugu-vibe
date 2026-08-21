@@ -370,7 +370,7 @@ export function LiteHeader() {
             <Link
               key={i}
               to={item.to}
-              params={item.params}
+              params={"params" in item ? item.params : undefined}
               activeProps={{ className: "underline" }}
               className="whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
             >
