@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, ExternalLink, Newspaper, Sparkles } from "lucide-react";
-import { heroSlides, type HeroSlide } from "@/lib/hero-slides";
+import { heroSlides, SPONSOR_ROTATE_MS, type HeroSlide } from "@/lib/hero-slides";
 import { cn } from "@/lib/utils";
 
-const AUTOPLAY_MS = 6000;
+/** One slide every 30 minutes (see hero-slides.ts). */
+const AUTOPLAY_MS = SPONSOR_ROTATE_MS;
 
 function SlideBadge({ slide }: { slide: HeroSlide }) {
   const banner = slide.type === "banner";
@@ -194,7 +195,7 @@ export function SponsorHeroCarousel({
         if (start !== null && end !== null && Math.abs(end - start) > 40) {
           go(index + (end < start ? 1 : -1));
         }
-        window.setTimeout(() => setPaused(false), 2 * AUTOPLAY_MS);
+        window.setTimeout(() => setPaused(false), 8000);
       }}
     >
       <div className="relative h-[520px] w-full sm:h-[560px] md:h-[440px]">
