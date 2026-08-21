@@ -36,7 +36,7 @@ const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/category/$category", params: { category: "micro-drama" }, label: "Micro-Drama" },
+  { to: "/property", label: "Property" },
 ] as const;
 
 
