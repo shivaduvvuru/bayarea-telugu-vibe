@@ -85,6 +85,9 @@ export const Route = createFileRoute("/category/$category")({
     const cat = categoryBySlug(params.category);
     if (!cat) throw notFound();
     await context.queryClient.ensureQueryData(postsQuery(cat.slug));
+    if (cat.slug === "city-news") {
+      await context.queryClient.ensureQueryData(cityHeadlineQuery);
+    }
     return { cat };
   },
   head: ({ loaderData }) => {
