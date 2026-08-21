@@ -422,6 +422,10 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
             onDislike={dislike}
           />
 
+        ) : tab === "headline" ? (
+          <div className="mt-4">
+            <CityHeadlinePicker deskToken={deskToken} />
+          </div>
         ) : (
           <SourceRegistry
             sources={sources}
