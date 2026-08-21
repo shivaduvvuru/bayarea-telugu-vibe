@@ -10,6 +10,7 @@ import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
 import { dedupeKey } from "@/lib/dedupe";
+import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
 import {
   isPrimeBannerFresh,
@@ -633,6 +634,43 @@ function Home() {
     homepageSeen,
     8,
   );
+  // "Happening soon": compact, chronological, utility-first. Upcoming events only
+  // (an event drops off after its own day) and each row carries its classified
+  // label (Temple / Spiritual, Community Event, FunZone, …).
+  const happeningSoon = [
+    ...uniqueCmsEvents
+      .filter((e) => isUpcoming(e.event_start))
+      .map((e) => {
+        const c = classifyItem({
+          title: e.title,
+          summary: e.summary,
+          kind: e.kind,
+          eventStart: e.event_start,
+        });
+        return {
+          key: `cms-${e.id}`,
+          title: e.title,
+          start: e.event_start as string,
+          city: e.city ?? c.tags[0] ?? "",
+          when: whenLabel(e.event_start as string),
+          label: c.label,
+        };
+      }),
+    ...uniqueFallbackEvents.map((e) => {
+      const c = classifyItem({ title: e.title, eventStart: e.start });
+      return {
+        key: `local-${e.id}`,
+        title: e.title,
+        start: e.start,
+        city: e.city,
+        when: whenLabel(e.start),
+        label: c.label,
+      };
+    }),
+  ]
+    .sort((a, b) => +new Date(a.start) - +new Date(b.start))
+    .slice(0, 6);
+
   const more = takeUnique(articles, homepageSeen, 12);
 
   return (
