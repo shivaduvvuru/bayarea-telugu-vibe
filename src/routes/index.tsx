@@ -40,6 +40,7 @@ const HOME_LIVE_KEYS: unknown[][] = [
   ["wp", "posts", "india-states", "home"],
 ];
 import { CollectStatus } from "@/components/collect-status";
+import { PropertyPromo } from "@/components/property-promo";
 
 
 const TITLE = "Times Bay Area — Digest of newspapers & journals";
@@ -731,6 +732,8 @@ function Home() {
                 return (
                   <div key={a.slug}>
                     <Row a={a} />
+                    {/* Compact property-show module, four items into the feed. */}
+                    {i === 3 ? <PropertyPromo className="my-4" /> : null}
                     {heroHere ? (
                       <GalleryHero {...heroProps(heroSlot)} className="my-4" />
                     ) : null}
@@ -743,7 +746,10 @@ function Home() {
                 every available picture story, so it is never adjacent to the
                 first hero merely because collection volume is low. */}
             {localPictureStories.length < 4 ? (
-              <GalleryHero {...heroProps(1)} className="my-4" />
+              <>
+                <PropertyPromo className="my-4" />
+                <GalleryHero {...heroProps(1)} className="my-4" />
+              </>
             ) : null}
 
 

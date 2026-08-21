@@ -55,6 +55,32 @@ export const Route = createFileRoute("/sitemap.xml")({
           })),
         ];
 
+        // Live property-show campaigns and their project pages.
+        try {
+          const { publicClient } = await import("@/lib/cms.server");
+          const db = publicClient();
+          const { data: campaigns } = await db
+            .from("property_campaigns")
+            .select("slug")
+            .eq("active", true);
+          for (const c of campaigns ?? []) {
+            entries.push({ path: `/property/${c.slug}`, changefreq: "weekly", priority: "0.8" });
+          }
+          const { data: props } = await db
+            .from("properties")
+            .select("campaign_slug, slug")
+            .eq("status", "published");
+          for (const p of props ?? []) {
+            entries.push({
+              path: `/property/${p.campaign_slug}/${p.slug}`,
+              changefreq: "monthly",
+              priority: "0.6",
+            });
+          }
+        } catch (err) {
+          console.error("sitemap property entries failed", err);
+        }
+
         const urls = entries.map((e) =>
           [
             `  <url>`,

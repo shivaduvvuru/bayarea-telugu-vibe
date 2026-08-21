@@ -803,6 +803,299 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          amenities: string[]
+          campaign_slug: string
+          configuration: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          developer: string
+          developer_logo_url: string | null
+          enquiry_url: string | null
+          gallery_urls: string[]
+          id: string
+          image_url: string | null
+          is_credai_participant: boolean
+          is_tt_advertiser: boolean
+          locality: string | null
+          price_from_lakh: number | null
+          price_note: string | null
+          priority: number
+          project_name: string
+          project_status: string | null
+          property_type: string | null
+          rera_number: string | null
+          slug: string
+          source_name: string | null
+          source_url: string | null
+          status: string
+          updated_at: string
+          website_url: string | null
+          zone: string | null
+        }
+        Insert: {
+          amenities?: string[]
+          campaign_slug: string
+          configuration?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          developer: string
+          developer_logo_url?: string | null
+          enquiry_url?: string | null
+          gallery_urls?: string[]
+          id?: string
+          image_url?: string | null
+          is_credai_participant?: boolean
+          is_tt_advertiser?: boolean
+          locality?: string | null
+          price_from_lakh?: number | null
+          price_note?: string | null
+          priority?: number
+          project_name: string
+          project_status?: string | null
+          property_type?: string | null
+          rera_number?: string | null
+          slug: string
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+          zone?: string | null
+        }
+        Update: {
+          amenities?: string[]
+          campaign_slug?: string
+          configuration?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          developer?: string
+          developer_logo_url?: string | null
+          enquiry_url?: string | null
+          gallery_urls?: string[]
+          id?: string
+          image_url?: string | null
+          is_credai_participant?: boolean
+          is_tt_advertiser?: boolean
+          locality?: string | null
+          price_from_lakh?: number | null
+          price_note?: string | null
+          priority?: number
+          project_name?: string
+          project_status?: string | null
+          property_type?: string | null
+          rera_number?: string | null
+          slug?: string
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          website_url?: string | null
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_campaign_slug_fkey"
+            columns: ["campaign_slug"]
+            isOneToOne: false
+            referencedRelation: "property_campaigns"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      property_campaigns: {
+        Row: {
+          active: boolean
+          campaign_end: string | null
+          campaign_start: string | null
+          city: string | null
+          created_at: string
+          event_end: string | null
+          event_month_label: string | null
+          event_start: string | null
+          headline: string
+          hero_image_url: string | null
+          homepage_visible: boolean
+          id: string
+          map_url: string | null
+          name: string
+          official_url: string | null
+          opening_hours: string | null
+          organizer: string | null
+          participation_note: string | null
+          post_event: boolean
+          promo_line: string | null
+          promo_title: string | null
+          slug: string
+          subheading: string | null
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          active?: boolean
+          campaign_end?: string | null
+          campaign_start?: string | null
+          city?: string | null
+          created_at?: string
+          event_end?: string | null
+          event_month_label?: string | null
+          event_start?: string | null
+          headline: string
+          hero_image_url?: string | null
+          homepage_visible?: boolean
+          id?: string
+          map_url?: string | null
+          name: string
+          official_url?: string | null
+          opening_hours?: string | null
+          organizer?: string | null
+          participation_note?: string | null
+          post_event?: boolean
+          promo_line?: string | null
+          promo_title?: string | null
+          slug: string
+          subheading?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          active?: boolean
+          campaign_end?: string | null
+          campaign_start?: string | null
+          city?: string | null
+          created_at?: string
+          event_end?: string | null
+          event_month_label?: string | null
+          event_start?: string | null
+          headline?: string
+          hero_image_url?: string | null
+          homepage_visible?: boolean
+          id?: string
+          map_url?: string | null
+          name?: string
+          official_url?: string | null
+          opening_hours?: string | null
+          organizer?: string | null
+          participation_note?: string | null
+          post_event?: boolean
+          promo_line?: string | null
+          promo_title?: string | null
+          slug?: string
+          subheading?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      property_leads: {
+        Row: {
+          budget: string | null
+          campaign_code: string
+          campaign_slug: string
+          city: string | null
+          country: string | null
+          created_at: string
+          developers: string[]
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          preferred_contact: string | null
+          project_names: string[]
+          property_ids: string[]
+          referrer: string | null
+          source_page: string | null
+          utm: Json
+        }
+        Insert: {
+          budget?: string | null
+          campaign_code?: string
+          campaign_slug: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          developers?: string[]
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          preferred_contact?: string | null
+          project_names?: string[]
+          property_ids?: string[]
+          referrer?: string | null
+          source_page?: string | null
+          utm?: Json
+        }
+        Update: {
+          budget?: string | null
+          campaign_code?: string
+          campaign_slug?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          developers?: string[]
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          preferred_contact?: string | null
+          project_names?: string[]
+          property_ids?: string[]
+          referrer?: string | null
+          source_page?: string | null
+          utm?: Json
+        }
+        Relationships: []
+      }
+      property_metrics: {
+        Row: {
+          campaign_slug: string
+          country: string | null
+          created_at: string
+          developer: string | null
+          id: number
+          kind: string
+          path: string | null
+          project_name: string | null
+          property_id: string | null
+          referrer: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          campaign_slug: string
+          country?: string | null
+          created_at?: string
+          developer?: string | null
+          id?: number
+          kind: string
+          path?: string | null
+          project_name?: string | null
+          property_id?: string | null
+          referrer?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          campaign_slug?: string
+          country?: string | null
+          created_at?: string
+          developer?: string | null
+          id?: number
+          kind?: string
+          path?: string | null
+          project_name?: string | null
+          property_id?: string | null
+          referrer?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       raw_ingestion_items: {
         Row: {
           ai_generated_at: string | null

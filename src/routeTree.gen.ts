@@ -18,6 +18,7 @@ import { Route as BayAreaIconsRouteImport } from './routes/bay-area-icons'
 import { Route as CommandCenterRouteImport } from './routes/command-center'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderabad-2026'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as EpaperRouteImport } from './routes/epaper'
@@ -30,6 +31,7 @@ import { Route as LiteRouteImport } from './routes/lite'
 import { Route as LuxedeskRouteImport } from './routes/luxedesk'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
+import { Route as PropertyDeskRouteImport } from './routes/property-desk'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
@@ -43,10 +45,13 @@ import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
+import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
 import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
+import { Route as PropertyCampaignIndexRouteImport } from './routes/property.$campaign.index'
+import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$campaign.$slug'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
@@ -96,6 +101,11 @@ const ConnectRoute = ConnectRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CredaiHyderabad2026Route = CredaiHyderabad2026RouteImport.update({
+  id: '/credai-hyderabad-2026',
+  path: '/credai-hyderabad-2026',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeskRoute = DeskRouteImport.update({
@@ -156,6 +166,11 @@ const PeopleRoute = PeopleRouteImport.update({
 const PoliticsRoute = PoliticsRouteImport.update({
   id: '/politics',
   path: '/politics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyDeskRoute = PropertyDeskRouteImport.update({
+  id: '/property-desk',
+  path: '/property-desk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -223,6 +238,11 @@ const ForumsIndexRoute = ForumsIndexRouteImport.update({
   path: '/forums/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertyCampaignRoute = PropertyCampaignRouteImport.update({
+  id: '/property/$campaign',
+  path: '/property/$campaign',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplesIndexRoute = TemplesIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -242,6 +262,16 @@ const ForumsThreadThreadIdRoute = ForumsThreadThreadIdRouteImport.update({
   id: '/forums/thread/$threadId',
   path: '/forums/thread/$threadId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyCampaignIndexRoute = PropertyCampaignIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PropertyCampaignRoute,
+} as any)
+const PropertyCampaignSlugRoute = PropertyCampaignSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PropertyCampaignRoute,
 } as any)
 const TemplesTempleSlugRoute = TemplesTempleSlugRouteImport.update({
   id: '/temple/$slug',
@@ -287,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -299,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -310,13 +342,16 @@ export interface FileRoutesByFullPath {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -332,6 +367,7 @@ export interface FileRoutesByTo {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -343,6 +379,7 @@ export interface FileRoutesByTo {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -359,7 +396,9 @@ export interface FileRoutesByTo {
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -377,6 +416,7 @@ export interface FileRoutesById {
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
+  '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
   '/epaper': typeof EpaperRoute
@@ -389,6 +429,7 @@ export interface FileRoutesById {
   '/luxedesk': typeof LuxedeskRoute
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
+  '/property-desk': typeof PropertyDeskRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -400,13 +441,16 @@ export interface FileRoutesById {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/events/': typeof EventsIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
+  '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
+  '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -424,6 +468,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -436,6 +481,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -447,13 +493,16 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/property/$campaign'
     | '/temples/$city'
     | '/events/'
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -469,6 +518,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -480,6 +530,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -496,7 +547,9 @@ export interface FileRouteTypes {
     | '/temples'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -513,6 +566,7 @@ export interface FileRouteTypes {
     | '/command-center'
     | '/connect'
     | '/contact'
+    | '/credai-hyderabad-2026'
     | '/desk'
     | '/directory'
     | '/epaper'
@@ -525,6 +579,7 @@ export interface FileRouteTypes {
     | '/luxedesk'
     | '/people'
     | '/politics'
+    | '/property-desk'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -536,13 +591,16 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/property/$campaign'
     | '/temples/$city'
     | '/events/'
     | '/forums/'
     | '/temples/'
     | '/api/public/refresh-content'
     | '/forums/thread/$threadId'
+    | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
+    | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/ingest-sources'
@@ -560,6 +618,7 @@ export interface RootRouteChildren {
   CommandCenterRoute: typeof CommandCenterRoute
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
+  CredaiHyderabad2026Route: typeof CredaiHyderabad2026Route
   DeskRoute: typeof DeskRoute
   DirectoryRoute: typeof DirectoryRoute
   EpaperRoute: typeof EpaperRoute
@@ -572,6 +631,7 @@ export interface RootRouteChildren {
   LuxedeskRoute: typeof LuxedeskRoute
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
+  PropertyDeskRoute: typeof PropertyDeskRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
@@ -580,6 +640,7 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
+  PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
   ForumsIndexRoute: typeof ForumsIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
@@ -653,6 +714,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credai-hyderabad-2026': {
+      id: '/credai-hyderabad-2026'
+      path: '/credai-hyderabad-2026'
+      fullPath: '/credai-hyderabad-2026'
+      preLoaderRoute: typeof CredaiHyderabad2026RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desk': {
@@ -737,6 +805,13 @@ declare module '@tanstack/react-router' {
       path: '/politics'
       fullPath: '/politics'
       preLoaderRoute: typeof PoliticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property-desk': {
+      id: '/property-desk'
+      path: '/property-desk'
+      fullPath: '/property-desk'
+      preLoaderRoute: typeof PropertyDeskRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -830,6 +905,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForumsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/property/$campaign': {
+      id: '/property/$campaign'
+      path: '/property/$campaign'
+      fullPath: '/property/$campaign'
+      preLoaderRoute: typeof PropertyCampaignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/temples/': {
       id: '/temples/'
       path: '/'
@@ -857,6 +939,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/forums/thread/$threadId'
       preLoaderRoute: typeof ForumsThreadThreadIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/property/$campaign/': {
+      id: '/property/$campaign/'
+      path: '/'
+      fullPath: '/property/$campaign/'
+      preLoaderRoute: typeof PropertyCampaignIndexRouteImport
+      parentRoute: typeof PropertyCampaignRoute
+    }
+    '/property/$campaign/$slug': {
+      id: '/property/$campaign/$slug'
+      path: '/$slug'
+      fullPath: '/property/$campaign/$slug'
+      preLoaderRoute: typeof PropertyCampaignSlugRouteImport
+      parentRoute: typeof PropertyCampaignRoute
     }
     '/temples/temple/$slug': {
       id: '/temples/temple/$slug'
@@ -944,6 +1040,19 @@ const TemplesRouteChildren: TemplesRouteChildren = {
 const TemplesRouteWithChildren =
   TemplesRoute._addFileChildren(TemplesRouteChildren)
 
+interface PropertyCampaignRouteChildren {
+  PropertyCampaignSlugRoute: typeof PropertyCampaignSlugRoute
+  PropertyCampaignIndexRoute: typeof PropertyCampaignIndexRoute
+}
+
+const PropertyCampaignRouteChildren: PropertyCampaignRouteChildren = {
+  PropertyCampaignSlugRoute: PropertyCampaignSlugRoute,
+  PropertyCampaignIndexRoute: PropertyCampaignIndexRoute,
+}
+
+const PropertyCampaignRouteWithChildren =
+  PropertyCampaignRoute._addFileChildren(PropertyCampaignRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -954,6 +1063,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommandCenterRoute: CommandCenterRoute,
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
+  CredaiHyderabad2026Route: CredaiHyderabad2026Route,
   DeskRoute: DeskRoute,
   DirectoryRoute: DirectoryRoute,
   EpaperRoute: EpaperRoute,
@@ -966,6 +1076,7 @@ const rootRouteChildren: RootRouteChildren = {
   LuxedeskRoute: LuxedeskRoute,
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
+  PropertyDeskRoute: PropertyDeskRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
@@ -974,6 +1085,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
+  PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
   ForumsIndexRoute: ForumsIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
