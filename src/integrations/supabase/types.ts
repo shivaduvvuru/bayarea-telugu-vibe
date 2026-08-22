@@ -573,6 +573,84 @@ export type Database = {
           },
         ]
       }
+      food_collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          note: string | null
+          position: number
+          restaurant_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          note?: string | null
+          position?: number
+          restaurant_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          note?: string | null
+          position?: number
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "food_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_collection_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_collections: {
+        Row: {
+          city: string | null
+          created_at: string
+          cuisine: string | null
+          description: string | null
+          id: string
+          slug: string
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          cuisine?: string | null
+          description?: string | null
+          id?: string
+          slug: string
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          cuisine?: string | null
+          description?: string | null
+          id?: string
+          slug?: string
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forum_replies: {
         Row: {
           ai_action: string | null
@@ -1338,6 +1416,379 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      restaurant_claim_contacts: {
+        Row: {
+          claim_id: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          contact_role: string | null
+          created_at: string
+        }
+        Insert: {
+          claim_id: string
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+        }
+        Update: {
+          claim_id?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          contact_role?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_claim_contacts_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_claims: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          restaurant_id: string | null
+          restaurant_name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          restaurant_id?: string | null
+          restaurant_name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          restaurant_id?: string | null
+          restaurant_name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_claims_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_deals: {
+        Row: {
+          city: string | null
+          code: string | null
+          created_at: string
+          cuisine: string | null
+          deal_type: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          restaurant_id: string | null
+          sponsored: boolean
+          starts_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          cuisine?: string | null
+          deal_type?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          restaurant_id?: string | null
+          sponsored?: boolean
+          starts_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          city?: string | null
+          code?: string | null
+          created_at?: string
+          cuisine?: string | null
+          deal_type?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          restaurant_id?: string | null
+          sponsored?: boolean
+          starts_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_deals_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_ratings: {
+        Row: {
+          created_at: string
+          external_url: string | null
+          fetched_at: string | null
+          rating: number | null
+          restaurant_id: string
+          review_count: number | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          external_url?: string | null
+          fetched_at?: string | null
+          rating?: number | null
+          restaurant_id: string
+          review_count?: number | null
+          source: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          external_url?: string | null
+          fetched_at?: string | null
+          rating?: number | null
+          restaurant_id?: string
+          review_count?: number | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_reviews: {
+        Row: {
+          author_name: string
+          body: string | null
+          created_at: string
+          dishes: string[]
+          family_friendly: boolean
+          id: string
+          photos: string[]
+          rating: number
+          recommends: boolean
+          restaurant_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          veg_favorite: boolean
+        }
+        Insert: {
+          author_name?: string
+          body?: string | null
+          created_at?: string
+          dishes?: string[]
+          family_friendly?: boolean
+          id?: string
+          photos?: string[]
+          rating: number
+          recommends?: boolean
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          veg_favorite?: boolean
+        }
+        Update: {
+          author_name?: string
+          body?: string | null
+          created_at?: string
+          dishes?: string[]
+          family_friendly?: boolean
+          id?: string
+          photos?: string[]
+          rating?: number
+          recommends?: boolean
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          veg_favorite?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_reviews_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurants: {
+        Row: {
+          address: string | null
+          branch_label: string | null
+          city: string | null
+          created_at: string
+          cuisines: string[]
+          dedupe_key: string | null
+          description: string | null
+          dietary: string[]
+          dish_tags: string[]
+          features: string[]
+          has_catering: boolean
+          has_delivery: boolean
+          has_dine_in: boolean
+          has_pickup: boolean
+          has_reservations: boolean
+          hours: Json
+          hours_text: string | null
+          id: string
+          last_refreshed_at: string | null
+          latitude: number | null
+          longitude: number | null
+          menu_url: string | null
+          name: string
+          opened_at: string | null
+          order_links: Json
+          phone: string | null
+          photos: string[]
+          price_level: number | null
+          refresh_failures: number
+          region: string | null
+          reservation_url: string | null
+          restaurant_types: string[]
+          slug: string
+          source: string
+          sponsored: boolean
+          status: string
+          updated_at: string
+          verified: boolean
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          branch_label?: string | null
+          city?: string | null
+          created_at?: string
+          cuisines?: string[]
+          dedupe_key?: string | null
+          description?: string | null
+          dietary?: string[]
+          dish_tags?: string[]
+          features?: string[]
+          has_catering?: boolean
+          has_delivery?: boolean
+          has_dine_in?: boolean
+          has_pickup?: boolean
+          has_reservations?: boolean
+          hours?: Json
+          hours_text?: string | null
+          id?: string
+          last_refreshed_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          menu_url?: string | null
+          name: string
+          opened_at?: string | null
+          order_links?: Json
+          phone?: string | null
+          photos?: string[]
+          price_level?: number | null
+          refresh_failures?: number
+          region?: string | null
+          reservation_url?: string | null
+          restaurant_types?: string[]
+          slug: string
+          source?: string
+          sponsored?: boolean
+          status?: string
+          updated_at?: string
+          verified?: boolean
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          branch_label?: string | null
+          city?: string | null
+          created_at?: string
+          cuisines?: string[]
+          dedupe_key?: string | null
+          description?: string | null
+          dietary?: string[]
+          dish_tags?: string[]
+          features?: string[]
+          has_catering?: boolean
+          has_delivery?: boolean
+          has_dine_in?: boolean
+          has_pickup?: boolean
+          has_reservations?: boolean
+          hours?: Json
+          hours_text?: string | null
+          id?: string
+          last_refreshed_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          menu_url?: string | null
+          name?: string
+          opened_at?: string | null
+          order_links?: Json
+          phone?: string | null
+          photos?: string[]
+          price_level?: number | null
+          refresh_failures?: number
+          region?: string | null
+          reservation_url?: string | null
+          restaurant_types?: string[]
+          slug?: string
+          source?: string
+          sponsored?: boolean
+          status?: string
+          updated_at?: string
+          verified?: boolean
+          website_url?: string | null
+        }
+        Relationships: []
       }
       saved_items: {
         Row: {
