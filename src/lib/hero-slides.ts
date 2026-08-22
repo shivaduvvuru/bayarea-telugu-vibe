@@ -1,4 +1,5 @@
 import credaiHero from "@/assets/hyderabad-skyline.jpg";
+import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 
 /**
  * Sponsor hero carousel slides.
@@ -48,7 +49,21 @@ const credaiSlide: HeroSlide = {
 };
 
 /**
- * The CREDAI slot is a single banner: individual skyscraper property features
- * live in the in-feed property hero and on /property, not in this carousel.
+ * Hero-size property slides: every skyscraper feature page of the anniversary
+ * edition follows the CREDAI banner, one slide every 30 minutes.
  */
-export const heroSlides: HeroSlide[] = [credaiSlide];
+const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
+  id: `property-${p.id}`,
+  type: "skyscraper_feature" as const,
+  title: p.project,
+  ...(p.location ? { subtitle: p.location } : {}),
+  imageUrl: propertyImage(p.id),
+  linkUrl: "/property",
+  ctaText: "View all projects",
+  sponsorName: p.developer,
+  ...(p.note ? { highlights: [p.note] } : {}),
+  tint: "#26262b",
+}));
+
+export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
+
