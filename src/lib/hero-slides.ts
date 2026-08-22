@@ -48,7 +48,21 @@ const credaiSlide: HeroSlide = {
 };
 
 /**
- * The CREDAI slot is a single banner: individual skyscraper property features
- * live in the in-feed property hero and on /property, not in this carousel.
+ * Hero-size property slides: every skyscraper feature page of the anniversary
+ * edition follows the CREDAI banner, one slide every 30 minutes.
  */
-export const heroSlides: HeroSlide[] = [credaiSlide];
+const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
+  id: `property-${p.id}`,
+  type: "skyscraper_feature",
+  title: p.project,
+  subtitle: p.location,
+  imageUrl: propertyImage(p.id),
+  linkUrl: "/property",
+  ctaText: "View all projects",
+  sponsorName: p.developer,
+  highlights: p.note ? [p.note] : undefined,
+  tint: "#26262b",
+}));
+
+export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
+
