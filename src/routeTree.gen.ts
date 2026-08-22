@@ -47,6 +47,7 @@ import { Route as CategoryCategoryRouteImport } from './routes/category.$categor
 import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
+import { Route as FoodIndexRouteImport } from './routes/food.index'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as PropertyIndexRouteImport } from './routes/property.index'
 import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
@@ -255,6 +256,11 @@ const EventsTempleCalendarRoute = EventsTempleCalendarRouteImport.update({
   path: '/temple-calendar',
   getParentRoute: () => EventsRoute,
 } as any)
+const FoodIndexRoute = FoodIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FoodRoute,
+} as any)
 const ForumsIndexRoute = ForumsIndexRouteImport.update({
   id: '/forums/',
   path: '/forums/',
@@ -368,7 +374,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
-  '/food': typeof FoodRoute
+  '/food': typeof FoodRouteWithChildren
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
@@ -393,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
+  '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
@@ -424,7 +431,6 @@ export interface FileRoutesByTo {
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
-  '/food': typeof FoodRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
@@ -447,6 +453,7 @@ export interface FileRoutesByTo {
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events': typeof EventsIndexRoute
+  '/food': typeof FoodIndexRoute
   '/forums': typeof ForumsIndexRoute
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
@@ -481,7 +488,7 @@ export interface FileRoutesById {
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
-  '/food': typeof FoodRoute
+  '/food': typeof FoodRouteWithChildren
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
@@ -506,6 +513,7 @@ export interface FileRoutesById {
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
+  '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
@@ -565,6 +573,7 @@ export interface FileRouteTypes {
     | '/temples/calendar'
     | '/temples/news'
     | '/events/'
+    | '/food/'
     | '/forums/'
     | '/property/'
     | '/temples/'
@@ -596,7 +605,6 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/explore'
     | '/favorites'
-    | '/food'
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
@@ -619,6 +627,7 @@ export interface FileRouteTypes {
     | '/temples/calendar'
     | '/temples/news'
     | '/events'
+    | '/food'
     | '/forums'
     | '/property'
     | '/temples'
@@ -677,6 +686,7 @@ export interface FileRouteTypes {
     | '/temples/calendar'
     | '/temples/news'
     | '/events/'
+    | '/food/'
     | '/forums/'
     | '/property/'
     | '/temples/'
@@ -711,7 +721,7 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRouteWithChildren
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
-  FoodRoute: typeof FoodRoute
+  FoodRoute: typeof FoodRouteWithChildren
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
   LiteRoute: typeof LiteRoute
@@ -1009,6 +1019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsTempleCalendarRouteImport
       parentRoute: typeof EventsRoute
     }
+    '/food/': {
+      id: '/food/'
+      path: '/'
+      fullPath: '/food/'
+      preLoaderRoute: typeof FoodIndexRouteImport
+      parentRoute: typeof FoodRoute
+    }
     '/forums/': {
       id: '/forums/'
       path: '/forums'
@@ -1164,6 +1181,16 @@ const EventsRouteChildren: EventsRouteChildren = {
 const EventsRouteWithChildren =
   EventsRoute._addFileChildren(EventsRouteChildren)
 
+interface FoodRouteChildren {
+  FoodIndexRoute: typeof FoodIndexRoute
+}
+
+const FoodRouteChildren: FoodRouteChildren = {
+  FoodIndexRoute: FoodIndexRoute,
+}
+
+const FoodRouteWithChildren = FoodRoute._addFileChildren(FoodRouteChildren)
+
 interface TemplesRouteChildren {
   TemplesCityRoute: typeof TemplesCityRoute
   TemplesCalendarRoute: typeof TemplesCalendarRoute
@@ -1214,7 +1241,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRouteWithChildren,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
-  FoodRoute: FoodRoute,
+  FoodRoute: FoodRouteWithChildren,
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,
   LiteRoute: LiteRoute,
