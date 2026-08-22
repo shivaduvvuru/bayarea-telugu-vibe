@@ -23,6 +23,7 @@ const RAIL = [
   { to: "/temples/news", label: "Temple News" },
 
   { to: "/food", label: "Food" },
+  { to: "/food/restaurants", label: "Restaurants" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations & Community" },
@@ -37,6 +38,7 @@ const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
   { to: "/property", label: "Property" },
+  { to: "/food/restaurants", label: "Restaurants" },
 ] as const;
 
 
