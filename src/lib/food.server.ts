@@ -6,6 +6,7 @@
 import { publicClient } from "@/lib/cms.server";
 import {
   RESTAURANT_COLUMNS,
+  groupDuplicates,
   timesBayAreaScore,
   type CommunityReview,
   type FoodCollection,
@@ -19,7 +20,38 @@ export type RestaurantSummary = Restaurant & {
   community: { average: number | null; count: number };
   tt_score: number | null;
   review_total: number;
+  /** How many other listings were folded into this one on read. */
+  duplicate_count?: number;
 };
+
+/**
+ * Automatic duplicate detection at read time: when several listings describe
+ * the same restaurant the most complete one is shown and the rest are hidden,
+ * so the same place never appears twice while an editor merges them.
+ */
+function collapseDuplicates(rows: RestaurantSummary[]): RestaurantSummary[] {
+  const groups = groupDuplicates(rows);
+  if (groups.length === 0) return rows;
+  const hidden = new Set<string>();
+  const counts = new Map<string, number>();
+  for (const group of groups) {
+    const sorted = [...group].sort(
+      (a, b) =>
+        Number(b.verified) - Number(a.verified) ||
+        Number(b.sponsored) - Number(a.sponsored) ||
+        b.review_total - a.review_total ||
+        b.photos.length - a.photos.length,
+    );
+    const [keep, ...drop] = sorted;
+    if (!keep) continue;
+    counts.set(keep.id, drop.length);
+    for (const d of drop) hidden.add(d.id);
+  }
+  return rows
+    .filter((r) => !hidden.has(r.id))
+    .map((r) => (counts.has(r.id) ? { ...r, duplicate_count: counts.get(r.id) } : r));
+}
+
 
 export type RestaurantQuery = {
   q?: string | undefined;
