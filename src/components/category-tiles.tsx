@@ -38,7 +38,9 @@ export function GalleryTile({ article, onOpen }: { article: Article; onOpen: () 
  * while scrolling city news.
  */
 export function CityNewsGlamourSlide({ slot }: { slot: number }) {
-  const { data } = useSuspenseQuery(postsQuery("gallery"));
+  // useQuery (not suspense) so a slow or failed picture-desk read never blocks
+  // or crashes the City News feed — the slide just stays absent.
+  const { data = [] } = useQuery(postsQuery("gallery"));
   const { hidden, hiddenImages } = useHiddenPhotos();
   const items = data.filter(
     (a) => !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image)),
