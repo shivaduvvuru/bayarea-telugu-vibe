@@ -55,6 +55,15 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     ],
   },
   {
+    heading: "Food",
+    items: [
+      { to: "/food", label: "Food home" },
+      { to: "/food/restaurants", label: "All restaurants" },
+      { to: "/food/deals", label: "Deals & coupons" },
+      { to: "/food/add", label: "Add / claim a restaurant" },
+    ],
+  },
+  {
     heading: "Community",
     items: [
       { to: "/people", label: "People" },
