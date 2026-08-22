@@ -151,30 +151,60 @@ function RestaurantDetailPage() {
         </details>
       )}
 
-      {order.length > 0 && (
+      {(actions.delivery.length > 0 || actions.pickup.length > 0) && (
         <section className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-3">
           <h2 className="text-sm font-extrabold uppercase tracking-wide text-primary">Order now</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {[r.has_delivery && "Delivery", r.has_pickup && "Pickup"].filter(Boolean).join(" • ")}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {order.map((o) => (
-              <a
-                key={o.provider}
-                href={o.url}
-                target="_blank"
-                rel="noopener nofollow"
-                className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold leading-[2.75rem] text-primary-foreground"
-              >
-                {o.provider}
-              </a>
-            ))}
-          </div>
+          {actions.delivery.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-ink">
+                Delivery
+                {actions.deliveryEta ? (
+                  <span className="ml-1 font-semibold text-muted-foreground">
+                    • about {actions.deliveryEta} min
+                  </span>
+                ) : null}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {actions.delivery.map((o) => (
+                  <a
+                    key={`d-${o.provider}`}
+                    href={o.url}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold leading-[2.75rem] text-primary-foreground"
+                  >
+                    {o.provider}
+                    {o.eta_minutes ? ` • ${o.eta_minutes} min` : ""}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {actions.pickup.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-ink">Pickup</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {actions.pickup.map((o) => (
+                  <a
+                    key={`p-${o.provider}`}
+                    href={o.url}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    className="min-h-11 rounded-md border border-primary bg-card px-3 text-sm font-semibold leading-[2.75rem] text-primary"
+                  >
+                    {o.provider}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Delivery fees, minimums and estimated times are shown by the provider at checkout.
+            Links open the restaurant's official ordering page. Fees, minimums and exact times are
+            confirmed by the provider at checkout.
           </p>
         </section>
       )}
+
 
       <div className="mt-3 flex flex-wrap gap-2">
         {r.menu_url && (
