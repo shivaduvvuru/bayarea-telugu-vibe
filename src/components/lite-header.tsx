@@ -22,7 +22,7 @@ const RAIL = [
   { to: "/temples/calendar", label: "Temple Calendar" },
   { to: "/temples/news", label: "Temple News" },
 
-  { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
+  { to: "/food", label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations & Community" },
