@@ -26,6 +26,19 @@ function dedupeArticles(items: Article[]): Article[] {
   return uniqueByContent(items);
 }
 
+/**
+ * India and Cinema/OTT are rolling desks: readers should see today's coverage,
+ * not a week-old page that never turns over. Stories from the last few days
+ * lead, and older items only fill in when the fresh set is short.
+ */
+function freshestFirst(items: Article[], limit: number, hours = 72): Article[] {
+  const cutoff = Date.now() - hours * 3_600_000;
+  const fresh = items.filter((a) => new Date(a.date).getTime() >= cutoff);
+  if (fresh.length >= limit) return fresh.slice(0, limit);
+  const older = items.filter((a) => new Date(a.date).getTime() < cutoff);
+  return [...fresh, ...older].slice(0, limit);
+}
+
 /** Stable numeric id derived from the row uuid (Article.id is a number). */
 function numericId(uuid: string) {
   let h = 0;
@@ -224,15 +237,18 @@ export async function cmsPosts(
 
   }
   if (category === "india-news") {
-    return dedupeArticles(
-      rows
-        .filter(
-          (r) =>
-            INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number]) ||
-            classifyIndia(r.title, r.summary, r.link_url) !== null,
-        )
-        .map(toArticle),
-    ).slice(0, limit);
+    return freshestFirst(
+      dedupeArticles(
+        rows
+          .filter(
+            (r) =>
+              INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number]) ||
+              classifyIndia(r.title, r.summary, r.link_url) !== null,
+          )
+          .map(toArticle),
+      ),
+      limit,
+    );
   }
   if (category === "micro-drama") {
     // Rows filed to the micro-drama desk are read on their own so a busy news
@@ -304,9 +320,10 @@ export async function cmsPosts(
   const articles = dedupeArticles(rows.map(toArticle));
   if (category === "cinema") {
     // No picture, no cinema story — there is plenty of illustrated film news.
-    return articles
-      .filter((a) => a.category === "cinema" && a.image)
-      .slice(0, limit);
+    return freshestFirst(
+      articles.filter((a) => a.category === "cinema" && a.image),
+      limit,
+    );
   }
 
   return articles;

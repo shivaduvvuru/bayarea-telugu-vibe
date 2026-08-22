@@ -1619,8 +1619,17 @@ export async function collectAll(
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows: CollectedItem[] = [];
-  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
+  const started = Date.now();
+  const total = Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
+  const deadline = started + total;
   const inBudget = () => Date.now() < deadline;
+  /**
+   * Each pass gets a reserved share of the run. The Bay Area city pass used to
+   * consume the whole budget, so the India and Cinema/OTT feeds (which live in
+   * the topic and publisher passes further down) never ran and those desks went
+   * stale for days. Capping each pass keeps every desk collecting on every run.
+   */
+  const within = (share: number) => Date.now() < started + total * share;
   const slice = opts?.slice ?? Math.floor(Date.now() / (20 * 60 * 1000));
   /** Rotates a list so successive runs start where the last one stopped. */
   const rotate = <T,>(list: T[], step: number): T[] => {
@@ -1637,7 +1646,7 @@ export async function collectAll(
 
 
   const cityList = rotate(CITIES, 4);
-  for (let b = 0; b < cityList.length && inBudget(); b += 4) {
+  for (let b = 0; b < cityList.length && within(0.35); b += 4) {
     const batch = cityList.slice(b, b + 4);
     const collected = await Promise.all(
       batch.map(async (city) => {
@@ -1686,7 +1695,7 @@ export async function collectAll(
     ],
     5,
   );
-  for (let b = 0; b < guideEntries.length && inBudget(); b += 5) {
+  for (let b = 0; b < guideEntries.length && within(0.55); b += 5) {
     const guideRows = await Promise.all(
       guideEntries.slice(b, b + 5).map(async (g) => {
         const items =
@@ -1737,7 +1746,7 @@ export async function collectAll(
 
   // Region-wide NRI, community-event and temple items.
   const topicRows = await Promise.all(
-    (inBudget() ? TOPIC_GROUPS : []).map(async (group) => {
+    (within(0.72) ? TOPIC_GROUPS : []).map(async (group) => {
       const items = await fetchTopics(group);
       const summaries = await summarize(BAY_AREA, items, apiKey);
       return items.map((it, i) => {
@@ -1775,7 +1784,7 @@ export async function collectAll(
   // magazines, and official immigration sources.
   const publisherBatches: CollectedItem[][] = [];
   const publisherList = rotate(PUBLISHER_FEEDS, 8);
-  for (let b = 0; b < publisherList.length && inBudget(); b += 8) {
+  for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   const publisherRows = await Promise.all(
     publisherList.slice(b, b + 8).map(async (feed) => {
       const items = await fetchPublisher(feed);
