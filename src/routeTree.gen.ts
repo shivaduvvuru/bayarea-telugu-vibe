@@ -26,6 +26,7 @@ import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as FoodRouteImport } from './routes/food'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
 import { Route as LiteRouteImport } from './routes/lite'
@@ -46,6 +47,10 @@ import { Route as CategoryCategoryRouteImport } from './routes/category.$categor
 import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
+import { Route as FoodIndexRouteImport } from './routes/food.index'
+import { Route as FoodAddRouteImport } from './routes/food.add'
+import { Route as FoodDealsRouteImport } from './routes/food.deals'
+import { Route as FoodRestaurantsRouteImport } from './routes/food.restaurants'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as PropertyIndexRouteImport } from './routes/property.index'
 import { Route as PropertyCampaignRouteImport } from './routes/property.$campaign'
@@ -54,6 +59,8 @@ import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as TemplesCalendarRouteImport } from './routes/temples.calendar'
 import { Route as TemplesNewsRouteImport } from './routes/temples.news'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
+import { Route as FoodCollectionSlugRouteImport } from './routes/food.collection.$slug'
+import { Route as FoodRestaurantSlugRouteImport } from './routes/food.restaurant.$slug'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
 import { Route as PropertyCampaignIndexRouteImport } from './routes/property.$campaign.index'
 import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$campaign.$slug'
@@ -147,6 +154,11 @@ const ExploreRoute = ExploreRouteImport.update({
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoodRoute = FoodRouteImport.update({
+  id: '/food',
+  path: '/food',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoundationIconsRoute = FoundationIconsRouteImport.update({
@@ -249,6 +261,26 @@ const EventsTempleCalendarRoute = EventsTempleCalendarRouteImport.update({
   path: '/temple-calendar',
   getParentRoute: () => EventsRoute,
 } as any)
+const FoodIndexRoute = FoodIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FoodRoute,
+} as any)
+const FoodAddRoute = FoodAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => FoodRoute,
+} as any)
+const FoodDealsRoute = FoodDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => FoodRoute,
+} as any)
+const FoodRestaurantsRoute = FoodRestaurantsRouteImport.update({
+  id: '/restaurants',
+  path: '/restaurants',
+  getParentRoute: () => FoodRoute,
+} as any)
 const ForumsIndexRoute = ForumsIndexRouteImport.update({
   id: '/forums/',
   path: '/forums/',
@@ -288,6 +320,16 @@ const ApiPublicRefreshContentRoute = ApiPublicRefreshContentRouteImport.update({
   id: '/api/public/refresh-content',
   path: '/api/public/refresh-content',
   getParentRoute: () => rootRouteImport,
+} as any)
+const FoodCollectionSlugRoute = FoodCollectionSlugRouteImport.update({
+  id: '/collection/$slug',
+  path: '/collection/$slug',
+  getParentRoute: () => FoodRoute,
+} as any)
+const FoodRestaurantSlugRoute = FoodRestaurantSlugRouteImport.update({
+  id: '/restaurant/$slug',
+  path: '/restaurant/$slug',
+  getParentRoute: () => FoodRoute,
 } as any)
 const ForumsThreadThreadIdRoute = ForumsThreadThreadIdRouteImport.update({
   id: '/forums/thread/$threadId',
@@ -362,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
+  '/food': typeof FoodRouteWithChildren
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
@@ -381,15 +424,21 @@ export interface FileRoutesByFullPath {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/add': typeof FoodAddRoute
+  '/food/deals': typeof FoodDealsRoute
+  '/food/restaurants': typeof FoodRestaurantsRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
+  '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
+  '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
@@ -435,14 +484,20 @@ export interface FileRoutesByTo {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/add': typeof FoodAddRoute
+  '/food/deals': typeof FoodDealsRoute
+  '/food/restaurants': typeof FoodRestaurantsRoute
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events': typeof EventsIndexRoute
+  '/food': typeof FoodIndexRoute
   '/forums': typeof ForumsIndexRoute
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
+  '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
@@ -473,6 +528,7 @@ export interface FileRoutesById {
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
+  '/food': typeof FoodRouteWithChildren
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
   '/lite': typeof LiteRoute
@@ -492,15 +548,21 @@ export interface FileRoutesById {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/add': typeof FoodAddRoute
+  '/food/deals': typeof FoodDealsRoute
+  '/food/restaurants': typeof FoodRestaurantsRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
   '/events/': typeof EventsIndexRoute
+  '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
+  '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
@@ -531,6 +593,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/explore'
     | '/favorites'
+    | '/food'
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
@@ -550,15 +613,21 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/add'
+    | '/food/deals'
+    | '/food/restaurants'
     | '/property/$campaign'
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
     | '/events/'
+    | '/food/'
     | '/forums/'
     | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
+    | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
@@ -604,14 +673,20 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/add'
+    | '/food/deals'
+    | '/food/restaurants'
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
     | '/events'
+    | '/food'
     | '/forums'
     | '/property'
     | '/temples'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
+    | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
@@ -641,6 +716,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/explore'
     | '/favorites'
+    | '/food'
     | '/foundation-icons'
     | '/glamour-dashboard'
     | '/lite'
@@ -660,15 +736,21 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/add'
+    | '/food/deals'
+    | '/food/restaurants'
     | '/property/$campaign'
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
     | '/events/'
+    | '/food/'
     | '/forums/'
     | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
+    | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
     | '/temples/temple/$slug'
@@ -699,6 +781,7 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRouteWithChildren
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
+  FoodRoute: typeof FoodRouteWithChildren
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
   LiteRoute: typeof LiteRoute
@@ -849,6 +932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/food': {
+      id: '/food'
+      path: '/food'
+      fullPath: '/food'
+      preLoaderRoute: typeof FoodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/foundation-icons': {
       id: '/foundation-icons'
       path: '/foundation-icons'
@@ -989,6 +1079,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsTempleCalendarRouteImport
       parentRoute: typeof EventsRoute
     }
+    '/food/': {
+      id: '/food/'
+      path: '/'
+      fullPath: '/food/'
+      preLoaderRoute: typeof FoodIndexRouteImport
+      parentRoute: typeof FoodRoute
+    }
+    '/food/add': {
+      id: '/food/add'
+      path: '/add'
+      fullPath: '/food/add'
+      preLoaderRoute: typeof FoodAddRouteImport
+      parentRoute: typeof FoodRoute
+    }
+    '/food/deals': {
+      id: '/food/deals'
+      path: '/deals'
+      fullPath: '/food/deals'
+      preLoaderRoute: typeof FoodDealsRouteImport
+      parentRoute: typeof FoodRoute
+    }
+    '/food/restaurants': {
+      id: '/food/restaurants'
+      path: '/restaurants'
+      fullPath: '/food/restaurants'
+      preLoaderRoute: typeof FoodRestaurantsRouteImport
+      parentRoute: typeof FoodRoute
+    }
     '/forums/': {
       id: '/forums/'
       path: '/forums'
@@ -1044,6 +1162,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/refresh-content'
       preLoaderRoute: typeof ApiPublicRefreshContentRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/food/collection/$slug': {
+      id: '/food/collection/$slug'
+      path: '/collection/$slug'
+      fullPath: '/food/collection/$slug'
+      preLoaderRoute: typeof FoodCollectionSlugRouteImport
+      parentRoute: typeof FoodRoute
+    }
+    '/food/restaurant/$slug': {
+      id: '/food/restaurant/$slug'
+      path: '/restaurant/$slug'
+      fullPath: '/food/restaurant/$slug'
+      preLoaderRoute: typeof FoodRestaurantSlugRouteImport
+      parentRoute: typeof FoodRoute
     }
     '/forums/thread/$threadId': {
       id: '/forums/thread/$threadId'
@@ -1144,6 +1276,26 @@ const EventsRouteChildren: EventsRouteChildren = {
 const EventsRouteWithChildren =
   EventsRoute._addFileChildren(EventsRouteChildren)
 
+interface FoodRouteChildren {
+  FoodAddRoute: typeof FoodAddRoute
+  FoodDealsRoute: typeof FoodDealsRoute
+  FoodRestaurantsRoute: typeof FoodRestaurantsRoute
+  FoodIndexRoute: typeof FoodIndexRoute
+  FoodCollectionSlugRoute: typeof FoodCollectionSlugRoute
+  FoodRestaurantSlugRoute: typeof FoodRestaurantSlugRoute
+}
+
+const FoodRouteChildren: FoodRouteChildren = {
+  FoodAddRoute: FoodAddRoute,
+  FoodDealsRoute: FoodDealsRoute,
+  FoodRestaurantsRoute: FoodRestaurantsRoute,
+  FoodIndexRoute: FoodIndexRoute,
+  FoodCollectionSlugRoute: FoodCollectionSlugRoute,
+  FoodRestaurantSlugRoute: FoodRestaurantSlugRoute,
+}
+
+const FoodRouteWithChildren = FoodRoute._addFileChildren(FoodRouteChildren)
+
 interface TemplesRouteChildren {
   TemplesCityRoute: typeof TemplesCityRoute
   TemplesCalendarRoute: typeof TemplesCalendarRoute
@@ -1194,6 +1346,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRouteWithChildren,
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
+  FoodRoute: FoodRouteWithChildren,
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,
   LiteRoute: LiteRoute,

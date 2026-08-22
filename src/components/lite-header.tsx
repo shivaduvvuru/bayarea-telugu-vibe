@@ -22,7 +22,7 @@ const RAIL = [
   { to: "/temples/calendar", label: "Temple Calendar" },
   { to: "/temples/news", label: "Temple News" },
 
-  { to: "/category/$category", params: { category: "restaurants" }, label: "Food" },
+  { to: "/food", label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
   { to: "/associations", label: "Associations & Community" },
@@ -52,6 +52,15 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
       { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
       
+    ],
+  },
+  {
+    heading: "Food",
+    items: [
+      { to: "/food", label: "Food home" },
+      { to: "/food/restaurants", label: "All restaurants" },
+      { to: "/food/deals", label: "Deals & coupons" },
+      { to: "/food/add", label: "Add / claim a restaurant" },
     ],
   },
   {
