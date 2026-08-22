@@ -52,7 +52,7 @@ function Cta({ slide }: { slide: HeroSlide }) {
 /** Context column: sponsor, headline, highlights and the call to action. */
 function SlideContext({ slide }: { slide: HeroSlide }) {
   return (
-    <div className="flex min-w-0 flex-col justify-center gap-3 p-5 sm:p-7">
+    <div className="flex min-w-0 flex-col justify-center gap-3 p-5 pb-12 sm:p-7 sm:pb-12">
       <div className="flex flex-wrap items-center gap-2">
         <SlideBadge slide={slide} />
         {slide.sponsorName ? (
