@@ -126,16 +126,27 @@ export function isUpcoming(eventStart: string | null | undefined, now = new Date
   return start.getTime() >= now.getTime() - 12 * 60 * 60 * 1000;
 }
 
+/** Bay Area calendar day (YYYY-MM-DD) so server and browser always agree. */
+function bayDay(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
 /** Chronological bucket label: Today → Tomorrow → This weekend → Coming soon. */
 export function whenLabel(eventStart: string, now = new Date()): string {
   const start = new Date(eventStart);
-  const days = Math.floor(
-    (new Date(start.toDateString()).getTime() - new Date(now.toDateString()).getTime()) /
+  const days = Math.round(
+    (Date.parse(`${bayDay(start)}T00:00:00Z`) - Date.parse(`${bayDay(now)}T00:00:00Z`)) /
       (24 * 60 * 60 * 1000),
   );
   if (days <= 0) return "Today";
   if (days === 1) return "Tomorrow";
-  const day = start.getDay();
+  const day = new Date(`${bayDay(start)}T12:00:00Z`).getUTCDay();
   if (days <= 6 && (day === 5 || day === 6 || day === 0)) return "This weekend";
   return "Coming soon";
 }
+
