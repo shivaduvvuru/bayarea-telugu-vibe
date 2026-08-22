@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Thumb, RelativeDate } from "@/components/news";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
