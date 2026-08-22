@@ -323,6 +323,52 @@ function RestaurantDetailPage() {
         </p>
       )}
 
+      <section className="mt-5">
+        <h2 className="text-base font-bold text-ink">Map and nearby</h2>
+        <iframe
+          title={`Map of ${r.name}`}
+          className="mt-2 h-72 w-full rounded-lg border border-border"
+          loading="lazy"
+          src={restaurantMapUrl(r)}
+        />
+        <a
+          href={directionsUrl(r)}
+          target="_blank"
+          rel="noopener"
+          className="mt-2 inline-block text-sm font-semibold text-primary underline"
+        >
+          Open directions and live drive time
+        </a>
+        {nearby.length > 0 && (
+          <ul className="mt-2 divide-y divide-border">
+            {nearby.map((n) => (
+              <li key={n.id} className="py-2">
+                <Link
+                  to="/food/restaurant/$slug"
+                  params={{ slug: n.slug }}
+                  className="text-sm font-semibold text-ink hover:text-primary"
+                >
+                  {n.name}
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    n.cuisines.slice(0, 2).join(" • ") || n.city,
+                    n.miles != null ? `${n.miles} miles` : null,
+                    driveTimeLabel(n.miles),
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Drive times are estimates from straight-line distance — check directions for live traffic.
+        </p>
+      </section>
+
+
       {deals.length > 0 && (
         <section className="mt-5">
           <h2 className="text-base font-bold text-ink">Current deals</h2>
