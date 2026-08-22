@@ -1,4 +1,5 @@
 import credaiHero from "@/assets/hyderabad-skyline.jpg";
+import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 
 /**
  * Sponsor hero carousel slides.
@@ -29,8 +30,8 @@ export interface HeroSlide {
 export const EPAPER_ANNIVERSARY_URL =
   "https://www.telugutimes.net/epaper/16-31-23rd-anniv-special";
 
-/** Rotation interval for the sponsor carousel: one slide every 30 minutes. */
-export const SPONSOR_ROTATE_MS = 30 * 60 * 1000;
+/** Rotation interval for the sponsor carousel: one slide every 5 minutes. */
+export const SPONSOR_ROTATE_MS = 5 * 60 * 1000;
 
 
 const credaiSlide: HeroSlide = {
@@ -51,5 +52,18 @@ const credaiSlide: HeroSlide = {
  * Hero-size property slides: every skyscraper feature page of the anniversary
  * edition follows the CREDAI banner, one slide every 30 minutes.
  */
-export const heroSlides: HeroSlide[] = [credaiSlide];
+const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
+  id: `property-${p.id}`,
+  type: "skyscraper_feature" as const,
+  title: p.project,
+  ...(p.location ? { subtitle: p.location } : {}),
+  imageUrl: propertyImage(p.id),
+  linkUrl: "/property",
+  ctaText: "View all projects",
+  sponsorName: p.developer,
+  ...(p.note ? { highlights: [p.note] } : {}),
+  tint: "#26262b",
+}));
+
+export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
 
