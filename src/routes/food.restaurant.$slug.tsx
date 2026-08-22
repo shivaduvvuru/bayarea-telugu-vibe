@@ -44,7 +44,7 @@ export const Route = createFileRoute("/food/restaurant/$slug")({
     </p>
   ),
   notFoundComponent: NotFoundRestaurant,
-  component: RestaurantDetailPage;
+  component: RestaurantDetailPage,
 });
 
 function NotFoundRestaurant() {
