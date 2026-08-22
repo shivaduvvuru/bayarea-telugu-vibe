@@ -54,14 +54,14 @@ const credaiSlide: HeroSlide = {
  */
 const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
   id: `property-${p.id}`,
-  type: "skyscraper_feature",
+  type: "skyscraper_feature" as const,
   title: p.project,
-  subtitle: p.location,
+  ...(p.location ? { subtitle: p.location } : {}),
   imageUrl: propertyImage(p.id),
   linkUrl: "/property",
   ctaText: "View all projects",
   sponsorName: p.developer,
-  highlights: p.note ? [p.note] : undefined,
+  ...(p.note ? { highlights: [p.note] } : {}),
   tint: "#26262b",
 }));
 
