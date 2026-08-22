@@ -1,4 +1,5 @@
 import credaiHero from "@/assets/hyderabad-skyline.jpg";
+import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 
 /**
  * Sponsor hero carousel slides.
