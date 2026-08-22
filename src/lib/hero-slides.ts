@@ -65,5 +65,7 @@ const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
   tint: "#26262b",
 }));
 
-export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides];
+/** CREDAI banner + three property slides, each shown one at a time. */
+export const heroSlides: HeroSlide[] = [credaiSlide, ...propertySlides.slice(0, 3)];
+
 
