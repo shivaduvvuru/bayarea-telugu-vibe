@@ -30,8 +30,8 @@ export interface HeroSlide {
 export const EPAPER_ANNIVERSARY_URL =
   "https://www.telugutimes.net/epaper/16-31-23rd-anniv-special";
 
-/** Rotation interval for the sponsor carousel: one slide every 30 minutes. */
-export const SPONSOR_ROTATE_MS = 30 * 60 * 1000;
+/** Rotation interval for the sponsor carousel: one slide every 5 minutes. */
+export const SPONSOR_ROTATE_MS = 5 * 60 * 1000;
 
 
 const credaiSlide: HeroSlide = {
