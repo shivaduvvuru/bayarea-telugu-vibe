@@ -48,6 +48,7 @@ import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as FoodIndexRouteImport } from './routes/food.index'
+import { Route as FoodDealsRouteImport } from './routes/food.deals'
 import { Route as FoodRestaurantsRouteImport } from './routes/food.restaurants'
 import { Route as ForumsIndexRouteImport } from './routes/forums/index'
 import { Route as PropertyIndexRouteImport } from './routes/property.index'
@@ -263,6 +264,11 @@ const FoodIndexRoute = FoodIndexRouteImport.update({
   path: '/',
   getParentRoute: () => FoodRoute,
 } as any)
+const FoodDealsRoute = FoodDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => FoodRoute,
+} as any)
 const FoodRestaurantsRoute = FoodRestaurantsRouteImport.update({
   id: '/restaurants',
   path: '/restaurants',
@@ -406,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/deals': typeof FoodDealsRoute
   '/food/restaurants': typeof FoodRestaurantsRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByTo {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/deals': typeof FoodDealsRoute
   '/food/restaurants': typeof FoodRestaurantsRoute
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
@@ -524,6 +532,7 @@ export interface FileRoutesById {
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
+  '/food/deals': typeof FoodDealsRoute
   '/food/restaurants': typeof FoodRestaurantsRoute
   '/property/$campaign': typeof PropertyCampaignRouteWithChildren
   '/temples/$city': typeof TemplesCityRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/deals'
     | '/food/restaurants'
     | '/property/$campaign'
     | '/temples/$city'
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/deals'
     | '/food/restaurants'
     | '/temples/$city'
     | '/temples/calendar'
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/category/$category'
     | '/city/$city'
     | '/events/temple-calendar'
+    | '/food/deals'
     | '/food/restaurants'
     | '/property/$campaign'
     | '/temples/$city'
@@ -1050,6 +1062,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FoodIndexRouteImport
       parentRoute: typeof FoodRoute
     }
+    '/food/deals': {
+      id: '/food/deals'
+      path: '/deals'
+      fullPath: '/food/deals'
+      preLoaderRoute: typeof FoodDealsRouteImport
+      parentRoute: typeof FoodRoute
+    }
     '/food/restaurants': {
       id: '/food/restaurants'
       path: '/restaurants'
@@ -1220,12 +1239,14 @@ const EventsRouteWithChildren =
   EventsRoute._addFileChildren(EventsRouteChildren)
 
 interface FoodRouteChildren {
+  FoodDealsRoute: typeof FoodDealsRoute
   FoodRestaurantsRoute: typeof FoodRestaurantsRoute
   FoodIndexRoute: typeof FoodIndexRoute
   FoodRestaurantSlugRoute: typeof FoodRestaurantSlugRoute
 }
 
 const FoodRouteChildren: FoodRouteChildren = {
+  FoodDealsRoute: FoodDealsRoute,
   FoodRestaurantsRoute: FoodRestaurantsRoute,
   FoodIndexRoute: FoodIndexRoute,
   FoodRestaurantSlugRoute: FoodRestaurantSlugRoute,
