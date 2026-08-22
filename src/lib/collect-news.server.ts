@@ -1619,8 +1619,17 @@ export async function collectAll(
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   const rows: CollectedItem[] = [];
-  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
+  const started = Date.now();
+  const total = Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
+  const deadline = started + total;
   const inBudget = () => Date.now() < deadline;
+  /**
+   * Each pass gets a reserved share of the run. The Bay Area city pass used to
+   * consume the whole budget, so the India and Cinema/OTT feeds (which live in
+   * the topic and publisher passes further down) never ran and those desks went
+   * stale for days. Capping each pass keeps every desk collecting on every run.
+   */
+  const within = (share: number) => Date.now() < started + total * share;
   const slice = opts?.slice ?? Math.floor(Date.now() / (20 * 60 * 1000));
   /** Rotates a list so successive runs start where the last one stopped. */
   const rotate = <T,>(list: T[], step: number): T[] => {
