@@ -58,6 +58,7 @@ import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as TemplesCalendarRouteImport } from './routes/temples.calendar'
 import { Route as TemplesNewsRouteImport } from './routes/temples.news'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
+import { Route as FoodCollectionSlugRouteImport } from './routes/food.collection.$slug'
 import { Route as FoodRestaurantSlugRouteImport } from './routes/food.restaurant.$slug'
 import { Route as ForumsThreadThreadIdRouteImport } from './routes/forums/thread.$threadId'
 import { Route as PropertyCampaignIndexRouteImport } from './routes/property.$campaign.index'
@@ -314,6 +315,11 @@ const ApiPublicRefreshContentRoute = ApiPublicRefreshContentRouteImport.update({
   path: '/api/public/refresh-content',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FoodCollectionSlugRoute = FoodCollectionSlugRouteImport.update({
+  id: '/collection/$slug',
+  path: '/collection/$slug',
+  getParentRoute: () => FoodRoute,
+} as any)
 const FoodRestaurantSlugRoute = FoodRestaurantSlugRouteImport.update({
   id: '/restaurant/$slug',
   path: '/restaurant/$slug',
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
@@ -481,6 +488,7 @@ export interface FileRoutesByTo {
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
@@ -544,6 +552,7 @@ export interface FileRoutesById {
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
+  '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
   '/forums/thread/$threadId': typeof ForumsThreadThreadIdRoute
   '/property/$campaign/$slug': typeof PropertyCampaignSlugRoute
@@ -607,6 +616,7 @@ export interface FileRouteTypes {
     | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
     | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/property'
     | '/temples'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
     | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
@@ -726,6 +737,7 @@ export interface FileRouteTypes {
     | '/property/'
     | '/temples/'
     | '/api/public/refresh-content'
+    | '/food/collection/$slug'
     | '/food/restaurant/$slug'
     | '/forums/thread/$threadId'
     | '/property/$campaign/$slug'
@@ -1132,6 +1144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRefreshContentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/food/collection/$slug': {
+      id: '/food/collection/$slug'
+      path: '/collection/$slug'
+      fullPath: '/food/collection/$slug'
+      preLoaderRoute: typeof FoodCollectionSlugRouteImport
+      parentRoute: typeof FoodRoute
+    }
     '/food/restaurant/$slug': {
       id: '/food/restaurant/$slug'
       path: '/restaurant/$slug'
@@ -1242,6 +1261,7 @@ interface FoodRouteChildren {
   FoodDealsRoute: typeof FoodDealsRoute
   FoodRestaurantsRoute: typeof FoodRestaurantsRoute
   FoodIndexRoute: typeof FoodIndexRoute
+  FoodCollectionSlugRoute: typeof FoodCollectionSlugRoute
   FoodRestaurantSlugRoute: typeof FoodRestaurantSlugRoute
 }
 
@@ -1249,6 +1269,7 @@ const FoodRouteChildren: FoodRouteChildren = {
   FoodDealsRoute: FoodDealsRoute,
   FoodRestaurantsRoute: FoodRestaurantsRoute,
   FoodIndexRoute: FoodIndexRoute,
+  FoodCollectionSlugRoute: FoodCollectionSlugRoute,
   FoodRestaurantSlugRoute: FoodRestaurantSlugRoute,
 }
 
