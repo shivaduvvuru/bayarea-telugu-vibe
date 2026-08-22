@@ -248,7 +248,9 @@ export async function readRestaurant(slug: string): Promise<RestaurantDetail | n
 
 /** Nearest other listings, for the map view on the detail page. */
 async function readNearby(row: Restaurant): Promise<NearbyRestaurant[]> {
-  const origin = coordsFor(row);
+  // Only real coordinates give a meaningful distance; city centroids would
+  // report every neighbour as "0 miles".
+  const origin = row.latitude != null && row.longitude != null ? coordsFor(row) : null;
   const pool = await readRestaurants({
     city: row.city ?? undefined,
     limit: 60,
@@ -257,7 +259,7 @@ async function readNearby(row: Restaurant): Promise<NearbyRestaurant[]> {
   return others
     .filter((r) => r.id !== row.id)
     .map((r) => {
-      const c = coordsFor(r);
+      const c = r.latitude != null && r.longitude != null ? coordsFor(r) : null;
       return {
         id: r.id,
         slug: r.slug,
