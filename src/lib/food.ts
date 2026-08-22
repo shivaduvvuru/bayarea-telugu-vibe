@@ -8,7 +8,15 @@
 
 import { CITY_REGIONS } from "@/lib/content";
 
-export type OrderLink = { provider: string; url: string };
+export type OrderLink = {
+  provider: string;
+  url: string;
+  /** Which service this link opens. Missing means it covers both. */
+  mode?: "delivery" | "pickup" | "both" | null;
+  /** Provider-published estimate, in minutes. Only shown when supplied. */
+  eta_minutes?: number | null;
+};
+
 
 export type Restaurant = {
   id: string;
