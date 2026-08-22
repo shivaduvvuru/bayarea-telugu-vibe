@@ -290,13 +290,41 @@ function RestaurantList() {
       </p>
 
       {view === "map" ? (
-        <iframe
-          title="Restaurant map"
-          className="mt-3 h-80 w-full rounded-lg border border-border"
-          loading="lazy"
-          src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-        />
+        <div className="mt-3">
+          <iframe
+            title="Restaurant map"
+            className="h-80 w-full rounded-lg border border-border"
+            loading="lazy"
+            src={mapSrc}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Tap a restaurant to open its own map and drive time.
+          </p>
+          <ul className="mt-1 divide-y divide-border">
+            {results.slice(0, 30).map(({ r, distance }) => (
+              <li key={r.id} className="py-2">
+                <Link
+                  to="/food/restaurant/$slug"
+                  params={{ slug: r.slug }}
+                  className="text-sm font-semibold text-ink hover:text-primary"
+                >
+                  {r.name}
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    r.city ?? "Bay Area",
+                    distance != null ? `${distance} miles` : null,
+                    driveTimeLabel(distance),
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : (
+
         <div className="mt-2">
           {results.map(({ r, distance }: { r: RestaurantSummary; distance: number | null }) => (
             <RestaurantCard key={r.id} restaurant={r} distance={distance} />
