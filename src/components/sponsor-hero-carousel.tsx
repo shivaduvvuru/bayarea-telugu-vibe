@@ -235,7 +235,7 @@ export function SponsorHeroCarousel({
             >
               <ChevronRight className="h-5 w-5" aria-hidden />
             </button>
-            <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-1.5 bg-gradient-to-t from-ink/80 to-transparent px-3 py-2.5">
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 overflow-x-auto bg-gradient-to-t from-ink/85 to-transparent px-3 py-2 [scrollbar-width:none]">
               {slides.map((slide, i) => (
                 <button
                   key={slide.id}
@@ -244,25 +244,15 @@ export function SponsorHeroCarousel({
                   aria-current={i === index}
                   onClick={() => go(i)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                    "h-2 w-2 shrink-0 rounded-full transition-colors",
                     i === index
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-primary-foreground/30 text-primary-foreground/70 hover:border-primary-foreground/60",
+                      ? "bg-primary ring-2 ring-primary-foreground/60"
+                      : "bg-primary-foreground/40 hover:bg-primary-foreground/70",
                   )}
-                >
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      i === index ? "bg-primary-foreground" : "bg-primary-foreground/60",
-                    )}
-                    aria-hidden
-                  />
-                  <span className="max-w-[9rem] truncate">
-                    {slide.isCredai ? "CREDAI" : (slide.sponsorName ?? slide.title)}
-                  </span>
-                </button>
+                />
               ))}
             </div>
+
           </>
         ) : null}
       </div>
