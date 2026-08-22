@@ -301,15 +301,19 @@ function RestaurantDetailPage() {
 
       <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
         {[
-          r.has_dine_in && "Dine-in",
-          r.has_pickup && "Takeout / pickup",
-          r.has_delivery && "Delivery",
-          r.has_reservations && "Reservations",
-          r.has_catering && "Catering",
-          ...r.dietary,
-          ...r.features,
+          ...new Set(
+            [
+              r.has_dine_in && "Dine-in",
+              r.has_pickup && "Takeout / pickup",
+              r.has_delivery && "Delivery",
+              r.has_reservations && "Reservations",
+              r.has_catering && "Catering",
+              ...r.dietary,
+              ...r.features,
+            ].filter(Boolean),
+          ),
         ]
-          .filter(Boolean)
+
           .map((f) => (
             <span key={String(f)} className="rounded-full border border-border px-2 py-0.5 font-semibold text-ink">
               {f}
