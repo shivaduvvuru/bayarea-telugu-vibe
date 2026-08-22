@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { MapPin, Search } from "lucide-react";
@@ -12,6 +12,8 @@ import {
   RESTAURANT_TYPES,
   SORTS,
   coordsFor,
+  driveTimeLabel,
+  mapEmbedUrl,
   isOpenNow,
   milesBetween,
 } from "@/lib/food";
@@ -165,9 +167,17 @@ function RestaurantList() {
     return sorted;
   }, [all, here, search]);
 
-  const mapQuery = encodeURIComponent(
-    `${search.cuisine || search.dish || "restaurants"} in ${search.city || "Bay Area"} California`,
-  );
+  // Centre the map on where the results actually are: the user's location,
+  // the first result's coordinates, or a text search for the chosen city.
+  const mapSrc = (() => {
+    if (here) return mapEmbedUrl(here, 12);
+    const first = results.map(({ r }) => coordsFor(r)).find(Boolean);
+    if (first) return mapEmbedUrl(first, 12);
+    return mapEmbedUrl(
+      `${search.cuisine || search.dish || "restaurants"} in ${search.city || "Bay Area"} California`,
+      11,
+    );
+  })();
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-5">
