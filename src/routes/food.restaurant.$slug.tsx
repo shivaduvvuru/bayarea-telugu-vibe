@@ -3,8 +3,10 @@ import { Clock, MapPin, Phone, Share2 } from "lucide-react";
 import { fetchRestaurant } from "@/lib/food.functions";
 import {
   directionsUrl,
+  driveTimeLabel,
   isOpenNow,
-  orderChoices,
+  orderActions,
+  restaurantMapUrl,
   priceLabel,
   reservationUrl,
   reviewLinks,
@@ -62,9 +64,9 @@ const action =
   "min-h-11 flex-1 rounded-md border border-border bg-card px-3 text-center text-sm font-semibold leading-[2.75rem] text-ink hover:border-primary";
 
 function RestaurantDetailPage() {
-  const { restaurant: r, reviews, deals } = Route.useLoaderData();
+  const { restaurant: r, reviews, deals, nearby } = Route.useLoaderData();
   const open = isOpenNow(r.hours);
-  const order = orderChoices(r);
+  const actions = orderActions(r);
 
   function share() {
     const url = typeof window !== "undefined" ? window.location.href : "";
