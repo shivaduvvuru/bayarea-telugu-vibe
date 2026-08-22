@@ -21,7 +21,7 @@ export type RestaurantSummary = Restaurant & {
   tt_score: number | null;
   review_total: number;
   /** How many other listings were folded into this one on read. */
-  duplicate_count?: number;
+  duplicate_count?: number | undefined;
 };
 
 /**
@@ -49,7 +49,7 @@ function collapseDuplicates(rows: RestaurantSummary[]): RestaurantSummary[] {
   }
   return rows
     .filter((r) => !hidden.has(r.id))
-    .map((r) => (counts.has(r.id) ? { ...r, duplicate_count: counts.get(r.id) } : r));
+    .map((r) => ({ ...r, duplicate_count: counts.get(r.id) ?? 0 }));
 }
 
 
