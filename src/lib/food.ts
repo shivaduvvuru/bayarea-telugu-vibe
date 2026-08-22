@@ -383,3 +383,132 @@ export function coordsFor(r: Pick<Restaurant, "latitude" | "longitude" | "city">
   if (r.latitude != null && r.longitude != null) return { lat: r.latitude, lng: r.longitude };
   return r.city ? CITY_COORDS[r.city] ?? null : null;
 }
+
+/* ------------------------------ maps and drive time ------------------------------ */
+
+/** Google's keyless embed. Coordinates when we have them, name+city otherwise. */
+export function mapEmbedUrl(
+  target: { lat: number; lng: number } | string,
+  zoom = 13,
+): string {
+  const q = typeof target === "string" ? encodeURIComponent(target) : `${target.lat},${target.lng}`;
+  return `https://www.google.com/maps?q=${q}&z=${zoom}&output=embed`;
+}
+
+export function restaurantMapUrl(r: Pick<Restaurant, "name" | "city" | "address" | "latitude" | "longitude">) {
+  const point = r.latitude != null && r.longitude != null ? { lat: r.latitude, lng: r.longitude } : null;
+  return mapEmbedUrl(point ?? `${r.name} ${r.address ?? r.city ?? "Bay Area"}`, 15);
+}
+
+/**
+ * Approximate driving minutes from straight-line miles: a 1.3x detour factor
+ * over local streets at ~27 mph, floored at three minutes. Always labelled as
+ * an estimate — we never present it as a routed time.
+ */
+export function driveMinutes(miles: number | null | undefined): number | null {
+  if (miles == null || !Number.isFinite(miles)) return null;
+  return Math.max(3, Math.round((miles * 1.3) / 27 * 60));
+}
+
+export function driveTimeLabel(miles: number | null | undefined): string | null {
+  const mins = driveMinutes(miles);
+  return mins == null ? null : mins >= 60 ? `~${Math.round(mins / 6) / 10} hr drive` : `~${mins} min drive`;
+}
+
+/* ------------------------------ ordering actions ------------------------------ */
+
+export type OrderActions = {
+  delivery: OrderLink[];
+  pickup: OrderLink[];
+  /** Best provider-published delivery estimate, when any provider supplied one. */
+  deliveryEta: number | null;
+};
+
+/** Splits the ordering links into Delivery and Pickup actions. */
+export function orderActions(r: Restaurant): OrderActions {
+  const links = orderChoices(r);
+  const forMode = (mode: "delivery" | "pickup") =>
+    links.filter((l) => !l.mode || l.mode === "both" || l.mode === mode);
+  const etas = links
+    .filter((l) => !l.mode || l.mode === "both" || l.mode === "delivery")
+    .map((l) => l.eta_minutes)
+    .filter((n): n is number => typeof n === "number" && n > 0);
+  return {
+    delivery: r.has_delivery ? forMode("delivery") : [],
+    pickup: r.has_pickup ? forMode("pickup") : [],
+    deliveryEta: etas.length > 0 ? Math.min(...etas) : null,
+  };
+}
+
+/* ------------------------------ duplicate detection ------------------------------ */
+
+const NOISE =
+  /\b(restaurant|restaurants|cuisine|kitchen|kitchens|indian|the|and|cafe|bar|grill|house|family|authentic|original|bay ?area)\b/g;
+
+/** Name reduced to its identifying core: no branch words, punctuation or noise. */
+export function normalizeRestaurantName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(NOISE, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Registrable-ish host for a website: no scheme, no www, no path. */
+export function siteDomain(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const host = new URL(url.startsWith("http") ? url : `https://${url}`).hostname.toLowerCase();
+    return host.replace(/^www\./, "") || null;
+  } catch {
+    return null;
+  }
+}
+
+export type DupeCandidate = Pick<
+  Restaurant,
+  "id" | "slug" | "name" | "branch_label" | "city" | "address" | "website_url" | "latitude" | "longitude"
+>;
+
+/**
+ * Identity keys for one listing. Two listings are duplicates when any key
+ * matches: same name in the same city, same website domain plus city, or the
+ * same street address. Different branches of one brand stay separate because
+ * the city (and address) differ.
+ */
+export function restaurantDupeKeys(r: DupeCandidate): string[] {
+  const name = normalizeRestaurantName(r.name);
+  const city = (r.city ?? "").toLowerCase().trim();
+  const domain = siteDomain(r.website_url);
+  const street = (r.address ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\b(suite|ste|unit|apt|#)\b.*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const keys: string[] = [];
+  if (name && city) keys.push(`nc:${name}|${city}`);
+  if (domain && city) keys.push(`dc:${domain}|${city}`);
+  if (street.length > 8) keys.push(`a:${street}`);
+  if (name && r.latitude != null && r.longitude != null) {
+    // ~0.005 degrees is roughly a third of a mile: the same building.
+    keys.push(`ng:${name}|${r.latitude.toFixed(2)}|${r.longitude.toFixed(2)}`);
+  }
+  return keys;
+}
+
+/** Groups listings that describe the same restaurant. Singletons are dropped. */
+export function groupDuplicates<T extends DupeCandidate>(rows: T[]): T[][] {
+  const owner = new Map<string, number>();
+  const groups: T[][] = [];
+  for (const row of rows) {
+    const keys = restaurantDupeKeys(row);
+    const hit = keys.map((k) => owner.get(k)).find((i) => i != null);
+    const index = hit ?? groups.push([]) - 1;
+    groups[index]!.push(row);
+    for (const k of keys) owner.set(k, index);
+  }
+  return groups.filter((g) => g.length > 1);
+}
