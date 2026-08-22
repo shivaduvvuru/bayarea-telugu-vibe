@@ -39,7 +39,7 @@ const ICON_TABS = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/events", icon: CalendarDays, label: "Events" },
   { to: "/temples", icon: Landmark, label: "Temples" },
-  { to: "/food/restaurants", icon: Utensils, label: "Restaurants" },
+  { to: "/food/restaurants", icon: Utensils, label: "Food" },
   { to: "/category/$category", params: { category: "classifieds" }, icon: Tag, label: "Classifieds" },
 ] as const;
 
