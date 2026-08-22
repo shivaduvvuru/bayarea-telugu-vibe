@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { MapPin, Search } from "lucide-react";
@@ -12,6 +12,8 @@ import {
   RESTAURANT_TYPES,
   SORTS,
   coordsFor,
+  driveTimeLabel,
+  mapEmbedUrl,
   isOpenNow,
   milesBetween,
 } from "@/lib/food";
@@ -165,9 +167,17 @@ function RestaurantList() {
     return sorted;
   }, [all, here, search]);
 
-  const mapQuery = encodeURIComponent(
-    `${search.cuisine || search.dish || "restaurants"} in ${search.city || "Bay Area"} California`,
-  );
+  // Centre the map on where the results actually are: the user's location,
+  // the first result's coordinates, or a text search for the chosen city.
+  const mapSrc = (() => {
+    if (here) return mapEmbedUrl(here, 12);
+    const first = results.map(({ r }) => coordsFor(r)).find(Boolean);
+    if (first) return mapEmbedUrl(first, 12);
+    return mapEmbedUrl(
+      `${search.cuisine || search.dish || "restaurants"} in ${search.city || "Bay Area"} California`,
+      11,
+    );
+  })();
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-5">
@@ -290,13 +300,41 @@ function RestaurantList() {
       </p>
 
       {view === "map" ? (
-        <iframe
-          title="Restaurant map"
-          className="mt-3 h-80 w-full rounded-lg border border-border"
-          loading="lazy"
-          src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-        />
+        <div className="mt-3">
+          <iframe
+            title="Restaurant map"
+            className="h-80 w-full rounded-lg border border-border"
+            loading="lazy"
+            src={mapSrc}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Tap a restaurant to open its own map and drive time.
+          </p>
+          <ul className="mt-1 divide-y divide-border">
+            {results.slice(0, 30).map(({ r, distance }) => (
+              <li key={r.id} className="py-2">
+                <Link
+                  to="/food/restaurant/$slug"
+                  params={{ slug: r.slug }}
+                  className="text-sm font-semibold text-ink hover:text-primary"
+                >
+                  {r.name}
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    r.city ?? "Bay Area",
+                    distance != null ? `${distance} miles` : null,
+                    driveTimeLabel(distance),
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : (
+
         <div className="mt-2">
           {results.map(({ r, distance }: { r: RestaurantSummary; distance: number | null }) => (
             <RestaurantCard key={r.id} restaurant={r} distance={distance} />

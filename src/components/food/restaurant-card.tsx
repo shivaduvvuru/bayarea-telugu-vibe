@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
 import {
   SOURCE_LABEL,
+  driveTimeLabel,
   isOpenNow,
   orderChoices,
   priceLabel,
@@ -84,7 +85,7 @@ export function RestaurantCard({
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             📍 {restaurant.city ?? "Bay Area"}
-            {distance != null ? ` • ${distance} miles` : ""}
+            {distance != null ? ` • ${distance} miles • ${driveTimeLabel(distance)}` : ""}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">

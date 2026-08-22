@@ -3,8 +3,10 @@ import { Clock, MapPin, Phone, Share2 } from "lucide-react";
 import { fetchRestaurant } from "@/lib/food.functions";
 import {
   directionsUrl,
+  driveTimeLabel,
   isOpenNow,
-  orderChoices,
+  orderActions,
+  restaurantMapUrl,
   priceLabel,
   reservationUrl,
   reviewLinks,
@@ -62,9 +64,9 @@ const action =
   "min-h-11 flex-1 rounded-md border border-border bg-card px-3 text-center text-sm font-semibold leading-[2.75rem] text-ink hover:border-primary";
 
 function RestaurantDetailPage() {
-  const { restaurant: r, reviews, deals } = Route.useLoaderData();
+  const { restaurant: r, reviews, deals, nearby } = Route.useLoaderData();
   const open = isOpenNow(r.hours);
-  const order = orderChoices(r);
+  const actions = orderActions(r);
 
   function share() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -151,30 +153,60 @@ function RestaurantDetailPage() {
         </details>
       )}
 
-      {order.length > 0 && (
+      {(actions.delivery.length > 0 || actions.pickup.length > 0) && (
         <section className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-3">
           <h2 className="text-sm font-extrabold uppercase tracking-wide text-primary">Order now</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {[r.has_delivery && "Delivery", r.has_pickup && "Pickup"].filter(Boolean).join(" • ")}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {order.map((o) => (
-              <a
-                key={o.provider}
-                href={o.url}
-                target="_blank"
-                rel="noopener nofollow"
-                className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold leading-[2.75rem] text-primary-foreground"
-              >
-                {o.provider}
-              </a>
-            ))}
-          </div>
+          {actions.delivery.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-ink">
+                Delivery
+                {actions.deliveryEta ? (
+                  <span className="ml-1 font-semibold text-muted-foreground">
+                    • about {actions.deliveryEta} min
+                  </span>
+                ) : null}
+              </p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {actions.delivery.map((o) => (
+                  <a
+                    key={`d-${o.provider}`}
+                    href={o.url}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    className="min-h-11 rounded-md bg-primary px-3 text-sm font-semibold leading-[2.75rem] text-primary-foreground"
+                  >
+                    {o.provider}
+                    {o.eta_minutes ? ` • ${o.eta_minutes} min` : ""}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {actions.pickup.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-bold text-ink">Pickup</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {actions.pickup.map((o) => (
+                  <a
+                    key={`p-${o.provider}`}
+                    href={o.url}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    className="min-h-11 rounded-md border border-primary bg-card px-3 text-sm font-semibold leading-[2.75rem] text-primary"
+                  >
+                    {o.provider}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Delivery fees, minimums and estimated times are shown by the provider at checkout.
+            Links open the restaurant's official ordering page. Fees, minimums and exact times are
+            confirmed by the provider at checkout.
           </p>
         </section>
       )}
+
 
       <div className="mt-3 flex flex-wrap gap-2">
         {r.menu_url && (
@@ -269,15 +301,19 @@ function RestaurantDetailPage() {
 
       <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
         {[
-          r.has_dine_in && "Dine-in",
-          r.has_pickup && "Takeout / pickup",
-          r.has_delivery && "Delivery",
-          r.has_reservations && "Reservations",
-          r.has_catering && "Catering",
-          ...r.dietary,
-          ...r.features,
+          ...new Set(
+            [
+              r.has_dine_in && "Dine-in",
+              r.has_pickup && "Takeout / pickup",
+              r.has_delivery && "Delivery",
+              r.has_reservations && "Reservations",
+              r.has_catering && "Catering",
+              ...r.dietary,
+              ...r.features,
+            ].filter(Boolean),
+          ),
         ]
-          .filter(Boolean)
+
           .map((f) => (
             <span key={String(f)} className="rounded-full border border-border px-2 py-0.5 font-semibold text-ink">
               {f}
@@ -290,6 +326,52 @@ function RestaurantDetailPage() {
           <span className="font-bold">Popular dishes:</span> {r.dish_tags.join(", ")}
         </p>
       )}
+
+      <section className="mt-5">
+        <h2 className="text-base font-bold text-ink">Map and nearby</h2>
+        <iframe
+          title={`Map of ${r.name}`}
+          className="mt-2 h-72 w-full rounded-lg border border-border"
+          loading="lazy"
+          src={restaurantMapUrl(r)}
+        />
+        <a
+          href={directionsUrl(r)}
+          target="_blank"
+          rel="noopener"
+          className="mt-2 inline-block text-sm font-semibold text-primary underline"
+        >
+          Open directions and live drive time
+        </a>
+        {nearby.length > 0 && (
+          <ul className="mt-2 divide-y divide-border">
+            {nearby.map((n) => (
+              <li key={n.id} className="py-2">
+                <Link
+                  to="/food/restaurant/$slug"
+                  params={{ slug: n.slug }}
+                  className="text-sm font-semibold text-ink hover:text-primary"
+                >
+                  {n.name}
+                </Link>
+                <p className="text-xs text-muted-foreground">
+                  {[
+                    n.cuisines.slice(0, 2).join(" • ") || n.city,
+                    n.miles != null ? `${n.miles} miles` : null,
+                    driveTimeLabel(n.miles),
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Drive times are estimates from straight-line distance — check directions for live traffic.
+        </p>
+      </section>
+
 
       {deals.length > 0 && (
         <section className="mt-5">

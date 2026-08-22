@@ -6,7 +6,10 @@
 import { publicClient } from "@/lib/cms.server";
 import {
   RESTAURANT_COLUMNS,
+  coordsFor,
   groupDuplicates,
+  milesBetween,
+
   timesBayAreaScore,
   type CommunityReview,
   type FoodCollection,
@@ -161,20 +164,36 @@ export async function readRestaurants(query: RestaurantQuery): Promise<Restauran
       .in("restaurant_id", ids),
   ]);
 
-  const summaries = attach(
-    rows,
-    (ratings.data ?? []) as unknown as RestaurantRating[],
-    (reviews.data ?? []) as unknown as { restaurant_id: string; rating: number }[],
+  const summaries = collapseDuplicates(
+    attach(
+      rows,
+      (ratings.data ?? []) as unknown as RestaurantRating[],
+      (reviews.data ?? []) as unknown as { restaurant_id: string; rating: number }[],
+    ),
   );
   return query.minRating
     ? summaries.filter((s) => (s.tt_score ?? 0) >= (query.minRating as number))
     : summaries;
 }
 
+export type NearbyRestaurant = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  cuisines: string[];
+  latitude: number | null;
+  longitude: number | null;
+  tt_score: number | null;
+  /** Straight-line miles from the restaurant being viewed. */
+  miles: number | null;
+};
+
 export type RestaurantDetail = {
   restaurant: RestaurantSummary;
   reviews: CommunityReview[];
   deals: FoodDeal[];
+  nearby: NearbyRestaurant[];
 };
 
 export async function readRestaurant(slug: string): Promise<RestaurantDetail | null> {
@@ -219,8 +238,44 @@ export async function readRestaurant(slug: string): Promise<RestaurantDetail | n
     reviewRows.map((r) => ({ restaurant_id: r.restaurant_id, rating: r.rating })),
   );
   if (!summary) return null;
-  return { restaurant: summary, reviews: reviewRows, deals: (deals.data ?? []) as unknown as FoodDeal[] };
+  return {
+    restaurant: summary,
+    reviews: reviewRows,
+    deals: (deals.data ?? []) as unknown as FoodDeal[],
+    nearby: await readNearby(row),
+  };
 }
+
+/** Nearest other listings, for the map view on the detail page. */
+async function readNearby(row: Restaurant): Promise<NearbyRestaurant[]> {
+  // Only real coordinates give a meaningful distance; city centroids would
+  // report every neighbour as "0 miles".
+  const origin = row.latitude != null && row.longitude != null ? coordsFor(row) : null;
+  const pool = await readRestaurants({
+    city: row.city ?? undefined,
+    limit: 60,
+  });
+  const others = pool.length > 1 || !row.city ? pool : await readRestaurants({ limit: 120 });
+  return others
+    .filter((r) => r.id !== row.id)
+    .map((r) => {
+      const c = r.latitude != null && r.longitude != null ? coordsFor(r) : null;
+      return {
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        city: r.city,
+        cuisines: r.cuisines,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        tt_score: r.tt_score,
+        miles: origin && c ? milesBetween(origin, c) : null,
+      };
+    })
+    .sort((a, b) => (a.miles ?? 999) - (b.miles ?? 999))
+    .slice(0, 8);
+}
+
 
 export async function readDeals(filter: { city?: string | undefined; cuisine?: string | undefined }) {
   const db = publicClient();
