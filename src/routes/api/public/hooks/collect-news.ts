@@ -54,13 +54,23 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const rows = data ?? [];
             if (!rows.length) break;
             batches += 1;
+            // Rows that classify the same way are stamped in one statement, so a
+            // 500-row batch costs a handful of updates instead of 500.
+            const groups = new Map<string, { fields: unknown; ids: string[] }>();
             for (const row of rows) {
               const fields = classifyForPublish(row as never);
+              const key = `${fields.resolved_category}|${fields.is_local}`;
+              const group = groups.get(key) ?? { fields, ids: [] };
+              group.ids.push(row.id);
+              groups.set(key, group);
+            }
+            for (const group of groups.values()) {
               const { error: updateError } = await supabaseAdmin
                 .from("content_items")
-                .update(fields as never)
-                .eq("id", row.id);
-              if (!updateError) updated += 1;
+                .update(group.fields as never)
+                .in("id", group.ids);
+              if (!updateError) updated += group.ids.length;
+              else break;
             }
           }
           const { count } = await supabaseAdmin
