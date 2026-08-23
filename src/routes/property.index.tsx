@@ -92,6 +92,8 @@ function FeatureCard({
             <PropertyVideoSources
               project={item.project}
               developer={item.developer}
+              {...(item.location ? { location: item.location } : {})}
+              {...(item.note ? { note: item.note } : {})}
               {...(item.site ? { site: item.site } : {})}
             />
           </div>
