@@ -151,6 +151,7 @@ export const QUICK_TILES = [
 const EXTRA_CITIES = [
   "Newark", "Hayward", "Berkeley", "Redwood City", "San Mateo", "Foster City",
   "Sausalito", "Los Gatos", "Campbell", "Walnut Creek",
+  "Saratoga", "Burlingame", "Richmond", "San Rafael", "Concord", "Daly City",
 ];
 
 /** Every city we cover, Bay Area regions first. */
@@ -216,6 +217,7 @@ export function priceLabel(level: number | null | undefined) {
 const SOURCE_WEIGHT: Record<string, number> = {
   google: 1,
   yelp: 0.9,
+  foursquare: 0.8,
   opentable: 0.7,
   tripadvisor: 0.6,
   doordash: 0.6,
@@ -283,6 +285,7 @@ export function timesBayAreaScore(input: ScoreInput): Score {
 export const SOURCE_LABEL: Record<string, string> = {
   google: "Google",
   yelp: "Yelp",
+  foursquare: "Foursquare",
   opentable: "OpenTable",
   tripadvisor: "TripAdvisor",
   doordash: "DoorDash",
@@ -377,6 +380,12 @@ export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   "Los Gatos": { lat: 37.2358, lng: -121.9624 },
   Campbell: { lat: 37.2872, lng: -121.95 },
   "Walnut Creek": { lat: 37.9101, lng: -122.0652 },
+  Saratoga: { lat: 37.2638, lng: -122.023 },
+  Burlingame: { lat: 37.5841, lng: -122.366 },
+  Richmond: { lat: 37.9358, lng: -122.3478 },
+  "San Rafael": { lat: 37.9735, lng: -122.5311 },
+  Concord: { lat: 37.978, lng: -122.0311 },
+  "Daly City": { lat: 37.6879, lng: -122.4702 },
 };
 
 export function coordsFor(r: Pick<Restaurant, "latitude" | "longitude" | "city">) {

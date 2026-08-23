@@ -346,6 +346,10 @@ function RestaurantList() {
           )}
         </div>
       )}
+      <p className="mt-6 border-t border-border pt-3 text-[11px] leading-snug text-muted-foreground">
+        Listing data © OpenStreetMap contributors, available under the Open Database Licence (ODbL).
+        Ratings shown as “TimesBayArea” come from our own readers.
+      </p>
     </div>
   );
 }
