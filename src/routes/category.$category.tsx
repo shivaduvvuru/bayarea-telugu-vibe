@@ -145,6 +145,7 @@ function CategoryPage() {
       ) : null}
       <div className="mt-6">
         {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} /> : null}
+        {cat.slug === "city-news" ? <TempleWeekStrip /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
         ) : null}
