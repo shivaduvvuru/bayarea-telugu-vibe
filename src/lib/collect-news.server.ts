@@ -171,16 +171,23 @@ export async function backfillMissingImages(
 ): Promise<{ scanned: number; repaired: number }> {
   const { data, error } = await admin
     .from("content_items")
-    .select("id, link_url, image_url, created_at")
+    .select("id, link_url, image_url, created_at, image_backfill_attempts")
     .eq("status", "published")
     .is("image_url", null)
     .not("link_url", "is", null)
+    // Pages that failed five times are unrecoverable: stop spending the budget
+    // on them so the scan keeps reaching stories that can still be repaired.
+    .or("image_backfill_attempts.is.null,image_backfill_attempts.lt.5")
     .order("created_at", { ascending: false })
     .limit(limit * 8);
   if (error) return { scanned: 0, repaired: 0 };
   // Sample across the whole image-less backlog: a fixed newest-first slice keeps
   // retrying the same unrecoverable pages and never reaches older stories.
-  const pool = (data ?? []) as { id: string; link_url: string | null }[];
+  const pool = (data ?? []) as {
+    id: string;
+    link_url: string | null;
+    image_backfill_attempts?: number | null;
+  }[];
   const rows = pool
     .map((row) => ({ row, r: Math.random() }))
     .sort((a, b) => a.r - b.r)
@@ -195,7 +202,14 @@ export async function backfillMissingImages(
       const row = queue.shift();
       if (!row?.link_url) return;
       const image = await fetchArticleImage(row.link_url).catch(() => null);
-      if (!image) continue;
+      if (!image) {
+        // Record the failed attempt so the guard above can retire the row.
+        await admin
+          .from("content_items")
+          .update({ image_backfill_attempts: (row.image_backfill_attempts ?? 0) + 1 })
+          .eq("id", row.id);
+        continue;
+      }
       const { error: upErr } = await admin
         .from("content_items")
         .update({ image_url: image })
@@ -206,6 +220,7 @@ export async function backfillMissingImages(
   await Promise.all(workers);
   return { scanned: rows.length, repaired };
 }
+
 
 
 
