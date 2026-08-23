@@ -163,9 +163,10 @@ function CategoryPage() {
               : "No stories published in this section yet."}
           </p>
 
-        ) : cat.slug === "city-news" || cat.slug === "micro-drama" ? (
-          // Illustrated local reporting leads the page; text-only stories are
+        ) : cat.slug !== "gallery" ? (
+          // Illustrated reporting leads every section; text-only stories are
           // collected underneath as short snippets instead of empty cards.
+
           <>
             {(() => {
               const picture = articles.filter((a) => a.image);
@@ -198,21 +199,12 @@ function CategoryPage() {
             ) : null}
           </>
         ) : (
-          <div
-            className={
-              cat.slug === "gallery"
-                ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-                : "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
-            }
-          >
-            {articles.map((a, i) =>
-              cat.slug === "gallery" ? (
-                <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
-              ) : (
-                <StoryCard key={a.id} article={a} />
-              ),
-            )}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {articles.map((a, i) => (
+              <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
+            ))}
           </div>
+
         )}
       </div>
 
