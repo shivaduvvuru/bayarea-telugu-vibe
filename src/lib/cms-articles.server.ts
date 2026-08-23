@@ -316,7 +316,7 @@ async function readPosts(
               classifyIndia(r.title, r.summary, r.link_url) !== null,
           )
           .map(toArticle),
-      ),
+      ).filter((a) => a.image),
       limit,
     );
   }
@@ -328,10 +328,9 @@ async function readPosts(
     const auto = rows.filter(
       (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
     );
-    // Illustrated stories lead the desk: the page shows photo cards first and
-    // keeps text-only items as short snippets underneath.
+    // No picture, no story: text-only items are dropped, not listed.
     const all = dedupeArticles([...filedRows, ...auto].map(toArticle));
-    return [...all.filter((a) => a.image), ...all.filter((a) => !a.image)].slice(0, limit);
+    return all.filter((a) => a.image).slice(0, limit);
   }
 
 
@@ -370,7 +369,8 @@ async function readPosts(
         })
         .map(toArticle),
     )
-      .filter((a) => a.category !== CINEMA_SLUG)
+      // No picture, no news card: illustrated reporting only.
+      .filter((a) => a.category !== CINEMA_SLUG && a.image)
       .slice(0, limit);
 
   }
@@ -386,12 +386,15 @@ async function readPosts(
   }
   if (category === "temples") {
     // Temple coverage stays religious, from temple sites or reliable outlets.
+    // Temple notices and events are calendar items, so artwork is optional here.
     return articles.filter((a) =>
       isTempleNewsClean({ title: a.title, summary: a.excerpt, sourceUrl: a.sourceUrl ?? null }),
     );
   }
+  if (category === "events" || category === "events-community") return articles;
 
-  return articles;
+  // Everything else on the news side needs artwork.
+  return articles.filter((a) => a.image);
 
 
 }

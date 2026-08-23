@@ -1,4 +1,5 @@
 import { admin } from "@/lib/ingest.server";
+import { usableImage } from "@/lib/story-image";
 
 /**
  * Publishes reviewed raw items as public digest cards.
@@ -18,6 +19,15 @@ export async function publishRawItems(ids: string[]): Promise<number> {
 
   let published = 0;
   for (const row of (rows ?? []) as Record<string, any>[]) {
+    // Editorial rule: a news card without artwork is not published at all.
+    // Calendar items (events) are exempt — they are notices, not photo stories.
+    if (!row["event_start"] && !usableImage(row["image_url"])) {
+      await db
+        .from("raw_ingestion_items")
+        .update({ processing_status: "rejected", dedupe_status: "no-image" })
+        .eq("id", row["id"]);
+      continue;
+    }
     const cluster = row["story_cluster_id"]
       ? (
           await db
