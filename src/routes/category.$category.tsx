@@ -104,8 +104,14 @@ function CategoryPage() {
         : allArticles;
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  // Only the first screenful of cards is rendered (and its images requested);
+  // the rest arrives on demand instead of on first paint.
+  const pageSize = cat.slug === "gallery" ? 16 : 12;
+  const [limit, setLimit] = useState(pageSize);
+  const shown = articles.slice(0, limit);
   const live = LIVE_DESKS.includes(cat.slug);
   const liveKeys = [["wp", "posts", cat.slug]];
+
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
