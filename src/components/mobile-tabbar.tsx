@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 
-import { supabase } from "@/integrations/supabase/client";
+import { useSignedIn } from "@/lib/session-state";
 
 
 /** Red text rail at the bottom — utilities, no overlap with the top rail. */
@@ -71,21 +71,7 @@ const iconTabClass =
 
 export function MobileTabBar() {
   const [open, setOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active) setSignedIn(Boolean(data.session));
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setSignedIn(Boolean(session)),
-    );
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
+  const signedIn = useSignedIn();
 
   const sheetItems = signedIn
     ? [...MORE, ...STAFF]

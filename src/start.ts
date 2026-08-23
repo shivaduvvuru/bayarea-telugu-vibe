@@ -1,7 +1,9 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+// Local, lazily-loading replacement for the generated attacher: keeps the auth
+// library out of the initial bundle for anonymous readers.
+import { attachSupabaseAuthLazy } from "./lib/supabase-auth-middleware";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -26,6 +28,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [attachSupabaseAuthLazy],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));
