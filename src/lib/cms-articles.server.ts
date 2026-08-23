@@ -219,55 +219,64 @@ async function readPosts(
 ): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
 
-
+  // Rows published before classification moved to publish time carry no
+  // resolved_category. They are read in a second, narrow pass ("legacy") and
+  // still go through the old classifier cascade, so nothing disappears during
+  // the rollout. Once the backfill reports zero remaining this pass is empty.
+  const legacyBase = () => base().is("resolved_category", null);
+  let legacyQuery: ReturnType<typeof base> | null = null;
 
   if (category === "city-news") {
-    // Bay Area local reporting only — India coverage lives under /category/india-news.
-    // The pool has to be wide: most rows filed to a Bay Area city are India or
-    // cinema syndication, so a small window would crowd out local reporting and
-    // our own newsroom posts.
+    // Bay Area local reporting only, straight off the partial index.
     q = base()
+      .eq("is_local", true)
       .order("published_at", { ascending: false })
-      .limit(400)
+      .limit(limit * 2);
+    legacyQuery = legacyBase()
+      .order("published_at", { ascending: false })
+      .limit(200)
       .not("city", "is", null);
-
   } else if (category === "gallery") {
-    // Gallery is a star picture desk: heroine / star photo features from
-    // Telugu, Hindi and OTT cinema — not the cinema headline feed. The pool has
-    // to stay wide because most picture rows are headline stories, so a narrow
-    // window would starve the grid as the archive grows.
+    // Picture-desk rows (editor picks and star photo features) are stamped
+    // "gallery" at publish time, so the desk is one indexed read.
     q = base()
+      .eq("resolved_category", "gallery")
       .order("published_at", { ascending: false })
-      .limit(600)
+      .limit(300)
       .not("image_url", "is", null);
-
-
-
-  } else if (category === "cinema") {
-    // Cinema is a picture desk too: only film stories that carry a usable photo
-    // make the feed. Older film stories were stored as plain "news" and vertical
-    // micro-drama coverage now lives on this desk as well; pull all three and
-    // let the classifier decide. The pool stays wide because the image filter
-    // drops a lot of rows.
-    q = base()
+    legacyQuery = legacyBase()
       .order("published_at", { ascending: false })
-      .limit(Math.max(limit * 12, 400))
+      .limit(300)
+      .not("image_url", "is", null);
+  } else if (category === "cinema") {
+    // Film / OTT coverage, plus the picture-desk rows that read as cinema.
+    q = base()
+      .in("resolved_category", ["cinema", "gallery"])
+      .order("published_at", { ascending: false })
+      .limit(Math.max(limit * 4, 200))
+      .not("image_url", "is", null);
+    legacyQuery = legacyBase()
+      .order("published_at", { ascending: false })
+      .limit(200)
       .not("image_url", "is", null)
       .in("category", ["cinema", MICRO_DRAMA_SLUG, "news"]);
-
   } else if (category === "micro-drama") {
-    // Micro-drama is a young desk. Rows already filed to it are read in a
-    // dedicated pass below; here we only widen the pool so film/OTT rows that
-    // were filed generically can still be classified into the format.
+    // Micro-drama lives on the cinema desk; the format check runs on that
+    // small stamped set instead of a 600-row scan.
     q = base()
+      .in("resolved_category", ["cinema", "gallery", MICRO_DRAMA_SLUG])
       .order("published_at", { ascending: false })
-      .limit(Math.max(limit * 20, 600))
+      .limit(Math.max(limit * 10, 300));
+    legacyQuery = legacyBase()
+      .order("published_at", { ascending: false })
+      .limit(200)
       .in("category", [MICRO_DRAMA_SLUG, "cinema", "news"]);
-
   } else if (category === "india-news") {
-    // Explicit India sections plus anything the classifier recognises as
-    // India coverage that was filed under a generic bucket.
     q = base()
+      .in("resolved_category", [...INDIA_SLUGS])
+      .order("published_at", { ascending: false })
+      .limit(limit * 3);
+    legacyQuery = legacyBase()
       .order("published_at", { ascending: false })
       .limit(limit * 6)
       .in("category", [...INDIA_SLUGS, "news", "political"]);
@@ -277,122 +286,95 @@ async function readPosts(
     if (cityName) clauses.push(`city.eq.${cityName}`);
     q = q.or(clauses.join(","));
   }
-  // Desks that need a second, dedicated pass kick it off now (Promise.resolve
-  // on the builder starts the request) so both reads run concurrently instead
-  // of adding a second round trip to the server response.
-  const localPatterns = ["bayarea.telugutimes.net", "patch.com/california", ...BAY_HOSTS].map(
-    (h) => `link_url.ilike.%${h}%`,
-  );
-  const secondaryQuery =
-    category === "gallery"
-      ? base()
-          .order("published_at", { ascending: false })
-          .limit(300)
-          .not("image_url", "is", null)
-          .eq("category", "gallery")
-      : category === "micro-drama"
-        ? base().order("published_at", { ascending: false }).limit(200).eq("category", MICRO_DRAMA_SLUG)
-        : category === "city-news"
-          ? base().or(localPatterns.join(",")).order("published_at", { ascending: false }).limit(400)
-          : null;
-  const secondary = secondaryQuery ? Promise.resolve(secondaryQuery) : null;
 
+  // Both reads start now so they run concurrently instead of adding a round trip.
+  const legacy = legacyQuery ? Promise.resolve(legacyQuery) : null;
   const { data, error } = await q;
   if (error) throw error;
   const rows = (data ?? []) as unknown as Row[];
+  const { data: legacyData } = (await legacy) ?? { data: null };
+  const legacyRows = (legacyData ?? []) as unknown as Row[];
 
   if (category === "gallery") {
-    // Editor-approved picture sets are the point of the desk: read them in their
-    // own pass (so a busy news day can never push them out of the shared pool)
-    // and show them ahead of the automatically collected photos.
-    const { data: picked } = (await secondary) ?? { data: null };
-    // Category=gallery rows are editor-approved picks. Do not run them back
-    // through the automatic intake classifier after approval.
-    const pickedRows = ((picked ?? []) as unknown as Row[]).filter((r) =>
-      galleryImage(r.image_url),
-    );
-    const auto = rows.filter(
-      (r) => isStarGallery(r.title, r.summary, r.link_url) && galleryImage(r.image_url),
+    // Stamped rows are already the picture desk; unstamped rows still go
+    // through the intake classifier (editor picks bypass it, as before).
+    const stamped = rows.filter((r) => galleryImage(r.image_url));
+    const fallback = legacyRows.filter(
+      (r) =>
+        galleryImage(r.image_url) &&
+        (r.category === "gallery" || isStarGallery(r.title, r.summary, r.link_url)),
     );
     // `page` walks a window through the whole picture folder, so a later read
     // returns photos the reader has not been shown yet instead of the same
     // newest batch. Falls back to the first window once the folder runs out.
-    const all = dedupeArticles([...pickedRows, ...auto].map(toArticle));
+    const all = dedupeArticles([...stamped, ...fallback].map(toArticle));
     const from = page * limit;
     return from < all.length ? all.slice(from, from + limit) : all.slice(0, limit);
-
   }
+
   if (category === "india-news") {
     return freshestFirst(
       dedupeArticles(
-        rows
-          .filter(
+        [
+          ...rows,
+          ...legacyRows.filter(
             (r) =>
               INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number]) ||
               classifyIndia(r.title, r.summary, r.link_url) !== null,
-          )
-          .map(toArticle),
+          ),
+        ].map(toArticle),
       ).filter((a) => a.image),
       limit,
     );
   }
+
   if (category === "micro-drama") {
-    // Rows filed to the micro-drama desk are read on their own so a busy news
-    // day can never crowd them out of the shared pool.
-    const { data: filed } = (await secondary) ?? { data: null };
-    const filedRows = (filed ?? []) as unknown as Row[];
-    const auto = rows.filter(
-      (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
+    const stamped = rows.filter(
+      (r) => r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
+    );
+    const fallback = legacyRows.filter(
+      (r) => r.category === MICRO_DRAMA_SLUG || isMicroDrama(r.title, r.summary, r.link_url),
     );
     // No picture, no story: text-only items are dropped, not listed.
-    const all = dedupeArticles([...filedRows, ...auto].map(toArticle));
+    const all = dedupeArticles([...stamped, ...fallback].map(toArticle));
     return all.filter((a) => a.image).slice(0, limit);
   }
 
-
   if (category === "city-news") {
-    // The newest 400 city-filed rows are dominated by India/cinema syndication,
-    // which used to push every local report (our own newsroom, Patch, Bay Area
-    // dailies, city halls) out of the window and left the page empty. Read the
-    // local publishers in their own pass so they can never be crowded out.
-    const { data: localData } = (await secondary) ?? { data: null };
-    const localRows = (localData ?? []) as unknown as Row[];
+    // Stamped rows already passed the local test at publish time; only a light
+    // residual check remains (a row later reclassified onto a picture desk).
+    const stamped = rows.filter(
+      (r) =>
+        r.resolved_category !== CINEMA_SLUG &&
+        r.resolved_category !== MICRO_DRAMA_SLUG &&
+        r.resolved_category !== "gallery",
+    );
     // Local reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
-    // Rows already filed to an India section are excluded by their stored
-    // category; generic rows are classified from their text. First-party
-    // newsroom posts (our own WordPress site) are always local.
-    return dedupeArticles(
-      [...localRows, ...rows]
-
-        .filter((r) => {
-          if (r.category === CINEMA_SLUG || r.category === MICRO_DRAMA_SLUG) return false;
-          if (isMicroDrama(r.title, r.summary, r.link_url)) return false;
-          const own = ownSiteSection(r.link_url);
-          if (own !== null) return own !== "cinema" && own !== "gallery";
-
-          if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
-          // India coverage never belongs in the Bay Area feed, whatever bucket
-          // it was filed under (a Punjab story collected by the temple pass is
-          // still India news).
-          if (classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
-          if (isCinema(r.title, r.summary, r.link_url)) return false;
-          if (isStarGallery(r.title, r.summary, r.link_url)) return false;
-          // Positive local signal required. Collected rows carry a blanket
-          // "Bay Area" city stamp and their AI summaries often name the region,
-          // so relevance is judged on the headline and the publisher only.
-          return isBayArea(r.title) || isBayAreaSource(r.link_url);
-        })
-        .map(toArticle),
-    )
+    const fallback = legacyRows.filter((r) => {
+      if (r.category === CINEMA_SLUG || r.category === MICRO_DRAMA_SLUG) return false;
+      if (isMicroDrama(r.title, r.summary, r.link_url)) return false;
+      const own = ownSiteSection(r.link_url);
+      if (own !== null) return own !== "cinema" && own !== "gallery";
+      if (INDIA_SLUGS.includes(r.category as (typeof INDIA_SLUGS)[number])) return false;
+      // India coverage never belongs in the Bay Area feed, whatever bucket
+      // it was filed under (a Punjab story collected by the temple pass is
+      // still India news).
+      if (classifyIndia(r.title, r.summary, r.link_url) !== null) return false;
+      if (isCinema(r.title, r.summary, r.link_url)) return false;
+      if (isStarGallery(r.title, r.summary, r.link_url)) return false;
+      // Positive local signal required. Collected rows carry a blanket
+      // "Bay Area" city stamp and their AI summaries often name the region,
+      // so relevance is judged on the headline and the publisher only.
+      return isBayArea(r.title) || isBayAreaSource(r.link_url);
+    });
+    return dedupeArticles([...stamped, ...fallback].map(toArticle))
       // No picture, no news card: illustrated reporting only.
       .filter((a) => a.category !== CINEMA_SLUG && a.image)
       .slice(0, limit);
-
   }
 
-
-  const articles = dedupeArticles(rows.map(toArticle));
+  const articles = dedupeArticles([...rows, ...legacyRows].map(toArticle));
   if (category === "cinema") {
     // No picture, no cinema story — there is plenty of illustrated film news.
     return freshestFirst(
@@ -411,8 +393,6 @@ async function readPosts(
 
   // Everything else on the news side needs artwork.
   return articles.filter((a) => a.image);
-
-
 }
 
 export async function cmsPost(slug: string): Promise<Article | null> {
