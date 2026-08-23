@@ -163,9 +163,10 @@ function CategoryPage() {
               : "No stories published in this section yet."}
           </p>
 
-        ) : cat.slug === "city-news" || cat.slug === "micro-drama" ? (
-          // Illustrated local reporting leads the page; text-only stories are
+        ) : cat.slug !== "gallery" ? (
+          // Illustrated reporting leads every section; text-only stories are
           // collected underneath as short snippets instead of empty cards.
+
           <>
             {(() => {
               const picture = articles.filter((a) => a.image);
