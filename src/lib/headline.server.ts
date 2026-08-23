@@ -60,7 +60,9 @@ export async function readHeadline(): Promise<Headline | null> {
       return { article, label: pick.label, pinned: true, updatedAt: pick.updated_at };
     }
   }
-  const [newest] = await cmsPosts("city-news", 1);
+  // Same arguments the City News page itself uses, so this shares the cached
+  // feed read instead of recomputing the whole desk for one headline.
+  const [newest] = await cmsPosts("city-news", 24);
   return newest ? { article: newest, label: null, pinned: false, updatedAt: null } : null;
 }
 
