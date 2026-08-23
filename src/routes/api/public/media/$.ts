@@ -10,12 +10,13 @@ export const Route = createFileRoute("/api/public/media/$")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin.storage.from("submissions").download(path);
         if (error || !data) return new Response("Not found", { status: 404 });
-        return new Response(await data.arrayBuffer(), {
+        return new Response(data.stream(), {
           headers: {
             "content-type": data.type || "image/jpeg",
-            "cache-control": "public, max-age=86400",
+            "cache-control": "public, max-age=86400, stale-while-revalidate=604800",
           },
         });
+
       },
     },
   },

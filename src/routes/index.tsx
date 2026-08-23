@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listPosts } from "@/lib/content.functions";
@@ -9,7 +9,7 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
-import { dedupeKey } from "@/lib/dedupe";
+import { contentDedupeKeys } from "@/lib/dedupe";
 import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
 import {
@@ -23,7 +23,12 @@ import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { StoryActions } from "@/components/story-actions";
-import { GalleryLightbox } from "@/components/gallery-lightbox";
+// The lightbox is only needed once a photo is tapped: keep it out of the
+// initial mobile bundle.
+const GalleryLightbox = lazy(() =>
+  import("@/components/gallery-lightbox").then((m) => ({ default: m.GalleryLightbox })),
+);
+
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
@@ -50,36 +55,15 @@ const DESC =
   "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
 
-function contentKeys(item: {
-  title?: string | null;
-  sourceUrl?: string | null;
-  url?: string | null;
-  link_url?: string | null;
-  image?: string | null;
-  image_url?: string | null;
-}) {
-  const title = dedupeKey(item.title ?? "");
-  const url = item.sourceUrl ?? item.link_url ?? item.url;
-  const image = usableImage(item.image ?? item.image_url);
-  return [
-    title ? `t:${title}` : "",
-    // Near-duplicate headlines (same story, re-worded tail) collapse too.
-    title.length > 28 ? `p:${title.slice(0, 28)}` : "",
-    url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
-    image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
-  ].filter(Boolean);
-
-}
-
 /** Reserves every headline, source URL and image once across the whole homepage. */
-function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
+function takeUnique<T extends Parameters<typeof contentDedupeKeys>[0]>(
   items: T[],
   seen: Set<string>,
   limit = items.length,
 ) {
   const result: T[] = [];
   for (const item of items) {
-    const keys = contentKeys(item);
+    const keys = contentDedupeKeys(item);
     if (keys.some((key) => seen.has(key))) continue;
     keys.forEach((key) => seen.add(key));
     result.push(item);
@@ -87,6 +71,7 @@ function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
   }
   return result;
 }
+
 
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
@@ -233,17 +218,17 @@ function EmptyState({ title, note }: { title: string; note?: string }) {
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    // The text digest and the Glamour folder both block the first paint so the
-    // two full-size hero slots are present in the server-rendered HTML and avoid
-    // hydration mismatches.
+    // Only the text digest blocks the first paint. The Glamour folder is warmed
+    // in the background and streams into its own boundary afterwards.
     const pocket = currentPocket();
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
-      context.queryClient.ensureQueryData(galleryQueryFor(pocket)),
     ]);
+    void context.queryClient.prefetchQuery(galleryQueryFor(pocket));
     return { pocket };
   },
+
 
 
   head: () => ({
@@ -449,6 +434,138 @@ function GalleryTile({ article, onOpen }: { article: Article; onOpen: () => void
   );
 }
 
+/** Pulse skeleton shown while the Glamour pocket streams in after first paint. */
+function GallerySkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="aspect-[3/4] w-full animate-pulse rounded-md bg-muted" />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Every gallery-fed surface derives from the same pools. Kept in one memo so a
+ * rotation tick never recomputes the dedupe/sort work for the whole page.
+ */
+function useGalleryPools(pocket: number) {
+  const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
+  // Background-only: the wide hero pool loads after paint.
+  const { data: heroItems = [] } = useQuery(heroGalleryQuery);
+  const { favorites } = useFavoritePhotos();
+  const { hidden, hiddenImages } = useHiddenPhotos();
+
+  return useMemo(() => {
+    // A disliked picture is gone for good: the same image URL is blocked even if
+    // it is re-collected later under a different slug.
+    const notDislikedPicture = (a: { slug: string; image?: string | null }) =>
+      !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image));
+    const galleryPool = takeUnique(galleryItems, new Set<string>(), 96)
+      .filter(notDislikedPicture)
+      .sort((a, b) => +new Date(b.date) - +new Date(a.date));
+    const favoriteSlugs = new Set(favorites.map((f) => f.slug));
+    const pinnedSlugs = new Set<string>();
+    // Only pictures you liked stay pinned. Everything else shuffles.
+    const pinned = galleryPool
+      .filter((a) => favoriteSlugs.has(a.slug))
+      .filter((a) => (pinnedSlugs.has(a.slug) ? false : pinnedSlugs.add(a.slug)))
+      .slice(0, 2);
+    const rotatable = galleryPool.filter((a) => !pinnedSlugs.has(a.slug));
+    // The full-size heroes draw from the WHOLE Glamour folder, not just the six
+    // tiles shown in the grid. Prefer the wide background pool (up to 200
+    // photos) so a picture that ran this week is not re-shown.
+    const widePool = heroItems.filter(notDislikedPicture);
+    const heroPool = widePool.length
+      ? widePool
+      : galleryPool.length
+        ? galleryPool
+        : galleryItems.filter(notDislikedPicture).length
+          ? galleryItems.filter(notDislikedPicture)
+          : galleryItems;
+    return { galleryPool, pinned, rotatable, heroPool };
+  }, [galleryItems, heroItems, favorites, hidden, hiddenImages]);
+}
+
+/** One full-size Glamour slide inside the city feed; streams in on its own. */
+function FeedGalleryHero({
+  pocket,
+  slot,
+  onOpen,
+  className = "",
+}: {
+  pocket: number;
+  slot: number;
+  onOpen: (index: number) => void;
+  className?: string;
+}) {
+  const { heroPool } = useGalleryPools(pocket);
+  return <GalleryHero items={heroPool} onOpen={onOpen} offset={slot} className={className} />;
+}
+
+
+/**
+ * The Glamour grid owns its own shuffle: the minute tick re-renders these six
+ * tiles only, never the whole digest. A backgrounded tab does no work.
+ */
+function GlamourGrid({ pocket }: { pocket: number }) {
+  const { pinned, rotatable, heroPool } = useGalleryPools(pocket);
+  const [galleryPage, setGalleryPage] = useState(0);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      setGalleryPage((p) => p + 1);
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const tiles = useMemo(() => {
+    const fillCount = Math.max(0, 6 - pinned.length);
+    const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;
+    return [
+      ...pinned,
+      ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
+    ];
+  }, [pinned, rotatable, galleryPage]);
+
+  return (
+    <>
+      <div className="mb-3">
+        <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
+      </div>
+
+      {tiles.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {tiles.map((a) => (
+            <GalleryTile
+              key={a.slug}
+              article={a}
+              onOpen={() =>
+                setViewerIndex(Math.max(0, heroPool.findIndex((g) => g.slug === a.slug)))
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      {heroPool.length > 0 && viewerIndex !== null && (
+        <Suspense fallback={null}>
+          <GalleryLightbox
+            items={heroPool}
+            index={viewerIndex}
+            onIndexChange={setViewerIndex}
+            onClose={() => setViewerIndex(null)}
+          />
+        </Suspense>
+      )}
+    </>
+  );
+}
+
 function Home() {
   const { data: articles, dataUpdatedAt: homeUpdatedAt } = useSuspenseQuery(homeQuery);
   // Identical feed to /category/city-news so both screens carry the same stories.
@@ -459,25 +576,14 @@ function Home() {
   // rotate back in without extra reads.
   const [pocket, setPocket] = useState(loaderPocket);
   useEffect(() => {
-    const id = window.setInterval(() => setPocket(currentPocket()), 5 * 60_000);
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      setPocket(currentPocket());
+    }, 5 * 60_000);
     return () => window.clearInterval(id);
   }, []);
-  const { data: galleryItems = [] } = useSuspenseQuery(galleryQueryFor(pocket));
-  // Background-only: the wide hero pool loads after paint.
-  const { data: heroItems = [] } = useQuery(heroGalleryQuery);
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const [galleryPage, setGalleryPage] = useState(0);
-  // Photo currently held by each full-size slot, keyed by slot number.
-  
-  // The Glamour grid keeps moving on its own. It shuffles once a minute (the
-  // full-size hero slots change faster) so the page isn't re-rendering the
-  // whole digest every few seconds.
-  useEffect(() => {
-    const id = window.setInterval(() => setGalleryPage((p) => p + 1), 60_000);
-
-    return () => window.clearInterval(id);
-  }, []);
 
   // Main story slot advances every 15 minutes. Starts at 0 so server and first
   // client render agree, then picks up the time-based slot after mount.
@@ -485,12 +591,13 @@ function Home() {
   useEffect(() => {
     const current = () => Math.floor(Date.now() / PRIME_ROTATE_MS);
     setPrimeSlot(current());
-    const id = window.setInterval(() => setPrimeSlot(current()), 30_000);
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      setPrimeSlot(current());
+    }, 30_000);
     return () => window.clearInterval(id);
   }, []);
-  const { favorites } = useFavoritePhotos();
-  const { hidden, hiddenImages } = useHiddenPhotos();
-
+  const { hidden } = useHiddenPhotos();
 
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
@@ -499,184 +606,168 @@ function Home() {
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
-  const homepageSeen = new Set<string>();
-  // Disliked stories disappear for this reader too (editors delete them site-wide).
-  const notDisliked = <T extends { slug: string }>(list: T[]) =>
-    list.filter((a) => !hidden.includes(a.slug));
-  // A disliked picture is gone for good: the same image URL is blocked even if
-  // it is re-collected later under a different slug.
-  const notDislikedPicture = (a: { slug: string; image?: string | null }) =>
-    !hidden.includes(a.slug) && !(a.image && hiddenImages.includes(a.image));
-  const local = notDisliked(
-    takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>()),
-  );
-  // Prime slot leads with a Bay Area story: the strongest local stories are
-  // ranked by popularity and the slot rotates through them every 15 minutes.
-  // Relevance is judged on the headline and publisher only — collected rows
-  // carry a blanket "Bay Area" city stamp and AI summaries echo it.
-  const leadCandidates = notDisliked(
-    [...local, ...articles].filter((a) => a.category !== "gallery"),
-  );
-  const bayPool = leadCandidates.filter(
-    (a) => isBayArea(a.title) || isBayAreaSource(a.sourceUrl),
-  );
-  const looseBayPool = leadCandidates.filter(
-    (a) => isBayArea(a.title, a.excerpt) && !classifyIndia(a.title, a.excerpt, a.sourceUrl),
-  );
-  const primePool = bayPool.length
-    ? bayPool
-    : looseBayPool.length
-      ? looseBayPool
-      : leadCandidates.filter((a) => !classifyIndia(a.title, a.excerpt, a.sourceUrl));
-  const lead =
-    pickRotatingPrime(primePool, primeSlot) ??
-    pickPrimeStory(primePool) ??
-    local[0] ??
-    articles[0];
-
-  if (!lead) {
-    return <EmptyState title="No stories yet" />;
-  }
-
-  // Candidate pool for the curated hero slider: the lead first, then local Bay
-  // Area stories, then the wider digest. Selection itself (score, least-recently
-  // -used artwork, subject diversity) lives in @/lib/hero-select.
-  const heroSliderPool = (() => {
-    const seenSlugs = new Set<string>();
-    return [lead, ...local, ...leadCandidates].filter((a) =>
-      seenSlugs.has(a.slug) ? false : seenSlugs.add(a.slug),
+  // One derivation pass for the whole digest: rotation ticks and photo state no
+  // longer re-run the dedupe/classification work below.
+  const derived = useMemo(() => {
+    const homepageSeen = new Set<string>();
+    // Disliked stories disappear for this reader too (editors delete them site-wide).
+    const notDisliked = <T extends { slug: string }>(list: T[]) =>
+      list.filter((a) => !hidden.includes(a.slug));
+    const local = notDisliked(
+      takeUnique(cityNews.length ? cityNews : articles.filter(isLocal), new Set<string>()),
     );
-  })();
+    // Prime slot leads with a Bay Area story: the strongest local stories are
+    // ranked by popularity and the slot rotates through them every 15 minutes.
+    const leadCandidates = notDisliked(
+      [...local, ...articles].filter((a) => a.category !== "gallery"),
+    );
+    const bayPool = leadCandidates.filter(
+      (a) => isBayArea(a.title) || isBayAreaSource(a.sourceUrl),
+    );
+    const looseBayPool = leadCandidates.filter(
+      (a) => isBayArea(a.title, a.excerpt) && !classifyIndia(a.title, a.excerpt, a.sourceUrl),
+    );
+    const primePool = bayPool.length
+      ? bayPool
+      : looseBayPool.length
+        ? looseBayPool
+        : leadCandidates.filter((a) => !classifyIndia(a.title, a.excerpt, a.sourceUrl));
+    const lead =
+      pickRotatingPrime(primePool, primeSlot) ??
+      pickPrimeStory(primePool) ??
+      local[0] ??
+      articles[0];
 
-  // The lead has already been reserved by the local pass. Every later section
-  // uses the same set, preventing a renamed/cross-posted story or reused photo
-  // from appearing again under More news, Community, Events or Gallery.
-  // Prime slot: the hand-built banner holds it only while fresh; past its age
-  // threshold the newest local story is promoted instead.
-  const bannerFresh = isPrimeBannerFresh();
-  const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
-  const localPictureStories = localRest.filter((a) => a.image);
-  takeUnique([lead, ...localRest], homepageSeen);
-  // Newest photos always hold the top slots, and any picture you've liked stays
-  // pinned so a refresh never rotates it away. The remaining tiles cycle through
-  // the deeper pool so each refresh still shows something different.
-  // Disliked photos drop out of the grid entirely.
-  const galleryPool = takeUnique(galleryItems, homepageSeen, 96)
-    .filter(notDislikedPicture)
-    .sort((a, b) => +new Date(b.date) - +new Date(a.date));
-  const favoriteSlugs = new Set(favorites.map((f) => f.slug));
+    if (!lead) return null;
 
-  const pinnedSlugs = new Set<string>();
-  // Only pictures you liked stay pinned. Everything else shuffles, so the grid
-  // is never the same six photos on a later visit.
-  const pinned = galleryPool
-    .filter((a) => favoriteSlugs.has(a.slug))
-    .filter((a) => (pinnedSlugs.has(a.slug) ? false : pinnedSlugs.add(a.slug)))
-    .slice(0, 2);
-  const rotatable = galleryPool.filter((a) => !pinnedSlugs.has(a.slug));
-  const fillCount = Math.max(0, 6 - pinned.length);
-  const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;
-  const uniqueGallery = [
-    ...pinned,
-    ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
-  ];
-  // The full-size heroes draw from the WHOLE Glamour folder, not just the six
-  // tiles shown in the grid — a six-photo pool is why the shuffle looked stuck.
-  // If dislikes/dedupe empty that pool, fall back to the raw picture desk so the
-  // two full-size slots never vanish from the page.
-  // Prefer the wide background pool (up to 200 photos) so a picture that has run
-  // this week is never re-shown just because the 48-photo grid window is small.
-  const widePool = heroItems.filter(notDislikedPicture);
-  const heroPool = widePool.length
-    ? widePool
-    : galleryPool.length
-      ? galleryPool
-      : galleryItems.filter(notDislikedPicture).length
-        ? galleryItems.filter(notDislikedPicture)
-        : galleryItems;
+    // Candidate pool for the curated hero slider: the lead first, then local Bay
+    // Area stories, then the wider digest.
+    const heroSliderPool = (() => {
+      const seenSlugs = new Set<string>();
+      return [lead, ...local, ...leadCandidates].filter((a) =>
+        seenSlugs.has(a.slug) ? false : seenSlugs.add(a.slug),
+      );
+    })();
 
+    // Prime slot: the hand-built banner holds it only while fresh; past its age
+    // threshold the newest local story is promoted instead.
+    const bannerFresh = isPrimeBannerFresh();
+    const localRest = local.filter((a) => a.slug !== lead.slug).slice(0, 8);
+    const localPictureStories = localRest.filter((a) => a.image);
+    takeUnique([lead, ...localRest], homepageSeen);
 
-  // Every slot shares one pool and one per-cycle shuffle, stepping through it by
-  // its slot number — that is what keeps the two full-size pictures different
-  // without any cross-slot state (which previously looped and blanked the page).
-  const heroProps = (slot: number) => ({
-    items: heroPool,
-    onOpen: setViewerIndex,
-    offset: slot,
-  });
+    const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
+    const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
-
-
-
-  const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
-  const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
-
-  const events = upcomingEvents().slice(0, 5);
-  // Feeds sometimes repeat the same link (or point at the site root), which both
-  // duplicated rows and tripped React's key warning.
-  const uniqueBy = <T,>(list: T[], key: (item: T) => string) => {
-    const seen = new Set<string>();
-    return list.filter((item) => {
-      const k = key(item);
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-  };
-  const templeNews = uniqueBy(
-    templeFeeds.flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name }))),
-    (a) => `${a.temple}|${a.title}`,
-  ).slice(0, 6);
-  const politics = uniqueBy(
-    politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
-    (s) => s.title,
-  ).slice(0, 6);
-  const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
-  const uniquePolitics = takeUnique(politics, homepageSeen, 6);
-  const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
-  const homeStates = takeUnique(
-    indiaStates.filter((a) => a.category === "india-telangana" || a.category === "india-andhra"),
-    homepageSeen,
-    8,
-  );
-  // "Happening soon": compact, chronological, utility-first. Upcoming events only
-  // (an event drops off after its own day) and each row carries its classified
-  // label (Temple / Spiritual, Community Event, FunZone, …).
-  const happeningSoon = [
-    ...uniqueCmsEvents
-      .filter((e) => isUpcoming(e.event_start))
-      .map((e) => {
-        const c = classifyItem({
-          title: e.title,
-          summary: e.summary,
-          kind: e.kind,
-          eventStart: e.event_start,
-        });
+    const events = upcomingEvents().slice(0, 5);
+    // Feeds sometimes repeat the same link (or point at the site root), which both
+    // duplicated rows and tripped React's key warning.
+    const uniqueBy = <T,>(list: T[], key: (item: T) => string) => {
+      const seen = new Set<string>();
+      return list.filter((item) => {
+        const k = key(item);
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    };
+    const templeNews = uniqueBy(
+      templeFeeds.flatMap((f) => f.announcements.map((a) => ({ ...a, temple: f.name }))),
+      (a) => `${a.temple}|${a.title}`,
+    ).slice(0, 6);
+    const politics = uniqueBy(
+      politicsGroups.flatMap((g) => g.stories.slice(0, 2)),
+      (s) => s.title,
+    ).slice(0, 6);
+    const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
+    const uniquePolitics = takeUnique(politics, homepageSeen, 6);
+    const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
+    const homeStates = takeUnique(
+      indiaStates.filter((a) => a.category === "india-telangana" || a.category === "india-andhra"),
+      homepageSeen,
+      8,
+    );
+    // "Happening soon": compact, chronological, utility-first. Upcoming events only
+    // (an event drops off after its own day) and each row carries its classified
+    // label (Temple / Spiritual, Community Event, FunZone, …).
+    const happeningSoon = [
+      ...uniqueCmsEvents
+        .filter((e) => isUpcoming(e.event_start))
+        .map((e) => {
+          const c = classifyItem({
+            title: e.title,
+            summary: e.summary,
+            kind: e.kind,
+            eventStart: e.event_start,
+          });
+          return {
+            key: `cms-${e.id}`,
+            title: e.title,
+            start: e.event_start as string,
+            city: e.city ?? c.tags[0] ?? "",
+            when: whenLabel(e.event_start as string),
+            label: c.label,
+          };
+        }),
+      ...uniqueFallbackEvents.map((e) => {
+        const c = classifyItem({ title: e.title, eventStart: e.start });
         return {
-          key: `cms-${e.id}`,
+          key: `local-${e.id}`,
           title: e.title,
-          start: e.event_start as string,
-          city: e.city ?? c.tags[0] ?? "",
-          when: whenLabel(e.event_start as string),
+          start: e.start,
+          city: e.city,
+          when: whenLabel(e.start),
           label: c.label,
         };
       }),
-    ...uniqueFallbackEvents.map((e) => {
-      const c = classifyItem({ title: e.title, eventStart: e.start });
-      return {
-        key: `local-${e.id}`,
-        title: e.title,
-        start: e.start,
-        city: e.city,
-        when: whenLabel(e.start),
-        label: c.label,
-      };
-    }),
-  ]
-    .sort((a, b) => +new Date(a.start) - +new Date(b.start))
-    .slice(0, 6);
+    ]
+      .sort((a, b) => +new Date(a.start) - +new Date(b.start))
+      .slice(0, 6);
 
-  const more = takeUnique(articles, homepageSeen, 12);
+    const more = takeUnique(articles, homepageSeen, 12);
+
+    return {
+      lead,
+      heroSliderPool,
+      bannerFresh,
+      localRest,
+      localPictureStories,
+      uniqueCommunity,
+      uniqueTemples,
+      uniquePolitics,
+      homeStates,
+      happeningSoon,
+      more,
+    };
+  }, [
+    articles,
+    cityNews,
+    communityItems,
+    cmsEvents,
+    indiaStates,
+    templeFeeds,
+    politicsGroups,
+    hidden,
+    primeSlot,
+  ]);
+
+  if (!derived) {
+    return <EmptyState title="No stories yet" />;
+  }
+
+  const {
+    lead,
+    heroSliderPool,
+    bannerFresh,
+    localRest,
+    localPictureStories,
+    uniqueCommunity,
+    uniqueTemples,
+    uniquePolitics,
+    homeStates,
+    happeningSoon,
+    more,
+  } = derived;
 
   return (
     <div className="rise mx-auto max-w-6xl px-3 py-3">
@@ -725,7 +816,14 @@ function Home() {
                   <div key={a.slug}>
                     <Row a={a} />
                     {heroSlot !== null ? (
-                      <GalleryHero {...heroProps(heroSlot)} className="my-4" />
+                      <Suspense fallback={null}>
+                        <FeedGalleryHero
+                          pocket={pocket}
+                          slot={heroSlot}
+                          onOpen={setViewerIndex}
+                          className="my-4"
+                        />
+                      </Suspense>
                     ) : null}
                     {i === 2 ? <PropertyHero className="my-4" /> : null}
                     {/* Compact property-show module, four items into the feed. */}
@@ -740,11 +838,25 @@ function Home() {
             {localPictureStories.length < 10 ? (
               <>
                 <PropertyPromo className="my-4" />
-                <GalleryHero {...heroProps(0)} className="my-4" />
+                <Suspense fallback={null}>
+                  <FeedGalleryHero
+                    pocket={pocket}
+                    slot={0}
+                    onOpen={setViewerIndex}
+                    className="my-4"
+                  />
+                </Suspense>
               </>
             ) : null}
             {localPictureStories.length >= 10 && localPictureStories.length < 20 ? (
-              <GalleryHero {...heroProps(1)} className="my-4" />
+              <Suspense fallback={null}>
+                <FeedGalleryHero
+                  pocket={pocket}
+                  slot={1}
+                  onOpen={setViewerIndex}
+                  className="my-4"
+                />
+              </Suspense>
             ) : null}
 
 
@@ -782,34 +894,11 @@ function Home() {
 
         <section>
           <Head more={<MoreTo to="/category/gallery" label="All pictures" />}>Glamour</Head>
-          <div className="mb-3">
-            <RefreshGalleryButton onRefreshed={() => setGalleryPage((p) => p + 1)} />
-          </div>
-
-          {uniqueGallery.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No cinema pictures yet.</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {uniqueGallery.map((a, i) => (
-                <GalleryTile
-                  key={a.slug}
-                  article={a}
-                  onOpen={() => setViewerIndex(Math.max(0, heroPool.findIndex((g) => g.slug === a.slug)))}
-                />
-              ))}
-            </div>
-          )}
+          <Suspense fallback={<GallerySkeleton />}>
+            <GlamourGrid pocket={pocket} />
+          </Suspense>
         </section>
       </div>
-
-      {heroPool.length > 0 && viewerIndex !== null && (
-        <GalleryLightbox
-          items={heroPool}
-          index={viewerIndex}
-          onIndexChange={setViewerIndex}
-          onClose={() => setViewerIndex(null)}
-        />
-      )}
 
       <div className="mx-auto max-w-3xl">
         {uniqueCommunity.length > 0 && (
@@ -892,7 +981,40 @@ function Home() {
           ))}
         </section>
       </div>
+
+      {/* Full-size feed slides open the same viewer; it owns its own copy of the
+          pool inside the gallery boundary. */}
+      {viewerIndex !== null ? (
+        <Suspense fallback={null}>
+          <FeedViewer pocket={pocket} index={viewerIndex} onIndexChange={setViewerIndex} onClose={() => setViewerIndex(null)} />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
+
+/** Viewer for the in-feed full-size slides. */
+function FeedViewer({
+  pocket,
+  index,
+  onIndexChange,
+  onClose,
+}: {
+  pocket: number;
+  index: number;
+  onIndexChange: (i: number | null) => void;
+  onClose: () => void;
+}) {
+  const { heroPool } = useGalleryPools(pocket);
+  if (heroPool.length === 0) return null;
+  return (
+    <GalleryLightbox
+      items={heroPool}
+      index={index}
+      onIndexChange={onIndexChange}
+      onClose={onClose}
+    />
+  );
+}
+
 
