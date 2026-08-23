@@ -210,87 +210,128 @@ function RestaurantList() {
         <button type="button" onClick={() => set({ open: search.open ? 0 : 1 })} className={chip(!!search.open)}>
           Open now
         </button>
-        {(["delivery", "pickup", "dine-in", "reservations", "catering"] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => set({ service: search.service === s ? "" : s })}
-            className={chip(search.service === s)}
-          >
-            {s === "dine-in" ? "Dine-in" : s[0]!.toUpperCase() + s.slice(1)}
-          </button>
-        ))}
-        {DIETARY.map((d) => (
-          <button
-            key={d}
-            type="button"
-            onClick={() => set({ diet: search.diet === d ? "" : d })}
-            className={chip(search.diet === d)}
-          >
-            {d}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-2 flex flex-wrap gap-2">
-        <select className={select} value={search.city} onChange={(e) => set({ city: e.target.value })}>
-          <option value="">All cities</option>
-          {FOOD_CITIES.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-        <select className={select} value={search.cuisine} onChange={(e) => set({ cuisine: e.target.value })}>
-          <option value="">All cuisines</option>
-          {CUISINES.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
-        <select className={select} value={search.type} onChange={(e) => set({ type: e.target.value })}>
-          <option value="">All types</option>
-          {RESTAURANT_TYPES.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-        <select className={select} value={search.feature} onChange={(e) => set({ feature: e.target.value })}>
-          <option value="">Any features</option>
-          {FEATURES.map((f) => (
-            <option key={f}>{f}</option>
-          ))}
-        </select>
-        <select
-          className={select}
-          value={String(search.minRating)}
-          onChange={(e) => set({ minRating: Number(e.target.value) })}
-        >
-          <option value="0">Any rating</option>
-          <option value="4">4.0+ score</option>
-          <option value="4.5">4.5+ score</option>
-        </select>
-        <select
-          className={select}
-          value={String(search.maxPrice)}
-          onChange={(e) => set({ maxPrice: Number(e.target.value) })}
-        >
-          <option value="0">Any price</option>
-          <option value="1">$</option>
-          <option value="2">$$ and under</option>
-          <option value="3">$$$ and under</option>
-        </select>
-        <select className={select} value={search.sort} onChange={(e) => set({ sort: e.target.value })}>
-          {SORTS.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
         <button
           type="button"
-          className={select}
-          onClick={() => setView(view === "list" ? "map" : "list")}
+          onClick={() => setShowFilters((v) => !v)}
+          aria-expanded={showFilters}
+          className={chip(showFilters || activeCount > 0)}
         >
-          {view === "list" ? "Map view" : "List view"}
+          <SlidersHorizontal className="mr-1 inline h-3 w-3" aria-hidden />
+          Filters{activeCount ? ` (${activeCount})` : ""}
         </button>
+        <button type="button" onClick={() => setView(view === "list" ? "map" : "list")} className={chip(view === "map")}>
+          {view === "list" ? "Map" : "List"}
+        </button>
+        {activeChips.length > 0 && !showFilters && (
+          <>
+            {activeChips.map((c) => (
+              <button key={c.label} type="button" onClick={c.clear} className={chip(true)}>
+                {c.label} <X className="ml-1 inline h-3 w-3" aria-hidden />
+              </button>
+            ))}
+          </>
+        )}
       </div>
+
+      {showFilters && (
+        <div className="mt-2 rounded-xl border border-border bg-card p-3">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {(["delivery", "pickup", "dine-in", "reservations", "catering"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => set({ service: search.service === s ? "" : s })}
+                className={chip(search.service === s)}
+              >
+                {s === "dine-in" ? "Dine-in" : s[0]!.toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+            {DIETARY.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => set({ diet: search.diet === d ? "" : d })}
+                className={chip(search.diet === d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <select className={select} value={search.city} onChange={(e) => set({ city: e.target.value })}>
+              <option value="">All cities</option>
+              {FOOD_CITIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+            <select className={select} value={search.cuisine} onChange={(e) => set({ cuisine: e.target.value })}>
+              <option value="">All cuisines</option>
+              {CUISINES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+            <select className={select} value={search.type} onChange={(e) => set({ type: e.target.value })}>
+              <option value="">All types</option>
+              {RESTAURANT_TYPES.map((t) => (
+                <option key={t}>{t}</option>
+              ))}
+            </select>
+            <select className={select} value={search.feature} onChange={(e) => set({ feature: e.target.value })}>
+              <option value="">Any features</option>
+              {FEATURES.map((f) => (
+                <option key={f}>{f}</option>
+              ))}
+            </select>
+            <select
+              className={select}
+              value={String(search.minRating)}
+              onChange={(e) => set({ minRating: Number(e.target.value) })}
+            >
+              <option value="0">Any rating</option>
+              <option value="4">4.0+ score</option>
+              <option value="4.5">4.5+ score</option>
+            </select>
+            <select
+              className={select}
+              value={String(search.maxPrice)}
+              onChange={(e) => set({ maxPrice: Number(e.target.value) })}
+            >
+              <option value="0">Any price</option>
+              <option value="1">$</option>
+              <option value="2">$$ and under</option>
+              <option value="3">$$$ and under</option>
+            </select>
+            <select className={select} value={search.sort} onChange={(e) => set({ sort: e.target.value })}>
+              {SORTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={select}
+              onClick={() =>
+                set({
+                  city: "",
+                  cuisine: "",
+                  type: "",
+                  feature: "",
+                  diet: "",
+                  service: "",
+                  minRating: 0,
+                  maxPrice: 0,
+                  sort: "recommended",
+                })
+              }
+            >
+              Clear all
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {geoError && <p className="mt-2 text-xs text-destructive">{geoError}</p>}
 
