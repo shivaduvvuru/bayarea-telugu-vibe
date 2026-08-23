@@ -166,13 +166,44 @@ function base(columns: string = LIST_COLUMNS) {
 }
 
 
+/**
+ * Short-lived in-process cache for feed reads. Several surfaces on one page
+ * (feed + headline hero + hero slides) ask for the same desk, and every
+ * anonymous visitor asks for the same thing: recomputing the classification
+ * pass each time was the bulk of the server response time. 60 seconds keeps a
+ * news feed fresh while collapsing the duplicate work.
+ */
+const FEED_TTL_MS = 60_000;
+const feedCache = new Map<string, { at: number; posts: Promise<Article[]> }>();
+
 /** Published stories for a category/city slug (or everything when omitted). */
-export async function cmsPosts(
+export function cmsPosts(
+  category: string | undefined,
+  limit: number,
+  page = 0,
+): Promise<Article[]> {
+  const key = `${category ?? "all"}|${limit}|${page}`;
+  const hit = feedCache.get(key);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.posts;
+  const posts = readPosts(category, limit, page).catch((err) => {
+    feedCache.delete(key);
+    throw err;
+  });
+  feedCache.set(key, { at: Date.now(), posts });
+  if (feedCache.size > 40) {
+    for (const [k, v] of feedCache) if (Date.now() - v.at > FEED_TTL_MS) feedCache.delete(k);
+  }
+  return posts;
+}
+
+async function readPosts(
   category: string | undefined,
   limit: number,
   page = 0,
 ): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
+
+
 
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
