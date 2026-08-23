@@ -3,6 +3,7 @@ import type { Article } from "@/lib/content";
 import { formatDate } from "@/lib/content";
 import { usableImage } from "@/lib/story-image";
 import { SourceChip } from "@/components/source-credit";
+import { SmartImage } from "@/components/smart-image";
 
 /**
  * Prime slot for a live story. Used once the hand-built prime banner passes its
@@ -21,10 +22,13 @@ export function PrimeHero({ article }: { article: Article }) {
       >
         <div className="relative aspect-[4/3] max-h-[520px] w-full overflow-hidden sm:aspect-[16/9]">
           {picture ? (
-            <img
+            <SmartImage
               src={picture}
               alt=""
               fetchPriority="high"
+              decoding="async"
+              optimizedWidth={960}
+              sizes="(max-width: 768px) 100vw, 66vw"
               className="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             />
           ) : (

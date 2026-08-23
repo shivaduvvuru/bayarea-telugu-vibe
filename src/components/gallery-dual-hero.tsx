@@ -4,6 +4,7 @@ import type { Article } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
 import { galleryImage } from "@/lib/story-image";
+import { cdnImage } from "@/lib/img";
 
 /** One pair of hero pictures is shown for this long. */
 const PAIR_MS = 30_000;
@@ -32,10 +33,14 @@ function HeroSlot({
         >
           <img
             key={`${fadeKey}-${picture}`}
-            src={picture}
+            src={cdnImage(picture, 720)}
             alt={article.title}
             loading="eager"
             decoding="async"
+            onError={(event) => {
+              // Optimiser miss: fall back to the publisher's original file.
+              if (event.currentTarget.src !== picture) event.currentTarget.src = picture;
+            }}
             style={{ animationDuration: "700ms" }}
             className="aspect-[4/5] w-full animate-fade-in object-cover object-top sm:aspect-[3/4]"
           />
