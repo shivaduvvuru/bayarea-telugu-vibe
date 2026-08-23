@@ -55,10 +55,22 @@ export async function publishNewsBacklog(limit = 200): Promise<{
     .eq("status", "pending")
     .in("kind", ["news", "event", "temple"])
     .limit(1000);
-  const releasable = ((pending ?? []) as Record<string, unknown>[])
-    .filter((r) => !isPictureRow(r))
+  const pendingRows = (pending ?? []) as Record<string, unknown>[];
+  const releasable = pendingRows
+    .filter((r) => !isPictureRow(r) && hasArtwork(r))
     .map((r) => String(r["item_id"] ?? ""))
     .filter(Boolean);
+  // Imageless news never reaches the site: drop it out of the queue.
+  const imageless = pendingRows
+    .filter((r) => !isPictureRow(r) && !hasArtwork(r))
+    .map((r) => String(r["item_id"] ?? ""))
+    .filter(Boolean);
+  for (let i = 0; i < imageless.length; i += 200) {
+    await db
+      .from("digest_queue")
+      .update({ status: "rejected", error: "no usable image" })
+      .in("item_id", imageless.slice(i, i + 200));
+  }
   for (let i = 0; i < releasable.length; i += 200) {
     await db
       .from("digest_queue")
