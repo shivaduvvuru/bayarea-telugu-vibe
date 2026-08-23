@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Building2 } from "lucide-react";
+import { Building2, HeartHandshake, Play } from "lucide-react";
 import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 import { cn } from "@/lib/utils";
 
