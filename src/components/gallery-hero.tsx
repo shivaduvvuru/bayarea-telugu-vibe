@@ -8,6 +8,7 @@ import { SourceChip } from "@/components/source-credit";
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos } from "@/lib/photo-favorites";
 import { galleryImage } from "@/lib/story-image";
+import { cdnImage } from "@/lib/img";
 import { isSingleWoman } from "@/lib/cinema-topics";
 import { markShown, shownAt, shownThisWeek } from "@/lib/photo-history";
 import { swapGlamourPocket } from "@/lib/gallery-pocket.functions";
@@ -257,15 +258,20 @@ export function GalleryHero({
         >
           <img
             key={picture}
-            src={picture}
+            src={cdnImage(picture, 720)}
             alt={article.title}
             loading="eager"
             decoding="async"
-            onError={() =>
+            onError={(event) => {
+              // Optimiser miss: retry the publisher original before dropping it.
+              if (event.currentTarget.src !== picture) {
+                event.currentTarget.src = picture;
+                return;
+              }
               setFailedPictures((current) =>
                 current.includes(picture) ? current : [...current, picture],
-              )
-            }
+              );
+            }}
             onLoad={(event) => {
               // Wide/landscape frames (box-office stills, event group shots)
               // are not portraits: drop them and let the slot pick again.
