@@ -218,17 +218,17 @@ function EmptyState({ title, note }: { title: string; note?: string }) {
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    // The text digest and the Glamour folder both block the first paint so the
-    // two full-size hero slots are present in the server-rendered HTML and avoid
-    // hydration mismatches.
+    // Only the text digest blocks the first paint. The Glamour folder is warmed
+    // in the background and streams into its own boundary afterwards.
     const pocket = currentPocket();
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
-      context.queryClient.ensureQueryData(galleryQueryFor(pocket)),
     ]);
+    void context.queryClient.prefetchQuery(galleryQueryFor(pocket));
     return { pocket };
   },
+
 
 
   head: () => ({
