@@ -535,6 +535,150 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_entities: {
+        Row: {
+          accessibility: string | null
+          address: string | null
+          attribution: string | null
+          category: string
+          city: string | null
+          community_tags: string[]
+          county: string | null
+          created_at: string
+          dedupe_key: string | null
+          deity: string | null
+          description: string | null
+          email: string | null
+          entity_type: string
+          events_url: string | null
+          external_url: string | null
+          extra_categories: string[]
+          featured_status: boolean
+          foursquare_id: string | null
+          google_place_id: string | null
+          hours: string | null
+          id: string
+          image: string | null
+          last_synced_at: string | null
+          last_verified_at: string | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          needs_review: boolean
+          osm_id: string | null
+          phone: string | null
+          price_level: number | null
+          service_tags: string[]
+          slug: string
+          source: string
+          source_id: string | null
+          state: string
+          status: string
+          subcategory: string | null
+          tba_rating: number | null
+          tba_review_count: number
+          updated_at: string
+          verified_status: boolean
+          website: string | null
+          yelp_id: string | null
+          zip: string | null
+        }
+        Insert: {
+          accessibility?: string | null
+          address?: string | null
+          attribution?: string | null
+          category: string
+          city?: string | null
+          community_tags?: string[]
+          county?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          deity?: string | null
+          description?: string | null
+          email?: string | null
+          entity_type?: string
+          events_url?: string | null
+          external_url?: string | null
+          extra_categories?: string[]
+          featured_status?: boolean
+          foursquare_id?: string | null
+          google_place_id?: string | null
+          hours?: string | null
+          id?: string
+          image?: string | null
+          last_synced_at?: string | null
+          last_verified_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          needs_review?: boolean
+          osm_id?: string | null
+          phone?: string | null
+          price_level?: number | null
+          service_tags?: string[]
+          slug: string
+          source?: string
+          source_id?: string | null
+          state?: string
+          status?: string
+          subcategory?: string | null
+          tba_rating?: number | null
+          tba_review_count?: number
+          updated_at?: string
+          verified_status?: boolean
+          website?: string | null
+          yelp_id?: string | null
+          zip?: string | null
+        }
+        Update: {
+          accessibility?: string | null
+          address?: string | null
+          attribution?: string | null
+          category?: string
+          city?: string | null
+          community_tags?: string[]
+          county?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          deity?: string | null
+          description?: string | null
+          email?: string | null
+          entity_type?: string
+          events_url?: string | null
+          external_url?: string | null
+          extra_categories?: string[]
+          featured_status?: boolean
+          foursquare_id?: string | null
+          google_place_id?: string | null
+          hours?: string | null
+          id?: string
+          image?: string | null
+          last_synced_at?: string | null
+          last_verified_at?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          needs_review?: boolean
+          osm_id?: string | null
+          phone?: string | null
+          price_level?: number | null
+          service_tags?: string[]
+          slug?: string
+          source?: string
+          source_id?: string | null
+          state?: string
+          status?: string
+          subcategory?: string | null
+          tba_rating?: number | null
+          tba_review_count?: number
+          updated_at?: string
+          verified_status?: boolean
+          website?: string | null
+          yelp_id?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
       editorial_reviews: {
         Row: {
           action: string
