@@ -27,6 +27,15 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const lastDiagSnapshot = () => collectDiag;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        // { "mode": "images" } only repairs artwork for stories already published
+        // without a picture — used to clear the historical backlog.
+        if (body?.mode === "images") {
+          const result = await backfillMissingImages(supabaseAdmin as never, 120);
+          return Response.json({ ok: true, ...result });
+        }
+
+
+
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
