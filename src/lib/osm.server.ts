@@ -57,6 +57,8 @@ export async function fetchCityPois(city: string, radius = RADIUS_M): Promise<Os
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
+          // Overpass rejects anonymous clients; identify the app politely.
+          "User-Agent": "TimesBayArea/1.0 (food directory; https://timesbayarea.com)",
         },
         body: new URLSearchParams({ data: query }).toString(),
       });
