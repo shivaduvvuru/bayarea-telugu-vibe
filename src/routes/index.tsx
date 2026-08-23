@@ -507,7 +507,7 @@ function FeedGalleryHero({
   pocket,
   slot,
   onOpen,
-  className,
+  className = "",
 }: {
   pocket: number;
   slot: number;
@@ -517,6 +517,7 @@ function FeedGalleryHero({
   const { heroPool } = useGalleryPools(pocket);
   return <GalleryHero items={heroPool} onOpen={onOpen} offset={slot} className={className} />;
 }
+
 
 /**
  * The Glamour grid owns its own shuffle: the minute tick re-renders these six
