@@ -36,6 +36,7 @@ import { Route as NriRealEstateRouteImport } from './routes/nri-real-estate'
 import { Route as PeopleRouteImport } from './routes/people'
 import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as PropertyDeskRouteImport } from './routes/property-desk'
+import { Route as PropertyVideosRouteImport } from './routes/property-videos'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
@@ -205,6 +206,11 @@ const PoliticsRoute = PoliticsRouteImport.update({
 const PropertyDeskRoute = PropertyDeskRouteImport.update({
   id: '/property-desk',
   path: '/property-desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyVideosRoute = PropertyVideosRouteImport.update({
+  id: '/property-videos',
+  path: '/property-videos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
+  '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
+  '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -546,6 +554,7 @@ export interface FileRoutesById {
   '/people': typeof PeopleRoute
   '/politics': typeof PoliticsRoute
   '/property-desk': typeof PropertyDeskRoute
+  '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -612,6 +621,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/politics'
     | '/property-desk'
+    | '/property-videos'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -674,6 +684,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/politics'
     | '/property-desk'
+    | '/property-videos'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -737,6 +748,7 @@ export interface FileRouteTypes {
     | '/people'
     | '/politics'
     | '/property-desk'
+    | '/property-videos'
     | '/search'
     | '/sitemap.xml'
     | '/submit'
@@ -803,6 +815,7 @@ export interface RootRouteChildren {
   PeopleRoute: typeof PeopleRoute
   PoliticsRoute: typeof PoliticsRoute
   PropertyDeskRoute: typeof PropertyDeskRoute
+  PropertyVideosRoute: typeof PropertyVideosRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
@@ -1013,6 +1026,13 @@ declare module '@tanstack/react-router' {
       path: '/property-desk'
       fullPath: '/property-desk'
       preLoaderRoute: typeof PropertyDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property-videos': {
+      id: '/property-videos'
+      path: '/property-videos'
+      fullPath: '/property-videos'
+      preLoaderRoute: typeof PropertyVideosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -1376,6 +1396,7 @@ const rootRouteChildren: RootRouteChildren = {
   PeopleRoute: PeopleRoute,
   PoliticsRoute: PoliticsRoute,
   PropertyDeskRoute: PropertyDeskRoute,
+  PropertyVideosRoute: PropertyVideosRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
