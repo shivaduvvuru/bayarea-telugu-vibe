@@ -98,6 +98,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "Candeur Group",
     location: "Hyderabad",
     site: "https://www.candeurgroup.com",
+    videoId: "P3o6rHJJpAM",
   },
   {
     id: "14-1",
