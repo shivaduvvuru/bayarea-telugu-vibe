@@ -12,7 +12,8 @@ import { GalleryTile, CityNewsGlamourSlide } from "@/components/category-tiles";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
-import { LIVE_DESKS, mixInto, postsQuery } from "@/lib/category-query";
+import { LIVE_DESKS, mixInto, postsQuery, isTempleArticle } from "@/lib/category-query";
+import { TempleWeekStrip } from "@/components/temple-week-strip";
 
 
 export const Route = createFileRoute("/category/$category")({
