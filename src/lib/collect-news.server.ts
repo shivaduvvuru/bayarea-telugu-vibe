@@ -155,6 +155,60 @@ export async function fetchArticleImage(link: string): Promise<string | null> {
   }
 }
 
+/**
+ * Publisher-agnostic repair: any published story stored without artwork gets its
+ * original photo fetched from the article page. AndhraWishesh was one symptom;
+ * every source that omits social metadata on first collection is repaired here.
+ */
+export async function backfillMissingImages(
+  admin: {
+    from: (table: string) => {
+      select: (columns: string) => any;
+      update: (values: Record<string, unknown>) => any;
+    };
+  },
+  limit = 60,
+): Promise<{ scanned: number; repaired: number }> {
+  const { data, error } = await admin
+    .from("content_items")
+    .select("id, link_url, image_url, created_at")
+    .eq("status", "published")
+    .is("image_url", null)
+    .not("link_url", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(limit * 8);
+  if (error) return { scanned: 0, repaired: 0 };
+  // Sample across the whole image-less backlog: a fixed newest-first slice keeps
+  // retrying the same unrecoverable pages and never reaches older stories.
+  const pool = (data ?? []) as { id: string; link_url: string | null }[];
+  const rows = pool
+    .map((row) => ({ row, r: Math.random() }))
+    .sort((a, b) => a.r - b.r)
+    .slice(0, limit)
+    .map((x) => x.row);
+  let repaired = 0;
+  // Small concurrency keeps the run inside the request budget while still
+  // clearing the backlog across successive refreshes.
+  const queue = [...rows];
+  const workers = Array.from({ length: 6 }, async () => {
+    for (;;) {
+      const row = queue.shift();
+      if (!row?.link_url) return;
+      const image = await fetchArticleImage(row.link_url).catch(() => null);
+      if (!image) continue;
+      const { error: upErr } = await admin
+        .from("content_items")
+        .update({ image_url: image })
+        .eq("id", row.id);
+      if (!upErr) repaired += 1;
+    }
+  });
+  await Promise.all(workers);
+  return { scanned: rows.length, repaired };
+}
+
+
+
 
 /**
  * Reads the article page and returns its lead artwork. Meta tags first, then

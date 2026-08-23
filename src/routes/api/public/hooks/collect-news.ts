@@ -12,9 +12,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const { hookAuthorized, unauthorized } = await import("@/lib/hook-auth.server");
         if (!(await hookAuthorized(request))) return unauthorized();
 
-        const { collectAll, collectGallery, dedupeCollected, urlKey } = await import(
-          "@/lib/collect-news.server"
-        );
+        const { collectAll, collectGallery, dedupeCollected, urlKey, backfillMissingImages } =
+          await import("@/lib/collect-news.server");
+
         // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
         const body = (await request.json().catch(() => ({}))) as {
           mode?: string;
@@ -26,6 +26,15 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const { lastDiag: collectDiag } = await import("@/lib/collect-news.server");
         const lastDiagSnapshot = () => collectDiag;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        // { "mode": "images" } only repairs artwork for stories already published
+        // without a picture — used to clear the historical backlog.
+        if (body?.mode === "images") {
+          const result = await backfillMissingImages(supabaseAdmin as never, 120);
+          return Response.json({ ok: true, ...result });
+        }
+
+
 
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
@@ -265,6 +274,11 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               supabaseAdmin.from("content_items").update({ image_url: image }).eq("id", id),
             ),
           );
+          // Publisher-agnostic pass: fetch original artwork for any published
+          // story still stored without a picture, whatever the source.
+          await backfillMissingImages(supabaseAdmin as never, 60).catch(() => null);
+
+
 
           const storedKeys = new Set([
             ...(stored ?? []).map((r) => r.dedupe_key ?? ""),
