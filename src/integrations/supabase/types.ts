@@ -1274,6 +1274,75 @@ export type Database = {
         }
         Relationships: []
       }
+      property_video_clicks: {
+        Row: {
+          created_at: string
+          feature_id: string
+          id: number
+          kind: string
+          path: string | null
+          project: string | null
+          video_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature_id: string
+          id?: number
+          kind?: string
+          path?: string | null
+          project?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature_id?: string
+          id?: number
+          kind?: string
+          path?: string | null
+          project?: string | null
+          video_id?: string | null
+        }
+        Relationships: []
+      }
+      property_videos: {
+        Row: {
+          created_at: string
+          developer: string | null
+          feature_id: string
+          note: string | null
+          project: string
+          status: string
+          title: string | null
+          updated_at: string
+          verified_at: string | null
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          developer?: string | null
+          feature_id: string
+          note?: string | null
+          project: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          developer?: string | null
+          feature_id?: string
+          note?: string | null
+          project?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          video_id?: string
+        }
+        Relationships: []
+      }
       raw_ingestion_items: {
         Row: {
           ai_generated_at: string | null
