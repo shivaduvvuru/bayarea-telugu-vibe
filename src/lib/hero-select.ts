@@ -117,7 +117,7 @@ export function heroEligibleImage(url: string | null | undefined): string | null
 }
 
 /** Editorial score. Higher wins the earlier slide. */
-export function heroScore(a: Article, now = new Date()): number {
+export function heroScore(a: Article, now = new Date(), ignoreUsage = false): number {
   let score = 0;
   const text = `${a.title} ${a.excerpt ?? ""}`;
   if (isBayArea(a.title, a.excerpt) || isBayAreaSource(a.sourceUrl)) score += 40;
@@ -136,7 +136,7 @@ export function heroScore(a: Article, now = new Date()): number {
   if (image) score += 18;
 
   // Least-recently-used: never-shown artwork leads, then the oldest run.
-  if (image) {
+  if (image && !ignoreUsage) {
     const seen = lastUsed(image, "hero");
     if (!seen) score += 12;
     else score -= Math.min(20, timesUsed(image) * 4);
@@ -168,7 +168,7 @@ export function buildHeroSet(
 
   const ranked = articles
     .filter((a) => a.category !== "gallery" && a.title)
-    .map((a) => ({ a, image: heroEligibleImage(a.image), score: heroScore(a, now) }))
+    .map((a) => ({ a, image: heroEligibleImage(a.image), score: heroScore(a, now, options.ignoreRest === true) }))
     .filter((c) => !!c.image)
     .sort((x, y) => y.score - x.score);
 
