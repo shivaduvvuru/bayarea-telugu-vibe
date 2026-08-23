@@ -265,6 +265,11 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               supabaseAdmin.from("content_items").update({ image_url: image }).eq("id", id),
             ),
           );
+          // Publisher-agnostic pass: fetch original artwork for any published
+          // story still stored without a picture, whatever the source.
+          await backfillMissingImages(supabaseAdmin as never, 60).catch(() => null);
+
+
 
           const storedKeys = new Set([
             ...(stored ?? []).map((r) => r.dedupe_key ?? ""),
