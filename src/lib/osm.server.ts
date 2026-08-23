@@ -212,7 +212,10 @@ export function mapOsmElement(el: OsmElement, fallbackCity: string): MappedOsmRe
   const lat = el.lat ?? el.center?.lat ?? null;
   const lon = el.lon ?? el.center?.lon ?? null;
 
-  const street = unique([tags["addr:housenumber"], tags["addr:street"]]).join(" ").trim();
+  // A house number without a street name is useless, so require the street.
+  const street = tags["addr:street"]
+    ? unique([tags["addr:housenumber"], tags["addr:street"]]).join(" ").trim()
+    : "";
   const address =
     unique([street || null, city, tags["addr:state"] ?? "CA", tags["addr:postcode"]]).join(", ") ||
     null;
