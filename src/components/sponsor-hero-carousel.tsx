@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, ExternalLink, Newspaper, Sparkles } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  HeartHandshake,
+  Newspaper,
+  Play,
+  Sparkles,
+} from "lucide-react";
 import { heroSlides, SPONSOR_ROTATE_MS, type HeroSlide } from "@/lib/hero-slides";
 import { cn } from "@/lib/utils";
 
