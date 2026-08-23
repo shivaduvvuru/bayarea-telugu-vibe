@@ -181,7 +181,7 @@ export async function cmsPosts(
     // our own newsroom posts.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(400)
+      .limit(120)
       .not("city", "is", null);
 
   } else if (category === "gallery") {
