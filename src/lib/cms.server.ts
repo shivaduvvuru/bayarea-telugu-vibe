@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { PUBLIC_COLUMNS, type ContentItem } from "@/lib/cms";
 import { dedupeBy, dedupeKey } from "@/lib/dedupe";
+import { classifyForPublish } from "@/lib/classify-at-publish.server";
 
 /** Anonymous, RLS-respecting client for reading published items during SSR. */
 export function publicClient() {
@@ -104,6 +105,7 @@ export async function ingest(rows: IngestRow[]) {
       const clash = key ? existing.get(key) : undefined;
       return {
         ...r,
+        ...classifyForPublish(r as never),
         dedupe_key: key || null,
         status: clash ? "duplicate" : "published",
         duplicate_of: clash ?? null,
@@ -116,6 +118,7 @@ export async function ingest(rows: IngestRow[]) {
     ...inBatch.flatMap((group) =>
       group.dropped.map((r) => ({
         ...r,
+        ...classifyForPublish(r as never),
         dedupe_key: group.key,
         status: "duplicate",
         duplicate_of: null,

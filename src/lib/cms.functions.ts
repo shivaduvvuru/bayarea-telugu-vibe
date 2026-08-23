@@ -201,7 +201,15 @@ export const createItem = createServerFn({ method: "POST" })
     const { assertStaff } = await import("@/lib/cms.server");
     await assertStaff(context.supabase as never, context.userId);
     const blank = (v?: string) => (v && v.length > 0 ? v : null);
+    const { classifyForPublish } = await import("@/lib/classify-at-publish.server");
     const { error } = await context.supabase.from("content_items").insert({
+      ...classifyForPublish({
+        title: data.title,
+        summary: blank(data.summary),
+        link_url: blank(data.link_url),
+        city: blank(data.city),
+        category: blank(data.category),
+      }),
       source: "admin",
       status: "published",
       dedupe_key: dedupeKey(data.title) || null,

@@ -1,5 +1,6 @@
 import { admin } from "@/lib/ingest.server";
 import { usableImage } from "@/lib/story-image";
+import { classifyForPublish } from "@/lib/classify-at-publish.server";
 
 /**
  * Publishes reviewed raw items as public digest cards.
