@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { BadgeCheck, Bookmark, Clock, Flame, MapPin, Share2 } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { getCityHeadline } from "@/lib/headline.functions";
-import type { Headline } from "@/lib/headline.server";
+
+type Headline = NonNullable<Awaited<ReturnType<typeof getCityHeadline>>>;
 import { RelativeDate } from "@/components/news";
 import { Button } from "@/components/ui/button";
 import { shareLink, useSaved } from "@/lib/saved";

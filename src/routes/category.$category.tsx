@@ -40,13 +40,13 @@ export const Route = createFileRoute("/category/$category")({
     if (!cat) throw notFound();
     // Both reads are independent: awaiting them together keeps the first HTML
     // response off a second round trip.
-    await Promise.all([
+    const [, headline] = await Promise.all([
       context.queryClient.ensureQueryData(postsQuery(cat.slug)),
       cat.slug === "city-news"
         ? context.queryClient.ensureQueryData(cityHeadlineQuery)
-        : Promise.resolve(),
+        : Promise.resolve(null),
     ]);
-    return { cat };
+    return { cat, headline: headline ?? null };
   },
 
   head: ({ loaderData }) => {
@@ -80,7 +80,7 @@ export const Route = createFileRoute("/category/$category")({
 
 
 function CategoryPage() {
-  const { cat } = Route.useLoaderData();
+  const { cat, headline } = Route.useLoaderData();
   const { data: allArticles, dataUpdatedAt } = useSuspenseQuery(postsQuery(cat.slug));
   const { hidden, hiddenImages } = useHiddenPhotos();
   const isCity = cat.slug === "city-news";
@@ -155,7 +155,7 @@ function CategoryPage() {
         </nav>
       ) : null}
       <div className="mt-6">
-        {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} /> : null}
+        {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} initial={headline} /> : null}
         {cat.slug === "city-news" ? <TempleWeekStrip /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
