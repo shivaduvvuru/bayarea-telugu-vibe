@@ -180,7 +180,7 @@ function CategoryPage() {
 
           <>
             {(() => {
-              const picture = articles.filter((a) => a.image);
+              const picture = shown.filter((a) => a.image);
               // Two hero-size Glamour slides only, ten news items apart.
               const chunks = [picture.slice(0, 10), picture.slice(10, 20), picture.slice(20)];
               return chunks.map((chunk, ci) =>
@@ -198,11 +198,11 @@ function CategoryPage() {
                 ) : null,
               );
             })()}
-            {articles.some((a) => !a.image) ? (
+            {shown.some((a) => !a.image) ? (
               <div className="mt-10">
                 <SectionHeading te="క్లుప్తంగా" en="In brief" />
                 <ul className="grid gap-x-8 sm:grid-cols-2">
-                  {articles.filter((a) => !a.image).map((a) => (
+                  {shown.filter((a) => !a.image).map((a) => (
                     <ListRow key={a.id} article={a} />
                   ))}
                 </ul>
@@ -211,12 +211,24 @@ function CategoryPage() {
           </>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {articles.map((a, i) => (
+            {shown.map((a, i) => (
               <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
             ))}
           </div>
 
         )}
+        {shown.length < articles.length ? (
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={() => setLimit((n) => n + pageSize)}
+              className="press min-h-11 rounded-full border border-border px-6 text-sm font-semibold text-ink hover:border-primary hover:text-primary"
+            >
+              Load more
+            </button>
+          </div>
+        ) : null}
+
       </div>
 
       {cat.slug === "gallery" && viewerIndex !== null && (
