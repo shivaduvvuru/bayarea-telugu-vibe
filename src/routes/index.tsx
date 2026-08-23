@@ -9,7 +9,7 @@ import { upcomingEvents } from "@/lib/news-data";
 import { formatDate, isLocal, type Article } from "@/lib/content";
 import { canonical } from "@/lib/site";
 import { usableImage } from "@/lib/story-image";
-import { dedupeKey } from "@/lib/dedupe";
+import { contentDedupeKeys } from "@/lib/dedupe";
 import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
 import {
