@@ -161,7 +161,12 @@ function Workspace({ deskToken, onLock }: { deskToken: string; onLock: () => Pro
         <Link to="/property/$campaign" params={{ campaign: CAMPAIGN }} className="font-bold text-primary">
           View the public page
         </Link>
+        {" · "}
+        <Link to="/property-videos" className="font-bold text-primary">
+          Video tour desk
+        </Link>
       </p>
+
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric label="Page views" value={stats?.pageViews ?? 0} />
