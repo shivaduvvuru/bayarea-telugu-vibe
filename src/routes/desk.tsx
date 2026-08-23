@@ -471,6 +471,9 @@ function DeskWorkspace({
             <Button size="sm" variant="outline" asChild>
               <Link to="/food-merge">Restaurant duplicates</Link>
             </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/directory-ingest">Directory ingest (all categories)</Link>
+            </Button>
 
             <Button size="sm" variant="outline" asChild>
               <Link to="/luxedesk">Applicant & member review (LuxeDesk)</Link>
