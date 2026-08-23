@@ -56,10 +56,10 @@ export async function readClickTotals(): Promise<Record<string, number>> {
 export type SaveVideoInput = {
   featureId: string;
   project: string;
-  developer?: string;
+  developer?: string | undefined;
   videoId: string;
-  title?: string;
-  note?: string;
+  title?: string | undefined;
+  note?: string | undefined;
   status: PropertyVideoStatus;
 };
 
@@ -103,9 +103,9 @@ export async function removeVideo(featureId: string) {
 
 export async function recordVideoClick(input: {
   featureId: string;
-  videoId?: string;
-  project?: string;
-  path?: string;
+  videoId?: string | undefined;
+  project?: string | undefined;
+  path?: string | undefined;
 }) {
   try {
     await (await db()).from("property_video_clicks").insert({
