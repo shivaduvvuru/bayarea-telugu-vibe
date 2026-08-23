@@ -39,3 +39,13 @@ export function mixInto(local: Article[], guests: Article[], every = 3): Article
   });
   return out;
 }
+
+/**
+ * Temple stories are their own desk: City News shows only the week-ahead temple
+ * strip, so anything tagged temples (and any older temple pickup) is filtered
+ * out of the local scroll.
+ */
+export function isTempleArticle(a: Article): boolean {
+  const cat = `${a.category ?? ""} ${a.categoryName ?? ""}`.toLowerCase();
+  return cat.includes("temple") || cat.includes("దేవాలయ");
+}

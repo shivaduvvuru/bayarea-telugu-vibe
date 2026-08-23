@@ -12,7 +12,8 @@ import { GalleryTile, CityNewsGlamourSlide } from "@/components/category-tiles";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
-import { LIVE_DESKS, mixInto, postsQuery } from "@/lib/category-query";
+import { LIVE_DESKS, mixInto, postsQuery, isTempleArticle } from "@/lib/category-query";
+import { TempleWeekStrip } from "@/components/temple-week-strip";
 
 
 export const Route = createFileRoute("/category/$category")({
@@ -89,7 +90,9 @@ function CategoryPage() {
         )
       : isCity
         ? mixInto(
-            allArticles,
+            // Temple coverage in City News is handled by the week-ahead strip, so
+            // stray/older temple stories never appear in the local scroll.
+            allArticles.filter((a) => !isTempleArticle(a)),
             // Alternate cinema and India guests so neither desk dominates.
             cinemaMix.flatMap((c, i) => (indiaMix[i] ? [c, indiaMix[i]!] : [c])),
           )
@@ -142,6 +145,7 @@ function CategoryPage() {
       ) : null}
       <div className="mt-6">
         {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} /> : null}
+        {cat.slug === "city-news" ? <TempleWeekStrip /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
         ) : null}
