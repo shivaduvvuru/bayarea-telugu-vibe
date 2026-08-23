@@ -34,6 +34,53 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           return Response.json({ ok: true, ...result });
         }
 
+        // { "mode": "backfill-classify" } stamps resolved_category / is_local on
+        // rows published before classification moved to publish time. Safe to
+        // call repeatedly: it walks unstamped rows in batches inside a 60s
+        // budget and reports what is left.
+        if (body?.mode === "backfill-classify") {
+          const { classifyForPublish } = await import("@/lib/classify-at-publish.server");
+          const startedAt = Date.now();
+          let updated = 0;
+          let batches = 0;
+          while (Date.now() - startedAt < 55_000) {
+            const { data, error } = await supabaseAdmin
+              .from("content_items")
+              .select("id, title, summary, link_url, city, category")
+              .eq("status", "published")
+              .is("resolved_category", null)
+              .limit(500);
+            if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });
+            const rows = data ?? [];
+            if (!rows.length) break;
+            batches += 1;
+            // Rows that classify the same way are stamped in one statement, so a
+            // 500-row batch costs a handful of updates instead of 500.
+            const groups = new Map<string, { fields: unknown; ids: string[] }>();
+            for (const row of rows) {
+              const fields = classifyForPublish(row as never);
+              const key = `${fields.resolved_category}|${fields.is_local}`;
+              const group = groups.get(key) ?? { fields, ids: [] };
+              group.ids.push(row.id);
+              groups.set(key, group);
+            }
+            for (const group of groups.values()) {
+              const { error: updateError } = await supabaseAdmin
+                .from("content_items")
+                .update(group.fields as never)
+                .in("id", group.ids);
+              if (!updateError) updated += group.ids.length;
+              else break;
+            }
+          }
+          const { count } = await supabaseAdmin
+            .from("content_items")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "published")
+            .is("resolved_category", null);
+          return Response.json({ ok: true, updated, batches, remaining: count ?? 0 });
+        }
+
 
 
         try {

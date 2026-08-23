@@ -129,6 +129,7 @@ export type Database = {
           event_start: string | null
           id: string
           image_url: string | null
+          is_local: boolean
           kind: string
           link_url: string | null
           people_checked_at: string | null
@@ -137,6 +138,7 @@ export type Database = {
           priority_score: number | null
           published_at: string | null
           region: string | null
+          resolved_category: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           source: string
@@ -168,6 +170,7 @@ export type Database = {
           event_start?: string | null
           id?: string
           image_url?: string | null
+          is_local?: boolean
           kind?: string
           link_url?: string | null
           people_checked_at?: string | null
@@ -176,6 +179,7 @@ export type Database = {
           priority_score?: number | null
           published_at?: string | null
           region?: string | null
+          resolved_category?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
@@ -207,6 +211,7 @@ export type Database = {
           event_start?: string | null
           id?: string
           image_url?: string | null
+          is_local?: boolean
           kind?: string
           link_url?: string | null
           people_checked_at?: string | null
@@ -215,6 +220,7 @@ export type Database = {
           priority_score?: number | null
           published_at?: string | null
           region?: string | null
+          resolved_category?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source?: string
