@@ -57,6 +57,38 @@ function Cta({ slide }: { slide: HeroSlide }) {
   );
 }
 
+function SlideActions({ slide }: { slide: HeroSlide }) {
+  const eoi = slide.eoiLink ?? (slide.linkUrl ? `${slide.linkUrl}#enquire` : undefined);
+  const videoUrl = slide.videoId
+    ? `https://www.youtube.com/watch?v=${slide.videoId}`
+    : slide.site;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 pt-1">
+      {videoUrl ? (
+        <a
+          href={videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          <Play className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {slide.videoId ? "Short video" : "Project site"}
+        </a>
+      ) : null}
+      {eoi ? (
+        <Link
+          to={eoi}
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-xs font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          <HeartHandshake className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          I&apos;m interested
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
 /** Context column: sponsor, headline, highlights and the call to action. */
 function SlideContext({ slide }: { slide: HeroSlide }) {
   return (
@@ -91,6 +123,7 @@ function SlideContext({ slide }: { slide: HeroSlide }) {
       <div className="pt-1">
         <Cta slide={slide} />
       </div>
+      <SlideActions slide={slide} />
     </div>
   );
 }
