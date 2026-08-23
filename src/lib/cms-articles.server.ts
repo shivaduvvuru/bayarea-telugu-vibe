@@ -174,7 +174,12 @@ function base(columns: string = LIST_COLUMNS) {
  * news feed fresh while collapsing the duplicate work.
  */
 const FEED_TTL_MS = 60_000;
-const feedCache = new Map<string, { at: number; posts: Promise<Article[]> }>();
+/**
+ * The Glamour pocket only turns over every 8 hours, so re-reading 900 picture
+ * rows every minute was wasted work: gallery feeds cache much longer.
+ */
+const GALLERY_TTL_MS = 10 * 60_000;
+const feedCache = new Map<string, { at: number; ttl: number; posts: Promise<Article[]> }>();
 
 /** Published stories for a category/city slug (or everything when omitted). */
 export function cmsPosts(
@@ -183,18 +188,20 @@ export function cmsPosts(
   page = 0,
 ): Promise<Article[]> {
   const key = `${category ?? "all"}|${limit}|${page}`;
+  const ttl = category === "gallery" ? GALLERY_TTL_MS : FEED_TTL_MS;
   const hit = feedCache.get(key);
-  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.posts;
+  if (hit && Date.now() - hit.at < hit.ttl) return hit.posts;
   const posts = readPosts(category, limit, page).catch((err) => {
     feedCache.delete(key);
     throw err;
   });
-  feedCache.set(key, { at: Date.now(), posts });
+  feedCache.set(key, { at: Date.now(), ttl, posts });
   if (feedCache.size > 40) {
-    for (const [k, v] of feedCache) if (Date.now() - v.at > FEED_TTL_MS) feedCache.delete(k);
+    for (const [k, v] of feedCache) if (Date.now() - v.at > v.ttl) feedCache.delete(k);
   }
   return posts;
 }
+
 
 async function readPosts(
   category: string | undefined,
