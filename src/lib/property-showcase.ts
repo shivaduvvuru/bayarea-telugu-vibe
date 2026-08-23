@@ -128,7 +128,6 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "My Home Group",
     location: "Tellapur, Hyderabad",
     site: "https://www.myhomeconstructions.com/my-home-udyan",
-    videoId: "2ySIpPO2s80",
   },
   {
     id: "20-1",
