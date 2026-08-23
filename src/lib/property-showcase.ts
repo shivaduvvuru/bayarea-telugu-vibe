@@ -16,12 +16,21 @@ export interface PropertyFeature {
   note?: string;
   /** Developer's own site, as printed on the page. */
   site?: string;
+  /** YouTube id of a short project video (walkthrough / project film). */
+  videoId?: string;
 }
 
 export const EPAPER_ANNIVERSARY_URL =
   "https://www.telugutimes.net/epaper/16-31-23rd-anniv-special";
 
 const BASE = "https://www.telugutimes.net/wp-content/uploads/2026/03";
+
+/** Fallback: a YouTube search for readers when no video is on file. */
+export function propertyVideoSearchUrl(item: { project: string; developer: string }): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(
+    `${item.project} ${item.developer} Hyderabad project video`,
+  )}`;
+}
 
 /** Full-page image for a feature. */
 export function propertyImage(id: string): string {
