@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Building2 } from "lucide-react";
+import { Building2, HeartHandshake, Play } from "lucide-react";
 import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export function PropertyHero({ className }: { className?: string }) {
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-xl border border-primary/30 bg-surface-tint",
+        "relative overflow-hidden rounded-xl border border-primary/30 bg-surface-tint",
         className,
       )}
       aria-label="Property feature"
@@ -66,6 +66,26 @@ export function PropertyHero({ className }: { className?: string }) {
           </span>
         </div>
       </Link>
+      <div className="absolute right-3 top-3 flex flex-col gap-2">
+        {p.videoId ? (
+          <a
+            href={`https://www.youtube.com/watch?v=${p.videoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-ink/65 px-2.5 py-1.5 text-[10px] font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary"
+          >
+            <Play className="h-3.5 w-3.5" aria-hidden />
+            Short video
+          </a>
+        ) : null}
+        <a
+          href="/property/credai-hyderabad-2026#enquire"
+          className="inline-flex items-center gap-1.5 rounded-full bg-ink/65 px-2.5 py-1.5 text-[10px] font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary"
+        >
+          <HeartHandshake className="h-3.5 w-3.5" aria-hidden />
+          I&apos;m interested
+        </a>
+      </div>
     </section>
   );
 }

@@ -25,6 +25,12 @@ export interface HeroSlide {
   highlights?: string[];
   /** Dominant artwork colour, used for the blurred backdrop. */
   tint?: string;
+  /** YouTube video id for a short project walkthrough, when available. */
+  videoId?: string;
+  /** Direct link to the developer/project site. */
+  site?: string;
+  /** Pre-built expression-of-interest anchor (e.g. /property/credai-hyderabad-2026#enquire). */
+  eoiLink?: string;
 }
 
 export const EPAPER_ANNIVERSARY_URL =
@@ -63,6 +69,9 @@ const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
   sponsorName: p.developer,
   ...(p.note ? { highlights: [p.note] } : {}),
   tint: "#26262b",
+  ...(p.videoId ? { videoId: p.videoId } : {}),
+  ...(p.site ? { site: p.site } : {}),
+  eoiLink: "/property/credai-hyderabad-2026#enquire",
 }));
 
 /** CREDAI banner + three property slides, each shown one at a time. */
