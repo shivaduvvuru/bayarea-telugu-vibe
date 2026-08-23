@@ -49,6 +49,28 @@ export function PropertyHero({ className }: { className?: string }) {
             <Building2 className="h-3 w-3" aria-hidden />
             Property
           </span>
+          <div className="absolute right-3 top-3 flex flex-col gap-2">
+            {p.videoId ? (
+              <a
+                href={`https://www.youtube.com/watch?v=${p.videoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 rounded-full bg-ink/65 px-2.5 py-1.5 text-[10px] font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary"
+              >
+                <Play className="h-3.5 w-3.5" aria-hidden />
+                Short video
+              </a>
+            ) : null}
+            <Link
+              to="/property/credai-hyderabad-2026#enquire"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 rounded-full bg-ink/65 px-2.5 py-1.5 text-[10px] font-bold text-primary-foreground backdrop-blur transition-colors hover:bg-primary"
+            >
+              <HeartHandshake className="h-3.5 w-3.5" aria-hidden />
+              I&apos;m interested
+            </Link>
+          </div>
         </div>
         <div className="p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
