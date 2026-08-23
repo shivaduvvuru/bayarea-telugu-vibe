@@ -89,7 +89,9 @@ function CategoryPage() {
         )
       : isCity
         ? mixInto(
-            allArticles,
+            // Temple coverage in City News is handled by the week-ahead strip, so
+            // stray/older temple stories never appear in the local scroll.
+            allArticles.filter((a) => !isTempleArticle(a)),
             // Alternate cinema and India guests so neither desk dominates.
             cinemaMix.flatMap((c, i) => (indiaMix[i] ? [c, indiaMix[i]!] : [c])),
           )
