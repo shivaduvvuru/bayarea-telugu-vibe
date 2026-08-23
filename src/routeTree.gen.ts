@@ -22,6 +22,7 @@ import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderab
 import { Route as CredaiShowRouteImport } from './routes/credai-show'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as DirectoryRouteImport } from './routes/directory'
+import { Route as DirectoryIngestRouteImport } from './routes/directory-ingest'
 import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -139,6 +140,11 @@ const DeskRoute = DeskRouteImport.update({
 const DirectoryRoute = DirectoryRouteImport.update({
   id: '/directory',
   path: '/directory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryIngestRoute = DirectoryIngestRouteImport.update({
+  id: '/directory-ingest',
+  path: '/directory-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EpaperRoute = EpaperRouteImport.update({
@@ -431,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
+  '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
@@ -499,6 +506,7 @@ export interface FileRoutesByTo {
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
+  '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
@@ -565,6 +573,7 @@ export interface FileRoutesById {
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
   '/directory': typeof DirectoryRoute
+  '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
   '/explore': typeof ExploreRoute
@@ -635,6 +644,7 @@ export interface FileRouteTypes {
     | '/credai-show'
     | '/desk'
     | '/directory'
+    | '/directory-ingest'
     | '/epaper'
     | '/events'
     | '/explore'
@@ -703,6 +713,7 @@ export interface FileRouteTypes {
     | '/credai-show'
     | '/desk'
     | '/directory'
+    | '/directory-ingest'
     | '/epaper'
     | '/explore'
     | '/favorites'
@@ -768,6 +779,7 @@ export interface FileRouteTypes {
     | '/credai-show'
     | '/desk'
     | '/directory'
+    | '/directory-ingest'
     | '/epaper'
     | '/events'
     | '/explore'
@@ -838,6 +850,7 @@ export interface RootRouteChildren {
   CredaiShowRoute: typeof CredaiShowRoute
   DeskRoute: typeof DeskRoute
   DirectoryRoute: typeof DirectoryRoute
+  DirectoryIngestRoute: typeof DirectoryIngestRoute
   EpaperRoute: typeof EpaperRoute
   EventsRoute: typeof EventsRouteWithChildren
   ExploreRoute: typeof ExploreRoute
@@ -968,6 +981,13 @@ declare module '@tanstack/react-router' {
       path: '/directory'
       fullPath: '/directory'
       preLoaderRoute: typeof DirectoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory-ingest': {
+      id: '/directory-ingest'
+      path: '/directory-ingest'
+      fullPath: '/directory-ingest'
+      preLoaderRoute: typeof DirectoryIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/epaper': {
@@ -1443,6 +1463,7 @@ const rootRouteChildren: RootRouteChildren = {
   CredaiShowRoute: CredaiShowRoute,
   DeskRoute: DeskRoute,
   DirectoryRoute: DirectoryRoute,
+  DirectoryIngestRoute: DirectoryIngestRoute,
   EpaperRoute: EpaperRoute,
   EventsRoute: EventsRouteWithChildren,
   ExploreRoute: ExploreRoute,
