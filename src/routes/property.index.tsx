@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExternalLink, X } from "lucide-react";
+import { PropertyVideo } from "@/components/property-video";
 import {
   EPAPER_ANNIVERSARY_URL,
   PROPERTY_FEATURES,
   propertyImage,
+  propertyVideoSearchUrl,
   type PropertyFeature,
 } from "@/lib/property-showcase";
 
@@ -49,6 +51,11 @@ function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => vo
         />
       </button>
       <figcaption className="space-y-1 p-3">
+        {item.videoId ? (
+          <div className="pb-1">
+            <PropertyVideo videoId={item.videoId} label={item.project} />
+          </div>
+        ) : null}
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
           {item.developer}
         </p>
@@ -57,6 +64,17 @@ function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => vo
           <p className="text-xs text-muted-foreground">{item.location}</p>
         ) : null}
         {item.note ? <p className="text-xs text-muted-foreground">{item.note}</p> : null}
+        {!item.videoId ? (
+          <a
+            href={propertyVideoSearchUrl(item)}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="inline-flex items-center gap-1 pt-1 text-xs font-semibold text-primary hover:underline"
+          >
+            Find video tours
+            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
+          </a>
+        ) : null}
         {item.site ? (
           <a
             href={item.site}
