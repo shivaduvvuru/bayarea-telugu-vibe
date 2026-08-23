@@ -138,7 +138,14 @@ function toArticle(row: Row): Article {
     slug: cmsSlug(row.id),
     title: decode(row.title ?? ""),
     excerpt: text.slice(0, 300),
-    html: sanitizeHtml(row.body ?? (text ? `<p>${text}</p>` : "")),
+    // Sanitising is only needed for stored article HTML (detail reads). List
+    // reads have no body, so the excerpt is escaped and wrapped instead.
+    html:
+      row.body != null
+        ? sanitizeHtml(row.body)
+        : text
+          ? `<p>${escapeText(text)}</p>`
+          : "",
     date: row.published_at ?? row.created_at,
     author: "Times Bay Area",
     image: usableImage(row.image_url),
@@ -149,14 +156,15 @@ function toArticle(row: Row): Article {
   };
 }
 
-function base() {
+function base(columns: string = LIST_COLUMNS) {
   return publicClient()
     .from("content_items")
-    .select(COLUMNS)
+    .select(columns)
     .eq("status", "published")
     .neq("placement", "hidden")
     .in("kind", ["news", "announcement", "event"]);
 }
+
 
 /** Published stories for a category/city slug (or everything when omitted). */
 export async function cmsPosts(
