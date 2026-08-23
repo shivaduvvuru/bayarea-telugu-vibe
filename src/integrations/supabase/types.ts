@@ -128,6 +128,7 @@ export type Database = {
           event_end: string | null
           event_start: string | null
           id: string
+          image_backfill_attempts: number | null
           image_url: string | null
           is_local: boolean
           kind: string
@@ -169,6 +170,7 @@ export type Database = {
           event_end?: string | null
           event_start?: string | null
           id?: string
+          image_backfill_attempts?: number | null
           image_url?: string | null
           is_local?: boolean
           kind?: string
@@ -210,6 +212,7 @@ export type Database = {
           event_end?: string | null
           event_start?: string | null
           id?: string
+          image_backfill_attempts?: number | null
           image_url?: string | null
           is_local?: boolean
           kind?: string
@@ -2468,6 +2471,10 @@ export type Database = {
         Returns: boolean
       }
       hook_token: { Args: { _name: string }; Returns: string }
+      increment_items_published: {
+        Args: { source_ids: string[] }
+        Returns: undefined
+      }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
