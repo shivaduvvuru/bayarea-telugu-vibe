@@ -1,5 +1,20 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { galleryImage } from "@/lib/story-image";
+import { galleryImage, usableImage } from "@/lib/story-image";
+
+/**
+ * Editorial rule: a news item with no usable picture is never published.
+ * Events and temple notices are calendar entries, so they stay exempt.
+ */
+function hasArtwork(row: Record<string, unknown>): boolean {
+  const kind = String(row["kind"] ?? "news");
+  if (kind !== "news") return true;
+  const payload = (row["payload"] ?? {}) as Record<string, unknown>;
+  const image =
+    (typeof payload["image"] === "string" ? (payload["image"] as string) : null) ??
+    (typeof payload["image_url"] === "string" ? (payload["image_url"] as string) : null) ??
+    (typeof row["image_url"] === "string" ? (row["image_url"] as string) : null);
+  return !!usableImage(image);
+}
 
 /** Photo-desk rows: those wait for the picture editor, everything else goes live. */
 function isPictureRow(row: Record<string, unknown>): boolean {
