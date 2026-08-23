@@ -12,9 +12,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const { hookAuthorized, unauthorized } = await import("@/lib/hook-auth.server");
         if (!(await hookAuthorized(request))) return unauthorized();
 
-        const { collectAll, collectGallery, dedupeCollected, urlKey } = await import(
-          "@/lib/collect-news.server"
-        );
+        const { collectAll, collectGallery, dedupeCollected, urlKey, backfillMissingImages } =
+          await import("@/lib/collect-news.server");
+
         // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
         const body = (await request.json().catch(() => ({}))) as {
           mode?: string;
