@@ -230,9 +230,30 @@ export async function cmsPosts(
     if (cityName) clauses.push(`city.eq.${cityName}`);
     q = q.or(clauses.join(","));
   }
+  // Desks that need a second, dedicated pass kick it off now (Promise.resolve
+  // on the builder starts the request) so both reads run concurrently instead
+  // of adding a second round trip to the server response.
+  const localPatterns = ["bayarea.telugutimes.net", "patch.com/california", ...BAY_HOSTS].map(
+    (h) => `link_url.ilike.%${h}%`,
+  );
+  const secondaryQuery =
+    category === "gallery"
+      ? base()
+          .order("published_at", { ascending: false })
+          .limit(300)
+          .not("image_url", "is", null)
+          .eq("category", "gallery")
+      : category === "micro-drama"
+        ? base().order("published_at", { ascending: false }).limit(200).eq("category", MICRO_DRAMA_SLUG)
+        : category === "city-news"
+          ? base().or(localPatterns.join(",")).order("published_at", { ascending: false }).limit(400)
+          : null;
+  const secondary = secondaryQuery ? Promise.resolve(secondaryQuery) : null;
+
   const { data, error } = await q;
   if (error) throw error;
   const rows = (data ?? []) as unknown as Row[];
+
   if (category === "gallery") {
     // Editor-approved picture sets are the point of the desk: read them in their
     // own pass (so a busy news day can never push them out of the shared pool)
