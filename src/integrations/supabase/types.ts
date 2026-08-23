@@ -573,6 +573,39 @@ export type Database = {
           },
         ]
       }
+      external_api_budget: {
+        Row: {
+          calls: number
+          cost_per_1k_usd: number
+          enabled: boolean
+          month: string
+          monthly_limit_usd: number
+          provider: string
+          spend_usd: number
+          updated_at: string
+        }
+        Insert: {
+          calls?: number
+          cost_per_1k_usd?: number
+          enabled?: boolean
+          month?: string
+          monthly_limit_usd?: number
+          provider: string
+          spend_usd?: number
+          updated_at?: string
+        }
+        Update: {
+          calls?: number
+          cost_per_1k_usd?: number
+          enabled?: boolean
+          month?: string
+          monthly_limit_usd?: number
+          provider?: string
+          spend_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       food_collection_items: {
         Row: {
           collection_id: string
@@ -1736,6 +1769,7 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          attribution: string | null
           branch_label: string | null
           city: string | null
           created_at: string
@@ -1745,6 +1779,8 @@ export type Database = {
           dietary: string[]
           dish_tags: string[]
           features: string[]
+          foursquare_id: string | null
+          google_place_id: string | null
           has_catering: boolean
           has_delivery: boolean
           has_dine_in: boolean
@@ -1760,6 +1796,7 @@ export type Database = {
           name: string
           opened_at: string | null
           order_links: Json
+          osm_id: string | null
           phone: string | null
           photos: string[]
           price_level: number | null
@@ -1774,9 +1811,12 @@ export type Database = {
           updated_at: string
           verified: boolean
           website_url: string | null
+          yelp_id: string | null
+          zip: string | null
         }
         Insert: {
           address?: string | null
+          attribution?: string | null
           branch_label?: string | null
           city?: string | null
           created_at?: string
@@ -1786,6 +1826,8 @@ export type Database = {
           dietary?: string[]
           dish_tags?: string[]
           features?: string[]
+          foursquare_id?: string | null
+          google_place_id?: string | null
           has_catering?: boolean
           has_delivery?: boolean
           has_dine_in?: boolean
@@ -1801,6 +1843,7 @@ export type Database = {
           name: string
           opened_at?: string | null
           order_links?: Json
+          osm_id?: string | null
           phone?: string | null
           photos?: string[]
           price_level?: number | null
@@ -1815,9 +1858,12 @@ export type Database = {
           updated_at?: string
           verified?: boolean
           website_url?: string | null
+          yelp_id?: string | null
+          zip?: string | null
         }
         Update: {
           address?: string | null
+          attribution?: string | null
           branch_label?: string | null
           city?: string | null
           created_at?: string
@@ -1827,6 +1873,8 @@ export type Database = {
           dietary?: string[]
           dish_tags?: string[]
           features?: string[]
+          foursquare_id?: string | null
+          google_place_id?: string | null
           has_catering?: boolean
           has_delivery?: boolean
           has_dine_in?: boolean
@@ -1842,6 +1890,7 @@ export type Database = {
           name?: string
           opened_at?: string | null
           order_links?: Json
+          osm_id?: string | null
           phone?: string | null
           photos?: string[]
           price_level?: number | null
@@ -1856,6 +1905,8 @@ export type Database = {
           updated_at?: string
           verified?: boolean
           website_url?: string | null
+          yelp_id?: string | null
+          zip?: string | null
         }
         Relationships: []
       }
