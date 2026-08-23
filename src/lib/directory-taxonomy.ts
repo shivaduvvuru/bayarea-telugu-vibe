@@ -374,7 +374,7 @@ export function osmSubcategories(categoryKeys?: string[]): {
 
 /**
  * Telugu/Indian community relevance. Deliberately conservative: matched only on
- * business-published text (names, self-描 descriptions, cuisine tags) — never on
+ * business-published text (names, self-published descriptions, cuisine tags) — never on
  * a person's name or any inferred ethnicity.
  */
 export const COMMUNITY_TAGS = [
