@@ -86,7 +86,7 @@ export async function publishNewsBacklog(limit = 200): Promise<{
     .neq("upload_status", "sent")
     .order("digest_date", { ascending: false })
     .limit(Math.min(Math.max(limit, 1), 500));
-  const batch = (queued ?? []) as Record<string, unknown>[];
+  const batch = ((queued ?? []) as Record<string, unknown>[]).filter(hasArtwork);
 
   const { deskRowToIngest } = await import("@/lib/desk-publish.server");
   const { ingest } = await import("@/lib/cms.server");
