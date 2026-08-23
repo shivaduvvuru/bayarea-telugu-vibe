@@ -45,8 +45,8 @@ function FeatureCard({
   onPlay,
 }: {
   item: PropertyFeature;
-  videoId?: string;
-  clicks?: number;
+  videoId?: string | undefined;
+  clicks?: number | undefined;
   onOpen: () => void;
   onPlay: () => void;
 }) {
