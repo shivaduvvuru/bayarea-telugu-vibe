@@ -27,6 +27,7 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FoodRouteImport } from './routes/food'
+import { Route as FoodIngestRouteImport } from './routes/food-ingest'
 import { Route as FoodMergeRouteImport } from './routes/food-merge'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
@@ -162,6 +163,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const FoodRoute = FoodRouteImport.update({
   id: '/food',
   path: '/food',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoodIngestRoute = FoodIngestRouteImport.update({
+  id: '/food-ingest',
+  path: '/food-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoodMergeRoute = FoodMergeRouteImport.update({
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/food': typeof FoodRouteWithChildren
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -488,6 +495,7 @@ export interface FileRoutesByTo {
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -554,6 +562,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/food': typeof FoodRouteWithChildren
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -622,6 +631,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/food'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -686,6 +696,7 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/explore'
     | '/favorites'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -751,6 +762,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/food'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -819,6 +831,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   FoodRoute: typeof FoodRouteWithChildren
+  FoodIngestRoute: typeof FoodIngestRoute
   FoodMergeRoute: typeof FoodMergeRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
@@ -977,6 +990,13 @@ declare module '@tanstack/react-router' {
       path: '/food'
       fullPath: '/food'
       preLoaderRoute: typeof FoodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/food-ingest': {
+      id: '/food-ingest'
+      path: '/food-ingest'
+      fullPath: '/food-ingest'
+      preLoaderRoute: typeof FoodIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/food-merge': {
@@ -1408,6 +1428,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   FoodRoute: FoodRouteWithChildren,
+  FoodIngestRoute: FoodIngestRoute,
   FoodMergeRoute: FoodMergeRoute,
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,

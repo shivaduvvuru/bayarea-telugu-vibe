@@ -69,8 +69,8 @@ function IngestPage() {
           setToken("");
           return;
         }
-        setToken(res.token ?? "");
-        void load(res.token ?? "");
+        setToken(res.deskToken ?? "");
+        void load(res.deskToken ?? "");
       })
       .catch(() => setToken(""));
   }, [doCheck, load]);
