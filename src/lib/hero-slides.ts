@@ -25,6 +25,12 @@ export interface HeroSlide {
   highlights?: string[];
   /** Dominant artwork colour, used for the blurred backdrop. */
   tint?: string;
+  /** YouTube video id for a short project walkthrough, when available. */
+  videoId?: string;
+  /** Direct link to the developer/project site. */
+  site?: string;
+  /** Pre-built expression-of-interest anchor (e.g. /property/credai-hyderabad-2026#enquire). */
+  eoiLink?: string;
 }
 
 export const EPAPER_ANNIVERSARY_URL =
