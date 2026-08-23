@@ -216,6 +216,7 @@ export function priceLabel(level: number | null | undefined) {
 const SOURCE_WEIGHT: Record<string, number> = {
   google: 1,
   yelp: 0.9,
+  foursquare: 0.8,
   opentable: 0.7,
   tripadvisor: 0.6,
   doordash: 0.6,
@@ -283,6 +284,7 @@ export function timesBayAreaScore(input: ScoreInput): Score {
 export const SOURCE_LABEL: Record<string, string> = {
   google: "Google",
   yelp: "Yelp",
+  foursquare: "Foursquare",
   opentable: "OpenTable",
   tripadvisor: "TripAdvisor",
   doordash: "DoorDash",
