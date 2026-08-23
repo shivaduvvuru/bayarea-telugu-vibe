@@ -56,19 +56,25 @@ export function dedupeBy<T>(
 export function contentDedupeKeys(item: {
   title?: string | null;
   sourceUrl?: string | null;
+  url?: string | null;
+  link_url?: string | null;
   image?: string | null;
+  image_url?: string | null;
 }): string[] {
   const title = dedupeKey(item.title ?? "");
+  // Feeds and CMS rows name these fields differently; accept every spelling so
+  // one story cannot slip through under an alternate key.
+  const url = item.sourceUrl ?? item.link_url ?? item.url;
+  const image = usableImage(item.image ?? item.image_url);
   return [
     title ? `t:${title}` : "",
     // Near-duplicate headlines (same story, different tail) collapse too.
     title.length > 28 ? `p:${title.slice(0, 28)}` : "",
-    item.sourceUrl
-      ? `u:${item.sourceUrl.split("?")[0]?.replace(/\/$/, "").toLowerCase()}`
-      : "",
-    item.image ? `i:${item.image.split("?")[0]?.toLowerCase()}` : "",
+    url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
+    image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
   ].filter(Boolean);
 }
+
 
 /** Keeps the first copy of each story across any number of feeds. */
 export function uniqueByContent<
