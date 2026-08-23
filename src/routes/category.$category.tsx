@@ -199,21 +199,12 @@ function CategoryPage() {
             ) : null}
           </>
         ) : (
-          <div
-            className={
-              cat.slug === "gallery"
-                ? "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
-                : "grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
-            }
-          >
-            {articles.map((a, i) =>
-              cat.slug === "gallery" ? (
-                <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
-              ) : (
-                <StoryCard key={a.id} article={a} />
-              ),
-            )}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {articles.map((a, i) => (
+              <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
+            ))}
           </div>
+
         )}
       </div>
 
