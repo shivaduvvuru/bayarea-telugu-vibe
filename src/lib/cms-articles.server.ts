@@ -56,7 +56,7 @@ type Row = {
   id: string;
   title: string;
   summary: string | null;
-  body: string | null;
+  body?: string | null;
   image_url: string | null;
   link_url: string | null;
   city: string | null;
@@ -66,8 +66,21 @@ type Row = {
   source?: string | null;
 };
 
-const COLUMNS =
-  "id, title, summary, body, image_url, link_url, city, category, published_at, created_at, source";
+/**
+ * Feed/list reads deliberately omit `body`: cards only render the headline,
+ * excerpt and artwork, so transferring (and sanitising) full article HTML for
+ * hundreds of rows was pure waste. The article page reads `body` on its own.
+ */
+const LIST_COLUMNS =
+  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source";
+
+const DETAIL_COLUMNS = `${LIST_COLUMNS}, body`;
+
+/** Minimal escape so a summary can stand in for article HTML on list reads. */
+function escapeText(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
 function citySlugOf(city: string | null): string | undefined {
@@ -125,7 +138,14 @@ function toArticle(row: Row): Article {
     slug: cmsSlug(row.id),
     title: decode(row.title ?? ""),
     excerpt: text.slice(0, 300),
-    html: sanitizeHtml(row.body ?? (text ? `<p>${text}</p>` : "")),
+    // Sanitising is only needed for stored article HTML (detail reads). List
+    // reads have no body, so the excerpt is escaped and wrapped instead.
+    html:
+      row.body != null
+        ? sanitizeHtml(row.body)
+        : text
+          ? `<p>${escapeText(text)}</p>`
+          : "",
     date: row.published_at ?? row.created_at,
     author: "Times Bay Area",
     image: usableImage(row.image_url),
@@ -136,22 +156,54 @@ function toArticle(row: Row): Article {
   };
 }
 
-function base() {
+function base(columns: string = LIST_COLUMNS) {
   return publicClient()
     .from("content_items")
-    .select(COLUMNS)
+    .select(columns)
     .eq("status", "published")
     .neq("placement", "hidden")
     .in("kind", ["news", "announcement", "event"]);
 }
 
+
+/**
+ * Short-lived in-process cache for feed reads. Several surfaces on one page
+ * (feed + headline hero + hero slides) ask for the same desk, and every
+ * anonymous visitor asks for the same thing: recomputing the classification
+ * pass each time was the bulk of the server response time. 60 seconds keeps a
+ * news feed fresh while collapsing the duplicate work.
+ */
+const FEED_TTL_MS = 60_000;
+const feedCache = new Map<string, { at: number; posts: Promise<Article[]> }>();
+
 /** Published stories for a category/city slug (or everything when omitted). */
-export async function cmsPosts(
+export function cmsPosts(
+  category: string | undefined,
+  limit: number,
+  page = 0,
+): Promise<Article[]> {
+  const key = `${category ?? "all"}|${limit}|${page}`;
+  const hit = feedCache.get(key);
+  if (hit && Date.now() - hit.at < FEED_TTL_MS) return hit.posts;
+  const posts = readPosts(category, limit, page).catch((err) => {
+    feedCache.delete(key);
+    throw err;
+  });
+  feedCache.set(key, { at: Date.now(), posts });
+  if (feedCache.size > 40) {
+    for (const [k, v] of feedCache) if (Date.now() - v.at > FEED_TTL_MS) feedCache.delete(k);
+  }
+  return posts;
+}
+
+async function readPosts(
   category: string | undefined,
   limit: number,
   page = 0,
 ): Promise<Article[]> {
   let q = base().order("published_at", { ascending: false }).limit(limit);
+
+
 
   if (category === "city-news") {
     // Bay Area local reporting only — India coverage lives under /category/india-news.
@@ -170,7 +222,7 @@ export async function cmsPosts(
     // window would starve the grid as the archive grows.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(1200)
+      .limit(600)
       .not("image_url", "is", null);
 
 
@@ -209,18 +261,35 @@ export async function cmsPosts(
     if (cityName) clauses.push(`city.eq.${cityName}`);
     q = q.or(clauses.join(","));
   }
+  // Desks that need a second, dedicated pass kick it off now (Promise.resolve
+  // on the builder starts the request) so both reads run concurrently instead
+  // of adding a second round trip to the server response.
+  const localPatterns = ["bayarea.telugutimes.net", "patch.com/california", ...BAY_HOSTS].map(
+    (h) => `link_url.ilike.%${h}%`,
+  );
+  const secondaryQuery =
+    category === "gallery"
+      ? base()
+          .order("published_at", { ascending: false })
+          .limit(300)
+          .not("image_url", "is", null)
+          .eq("category", "gallery")
+      : category === "micro-drama"
+        ? base().order("published_at", { ascending: false }).limit(200).eq("category", MICRO_DRAMA_SLUG)
+        : category === "city-news"
+          ? base().or(localPatterns.join(",")).order("published_at", { ascending: false }).limit(400)
+          : null;
+  const secondary = secondaryQuery ? Promise.resolve(secondaryQuery) : null;
+
   const { data, error } = await q;
   if (error) throw error;
   const rows = (data ?? []) as unknown as Row[];
+
   if (category === "gallery") {
     // Editor-approved picture sets are the point of the desk: read them in their
     // own pass (so a busy news day can never push them out of the shared pool)
     // and show them ahead of the automatically collected photos.
-    const { data: picked } = await base()
-      .order("published_at", { ascending: false })
-      .limit(300)
-      .not("image_url", "is", null)
-      .eq("category", "gallery");
+    const { data: picked } = (await secondary) ?? { data: null };
     // Category=gallery rows are editor-approved picks. Do not run them back
     // through the automatic intake classifier after approval.
     const pickedRows = ((picked ?? []) as unknown as Row[]).filter((r) =>
@@ -254,10 +323,7 @@ export async function cmsPosts(
   if (category === "micro-drama") {
     // Rows filed to the micro-drama desk are read on their own so a busy news
     // day can never crowd them out of the shared pool.
-    const { data: filed } = await base()
-      .order("published_at", { ascending: false })
-      .limit(200)
-      .eq("category", MICRO_DRAMA_SLUG);
+    const { data: filed } = (await secondary) ?? { data: null };
     const filedRows = (filed ?? []) as unknown as Row[];
     const auto = rows.filter(
       (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
@@ -274,15 +340,7 @@ export async function cmsPosts(
     // which used to push every local report (our own newsroom, Patch, Bay Area
     // dailies, city halls) out of the window and left the page empty. Read the
     // local publishers in their own pass so they can never be crowded out.
-    const localPatterns = [
-      "bayarea.telugutimes.net",
-      "patch.com/california",
-      ...BAY_HOSTS,
-    ].map((h) => `link_url.ilike.%${h}%`);
-    const { data: localData } = await base()
-      .or(localPatterns.join(","))
-      .order("published_at", { ascending: false })
-      .limit(400);
+    const { data: localData } = (await secondary) ?? { data: null };
     const localRows = (localData ?? []) as unknown as Row[];
     // Local reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
@@ -340,7 +398,7 @@ export async function cmsPosts(
 
 export async function cmsPost(slug: string): Promise<Article | null> {
   if (!slug.startsWith("c-")) return null;
-  const { data, error } = await base().eq("id", slug.slice(2)).limit(1).maybeSingle();
+  const { data, error } = await base(DETAIL_COLUMNS).eq("id", slug.slice(2)).limit(1).maybeSingle();
   if (error || !data) return null;
   return toArticle(data as unknown as Row);
 }

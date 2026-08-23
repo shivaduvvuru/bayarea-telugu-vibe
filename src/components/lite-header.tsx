@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, X, Youtube } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
-import { supabase } from "@/integrations/supabase/client";
+import { useSignedIn, signOutSession } from "@/lib/session-state";
 
 
 /**
@@ -103,24 +103,6 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
   ],
 };
 
-/** Shared session flag for the header (sign-in link + staff menu). */
-function useSignedIn() {
-  const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => {
-    let active = true;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active) setSignedIn(Boolean(data.session));
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setSignedIn(Boolean(session)),
-    );
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-  return signedIn;
-}
 
 /** Telugu Times network: site, e-paper and social profiles. */
 const NETWORK = [
@@ -266,7 +248,7 @@ export function LiteHeader() {
   const navigate = useNavigate();
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await signOutSession();
     void navigate({ to: "/auth", replace: true });
   };
 

@@ -38,12 +38,17 @@ export const Route = createFileRoute("/category/$category")({
   loader: async ({ params, context }) => {
     const cat = categoryBySlug(params.category);
     if (!cat) throw notFound();
-    await context.queryClient.ensureQueryData(postsQuery(cat.slug));
-    if (cat.slug === "city-news") {
-      await context.queryClient.ensureQueryData(cityHeadlineQuery);
-    }
-    return { cat };
+    // Both reads are independent: awaiting them together keeps the first HTML
+    // response off a second round trip.
+    const [, headline] = await Promise.all([
+      context.queryClient.ensureQueryData(postsQuery(cat.slug)),
+      cat.slug === "city-news"
+        ? context.queryClient.ensureQueryData(cityHeadlineQuery)
+        : Promise.resolve(null),
+    ]);
+    return { cat, headline: headline ?? null };
   },
+
   head: ({ loaderData }) => {
     if (!loaderData) {
       return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
@@ -75,7 +80,7 @@ export const Route = createFileRoute("/category/$category")({
 
 
 function CategoryPage() {
-  const { cat } = Route.useLoaderData();
+  const { cat, headline } = Route.useLoaderData();
   const { data: allArticles, dataUpdatedAt } = useSuspenseQuery(postsQuery(cat.slug));
   const { hidden, hiddenImages } = useHiddenPhotos();
   const isCity = cat.slug === "city-news";
@@ -99,8 +104,14 @@ function CategoryPage() {
         : allArticles;
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  // Only the first screenful of cards is rendered (and its images requested);
+  // the rest arrives on demand instead of on first paint.
+  const pageSize = cat.slug === "gallery" ? 16 : 12;
+  const [limit, setLimit] = useState(pageSize);
+  const shown = articles.slice(0, limit);
   const live = LIVE_DESKS.includes(cat.slug);
   const liveKeys = [["wp", "posts", cat.slug]];
+
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -144,7 +155,7 @@ function CategoryPage() {
         </nav>
       ) : null}
       <div className="mt-6">
-        {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} /> : null}
+        {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} initial={headline} /> : null}
         {cat.slug === "city-news" ? <TempleWeekStrip /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />
@@ -169,7 +180,7 @@ function CategoryPage() {
 
           <>
             {(() => {
-              const picture = articles.filter((a) => a.image);
+              const picture = shown.filter((a) => a.image);
               // Two hero-size Glamour slides only, ten news items apart.
               const chunks = [picture.slice(0, 10), picture.slice(10, 20), picture.slice(20)];
               return chunks.map((chunk, ci) =>
@@ -187,11 +198,11 @@ function CategoryPage() {
                 ) : null,
               );
             })()}
-            {articles.some((a) => !a.image) ? (
+            {shown.some((a) => !a.image) ? (
               <div className="mt-10">
                 <SectionHeading te="క్లుప్తంగా" en="In brief" />
                 <ul className="grid gap-x-8 sm:grid-cols-2">
-                  {articles.filter((a) => !a.image).map((a) => (
+                  {shown.filter((a) => !a.image).map((a) => (
                     <ListRow key={a.id} article={a} />
                   ))}
                 </ul>
@@ -200,12 +211,24 @@ function CategoryPage() {
           </>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {articles.map((a, i) => (
+            {shown.map((a, i) => (
               <GalleryTile key={a.id} article={a} onOpen={() => setViewerIndex(i)} />
             ))}
           </div>
 
         )}
+        {shown.length < articles.length ? (
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={() => setLimit((n) => n + pageSize)}
+              className="press min-h-11 rounded-full border border-border px-6 text-sm font-semibold text-ink hover:border-primary hover:text-primary"
+            >
+              Load more
+            </button>
+          </div>
+        ) : null}
+
       </div>
 
       {cat.slug === "gallery" && viewerIndex !== null && (
