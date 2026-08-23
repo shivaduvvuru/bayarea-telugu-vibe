@@ -183,6 +183,8 @@ export function Thumb({
         sizes={sizes}
         optimizedWidth={priority ? 960 : 640}
         loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
+
         decoding="async"
         referrerPolicy="no-referrer-when-downgrade"
         className={`${ratio} w-full bg-surface-tint object-cover object-top`}

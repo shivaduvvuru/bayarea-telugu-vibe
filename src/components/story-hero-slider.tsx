@@ -117,10 +117,11 @@ export function StoryHeroSlider({
             <img
               src={slide.image}
               alt={slide.article.title}
-              // Only the first slide is a priority download; slide 2 and 3 load
-              // eagerly right after, the rest stay lazy.
-              loading={i === 0 ? "eager" : i < 3 ? "eager" : "lazy"}
+              // Only the first slide is a priority download; every other slide
+              // stays lazy so it never competes with it on a phone.
+              loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "low"}
+
               decoding="async"
               sizes="(max-width: 768px) 100vw, 1100px"
               className="h-full w-full object-cover object-[center_28%]"
