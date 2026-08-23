@@ -38,7 +38,18 @@ export async function publishRawItems(ids: string[]): Promise<number> {
         ).data
       : null;
 
+    // Section + local flag are decided once here so reader queries stay small
+    // indexed lookups instead of re-classifying hundreds of rows.
+    const classified = classifyForPublish({
+      title: row["digest_headline"] || row["original_title"],
+      summary: row["what_happened"] || row["excerpt"],
+      link_url: row["canonical_url"],
+      city: row["city"],
+      category: row["topic"],
+    });
+
     const payload = {
+      ...classified,
       source: "ingest",
       source_ref: row["canonical_url"],
       kind: row["event_start"] ? "event" : "news",
