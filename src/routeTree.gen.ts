@@ -27,6 +27,7 @@ import { Route as EventsRouteImport } from './routes/events'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as FoodRouteImport } from './routes/food'
+import { Route as FoodIngestRouteImport } from './routes/food-ingest'
 import { Route as FoodMergeRouteImport } from './routes/food-merge'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
@@ -72,6 +73,7 @@ import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
 import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
+import { Route as ApiPublicHooksYelpRestaurantsRouteImport } from './routes/api/public/hooks/yelp-restaurants'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -161,6 +163,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const FoodRoute = FoodRouteImport.update({
   id: '/food',
   path: '/food',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoodIngestRoute = FoodIngestRouteImport.update({
+  id: '/food-ingest',
+  path: '/food-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoodMergeRoute = FoodMergeRouteImport.update({
@@ -393,6 +400,12 @@ const ApiPublicHooksTempleCalendarRoute =
     path: '/api/public/hooks/temple-calendar',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksYelpRestaurantsRoute =
+  ApiPublicHooksYelpRestaurantsRouteImport.update({
+    id: '/api/public/hooks/yelp-restaurants',
+    path: '/api/public/hooks/yelp-restaurants',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
   id: '/api/public/media/$',
   path: '/api/public/media/$',
@@ -417,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/food': typeof FoodRouteWithChildren
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -462,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
@@ -480,6 +495,7 @@ export interface FileRoutesByTo {
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -523,6 +539,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
@@ -545,6 +562,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/favorites': typeof FavoritesRoute
   '/food': typeof FoodRouteWithChildren
+  '/food-ingest': typeof FoodIngestRoute
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
@@ -590,6 +608,7 @@ export interface FileRoutesById {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
@@ -612,6 +631,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/food'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -657,6 +677,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -675,6 +696,7 @@ export interface FileRouteTypes {
     | '/epaper'
     | '/explore'
     | '/favorites'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -718,6 +740,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   id:
     | '__root__'
@@ -739,6 +762,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/favorites'
     | '/food'
+    | '/food-ingest'
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
@@ -784,6 +808,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
@@ -806,6 +831,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   FavoritesRoute: typeof FavoritesRoute
   FoodRoute: typeof FoodRouteWithChildren
+  FoodIngestRoute: typeof FoodIngestRoute
   FoodMergeRoute: typeof FoodMergeRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
@@ -834,6 +860,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
   ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
+  ApiPublicHooksYelpRestaurantsRoute: typeof ApiPublicHooksYelpRestaurantsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
@@ -963,6 +990,13 @@ declare module '@tanstack/react-router' {
       path: '/food'
       fullPath: '/food'
       preLoaderRoute: typeof FoodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/food-ingest': {
+      id: '/food-ingest'
+      path: '/food-ingest'
+      fullPath: '/food-ingest'
+      preLoaderRoute: typeof FoodIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/food-merge': {
@@ -1280,6 +1314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTempleCalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/yelp-restaurants': {
+      id: '/api/public/hooks/yelp-restaurants'
+      path: '/api/public/hooks/yelp-restaurants'
+      fullPath: '/api/public/hooks/yelp-restaurants'
+      preLoaderRoute: typeof ApiPublicHooksYelpRestaurantsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$': {
       id: '/api/public/media/$'
       path: '/api/public/media/$'
@@ -1387,6 +1428,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   FavoritesRoute: FavoritesRoute,
   FoodRoute: FoodRouteWithChildren,
+  FoodIngestRoute: FoodIngestRoute,
   FoodMergeRoute: FoodMergeRoute,
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,
@@ -1415,6 +1457,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
   ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
+  ApiPublicHooksYelpRestaurantsRoute: ApiPublicHooksYelpRestaurantsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport
