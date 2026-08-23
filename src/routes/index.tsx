@@ -42,6 +42,7 @@ const HOME_LIVE_KEYS: unknown[][] = [
 ];
 import { CollectStatus } from "@/components/collect-status";
 import { PropertyPromo } from "@/components/property-promo";
+import { SmartImage } from "@/components/smart-image";
 
 
 const TITLE = "Times Bay Area — Digest of newspapers & journals";
