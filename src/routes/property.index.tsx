@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ExternalLink, X } from "lucide-react";
 import { PropertyVideo } from "@/components/property-video";
+import { PropertyVideoSources } from "@/components/property-video-sources";
+import {
+  getPropertyVideos,
+  trackPropertyVideoClick,
+} from "@/lib/property-videos.functions";
 import {
   EPAPER_ANNIVERSARY_URL,
   PROPERTY_FEATURES,
   propertyImage,
-  propertyVideoSearchUrl,
   type PropertyFeature,
 } from "@/lib/property-showcase";
 
 const TITLE = "Property — Hyderabad high-rise projects | Times Bay Area";
 const DESCRIPTION =
-  "Individual skyscraper property features from the Telugu Times 23rd Anniversary Special — Hyderabad towers, developers and project highlights for NRI buyers.";
+  "Individual skyscraper property features from the Telugu Times 23rd Anniversary Special — Hyderabad towers, developers, short video tours and project highlights for NRI buyers.";
 
 export const Route = createFileRoute("/property/")({
   head: () => ({
@@ -31,7 +37,19 @@ export const Route = createFileRoute("/property/")({
 });
 
 /** One skyscraper feature: the printed page as a single vertical picture. */
-function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => void }) {
+function FeatureCard({
+  item,
+  videoId,
+  clicks,
+  onOpen,
+  onPlay,
+}: {
+  item: PropertyFeature;
+  videoId?: string;
+  clicks?: number;
+  onOpen: () => void;
+  onPlay: () => void;
+}) {
   return (
     <figure className="m-0 overflow-hidden rounded-xl border border-border bg-card">
       <button
@@ -51,9 +69,14 @@ function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => vo
         />
       </button>
       <figcaption className="space-y-1 p-3">
-        {item.videoId ? (
+        {videoId ? (
           <div className="pb-1">
-            <PropertyVideo videoId={item.videoId} label={item.project} />
+            <PropertyVideo
+              videoId={videoId}
+              label={item.project}
+              {...(typeof clicks === "number" ? { clicks } : {})}
+              onPlay={onPlay}
+            />
           </div>
         ) : null}
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
@@ -64,16 +87,14 @@ function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => vo
           <p className="text-xs text-muted-foreground">{item.location}</p>
         ) : null}
         {item.note ? <p className="text-xs text-muted-foreground">{item.note}</p> : null}
-        {!item.videoId ? (
-          <a
-            href={propertyVideoSearchUrl(item)}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="inline-flex items-center gap-1 pt-1 text-xs font-semibold text-primary hover:underline"
-          >
-            Find video tours
-            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
-          </a>
+        {!videoId ? (
+          <div className="pt-1">
+            <PropertyVideoSources
+              project={item.project}
+              developer={item.developer}
+              {...(item.site ? { site: item.site } : {})}
+            />
+          </div>
         ) : null}
         {item.site ? (
           <a
@@ -93,6 +114,27 @@ function FeatureCard({ item, onOpen }: { item: PropertyFeature; onOpen: () => vo
 
 function PropertyIndex() {
   const [open, setOpen] = useState<PropertyFeature | null>(null);
+  const [videoOnly, setVideoOnly] = useState(false);
+  const loadVideos = useServerFn(getPropertyVideos);
+  const trackClick = useServerFn(trackPropertyVideoClick);
+
+  const { data } = useQuery({
+    queryKey: ["property-videos"],
+    queryFn: () => loadVideos(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  /** Desk-verified clips win; the printed edition ids are the fallback. */
+  const videoFor = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const item of PROPERTY_FEATURES) if (item.videoId) map.set(item.id, item.videoId);
+    for (const row of data?.videos ?? []) map.set(row.feature_id, row.video_id);
+    return map;
+  }, [data]);
+
+  const clicks = data?.clicks ?? {};
+  const withVideo = PROPERTY_FEATURES.filter((i) => videoFor.has(i.id));
+  const shown = videoOnly ? withVideo : PROPERTY_FEATURES;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -118,6 +160,19 @@ function PropertyIndex() {
           >
             CREDAI Property Show 2026
           </Link>
+          <button
+            type="button"
+            onClick={() => setVideoOnly((v) => !v)}
+            aria-pressed={videoOnly}
+            className={`inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold ${
+              videoOnly
+                ? "bg-ink text-primary-foreground"
+                : "border border-border text-ink hover:border-primary"
+            }`}
+          >
+            {videoOnly ? "Showing video tours only" : "Only with video tours"}
+            <span className="ml-1.5 text-xs font-bold opacity-80">({withVideo.length})</span>
+          </button>
           <a
             href={EPAPER_ANNIVERSARY_URL}
             target="_blank"
@@ -131,10 +186,33 @@ function PropertyIndex() {
       </header>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {PROPERTY_FEATURES.map((item) => (
-          <FeatureCard key={item.id} item={item} onOpen={() => setOpen(item)} />
+        {shown.map((item) => (
+          <FeatureCard
+            key={item.id}
+            item={item}
+            {...(videoFor.get(item.id) ? { videoId: videoFor.get(item.id) } : {})}
+            {...(clicks[item.id] ? { clicks: clicks[item.id] } : {})}
+            onOpen={() => setOpen(item)}
+            onPlay={() => {
+              void trackClick({
+                data: {
+                  featureId: item.id,
+                  ...(videoFor.get(item.id) ? { videoId: videoFor.get(item.id)! } : {}),
+                  project: item.project,
+                  path: "/property",
+                },
+              }).catch(() => undefined);
+            }}
+          />
         ))}
       </div>
+
+      {videoOnly && withVideo.length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">
+          No verified short video tours are published yet. Turn the filter off to browse every
+          project.
+        </p>
+      ) : null}
 
       <p className="mt-6 text-xs text-muted-foreground">
         Project artwork and claims are the advertisers&apos; own, reproduced from the Telugu Times
