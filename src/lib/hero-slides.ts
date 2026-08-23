@@ -69,6 +69,9 @@ const propertySlides: HeroSlide[] = PROPERTY_FEATURES.map((p) => ({
   sponsorName: p.developer,
   ...(p.note ? { highlights: [p.note] } : {}),
   tint: "#26262b",
+  ...(p.videoId ? { videoId: p.videoId } : {}),
+  ...(p.site ? { site: p.site } : {}),
+  eoiLink: "/property/credai-hyderabad-2026#enquire",
 }));
 
 /** CREDAI banner + three property slides, each shown one at a time. */
