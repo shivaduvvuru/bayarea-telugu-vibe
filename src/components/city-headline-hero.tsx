@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { BadgeCheck, Bookmark, Clock, Flame, MapPin, Share2 } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { getCityHeadline } from "@/lib/headline.functions";
+import type { Headline } from "@/lib/headline.server";
 import { RelativeDate } from "@/components/news";
 import { Button } from "@/components/ui/button";
 import { shareLink, useSaved } from "@/lib/saved";
@@ -185,8 +186,18 @@ export function TrendingGrid({ articles }: { articles: Article[] }) {
 }
 
 /** Self-contained block used on the City News page. */
-export function CityHeadlineBlock({ trending = [] }: { trending?: Article[] }) {
-  const { data } = useQuery(cityHeadlineQuery);
+export function CityHeadlineBlock({
+  trending = [],
+  initial,
+}: {
+  trending?: Article[];
+  /** Headline resolved by the route loader, so the server and client first
+   * render match instead of the hero popping in after hydration. */
+  initial?: Headline | null;
+}) {
+  const { data } = useQuery(
+    initial ? { ...cityHeadlineQuery, initialData: initial } : cityHeadlineQuery,
+  );
   if (!data) return null;
   const rest = trending.filter((a) => a.slug !== data.article.slug).slice(0, 3);
   return (
