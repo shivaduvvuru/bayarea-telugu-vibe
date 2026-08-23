@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { listCommunityItems } from "@/lib/cms.functions";
+import { isTempleNewsClean } from "@/lib/temple-purity";
 
 const TITLE = "Bay Area Temple News — announcements & coverage";
 const DESC =
