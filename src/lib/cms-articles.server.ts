@@ -316,7 +316,7 @@ async function readPosts(
               classifyIndia(r.title, r.summary, r.link_url) !== null,
           )
           .map(toArticle),
-      ),
+      ).filter((a) => a.image),
       limit,
     );
   }
@@ -328,10 +328,9 @@ async function readPosts(
     const auto = rows.filter(
       (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
     );
-    // Illustrated stories lead the desk: the page shows photo cards first and
-    // keeps text-only items as short snippets underneath.
+    // No picture, no story: text-only items are dropped, not listed.
     const all = dedupeArticles([...filedRows, ...auto].map(toArticle));
-    return [...all.filter((a) => a.image), ...all.filter((a) => !a.image)].slice(0, limit);
+    return all.filter((a) => a.image).slice(0, limit);
   }
 
 
