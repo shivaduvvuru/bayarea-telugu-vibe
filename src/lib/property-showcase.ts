@@ -77,6 +77,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "Triilight",
     location: "Kokapet, Hyderabad",
     site: "https://www.thetriilight.com",
+    videoId: "s6Uno-d_lRU",
   },
   {
     id: "33",
@@ -127,6 +128,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "My Home Group",
     location: "Tellapur, Hyderabad",
     site: "https://www.myhomeconstructions.com/my-home-udyan",
+    videoId: "2ySIpPO2s80",
   },
   {
     id: "20-1",
@@ -134,6 +136,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "Navanaami",
     location: "Kokapet, Hyderabad",
     site: "https://www.navanaami.com",
+    videoId: "UCVH_kiwE7g",
   },
   {
     id: "21",
@@ -176,6 +179,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "Sattva Group",
     location: "Neopolis, Kokapet",
     site: "https://sattvalakeridgeneopolis.com",
+    videoId: "IG2dKFV1C0Q",
   },
   {
     id: "27",
@@ -225,6 +229,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     developer: "Aparna Constructions",
     location: "Hyderabad",
     site: "https://aparnagroupprojects.com",
+    videoId: "r1t2oUwp7M4",
   },
   {
     id: "11-1",
