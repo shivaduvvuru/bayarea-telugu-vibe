@@ -191,7 +191,7 @@ export async function cmsPosts(
     // window would starve the grid as the archive grows.
     q = base()
       .order("published_at", { ascending: false })
-      .limit(1200)
+      .limit(600)
       .not("image_url", "is", null);
 
 
@@ -361,7 +361,7 @@ export async function cmsPosts(
 
 export async function cmsPost(slug: string): Promise<Article | null> {
   if (!slug.startsWith("c-")) return null;
-  const { data, error } = await base().eq("id", slug.slice(2)).limit(1).maybeSingle();
+  const { data, error } = await base(DETAIL_COLUMNS).eq("id", slug.slice(2)).limit(1).maybeSingle();
   if (error || !data) return null;
   return toArticle(data as unknown as Row);
 }
