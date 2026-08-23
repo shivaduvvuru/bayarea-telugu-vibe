@@ -38,12 +38,17 @@ export const Route = createFileRoute("/category/$category")({
   loader: async ({ params, context }) => {
     const cat = categoryBySlug(params.category);
     if (!cat) throw notFound();
-    await context.queryClient.ensureQueryData(postsQuery(cat.slug));
-    if (cat.slug === "city-news") {
-      await context.queryClient.ensureQueryData(cityHeadlineQuery);
-    }
+    // Both reads are independent: awaiting them together keeps the first HTML
+    // response off a second round trip.
+    await Promise.all([
+      context.queryClient.ensureQueryData(postsQuery(cat.slug)),
+      cat.slug === "city-news"
+        ? context.queryClient.ensureQueryData(cityHeadlineQuery)
+        : Promise.resolve(),
+    ]);
     return { cat };
   },
+
   head: ({ loaderData }) => {
     if (!loaderData) {
       return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
