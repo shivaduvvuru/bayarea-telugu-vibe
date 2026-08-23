@@ -466,8 +466,12 @@ function DeskWorkspace({
               <Link to="/admin">Newsroom CMS</Link>
             </Button>
             <Button size="sm" variant="outline" asChild>
+              <Link to="/food-ingest">Yelp restaurant ingest</Link>
+            </Button>
+            <Button size="sm" variant="outline" asChild>
               <Link to="/food-merge">Restaurant duplicates</Link>
             </Button>
+
             <Button size="sm" variant="outline" asChild>
               <Link to="/luxedesk">Applicant & member review (LuxeDesk)</Link>
             </Button>
