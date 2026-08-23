@@ -258,11 +258,7 @@ export async function cmsPosts(
     // Editor-approved picture sets are the point of the desk: read them in their
     // own pass (so a busy news day can never push them out of the shared pool)
     // and show them ahead of the automatically collected photos.
-    const { data: picked } = await base()
-      .order("published_at", { ascending: false })
-      .limit(300)
-      .not("image_url", "is", null)
-      .eq("category", "gallery");
+    const { data: picked } = (await secondary) ?? { data: null };
     // Category=gallery rows are editor-approved picks. Do not run them back
     // through the automatic intake classifier after approval.
     const pickedRows = ((picked ?? []) as unknown as Row[]).filter((r) =>
@@ -296,10 +292,7 @@ export async function cmsPosts(
   if (category === "micro-drama") {
     // Rows filed to the micro-drama desk are read on their own so a busy news
     // day can never crowd them out of the shared pool.
-    const { data: filed } = await base()
-      .order("published_at", { ascending: false })
-      .limit(200)
-      .eq("category", MICRO_DRAMA_SLUG);
+    const { data: filed } = (await secondary) ?? { data: null };
     const filedRows = (filed ?? []) as unknown as Row[];
     const auto = rows.filter(
       (r) => r.category !== MICRO_DRAMA_SLUG && isMicroDrama(r.title, r.summary, r.link_url),
@@ -316,15 +309,7 @@ export async function cmsPosts(
     // which used to push every local report (our own newsroom, Patch, Bay Area
     // dailies, city halls) out of the window and left the page empty. Read the
     // local publishers in their own pass so they can never be crowded out.
-    const localPatterns = [
-      "bayarea.telugutimes.net",
-      "patch.com/california",
-      ...BAY_HOSTS,
-    ].map((h) => `link_url.ilike.%${h}%`);
-    const { data: localData } = await base()
-      .or(localPatterns.join(","))
-      .order("published_at", { ascending: false })
-      .limit(400);
+    const { data: localData } = (await secondary) ?? { data: null };
     const localRows = (localData ?? []) as unknown as Row[];
     // Local reporting only: no India coverage and no film/gallery
     // stories (cinema is a topic of its own, even when filed to a city).
