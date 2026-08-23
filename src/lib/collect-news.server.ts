@@ -1911,7 +1911,13 @@ export async function collectAll(
 
 
 
-  return dedupeCollected(rows);
+  // Temple coverage stays strictly religious and from reliable/temple sources.
+  const templeSafe = rows.filter(
+    (r) =>
+      r.kind !== "temple" ||
+      isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.source_url }),
+  );
+  return dedupeCollected(templeSafe);
 }
 
 /** Picture desks that feed the Gallery grid. */
