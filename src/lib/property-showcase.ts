@@ -53,6 +53,7 @@ export const PROPERTY_FEATURES: readonly PropertyFeature[] = [
     location: "Tellapur, Hyderabad",
     note: "2, 2.5, 3 & 4 BHK · 1350–2915 sq.ft. · 24.12 acres",
     site: "https://www.myhomeconstructions.com/my-home-udyan",
+    videoId: "2ySIpPO2s80",
   },
   {
     id: "18-1",
