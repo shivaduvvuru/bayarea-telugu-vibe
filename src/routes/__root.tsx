@@ -184,6 +184,18 @@ function RootComponent() {
     };
   }, []);
 
+  // Offline-tolerant shell + long-lived image cache for repeat mobile visits.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const register = () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* caching is best-effort */
+      });
+    };
+    if (document.readyState === "complete") register();
+    else window.addEventListener("load", register, { once: true });
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>

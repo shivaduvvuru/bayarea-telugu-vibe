@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { BadgeCheck, Bookmark, Clock, Flame, MapPin, Share2 } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { getCityHeadline } from "@/lib/headline.functions";
+import { SmartImage } from "@/components/smart-image";
 
 type Headline = NonNullable<Awaited<ReturnType<typeof getCityHeadline>>>;
 import { RelativeDate } from "@/components/news";
@@ -69,11 +70,13 @@ export function CityHeadlineHero({
         <div className="group relative order-1 overflow-hidden md:order-2">
           {article.image ? (
             <figure className="m-0 h-full">
-              <img
+              <SmartImage
                 src={article.image}
                 alt={article.title}
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
+                optimizedWidth={960}
                 sizes="(max-width: 768px) 100vw, 45vw"
                 className="h-56 w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 md:h-full md:min-h-[22rem]"
               />
@@ -157,11 +160,12 @@ export function TrendingGrid({ articles }: { articles: Article[] }) {
           <article key={a.id} className="group">
             <Link to="/article/$slug" params={{ slug: a.slug }} className="block">
               {a.image ? (
-                <img
+                <SmartImage
                   src={a.image}
                   alt={a.title}
                   loading="lazy"
                   decoding="async"
+                  optimizedWidth={640}
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="aspect-video w-full rounded-xl bg-surface-tint object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
                 />

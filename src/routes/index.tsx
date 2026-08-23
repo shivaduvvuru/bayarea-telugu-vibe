@@ -42,6 +42,7 @@ const HOME_LIVE_KEYS: unknown[][] = [
 ];
 import { CollectStatus } from "@/components/collect-status";
 import { PropertyPromo } from "@/components/property-promo";
+import { SmartImage } from "@/components/smart-image";
 
 
 const TITLE = "Times Bay Area — Digest of newspapers & journals";
@@ -396,11 +397,13 @@ function LinkRow({
   const body = (
     <>
       {picture ? (
-        <img
+        <SmartImage
           src={picture}
           alt=""
           loading="lazy"
           decoding="async"
+          optimizedWidth={480}
+          sizes="(max-width: 768px) 100vw, 33vw"
           className="mb-2 aspect-[16/9] w-full rounded-md border border-border object-cover object-top"
         />
       ) : null}

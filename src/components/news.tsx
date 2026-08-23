@@ -5,6 +5,7 @@ import { type Article, articleLang, categoryBySlug, formatDate } from "@/lib/con
 import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 import { SourceChip } from "@/components/source-credit";
+import { SmartImage } from "@/components/smart-image";
 
 
 
@@ -174,12 +175,13 @@ export function Thumb({
   }
   return (
     <figure className="m-0">
-      <img
+      <SmartImage
         src={article.image}
         alt={article.title}
         width={1200}
         height={675}
         sizes={sizes}
+        optimizedWidth={priority ? 960 : 640}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         referrerPolicy="no-referrer-when-downgrade"
