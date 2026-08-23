@@ -84,6 +84,19 @@ function RestaurantList() {
   const [here, setHere] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "map">("list");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const activeChips: { label: string; clear: () => void }[] = [
+    search.city && { label: search.city, clear: () => set({ city: "" }) },
+    search.cuisine && { label: search.cuisine, clear: () => set({ cuisine: "" }) },
+    search.type && { label: search.type, clear: () => set({ type: "" }) },
+    search.feature && { label: search.feature, clear: () => set({ feature: "" }) },
+    search.diet && { label: search.diet, clear: () => set({ diet: "" }) },
+    search.service && { label: search.service, clear: () => set({ service: "" }) },
+    search.minRating > 0 && { label: `${search.minRating}+ score`, clear: () => set({ minRating: 0 }) },
+    search.maxPrice > 0 && { label: "$".repeat(search.maxPrice), clear: () => set({ maxPrice: 0 }) },
+  ].filter(Boolean) as { label: string; clear: () => void }[];
+  const activeCount = activeChips.length;
 
   const set = (patch: Partial<typeof search>) =>
     void navigate({ search: (prev) => ({ ...prev, ...patch }) });
