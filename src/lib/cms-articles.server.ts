@@ -56,7 +56,7 @@ type Row = {
   id: string;
   title: string;
   summary: string | null;
-  body: string | null;
+  body?: string | null;
   image_url: string | null;
   link_url: string | null;
   city: string | null;
@@ -66,8 +66,21 @@ type Row = {
   source?: string | null;
 };
 
-const COLUMNS =
-  "id, title, summary, body, image_url, link_url, city, category, published_at, created_at, source";
+/**
+ * Feed/list reads deliberately omit `body`: cards only render the headline,
+ * excerpt and artwork, so transferring (and sanitising) full article HTML for
+ * hundreds of rows was pure waste. The article page reads `body` on its own.
+ */
+const LIST_COLUMNS =
+  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source";
+
+const DETAIL_COLUMNS = `${LIST_COLUMNS}, body`;
+
+/** Minimal escape so a summary can stand in for article HTML on list reads. */
+function escapeText(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
 function citySlugOf(city: string | null): string | undefined {
