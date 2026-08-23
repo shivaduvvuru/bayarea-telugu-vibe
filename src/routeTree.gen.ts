@@ -72,6 +72,7 @@ import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
 import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
+import { Route as ApiPublicHooksYelpRestaurantsRouteImport } from './routes/api/public/hooks/yelp-restaurants'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -393,6 +394,12 @@ const ApiPublicHooksTempleCalendarRoute =
     path: '/api/public/hooks/temple-calendar',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksYelpRestaurantsRoute =
+  ApiPublicHooksYelpRestaurantsRouteImport.update({
+    id: '/api/public/hooks/yelp-restaurants',
+    path: '/api/public/hooks/yelp-restaurants',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicMediaSplatRoute = ApiPublicMediaSplatRouteImport.update({
   id: '/api/public/media/$',
   path: '/api/public/media/$',
@@ -462,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesByTo {
@@ -523,6 +531,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRoutesById {
@@ -590,6 +599,7 @@ export interface FileRoutesById {
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
+  '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
 }
 export interface FileRouteTypes {
@@ -657,6 +667,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -718,6 +729,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   id:
     | '__root__'
@@ -784,6 +796,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
+    | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
   fileRoutesById: FileRoutesById
 }
@@ -834,6 +847,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
   ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
+  ApiPublicHooksYelpRestaurantsRoute: typeof ApiPublicHooksYelpRestaurantsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
 }
 
@@ -1280,6 +1294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTempleCalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/yelp-restaurants': {
+      id: '/api/public/hooks/yelp-restaurants'
+      path: '/api/public/hooks/yelp-restaurants'
+      fullPath: '/api/public/hooks/yelp-restaurants'
+      preLoaderRoute: typeof ApiPublicHooksYelpRestaurantsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/media/$': {
       id: '/api/public/media/$'
       path: '/api/public/media/$'
@@ -1415,6 +1436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
   ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
+  ApiPublicHooksYelpRestaurantsRoute: ApiPublicHooksYelpRestaurantsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
 }
 export const routeTree = rootRouteImport
