@@ -55,36 +55,15 @@ const DESC =
   "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
 
-function contentKeys(item: {
-  title?: string | null;
-  sourceUrl?: string | null;
-  url?: string | null;
-  link_url?: string | null;
-  image?: string | null;
-  image_url?: string | null;
-}) {
-  const title = dedupeKey(item.title ?? "");
-  const url = item.sourceUrl ?? item.link_url ?? item.url;
-  const image = usableImage(item.image ?? item.image_url);
-  return [
-    title ? `t:${title}` : "",
-    // Near-duplicate headlines (same story, re-worded tail) collapse too.
-    title.length > 28 ? `p:${title.slice(0, 28)}` : "",
-    url ? `u:${url.split("?")[0]?.replace(/\/$/, "").toLowerCase()}` : "",
-    image ? `i:${image.split("?")[0]?.toLowerCase()}` : "",
-  ].filter(Boolean);
-
-}
-
 /** Reserves every headline, source URL and image once across the whole homepage. */
-function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
+function takeUnique<T extends Parameters<typeof contentDedupeKeys>[0]>(
   items: T[],
   seen: Set<string>,
   limit = items.length,
 ) {
   const result: T[] = [];
   for (const item of items) {
-    const keys = contentKeys(item);
+    const keys = contentDedupeKeys(item);
     if (keys.some((key) => seen.has(key))) continue;
     keys.forEach((key) => seen.add(key));
     result.push(item);
@@ -92,6 +71,7 @@ function takeUnique<T extends Parameters<typeof contentKeys>[0]>(
   }
   return result;
 }
+
 
 /** Single snapshot read — no database, temple, politics or RSS calls. */
 const homeQuery = queryOptions({
