@@ -13,6 +13,7 @@ import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { uniqueByContent } from "./dedupe";
+import { isTempleNewsClean } from "./temple-purity";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
@@ -323,6 +324,12 @@ export async function cmsPosts(
     return freshestFirst(
       articles.filter((a) => a.category === "cinema" && a.image),
       limit,
+    );
+  }
+  if (category === "temples") {
+    // Temple coverage stays religious, from temple sites or reliable outlets.
+    return articles.filter((a) =>
+      isTempleNewsClean({ title: a.title, summary: a.excerpt, sourceUrl: a.sourceUrl ?? null }),
     );
   }
 

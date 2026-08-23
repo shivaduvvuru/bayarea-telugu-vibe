@@ -1,5 +1,6 @@
 import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { dedupeKey } from "./dedupe";
+import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
 import { celebrityName, industryLabel, eventLabel } from "./cinema-topics";
 import {
@@ -1911,7 +1912,13 @@ export async function collectAll(
 
 
 
-  return dedupeCollected(rows);
+  // Temple coverage stays strictly religious and from reliable/temple sources.
+  const templeSafe = rows.filter(
+    (r) =>
+      r.kind !== "temple" ||
+      isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.source_url }),
+  );
+  return dedupeCollected(templeSafe);
 }
 
 /** Picture desks that feed the Gallery grid. */

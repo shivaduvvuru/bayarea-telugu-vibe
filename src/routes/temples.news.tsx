@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { listCommunityItems } from "@/lib/cms.functions";
+import { isTempleNewsClean } from "@/lib/temple-purity";
 
 const TITLE = "Bay Area Temple News — announcements & coverage";
 const DESC =
@@ -35,7 +36,12 @@ const templeNewsQuery = queryOptions({
 
 function TempleNewsPage() {
   const { data = [], isLoading } = useQuery(templeNewsQuery);
-  const rows = data.filter((r) => (r.category ?? "").toLowerCase() === "temples").slice(0, 40);
+  const rows = data
+    .filter((r) => (r.category ?? "").toLowerCase() === "temples")
+    .filter((r) =>
+      isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.link_url }),
+    )
+    .slice(0, 40);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:py-8">
