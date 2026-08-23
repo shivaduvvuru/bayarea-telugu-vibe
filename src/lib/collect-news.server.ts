@@ -176,9 +176,16 @@ export async function backfillMissingImages(
     .is("image_url", null)
     .not("link_url", "is", null)
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit * 8);
   if (error) return { scanned: 0, repaired: 0 };
-  const rows = (data ?? []) as { id: string; link_url: string | null }[];
+  // Sample across the whole image-less backlog: a fixed newest-first slice keeps
+  // retrying the same unrecoverable pages and never reaches older stories.
+  const pool = (data ?? []) as { id: string; link_url: string | null }[];
+  const rows = pool
+    .map((row) => ({ row, r: Math.random() }))
+    .sort((a, b) => a.r - b.r)
+    .slice(0, limit)
+    .map((x) => x.row);
   let repaired = 0;
   // Small concurrency keeps the run inside the request budget while still
   // clearing the backlog across successive refreshes.
