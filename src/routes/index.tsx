@@ -23,7 +23,12 @@ import { classifyIndia } from "@/lib/india-topics";
 import { DigestNote, SourceChip } from "@/components/source-credit";
 import { RelativeDate, Thumb } from "@/components/news";
 import { StoryActions } from "@/components/story-actions";
-import { GalleryLightbox } from "@/components/gallery-lightbox";
+// The lightbox is only needed once a photo is tapped: keep it out of the
+// initial mobile bundle.
+const GalleryLightbox = lazy(() =>
+  import("@/components/gallery-lightbox").then((m) => ({ default: m.GalleryLightbox })),
+);
+
 import { PhotoActions } from "@/components/photo-actions";
 import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
