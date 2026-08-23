@@ -64,6 +64,8 @@ type Row = {
   published_at: string | null;
   created_at: string;
   source?: string | null;
+  resolved_category?: string | null;
+  is_local?: boolean | null;
 };
 
 /**
@@ -72,7 +74,7 @@ type Row = {
  * hundreds of rows was pure waste. The article page reads `body` on its own.
  */
 const LIST_COLUMNS =
-  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source";
+  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source, resolved_category, is_local";
 
 const DETAIL_COLUMNS = `${LIST_COLUMNS}, body`;
 
@@ -126,10 +128,17 @@ function toArticle(row: Row): Article {
   // Cinema is a topic, not a place: a film story filed to a city still belongs
   // in Cinema. Micro-drama is part of the Cinema/OTT desk, so rows filed to the
   // old micro-drama bucket read as Cinema/OTT.
+  // A stamped row already knows its section; only unstamped (pre-backfill)
+  // rows fall back to the classification chain above. Picture-desk rows are
+  // stamped "gallery", and those still display under the section the old chain
+  // gave them (star photos read as Cinema/OTT) so cards are unchanged.
+  const resolved = row.resolved_category ?? null;
   const slug =
-    stored === CINEMA_SLUG || stored === MICRO_DRAMA_SLUG
-      ? CINEMA_SLUG
-      : (citySlugOf(row.city) ?? stored ?? "community");
+    resolved && resolved !== "gallery"
+      ? resolved
+      : stored === CINEMA_SLUG || stored === MICRO_DRAMA_SLUG
+        ? CINEMA_SLUG
+        : (citySlugOf(row.city) ?? stored ?? "community");
   const cat = categoryBySlug(slug);
   // Feed text arrives with HTML entities (&#8217; etc.); render real characters.
   const text = decode(row.summary ?? "");
