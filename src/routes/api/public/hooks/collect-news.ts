@@ -233,16 +233,38 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               "dedupe_key, title, source_url",
             ),
             readAll<{
+              id: string;
               title: string | null;
               link_url: string | null;
               source_ref: string | null;
               dedupe_key: string | null;
-            }>("content_items", "title, link_url, source_ref, dedupe_key"),
+              image_url: string | null;
+            }>("content_items", "id, title, link_url, source_ref, dedupe_key, image_url"),
             readAll<{ dedupe_key: string | null; item_id: string | null; title: string | null }>(
               "digest_rejects",
               "dedupe_key, item_id, title",
             ),
           ]);
+
+          // A repeated source URL is normally discarded below, but it can still
+          // enrich an older published card whose first collection missed its
+          // artwork. This repairs those cards without creating duplicate stories.
+          const refreshedImages = new Map<string, string>();
+          for (const row of collected) {
+            const image = (row.payload as { image?: unknown } | undefined)?.image;
+            const key = row.source_url ? urlKey(row.source_url) : "";
+            if (key && typeof image === "string" && image) refreshedImages.set(key, image);
+          }
+          const imageRepairs = published.flatMap((row) => {
+            if (row.image_url || !row.link_url) return [];
+            const image = refreshedImages.get(urlKey(row.link_url));
+            return image ? [{ id: row.id, image }] : [];
+          });
+          await Promise.all(
+            imageRepairs.map(({ id, image }) =>
+              supabaseAdmin.from("content_items").update({ image_url: image }).eq("id", id),
+            ),
+          );
 
           const storedKeys = new Set([
             ...(stored ?? []).map((r) => r.dedupe_key ?? ""),

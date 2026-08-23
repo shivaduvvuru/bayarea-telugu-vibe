@@ -177,7 +177,12 @@ async function ogImage(link: string): Promise<string | null> {
       html.match(/<meta[^>]+name="twitter:image(?::src)?"[^>]+content="([^"]+)"/i) ??
       html.match(/<link[^>]+rel="image_src"[^>]+href="([^"]+)"/i);
     if (meta?.[1]) candidates.push(meta[1]);
-    for (const m of html.matchAll(/<img[^>]+src="([^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/gi)) {
+    // Publishers use lazy-loading attributes and both quote styles. Reading
+    // only double-quoted `src` skipped the actual frame on photo-gallery pages
+    // such as AndhraWishesh and left an otherwise valid headline image-less.
+    for (const m of html.matchAll(
+      /<img[^>]+(?:src|data-src|data-original|data-lazy-src)\s*=\s*["']([^"']+\.(?:jpg|jpeg|png|webp)(?:\?[^"']*)?)["']/gi,
+    )) {
       if (m[1]) candidates.push(m[1]);
       if (candidates.length > 20) break;
     }
@@ -194,11 +199,18 @@ async function ogImage(link: string): Promise<string | null> {
       } catch {
         continue;
       }
+      // Avoid mixed-content failures when an older publisher emits an http
+      // image from a page that is already available over https.
+      if (new URL(res.url || link).protocol === "https:" && abs.startsWith("http://")) {
+        abs = `https://${abs.slice("http://".length)}`;
+      }
       const usable = cleanUrl(abs);
       if (!usable) continue;
       let score = 0;
       if (/(?:large|full|original|1200|1080|orig|hd)/i.test(usable)) score += 3;
       if (/\/(?:images?|photos?|uploads?|gallery)\//i.test(usable)) score += 1;
+      if (/\/phocagallery\//i.test(usable) && !/\/thumbs\//i.test(usable)) score += 8;
+      if (/\/thumbs?\//i.test(usable)) score -= 5;
       if (/\.(?:jpg|jpeg)(?:$|\?)/i.test(usable)) score += 1;
       if (candidates[0] === raw) score += 2; // og:image is usually the lead art
       scored.push({ url: usable, score });
