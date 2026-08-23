@@ -325,6 +325,12 @@ export async function cmsPosts(
       limit,
     );
   }
+  if (category === "temples") {
+    // Temple coverage stays religious, from temple sites or reliable outlets.
+    return articles.filter((a) =>
+      isTempleNewsClean({ title: a.title, summary: a.excerpt, sourceUrl: a.sourceUrl ?? null }),
+    );
+  }
 
   return articles;
 
