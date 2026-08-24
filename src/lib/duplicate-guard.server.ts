@@ -100,6 +100,7 @@ export async function findArticleDuplicate(
       _link: candidate.link_url ?? null,
       _body: body,
       _threshold: candidate.threshold ?? BODY_SIMILARITY_THRESHOLD,
+      _loose: LOOSE_TITLE_THRESHOLD,
     });
     if (error) return null;
     const rows = (data ?? []) as DuplicateHit[];
