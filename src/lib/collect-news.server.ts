@@ -1650,8 +1650,9 @@ export let lastAiError: string | null = null;
 async function summarize(city: City, items: RawItem[], apiKey: string | undefined): Promise<string[]> {
 
   const fallback = items.map(
-    (i) => `${i.source} report for ${city.en}. Verify details and add the Telugu translation before publishing.`,
+    (i) => `Reported by ${i.source}. Verify details and add the Telugu translation before publishing.`,
   );
+
   if (!items.length) return fallback;
   if (!apiKey) {
     lastAiError = "LOVABLE_API_KEY missing at runtime";
