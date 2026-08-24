@@ -112,17 +112,29 @@ export const uploadSubmissionPhoto = createServerFn({ method: "POST" })
     if (bytes.byteLength > 5_000_000) throw new Error("Image must be under 5 MB.");
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
-    const ext = (data.filename.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
-    const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await db.storage
-      .from("submissions")
-      .upload(path, bytes, { contentType: data.contentType, upsert: false });
-    if (error) {
-      console.error("uploadSubmissionPhoto failed", error);
-      throw new Error("Upload failed. Please try a smaller image.");
-    }
-    return { path: `/api/public/media/${path}` };
+    // Exact (SHA-256) and look-alike (pHash) fingerprints decide automatically
+    // whether this file is stored at all: a repeat reuses the existing photo.
+    const { dedupeUpload } = await import("@/lib/image-dedupe.server");
+    const match = await dedupeUpload(
+      db as never,
+      new Uint8Array(bytes),
+      { contentType: data.contentType },
+      async () => {
+        const ext = (data.filename.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
+        const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await db.storage
+          .from("submissions")
+          .upload(path, bytes, { contentType: data.contentType, upsert: false });
+        if (error) {
+          console.error("uploadSubmissionPhoto failed", error);
+          throw new Error("Upload failed. Please try a smaller image.");
+        }
+        return `/api/public/media/${path}`;
+      },
+    );
+    return { path: match.url, deduplicated: match.duplicate };
   });
+
 
 /** Everything an editor may review, newest first. */
 export const listReviewQueue = createServerFn({ method: "GET" })
