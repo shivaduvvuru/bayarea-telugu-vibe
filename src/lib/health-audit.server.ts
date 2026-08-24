@@ -110,7 +110,8 @@ async function sourceHealth(): Promise<SourceHealth[]> {
     finished_at: string;
   }[];
 
-  const names = new Set<string>([...INDIA_FEEDS.map((f) => f.name), ...rows.map((r) => r.source)]);
+  const registered = new Set(INDIA_FEEDS.map((f) => f.name));
+  const names = new Set<string>([...registered, ...rows.map((r) => r.source)]);
   const out: SourceHealth[] = [];
   for (const source of names) {
     if (source.startsWith("pushover")) continue;
@@ -127,6 +128,9 @@ async function sourceHealth(): Promise<SourceHealth[]> {
       .reduce((n, r) => n + (r.items_inserted ?? 0), 0);
     const items7d = mine.reduce((n, r) => n + (r.items_inserted ?? 0), 0);
     const ranIn72h = mine.some((r) => Date.parse(r.finished_at) > Date.now() - 72 * 3_600_000);
+    // A source that was retired from the registry keeps its history on the page
+    // but must not raise an alert about a feed nobody reads any more.
+    const live = registered.has(source);
     out.push({
       source,
       lastSuccess,
@@ -136,11 +140,12 @@ async function sourceHealth(): Promise<SourceHealth[]> {
       items72h,
       items7d,
       flagged:
-        consecutiveFailures >= 3 ||
-        (ranIn72h && items72h === 0 && !QUIET_SOURCES.has(source)),
-
+        live &&
+        (consecutiveFailures >= 3 ||
+          (ranIn72h && items72h === 0 && !QUIET_SOURCES.has(source))),
     });
   }
+
   return out.sort((a, b) => a.items7d - b.items7d);
 }
 
