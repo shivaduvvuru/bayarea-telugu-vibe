@@ -688,6 +688,30 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_ingest_state: {
+        Row: {
+          cursor_index: number
+          id: string
+          last_slice: string | null
+          total_slices: number
+          updated_at: string
+        }
+        Insert: {
+          cursor_index?: number
+          id?: string
+          last_slice?: string | null
+          total_slices?: number
+          updated_at?: string
+        }
+        Update: {
+          cursor_index?: number
+          id?: string
+          last_slice?: string | null
+          total_slices?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       editorial_reviews: {
         Row: {
           action: string

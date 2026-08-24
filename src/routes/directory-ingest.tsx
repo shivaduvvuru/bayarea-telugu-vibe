@@ -162,7 +162,7 @@ function DirectoryIngestPage() {
         Data © OpenStreetMap contributors, ODbL. Bulk pulls use Overpass, never public Nominatim.
       </p>
       <p className="mt-2 text-sm">
-        <Link to="/local-directory" className="font-semibold text-primary hover:underline">
+        <Link to="/directory" className="font-semibold text-primary hover:underline">
           View the public directory →
         </Link>
       </p>
