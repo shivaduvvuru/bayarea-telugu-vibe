@@ -2609,6 +2609,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      article_key_tokens: { Args: { _title: string }; Returns: string[] }
       bump_photo_like: {
         Args: { _delta: number; _slug: string }
         Returns: number
@@ -2617,6 +2618,7 @@ export type Database = {
         Args: {
           _body?: string
           _link?: string
+          _loose?: number
           _threshold?: number
           _title: string
         }
