@@ -85,6 +85,64 @@ function plainText(body: string | null | undefined): string | null {
 }
 
 /**
+ * Three exact-match hard rejects, run before any similarity scoring. No
+ * threshold, no observation window: a hit here is always a duplicate.
+ *
+ *  1. canonical URL — the same story served under a different section path,
+ *     /amp copy, tracking parameter or trailing slash (Times of India reduced
+ *     to its `articleshow/<id>.cms` id).
+ *  2. strict headline + same publisher within 14 days.
+ *  3. canonical image — same photo, size/crop parameters stripped.
+ */
+export async function findHardDuplicate(
+  db: Db,
+  candidate: {
+    title?: string | null;
+    link_url?: string | null;
+    source?: string | null;
+    image_url?: string | null;
+  },
+): Promise<DuplicateHit | null> {
+  const url = canonicalUrl(candidate.link_url);
+  const title = strictTitleKey(candidate.title);
+  const image = canonicalImage(candidate.image_url);
+  const rows = async (column: string, value: string, extra?: (q: any) => any) => {
+    let q = db
+      .from("content_items")
+      .select("id, source, canonical_url, created_at")
+      .neq("status", "duplicate")
+      .eq(column, value)
+      .order("created_at", { ascending: true })
+      .limit(5);
+    if (extra) q = extra(q);
+    const { data } = await q;
+    return (data ?? []) as { id: string; source: string | null; canonical_url: string | null }[];
+  };
+
+  if (url) {
+    const hit = (await rows("canonical_url", url))[0];
+    if (hit) return { id: hit.id, score: 1, reason: "url-canonical" };
+  }
+  if (title) {
+    const since = new Date(Date.now() - 14 * 864e5).toISOString();
+    const found = await rows("norm_title", title, (q) => q.gte("created_at", since));
+    const host = url?.split("/")[0] ?? null;
+    // Same headline from the same publisher is a repeat, full stop.
+    const same = found.find(
+      (r) =>
+        (candidate.source && r.source === candidate.source) ||
+        (host && (r.canonical_url ?? "").split("/")[0] === host),
+    );
+    if (same) return { id: same.id, score: 1, reason: "title-source" };
+  }
+  if (image) {
+    const hit = (await rows("canonical_image", image))[0];
+    if (hit) return { id: hit.id, score: 1, reason: "image-canonical" };
+  }
+  return null;
+}
+
+/**
  * Returns the existing article this candidate repeats, or null when it is new.
  * Never throws: if the check itself fails the write proceeds (the recurring
  * sweep will catch anything that slips through).
@@ -95,11 +153,19 @@ export async function findArticleDuplicate(
     title?: string | null;
     link_url?: string | null;
     body?: string | null;
+    source?: string | null;
+    image_url?: string | null;
     threshold?: number;
   },
 ): Promise<DuplicateHit | null> {
   const title = candidate.title ?? "";
   if (!normalizeTitle(title) && !candidate.link_url) return null;
+  try {
+    const hard = await findHardDuplicate(db, candidate);
+    if (hard) return hard;
+  } catch (err) {
+    console.error("hard duplicate check failed", err);
+  }
   // Follow-ups keep their own body comparison out of scope (see header note).
   const body = UPDATE_HEADLINE.test(title) ? null : plainText(candidate.body);
   try {
