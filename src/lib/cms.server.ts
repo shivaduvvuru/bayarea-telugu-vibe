@@ -109,11 +109,18 @@ export async function ingest(rows: IngestRow[]) {
       title: r.title,
       link_url: r.link_url ?? null,
       body: (r as { body?: string | null }).body ?? r.summary ?? null,
+      image_url: r.image_url ?? null,
       dedupe_key: dedupeKey(r.title) || null,
       source: r.source,
       entry_point: "ingest",
     });
-    if (guard.duplicate) guardHits.set(r.source_ref, guard.hit);
+    if (guard.duplicate) {
+      console.log(
+        `[dedupe] rejected ${guard.hit.reason} score=${guard.hit.score} original=${guard.hit.id} ` +
+          `source="${r.source}" title="${r.title}" url=${r.link_url ?? r.source_ref}`,
+      );
+      guardHits.set(r.source_ref, guard.hit);
+    }
   }
 
   const now = new Date().toISOString();
