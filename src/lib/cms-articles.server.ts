@@ -249,9 +249,10 @@ async function readPosts(
       .limit(300)
       .not("image_url", "is", null);
   } else if (category === "cinema") {
-    // Film / OTT coverage, plus the picture-desk rows that read as cinema.
+    // Film / OTT coverage only. Picture-desk rows live on Glamour, which has
+    // its own nav item, so a story appears on exactly one section page.
     q = base()
-      .in("resolved_category", ["cinema", "gallery"])
+      .eq("resolved_category", "cinema")
       .order("published_at", { ascending: false })
       .limit(Math.max(limit * 4, 200))
       .not("image_url", "is", null);
