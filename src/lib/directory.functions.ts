@@ -107,6 +107,30 @@ export const directoryCategoryCounts = createServerFn({ method: "GET" }).handler
   };
 });
 
+/** Public single listing by slug — anon-readable published rows only. */
+export const getDirectoryEntity = createServerFn({ method: "GET" })
+  .inputValidator((data: { slug?: string }) => ({
+    slug: typeof data?.slug === "string" ? data.slug.slice(0, 160) : "",
+  }))
+  .handler(async ({ data }) => {
+    if (!data.slug) return null;
+    const { createClient } = await import("@supabase/supabase-js");
+    const { ENTITY_COLUMNS } = await import("@/lib/directory");
+    const db = createClient(
+      process.env["SUPABASE_URL"]!,
+      process.env["SUPABASE_PUBLISHABLE_KEY"]!,
+      { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+    );
+    const { data: row, error } = await db
+      .from("directory_entities")
+      .select(ENTITY_COLUMNS)
+      .eq("status", "published")
+      .eq("slug", data.slug)
+      .maybeSingle();
+    if (error) throw error;
+    return row ?? null;
+  });
+
 /* ------------------------------ desk-gated ------------------------------ */
 
 type IngestInput = {

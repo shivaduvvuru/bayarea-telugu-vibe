@@ -1,6 +1,7 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { articleLang, formatDate } from "@/lib/content";
+import { canonical } from "@/lib/site";
 import { getPostBySlug, listPosts } from "@/lib/content.functions";
 import { CategoryTag, LangBadge, ListRow, SectionHeading } from "@/components/news";
 
@@ -35,12 +36,14 @@ export const Route = createFileRoute("/article/$slug")({
       { property: "og:description", content: article.excerpt },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: article.excerpt },
     ];
     if (article.image) {
       meta.push({ property: "og:image", content: article.image });
       meta.push({ name: "twitter:image", content: article.image });
     }
-    const url = `https://bayarea-telugu-vibe.lovable.app/article/${article.slug}`;
+    const url = canonical(`/article/${article.slug}`);
     return {
       meta: [...meta, { property: "og:url", content: url }],
       links: [{ rel: "canonical", href: url }],
@@ -61,7 +64,7 @@ export const Route = createFileRoute("/article/$slug")({
             publisher: {
               "@type": "NewsMediaOrganization",
               name: "Times Bay Area",
-              url: "https://bayarea-telugu-vibe.lovable.app",
+              url: canonical("/"),
             },
           }),
         },

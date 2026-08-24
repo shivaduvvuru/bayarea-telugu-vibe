@@ -21,7 +21,6 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderabad-2026'
 import { Route as CredaiShowRouteImport } from './routes/credai-show'
 import { Route as DeskRouteImport } from './routes/desk'
-import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as DirectoryIngestRouteImport } from './routes/directory-ingest'
 import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as EventsRouteImport } from './routes/events'
@@ -41,6 +40,9 @@ import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as PropertyDeskRouteImport } from './routes/property-desk'
 import { Route as PropertyVideosRouteImport } from './routes/property-videos'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapDirectoryDotxmlRouteImport } from './routes/sitemap-directory[.]xml'
+import { Route as SitemapNewsDotxmlRouteImport } from './routes/sitemap-news[.]xml'
+import { Route as SitemapPagesDotxmlRouteImport } from './routes/sitemap-pages[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as TempleSourcesRouteImport } from './routes/temple-sources'
@@ -50,6 +52,8 @@ import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
 import { Route as CityCityRouteImport } from './routes/city.$city'
+import { Route as DirectoryIndexRouteImport } from './routes/directory.index'
+import { Route as DirectorySlugRouteImport } from './routes/directory.$slug'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as FoodIndexRouteImport } from './routes/food.index'
@@ -137,11 +141,6 @@ const CredaiShowRoute = CredaiShowRouteImport.update({
 const DeskRoute = DeskRouteImport.update({
   id: '/desk',
   path: '/desk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DirectoryRoute = DirectoryRouteImport.update({
-  id: '/directory',
-  path: '/directory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectoryIngestRoute = DirectoryIngestRouteImport.update({
@@ -239,6 +238,21 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDirectoryDotxmlRoute = SitemapDirectoryDotxmlRouteImport.update({
+  id: '/sitemap-directory.xml',
+  path: '/sitemap-directory.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapNewsDotxmlRoute = SitemapNewsDotxmlRouteImport.update({
+  id: '/sitemap-news.xml',
+  path: '/sitemap-news.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapPagesDotxmlRoute = SitemapPagesDotxmlRouteImport.update({
+  id: '/sitemap-pages.xml',
+  path: '/sitemap-pages.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -282,6 +296,16 @@ const CategoryCategoryRoute = CategoryCategoryRouteImport.update({
 const CityCityRoute = CityCityRouteImport.update({
   id: '/city/$city',
   path: '/city/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryIndexRoute = DirectoryIndexRouteImport.update({
+  id: '/directory/',
+  path: '/directory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectorySlugRoute = DirectorySlugRouteImport.update({
+  id: '/directory/$slug',
+  path: '/directory/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
@@ -450,7 +474,6 @@ export interface FileRoutesByFullPath {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
@@ -470,6 +493,9 @@ export interface FileRoutesByFullPath {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
+  '/sitemap-news.xml': typeof SitemapNewsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -479,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -487,6 +514,7 @@ export interface FileRoutesByFullPath {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/events/': typeof EventsIndexRoute
   '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -521,7 +549,6 @@ export interface FileRoutesByTo {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
@@ -539,6 +566,9 @@ export interface FileRoutesByTo {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
+  '/sitemap-news.xml': typeof SitemapNewsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -547,6 +577,7 @@ export interface FileRoutesByTo {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -554,6 +585,7 @@ export interface FileRoutesByTo {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory': typeof DirectoryIndexRoute
   '/events': typeof EventsIndexRoute
   '/food': typeof FoodIndexRoute
   '/forums': typeof ForumsIndexRoute
@@ -590,7 +622,6 @@ export interface FileRoutesById {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
@@ -610,6 +641,9 @@ export interface FileRoutesById {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
+  '/sitemap-news.xml': typeof SitemapNewsDotxmlRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -619,6 +653,7 @@ export interface FileRoutesById {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -627,6 +662,7 @@ export interface FileRoutesById {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/events/': typeof EventsIndexRoute
   '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -663,7 +699,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/events'
@@ -683,6 +718,9 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
+    | '/sitemap-news.xml'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -692,6 +730,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -700,6 +739,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory/'
     | '/events/'
     | '/food/'
     | '/forums/'
@@ -734,7 +774,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/explore'
@@ -752,6 +791,9 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
+    | '/sitemap-news.xml'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -760,6 +802,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -767,6 +810,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory'
     | '/events'
     | '/food'
     | '/forums'
@@ -802,7 +846,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/events'
@@ -822,6 +865,9 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
+    | '/sitemap-news.xml'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -831,6 +877,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -839,6 +886,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory/'
     | '/events/'
     | '/food/'
     | '/forums/'
@@ -875,7 +923,6 @@ export interface RootRouteChildren {
   CredaiHyderabad2026Route: typeof CredaiHyderabad2026Route
   CredaiShowRoute: typeof CredaiShowRoute
   DeskRoute: typeof DeskRoute
-  DirectoryRoute: typeof DirectoryRoute
   DirectoryIngestRoute: typeof DirectoryIngestRoute
   EpaperRoute: typeof EpaperRoute
   EventsRoute: typeof EventsRouteWithChildren
@@ -895,6 +942,9 @@ export interface RootRouteChildren {
   PropertyDeskRoute: typeof PropertyDeskRoute
   PropertyVideosRoute: typeof PropertyVideosRoute
   SearchRoute: typeof SearchRoute
+  SitemapDirectoryDotxmlRoute: typeof SitemapDirectoryDotxmlRoute
+  SitemapNewsDotxmlRoute: typeof SitemapNewsDotxmlRoute
+  SitemapPagesDotxmlRoute: typeof SitemapPagesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
   TempleSourcesRoute: typeof TempleSourcesRoute
@@ -902,7 +952,9 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
+  DirectorySlugRoute: typeof DirectorySlugRoute
   PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
+  DirectoryIndexRoute: typeof DirectoryIndexRoute
   ForumsIndexRoute: typeof ForumsIndexRoute
   PropertyIndexRoute: typeof PropertyIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
@@ -1002,13 +1054,6 @@ declare module '@tanstack/react-router' {
       path: '/desk'
       fullPath: '/desk'
       preLoaderRoute: typeof DeskRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/directory': {
-      id: '/directory'
-      path: '/directory'
-      fullPath: '/directory'
-      preLoaderRoute: typeof DirectoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/directory-ingest': {
@@ -1144,6 +1189,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap-directory.xml': {
+      id: '/sitemap-directory.xml'
+      path: '/sitemap-directory.xml'
+      fullPath: '/sitemap-directory.xml'
+      preLoaderRoute: typeof SitemapDirectoryDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-news.xml': {
+      id: '/sitemap-news.xml'
+      path: '/sitemap-news.xml'
+      fullPath: '/sitemap-news.xml'
+      preLoaderRoute: typeof SitemapNewsDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-pages.xml': {
+      id: '/sitemap-pages.xml'
+      path: '/sitemap-pages.xml'
+      fullPath: '/sitemap-pages.xml'
+      preLoaderRoute: typeof SitemapPagesDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1205,6 +1271,20 @@ declare module '@tanstack/react-router' {
       path: '/city/$city'
       fullPath: '/city/$city'
       preLoaderRoute: typeof CityCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/': {
+      id: '/directory/'
+      path: '/directory'
+      fullPath: '/directory/'
+      preLoaderRoute: typeof DirectoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/$slug': {
+      id: '/directory/$slug'
+      path: '/directory/$slug'
+      fullPath: '/directory/$slug'
+      preLoaderRoute: typeof DirectorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/': {
@@ -1504,7 +1584,6 @@ const rootRouteChildren: RootRouteChildren = {
   CredaiHyderabad2026Route: CredaiHyderabad2026Route,
   CredaiShowRoute: CredaiShowRoute,
   DeskRoute: DeskRoute,
-  DirectoryRoute: DirectoryRoute,
   DirectoryIngestRoute: DirectoryIngestRoute,
   EpaperRoute: EpaperRoute,
   EventsRoute: EventsRouteWithChildren,
@@ -1524,6 +1603,9 @@ const rootRouteChildren: RootRouteChildren = {
   PropertyDeskRoute: PropertyDeskRoute,
   PropertyVideosRoute: PropertyVideosRoute,
   SearchRoute: SearchRoute,
+  SitemapDirectoryDotxmlRoute: SitemapDirectoryDotxmlRoute,
+  SitemapNewsDotxmlRoute: SitemapNewsDotxmlRoute,
+  SitemapPagesDotxmlRoute: SitemapPagesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
   TempleSourcesRoute: TempleSourcesRoute,
@@ -1531,7 +1613,9 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
+  DirectorySlugRoute: DirectorySlugRoute,
   PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
+  DirectoryIndexRoute: DirectoryIndexRoute,
   ForumsIndexRoute: ForumsIndexRoute,
   PropertyIndexRoute: PropertyIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
