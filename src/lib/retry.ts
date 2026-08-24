@@ -138,3 +138,28 @@ export function createGate(limit: number, label = "upstream") {
     }
   };
 }
+
+/**
+ * Client-side flavour used by the review desk: retries every failure (a slow
+ * desk response is always worth another attempt) and reports the attempt number
+ * so the UI can show "retrying…" instead of an empty queue.
+ */
+export async function retryWithBackoff<T>(
+  task: () => Promise<T>,
+  opts: { attempts?: number; baseDelayMs?: number; onRetry?: (attempt: number) => void } = {},
+): Promise<T> {
+  const attempts = Math.max(1, opts.attempts ?? 3);
+  const baseMs = opts.baseDelayMs ?? 600;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await task();
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts - 1) break;
+      opts.onRetry?.(attempt);
+      await sleep(Math.round(baseMs * 2 ** attempt * (0.8 + Math.random() * 0.4)));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
