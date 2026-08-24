@@ -32,8 +32,10 @@ function echoModel(opts: { drop?: string[]; extra?: boolean; garbage?: boolean }
     prompts.push(prompt);
     if (opts.garbage && prompts.length === 1) return "Sure! Here are your summaries:";
     const ids = [...prompt.matchAll(/\{"id": "([^"]+)", "desk": "([^"]+)", "headline": "([^"]+)"/g)];
+    // Dropping only happens on batched calls, so the per-item retry succeeds.
+    const batched = ids.length > 1;
     const rows = ids
-      .filter(([, id]) => !opts.drop?.includes(id!))
+      .filter(([, id]) => !(batched && opts.drop?.includes(id!)))
       .map(([, id, desk, headline]) => ({ id, summary: `${desk}: ${headline}` }));
     if (opts.extra) rows.push({ id: "not-a-real-id", summary: "invented" });
     return JSON.stringify(rows);
@@ -127,8 +129,8 @@ describe("runSummaryBatches", () => {
     const model = echoModel();
     const metrics = newBatchMetrics();
     await runSummaryBatches(FIXTURE, model.call, { metrics, log: () => {} });
-    expect(metrics.batches).toBe(2); // 3 desks + 1
-    expect(metrics.calls).toBe(2);
+    expect(metrics.batches).toBe(1); // 3 desks, 4 headlines — one call
+    expect(metrics.calls).toBe(1);
 
     const empty = newBatchMetrics();
     const idle = echoModel();
