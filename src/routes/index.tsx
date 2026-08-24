@@ -236,6 +236,12 @@ export const Route = createFileRoute("/")({
     // Only the text digest blocks the first paint. The Glamour folder is warmed
     // in the background and streams into its own boundary afterwards.
     const pocket = currentPocket();
+    // Daily reader counter — server render only, fire and forget.
+    if (typeof window === "undefined") {
+      void import("@/lib/page-views.functions")
+        .then((m) => m.recordPageView())
+        .catch(() => undefined);
+    }
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
@@ -243,6 +249,7 @@ export const Route = createFileRoute("/")({
     void context.queryClient.prefetchQuery(galleryQueryFor(pocket));
     return { pocket };
   },
+
 
 
 
