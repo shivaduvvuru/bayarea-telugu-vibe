@@ -11,6 +11,7 @@ export const getRouter = () => {
         staleTime: 60_000,
         retry: 1,
         refetchOnMount: false,
+        refetchOnWindowFocus: false,
       },
     },
   });

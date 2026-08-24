@@ -35,7 +35,7 @@ export function PropertyLiveFeed({
     if (!live) return () => {
       cancelled = true;
     };
-    const t = setInterval(run, 60_000);
+    const t = setInterval(run, 10 * 60_000);
     return () => {
       cancelled = true;
       clearInterval(t);

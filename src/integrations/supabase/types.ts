@@ -1111,6 +1111,24 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          day: string
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          day: string
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          day?: string
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
+      }
       photo_likes: {
         Row: {
           likes: number
@@ -2610,6 +2628,10 @@ export type Database = {
     }
     Functions: {
       article_key_tokens: { Args: { _title: string }; Returns: string[] }
+      bump_page_view: {
+        Args: { _day?: string; _delta?: number }
+        Returns: undefined
+      }
       bump_photo_like: {
         Args: { _delta: number; _slug: string }
         Returns: number

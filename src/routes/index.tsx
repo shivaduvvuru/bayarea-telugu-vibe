@@ -79,9 +79,9 @@ const homeQuery = queryOptions({
   queryFn: () => listPosts({ data: { perPage: 40, compact: true } }),
   // Home digest tracks the fast desks: fresh for 5 minutes, quiet background
   // poll every 15, and a re-read whenever a parked tab is focused again.
-  staleTime: 5 * 60 * 1000,
-  refetchInterval: 15 * 60 * 1000,
-  refetchOnWindowFocus: true,
+  staleTime: 15 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
+  refetchOnWindowFocus: false,
 });
 
 /**
@@ -91,9 +91,9 @@ const homeQuery = queryOptions({
 const cityNewsQuery = queryOptions({
   queryKey: ["wp", "posts", "city-news"],
   queryFn: () => listPosts({ data: { category: "city-news", perPage: 24, compact: true } }),
-  staleTime: 5 * 60 * 1000,
-  refetchInterval: 15 * 60 * 1000,
-  refetchOnWindowFocus: true,
+  staleTime: 15 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
+  refetchOnWindowFocus: false,
 });
 
 /**
@@ -117,7 +117,7 @@ const GALLERY_WINDOWS = 3;
 const heroGalleryQuery = queryOptions({
   queryKey: ["wp", "posts", "gallery", "heroes"],
   queryFn: (): Promise<Article[]> =>
-    listPosts({ data: { category: "gallery", perPage: 200, compact: true } }) as Promise<Article[]>,
+    listPosts({ data: { category: "gallery", perPage: 60, compact: true } }) as Promise<Article[]>,
   staleTime: GALLERY_POCKET_MS,
 });
 
@@ -164,9 +164,9 @@ const homeStatesQuery = queryOptions({
     );
     return results.flat();
   },
-  staleTime: 5 * 60 * 1000,
-  refetchInterval: 15 * 60 * 1000,
-  refetchOnWindowFocus: true,
+  staleTime: 15 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
+  refetchOnWindowFocus: false,
 });
 
 
@@ -236,6 +236,12 @@ export const Route = createFileRoute("/")({
     // Only the text digest blocks the first paint. The Glamour folder is warmed
     // in the background and streams into its own boundary afterwards.
     const pocket = currentPocket();
+    // Daily reader counter — server render only, fire and forget.
+    if (typeof window === "undefined") {
+      void import("@/lib/page-views.functions")
+        .then((m) => m.recordPageView())
+        .catch(() => undefined);
+    }
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery),
       context.queryClient.ensureQueryData(cityNewsQuery),
@@ -243,6 +249,7 @@ export const Route = createFileRoute("/")({
     void context.queryClient.prefetchQuery(galleryQueryFor(pocket));
     return { pocket };
   },
+
 
 
 

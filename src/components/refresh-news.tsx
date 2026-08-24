@@ -16,9 +16,9 @@ import { toast } from "sonner";
 /** Poll cadence per desk: local/national news turns over faster than cinema. */
 export function newsRefreshMs(category: string) {
   if (category === "cinema" || category === "micro-drama" || category === "gallery") {
-    return 30 * 60 * 1000;
+    return 60 * 60 * 1000;
   }
-  return 15 * 60 * 1000;
+  return 30 * 60 * 1000;
 }
 
 function ago(at: number) {
@@ -72,7 +72,7 @@ export function NewsFreshness({
   const { busy, run } = useNewsRefresh(queryKeys);
   const [, tick] = useState(0);
   useEffect(() => {
-    const id = window.setInterval(() => tick((n) => n + 1), 60_000);
+    const id = window.setInterval(() => tick((n) => n + 1), 10 * 60_000);
     return () => window.clearInterval(id);
   }, []);
 

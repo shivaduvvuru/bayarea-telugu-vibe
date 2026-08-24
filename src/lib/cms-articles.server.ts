@@ -190,6 +190,15 @@ const FEED_TTL_MS = 60_000;
 const GALLERY_TTL_MS = 10 * 60_000;
 const feedCache = new Map<string, { at: number; ttl: number; posts: Promise<Article[]> }>();
 
+/**
+ * Dropped by the publish job, and only when it actually published something,
+ * so a tick that finds an empty backlog costs nothing and readers still see
+ * new stories on the next request instead of waiting out the TTL.
+ */
+export function clearFeedCache() {
+  feedCache.clear();
+}
+
 /** Published stories for a category/city slug (or everything when omitted). */
 export function cmsPosts(
   category: string | undefined,

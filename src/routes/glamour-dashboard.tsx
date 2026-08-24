@@ -59,13 +59,13 @@ function GlamourDashboardPage() {
   const fetchFunnel = useServerFn(ingestionFunnel);
   const { data: funnel } = useQuery({
     queryKey: ["ingestion-funnel"],
-    refetchInterval: 60_000,
+    refetchInterval: 10 * 60_000,
     queryFn: async () => await fetchFunnel({}),
   });
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["glamour-dashboard"],
-    refetchInterval: 60_000,
+    refetchInterval: 10 * 60_000,
     queryFn: async (): Promise<GlamourDashboard> => (await fetchDashboard({})) as GlamourDashboard,
   });
 

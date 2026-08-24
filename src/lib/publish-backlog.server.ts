@@ -113,5 +113,12 @@ export async function publishNewsBacklog(limit = 200): Promise<{
     }
   }
 
+  // Only a run that actually put something on the site invalidates the read
+  // caches; idle ticks do no extra work.
+  if (published > 0) {
+    const { clearFeedCache } = await import("@/lib/cms-articles.server");
+    clearFeedCache();
+  }
+
   return { released: releasable.length, published, failed };
 }
