@@ -256,7 +256,8 @@ export const createItem = createServerFn({ method: "POST" })
       event_start: blank(data.event_start) ? new Date(data.event_start!).toISOString() : null,
     });
     if (error) throw error;
-    return { ok: true };
+    return { ok: true, duplicate: false };
+
   });
 
 /** Roles of the signed-in user, plus a one-time first-admin claim. */
