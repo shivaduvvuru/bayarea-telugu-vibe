@@ -24,6 +24,7 @@ import {
 } from "@/lib/directory-taxonomy";
 import { countyOf, resolveGeography, type DirectoryCity } from "@/lib/directory-geo";
 import { dupeKeys, isIncomplete, primaryDupeKey } from "@/lib/directory";
+import { createGate, newRetryStats, withRetry } from "@/lib/retry";
 
 type Db = SupabaseClient<Database>;
 
