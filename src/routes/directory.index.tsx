@@ -27,7 +27,7 @@ const countsQuery = queryOptions({
   staleTime: 10 * 60 * 1000,
 });
 
-export const Route = createFileRoute("/directory")({
+export const Route = createFileRoute("/directory/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(countsQuery);
     context.queryClient.prefetchQuery(communityOrgsQuery);

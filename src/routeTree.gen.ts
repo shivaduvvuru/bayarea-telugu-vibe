@@ -21,7 +21,6 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CredaiHyderabad2026RouteImport } from './routes/credai-hyderabad-2026'
 import { Route as CredaiShowRouteImport } from './routes/credai-show'
 import { Route as DeskRouteImport } from './routes/desk'
-import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as DirectoryIngestRouteImport } from './routes/directory-ingest'
 import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as EventsRouteImport } from './routes/events'
@@ -50,6 +49,7 @@ import { Route as AuthenticatedHealthRouteImport } from './routes/_authenticated
 import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
 import { Route as CityCityRouteImport } from './routes/city.$city'
+import { Route as DirectoryIndexRouteImport } from './routes/directory.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as FoodIndexRouteImport } from './routes/food.index'
@@ -137,11 +137,6 @@ const CredaiShowRoute = CredaiShowRouteImport.update({
 const DeskRoute = DeskRouteImport.update({
   id: '/desk',
   path: '/desk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DirectoryRoute = DirectoryRouteImport.update({
-  id: '/directory',
-  path: '/directory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectoryIngestRoute = DirectoryIngestRouteImport.update({
@@ -282,6 +277,11 @@ const CategoryCategoryRoute = CategoryCategoryRouteImport.update({
 const CityCityRoute = CityCityRouteImport.update({
   id: '/city/$city',
   path: '/city/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DirectoryIndexRoute = DirectoryIndexRouteImport.update({
+  id: '/directory/',
+  path: '/directory/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
@@ -450,7 +450,6 @@ export interface FileRoutesByFullPath {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
@@ -487,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/events/': typeof EventsIndexRoute
   '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -521,7 +521,6 @@ export interface FileRoutesByTo {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/explore': typeof ExploreRoute
@@ -554,6 +553,7 @@ export interface FileRoutesByTo {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory': typeof DirectoryIndexRoute
   '/events': typeof EventsIndexRoute
   '/food': typeof FoodIndexRoute
   '/forums': typeof ForumsIndexRoute
@@ -590,7 +590,6 @@ export interface FileRoutesById {
   '/credai-hyderabad-2026': typeof CredaiHyderabad2026Route
   '/credai-show': typeof CredaiShowRoute
   '/desk': typeof DeskRoute
-  '/directory': typeof DirectoryRoute
   '/directory-ingest': typeof DirectoryIngestRoute
   '/epaper': typeof EpaperRoute
   '/events': typeof EventsRouteWithChildren
@@ -627,6 +626,7 @@ export interface FileRoutesById {
   '/temples/$city': typeof TemplesCityRoute
   '/temples/calendar': typeof TemplesCalendarRoute
   '/temples/news': typeof TemplesNewsRoute
+  '/directory/': typeof DirectoryIndexRoute
   '/events/': typeof EventsIndexRoute
   '/food/': typeof FoodIndexRoute
   '/forums/': typeof ForumsIndexRoute
@@ -663,7 +663,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/events'
@@ -700,6 +699,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory/'
     | '/events/'
     | '/food/'
     | '/forums/'
@@ -734,7 +734,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/explore'
@@ -767,6 +766,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory'
     | '/events'
     | '/food'
     | '/forums'
@@ -802,7 +802,6 @@ export interface FileRouteTypes {
     | '/credai-hyderabad-2026'
     | '/credai-show'
     | '/desk'
-    | '/directory'
     | '/directory-ingest'
     | '/epaper'
     | '/events'
@@ -839,6 +838,7 @@ export interface FileRouteTypes {
     | '/temples/$city'
     | '/temples/calendar'
     | '/temples/news'
+    | '/directory/'
     | '/events/'
     | '/food/'
     | '/forums/'
@@ -875,7 +875,6 @@ export interface RootRouteChildren {
   CredaiHyderabad2026Route: typeof CredaiHyderabad2026Route
   CredaiShowRoute: typeof CredaiShowRoute
   DeskRoute: typeof DeskRoute
-  DirectoryRoute: typeof DirectoryRoute
   DirectoryIngestRoute: typeof DirectoryIngestRoute
   EpaperRoute: typeof EpaperRoute
   EventsRoute: typeof EventsRouteWithChildren
@@ -903,6 +902,7 @@ export interface RootRouteChildren {
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
   PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
+  DirectoryIndexRoute: typeof DirectoryIndexRoute
   ForumsIndexRoute: typeof ForumsIndexRoute
   PropertyIndexRoute: typeof PropertyIndexRoute
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
@@ -1002,13 +1002,6 @@ declare module '@tanstack/react-router' {
       path: '/desk'
       fullPath: '/desk'
       preLoaderRoute: typeof DeskRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/directory': {
-      id: '/directory'
-      path: '/directory'
-      fullPath: '/directory'
-      preLoaderRoute: typeof DirectoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/directory-ingest': {
@@ -1205,6 +1198,13 @@ declare module '@tanstack/react-router' {
       path: '/city/$city'
       fullPath: '/city/$city'
       preLoaderRoute: typeof CityCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/': {
+      id: '/directory/'
+      path: '/directory'
+      fullPath: '/directory/'
+      preLoaderRoute: typeof DirectoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/': {
@@ -1504,7 +1504,6 @@ const rootRouteChildren: RootRouteChildren = {
   CredaiHyderabad2026Route: CredaiHyderabad2026Route,
   CredaiShowRoute: CredaiShowRoute,
   DeskRoute: DeskRoute,
-  DirectoryRoute: DirectoryRoute,
   DirectoryIngestRoute: DirectoryIngestRoute,
   EpaperRoute: EpaperRoute,
   EventsRoute: EventsRouteWithChildren,
@@ -1532,6 +1531,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
   PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
+  DirectoryIndexRoute: DirectoryIndexRoute,
   ForumsIndexRoute: ForumsIndexRoute,
   PropertyIndexRoute: PropertyIndexRoute,
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
