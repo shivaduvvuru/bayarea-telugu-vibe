@@ -22,6 +22,61 @@ export function dedupeKey(title: string) {
     .replace(/\d+$/, "");
 }
 
+/**
+ * Canonical article URL. Mirrors the database `canonical_link()` function
+ * exactly, so a JS-side check and an SQL-side check can never disagree.
+ *
+ * Publishers serve one story under many URLs: http/https, with and without
+ * www, /amp copies, tracking parameters, a trailing slash. Times of India also
+ * varies the whole section path in front of `articleshow/<id>.cms`, so that
+ * family collapses to the article id alone.
+ */
+export function canonicalUrl(url: string | null | undefined): string | null {
+  const raw = (url ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  const u = raw
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/[?#].*$/, "")
+    .replace(/\/amp\/?$/, "")
+    .replace(/\/+$/, "");
+  if (!u) return null;
+  if (u.includes("timesofindia.indiatimes.com")) {
+    const id = /articleshow\/(\d+)/.exec(u)?.[1];
+    if (id) return `timesofindia.indiatimes.com/articleshow/${id}.cms`;
+  }
+  return u;
+}
+
+/** Canonical image URL: query string and size/resize variants removed. */
+export function canonicalImage(url: string | null | undefined): string | null {
+  const raw = (url ?? "").trim().toLowerCase();
+  if (!raw) return null;
+  const u = raw.replace(/^https?:\/\//, "").replace(/[?#].*$/, "");
+  if (!u) return null;
+  // A TOI photo is identified by its msid, whatever crop is requested.
+  const msid = /msid-(\d+)/.exec(u)?.[1];
+  if (msid) return `msid-${msid}`;
+  return u
+    .replace(/[-_]\d{2,4}x\d{2,4}(?=\.[a-z]{3,4}$)/, "")
+    .replace(/(width|height|resizemode|imgsize|quality|size)-[0-9a-z]+,?/g, "");
+}
+
+/**
+ * Strict headline key: NFKC, curly quotes / ellipsis / dashes and every other
+ * punctuation mark removed, whitespace collapsed, lowercased. Mirrors the
+ * database `norm_title_strict()`.
+ */
+export function strictTitleKey(title: string | null | undefined): string | null {
+  const t = (title ?? "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0C00-\u0C7F]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return t || null;
+}
+
 export type Duplicate<T> = { kept: T; dropped: T[]; key: string };
 
 /**
