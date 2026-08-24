@@ -294,9 +294,11 @@ export function averageBatchSize(m: BatchMetrics): number {
   return Math.round((m.itemsSummarized / m.batches) * 10) / 10;
 }
 
-/** Share of batches whose reply had to be repaired per item. */
+/**
+ * Share of sent headlines a batch failed to return validly — the truncation
+ * rate. Rising values mean the batches are getting too big for the model.
+ */
 export function truncationRate(m: BatchMetrics): number {
-  if (!m.batches) return 0;
-  const bad = m.malformedBatches + (m.missingEntries ? 1 : 0);
-  return Math.min(1, Math.round((bad / m.batches) * 1000) / 1000);
+  if (!m.itemsSummarized) return 0;
+  return Math.min(1, Math.round((m.missingEntries / m.itemsSummarized) * 1000) / 1000);
 }
