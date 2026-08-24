@@ -45,6 +45,16 @@ interface OsmElement {
   tags?: Record<string, string>;
 }
 
+/**
+ * Overpass is a free shared service that rate-limits hard, so every slice goes
+ * through one gate: at most OVERPASS_CONCURRENCY queries in flight, and a
+ * failed slice waits out an exponential backoff before it is retried. Both the
+ * throttling and the retries are logged so a slow run is explainable.
+ */
+export const OVERPASS_CONCURRENCY = 2;
+const overpassGate = createGate(OVERPASS_CONCURRENCY, "overpass");
+export const overpassStats = newRetryStats();
+
 /** One Overpass call for a city + subcategory selector set. */
 async function fetchPois(city: DirectoryCity, selectors: string[]): Promise<OsmElement[]> {
   const radius = city.radius ?? DEFAULT_RADIUS;
@@ -53,33 +63,49 @@ async function fetchPois(city: DirectoryCity, selectors: string[]): Promise<OsmE
     .join("\n");
   const query = `[out:json][timeout:50];\n(\n${body}\n);\nout center tags;`;
 
-  let lastError = "Overpass unavailable";
-  for (const endpoint of ENDPOINTS) {
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-          "User-Agent": "TimesBayArea/1.0 (local directory; https://timesbayarea.com)",
-        },
-        body: new URLSearchParams({ data: query }).toString(),
-      });
-      if (res.status === 429 || res.status === 504) {
-        lastError = `Overpass is busy (${res.status}) — try again shortly.`;
-        continue;
-      }
-      if (!res.ok) {
-        lastError = `Overpass failed for ${city.name} (${res.status})`;
-        continue;
-      }
-      const json = (await res.json()) as { elements?: OsmElement[] };
-      return json.elements ?? [];
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : lastError;
-    }
-  }
-  throw new Error(lastError);
+  return withRetry(
+    () =>
+      overpassGate(async () => {
+        let lastError = "Overpass unavailable";
+        for (const endpoint of ENDPOINTS) {
+          try {
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Accept: "application/json",
+                "User-Agent": "TimesBayArea/1.0 (local directory; https://timesbayarea.com)",
+              },
+              body: new URLSearchParams({ data: query }).toString(),
+            });
+            if (res.status === 429 || res.status === 504) {
+              overpassStats.throttled += 1;
+              console.warn(
+                `[overpass] throttled by ${new URL(endpoint).host} (${res.status}) for ${city.name}`,
+              );
+              lastError = `Overpass is busy (${res.status}) — try again shortly.`;
+              continue;
+            }
+            if (!res.ok) {
+              lastError = `Overpass failed for ${city.name} (${res.status})`;
+              continue;
+            }
+            const json = (await res.json()) as { elements?: OsmElement[] };
+            return json.elements ?? [];
+          } catch (e) {
+            lastError = e instanceof Error ? e.message : lastError;
+          }
+        }
+        throw new Error(lastError);
+      }),
+    {
+      attempts: 3,
+      baseMs: 1500,
+      maxMs: 20_000,
+      label: `overpass ${city.name}`,
+      stats: overpassStats,
+    },
+  );
 }
 
 /**
