@@ -6,11 +6,13 @@ import { createFileRoute } from "@tanstack/react-router";
  * Authorization matches the news collection hooks: an `Authorization: Bearer
  * <hook_token('ingest')>` header, or an unlocked editorial-desk session.
  *
- * Scheduling (same pg_cron + net.http_post pattern as collect-news), hourly:
+ * Scheduling (same pg_cron + net.http_post pattern as collect-news), every 6
+ * hours — Overpass data changes slowly, and slices whose Overpass answer is
+ * unchanged since the last pass are skipped without any writes:
  *
  *   SELECT cron.schedule(
- *     'directory-ingest-hourly',
- *     '35 * * * *',
+ *     'directory-ingest-6h',
+ *     '0 0,6,12,18 * * *',
  *     $$
  *     SELECT net.http_post(
  *       url:='https://project--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app/api/public/hooks/directory-ingest',

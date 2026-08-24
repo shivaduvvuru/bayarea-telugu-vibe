@@ -82,6 +82,28 @@ async function fetchPois(city: DirectoryCity, selectors: string[]): Promise<OsmE
   throw new Error(lastError);
 }
 
+/**
+ * Overpass answers POSTs without an ETag or Last-Modified header, so freshness
+ * is judged from the response itself: a stable fingerprint of the slice's
+ * elements. When a slice comes back byte-identical to the last run nothing is
+ * written — the rows are already correct — which keeps the every-6-hours pass
+ * cheap for the many slices that rarely change.
+ */
+function sliceFingerprint(elements: OsmElement[]): string {
+  const shape = elements
+    .map((el) => `${el.type}${el.id}:${JSON.stringify(el.tags ?? {})}`)
+    .sort()
+    .join("|");
+  let h1 = 2166136261;
+  let h2 = 5381;
+  for (let i = 0; i < shape.length; i++) {
+    h1 ^= shape.charCodeAt(i);
+    h1 = Math.imul(h1, 16777619);
+    h2 = (h2 * 33) ^ shape.charCodeAt(i);
+  }
+  return `${elements.length}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
+}
+
 /* ------------------------------ mapping ------------------------------ */
 
 function unique(list: (string | null | undefined)[]): string[] {
@@ -235,6 +257,8 @@ export interface DirectoryIngestReport {
   duplicatesSkipped: number;
   incomplete: number;
   needsReview: number;
+  /** Slices whose Overpass answer was byte-identical to the last run. */
+  slicesUnchanged: number;
   errors: string[];
   perCategory: { path: string; discovered: number; added: number; updated: number }[];
   sample: { name: string; city: string; category: string; address: string | null }[];
@@ -303,6 +327,7 @@ export async function ingestDirectoryFromOsm(
     duplicatesSkipped: 0,
     incomplete: 0,
     needsReview: 0,
+    slicesUnchanged: 0,
     errors: [],
     perCategory: [],
     sample: [],
@@ -338,6 +363,19 @@ export async function ingestDirectoryFromOsm(
   }
 
   const now = new Date().toISOString();
+  // Fingerprints of the last Overpass answer per slice, so an unchanged slice
+  // costs a read and no writes.
+  const fingerprints = new Map<string, string>();
+  const freshFingerprints = new Map<string, string>();
+  {
+    const { data: fpRows } = await db
+      .from("directory_slice_fingerprints")
+      .select("slice,fingerprint")
+      .limit(5000);
+    for (const row of (fpRows ?? []) as { slice: string; fingerprint: string }[]) {
+      fingerprints.set(row.slice, row.fingerprint);
+    }
+  }
   const seen = new Set<string>();
   const lines = new Map<string, { path: string; discovered: number; added: number; updated: number }>();
 
@@ -360,6 +398,21 @@ export async function ingestDirectoryFromOsm(
       const line = lines.get(path) ?? { path, discovered: 0, added: 0, updated: 0 };
       lines.set(path, line);
       let written = 0;
+
+      // Unchanged slice since the last pass: nothing to write.
+      const sliceId = `${city.name}:${path}`;
+      const fingerprint = sliceFingerprint(elements);
+      if (!preview) {
+        if (fingerprints.get(sliceId) === fingerprint) {
+          report.slicesUnchanged += 1;
+          await db
+            .from("directory_slice_fingerprints")
+            .update({ checked_at: now } as never)
+            .eq("slice", sliceId);
+          continue;
+        }
+        freshFingerprints.set(sliceId, `${fingerprint}|${elements.length}`);
+      }
 
       for (const el of elements.slice(0, perQuery * 3)) {
         const mapped = mapElement(el, category, sub, city.name);
@@ -509,6 +562,19 @@ export async function ingestDirectoryFromOsm(
         line.added += 1;
       }
     }
+  }
+
+  if (freshFingerprints.size) {
+    await db.from("directory_slice_fingerprints").upsert(
+      [...freshFingerprints.entries()].map(([slice, stored]) => ({
+        slice,
+        fingerprint: stored.split("|")[0]!,
+        element_count: Number(stored.split("|")[1] ?? 0),
+        checked_at: now,
+        updated_at: now,
+      })) as never,
+      { onConflict: "slice" },
+    );
   }
 
   report.perCategory = [...lines.values()].sort((a, b) => b.discovered - a.discovered);

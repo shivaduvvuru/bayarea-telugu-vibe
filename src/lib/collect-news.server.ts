@@ -1647,44 +1647,171 @@ function guideKind(item: RawItem): CollectedItem["kind"] {
 
 export let lastAiError: string | null = null;
 
-async function summarize(city: City, items: RawItem[], apiKey: string | undefined): Promise<string[]> {
+/**
+ * Gemini summary calls made by the current run. One call used to be made per
+ * city / feed group, which meant dozens of tiny requests per pass; groups are
+ * now batched and already-stored headlines are never summarized at all, so this
+ * counter is the before/after measure of that saving. Logged at the end of
+ * every run as `[collect] gemini summary calls …`.
+ */
+export const aiUsage = { calls: 0, itemsSummarized: 0, itemsSkipped: 0, batches: 0 };
 
-  const fallback = items.map(
-    (i) => `Reported by ${i.source}. Verify details and add the Telugu translation before publishing.`,
+/** Headlines per summary call. Kept well under the point where quality drops. */
+const SUMMARY_ITEM_CAP = 25;
+/** Cities/feed groups combined into one call. Drop to 2 if cities get mixed up. */
+const SUMMARY_GROUP_CAP = 3;
+
+type SummaryGroup = { key: string; city: City; items: RawItem[] };
+
+function fallbackSummary(item: RawItem) {
+  return `Reported by ${item.source}. Verify details and add the Telugu translation before publishing.`;
+}
+
+/** Pulls the summaries out of the model reply, whether it is JSON or a fenced block. */
+function parseSummaryJson(text: string): Map<string, string> {
+  const out = new Map<string, string>();
+  const start = text.indexOf("[");
+  const end = text.lastIndexOf("]");
+  if (start < 0 || end <= start) return out;
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1)) as unknown;
+    if (!Array.isArray(parsed)) return out;
+    for (const row of parsed) {
+      const r = row as { id?: unknown; summary?: unknown };
+      const id = typeof r.id === "string" ? r.id : String(r.id ?? "");
+      const summary = typeof r.summary === "string" ? r.summary.trim() : "";
+      if (id && summary) out.set(id, summary);
+    }
+  } catch {
+    return out;
+  }
+  return out;
+}
+
+/** One batched Gemini call: several cities' headlines in, id-keyed summaries out. */
+async function summarizeChunk(
+  entries: { id: string; group: SummaryGroup; item: RawItem }[],
+  apiKey: string,
+): Promise<Map<string, string>> {
+  const cities = [...new Set(entries.map((e) => e.group.city.en))];
+  const gateway = createLovableAiGatewayProvider(apiKey);
+  aiUsage.calls += 1;
+  aiUsage.itemsSummarized += entries.length;
+  const { text } = await generateText({
+    model: gateway("google/gemini-3.1-flash-lite"),
+    prompt:
+      `You write short neutral notes for a Telugu-American community news desk.\n` +
+      `Each item below belongs to one of these desks: ${cities.join(", ")}. Treat every item on its own — never mix facts between items or desks.\n` +
+      `For each item write ONE neutral sentence (max 28 words) summarizing that headline. Do not invent facts beyond the headline, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
+      `Reply with JSON only: an array of {"id": "<the item id>", "summary": "<sentence>"} with exactly ${entries.length} entries, one per item id, in the same order. No prose, no code fence.\n\n` +
+      entries
+        .map((e) => `{"id": "${e.id}", "desk": "${e.group.city.en}", "headline": ${JSON.stringify(`${e.item.title} (${e.item.source})`)}}`)
+        .join("\n"),
+  });
+  return parseSummaryJson(text);
+}
+
+/**
+ * Summaries for a batch of feed groups.
+ *
+ * Groups are packed into as few model calls as possible (up to
+ * SUMMARY_GROUP_CAP desks and SUMMARY_ITEM_CAP headlines each) and anything
+ * whose dedupe key is already stored or already rejected is never sent — a
+ * batch with nothing new makes no call at all.
+ */
+async function summarizeGroups(
+  groups: SummaryGroup[],
+  apiKey: string | undefined,
+  known?: Set<string>,
+): Promise<Map<string, string[]>> {
+  const result = new Map<string, string[]>();
+  for (const g of groups) result.set(g.key, g.items.map(fallbackSummary));
+  if (!apiKey) {
+    if (groups.some((g) => g.items.length)) lastAiError = "LOVABLE_API_KEY missing at runtime";
+    return result;
+  }
+
+  // Anything already in the store (or already rejected) is dropped downstream,
+  // so it never earns a summary call.
+  const entries: { id: string; group: SummaryGroup; item: RawItem; index: number }[] = [];
+  for (const g of groups) {
+    g.items.forEach((item, index) => {
+      if (known?.has(keyFor(g.city.slug, item.title))) {
+        aiUsage.itemsSkipped += 1;
+        return;
+      }
+      entries.push({ id: `${g.key}#${index}`, group: g, item, index });
+    });
+  }
+  if (!entries.length) return result;
+
+  const chunks: typeof entries[] = [];
+  let current: typeof entries = [];
+  let groupsInChunk = new Set<string>();
+  for (const e of entries) {
+    const wouldExceed =
+      current.length >= SUMMARY_ITEM_CAP ||
+      (!groupsInChunk.has(e.group.key) && groupsInChunk.size >= SUMMARY_GROUP_CAP);
+    if (wouldExceed && current.length) {
+      chunks.push(current);
+      current = [];
+      groupsInChunk = new Set();
+    }
+    current.push(e);
+    groupsInChunk.add(e.group.key);
+  }
+  if (current.length) chunks.push(current);
+
+  aiUsage.batches += chunks.length;
+  const parsed = await Promise.all(
+    chunks.map(async (chunk) => {
+      try {
+        const map = await summarizeChunk(chunk, apiKey);
+        if (map.size) lastAiError = null;
+        return map;
+      } catch (e) {
+        lastAiError = e instanceof Error ? e.message : String(e);
+        console.error("summarize failed", e);
+        return new Map<string, string>();
+      }
+    }),
   );
 
-  if (!items.length) return fallback;
-  if (!apiKey) {
-    lastAiError = "LOVABLE_API_KEY missing at runtime";
-    return fallback;
+  const merged = new Map<string, string>();
+  for (const map of parsed) for (const [k, v] of map) merged.set(k, v);
+  for (const e of entries) {
+    const summary = merged.get(e.id);
+    if (!summary) continue;
+    const list = result.get(e.group.key);
+    if (list) list[e.index] = summary;
   }
+  return result;
+}
 
+/**
+ * Dedupe keys already stored or already rejected. Used only to keep the summary
+ * step off headlines that will be discarded anyway.
+ */
+async function loadKnownKeys(): Promise<Set<string>> {
+  const keys = new Set<string>();
   try {
-    const gateway = createLovableAiGatewayProvider(apiKey);
-    const { text } = await generateText({
-      model: gateway("google/gemini-3.1-flash-lite"),
-      prompt:
-        `You write short neutral notes for a Telugu-American community news desk.\n` +
-        `For each numbered headline below, write ONE neutral sentence (max 28 words) summarizing the headline. Do not invent facts beyond the headline, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
-        `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
-        items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
-
-    });
-
-    const map = new Map<number, string>();
-    for (const line of text.split("\n")) {
-      const m = line.match(/^\s*(\d+)[.)]\s*(.+)$/);
-      if (m) map.set(Number(m[1]) - 1, m[2]!.trim());
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [queued, rejected, live] = await Promise.all([
+      supabaseAdmin.from("digest_queue").select("dedupe_key").limit(20000),
+      supabaseAdmin.from("digest_rejects").select("dedupe_key").limit(20000),
+      // Already on the site: the biggest bucket, and the one that used to be
+      // re-summarized on every pass.
+      supabaseAdmin.from("content_items").select("dedupe_key").limit(20000),
+    ]);
+    for (const rows of [queued.data ?? [], rejected.data ?? [], live.data ?? []]) {
+      for (const row of rows as { dedupe_key: string | null }[]) {
+        if (row.dedupe_key) keys.add(row.dedupe_key);
+      }
     }
-    if (map.size) lastAiError = null;
-    return items.map((_, i) => map.get(i) ?? fallback[i]!);
-
   } catch (e) {
-    lastAiError = e instanceof Error ? e.message : String(e);
-    console.error("summarize failed", e);
-
-    return fallback;
+    console.error("known-key preload failed", e);
   }
+  return keys;
 }
 
 /** Collect fresh items for every city. Returns rows ready for a dedupe-safe upsert. */
@@ -1727,15 +1854,24 @@ export async function collectAll(
   lastDiag.images = 0;
   lastDiag.duplicates = 0;
   lastDiag.notes = [];
+  aiUsage.calls = 0;
+  aiUsage.itemsSummarized = 0;
+  aiUsage.itemsSkipped = 0;
+  aiUsage.batches = 0;
+  const knownKeys = await loadKnownKeys();
 
 
   const cityList = rotate(CITIES, 4);
   for (let b = 0; b < cityList.length && within(0.35); b += 4) {
     const batch = cityList.slice(b, b + 4);
+    // Fetch the whole batch first, then summarize it in as few calls as possible.
+    const fetched = await Promise.all(
+      batch.map(async (city) => ({ key: `city:${city.slug}`, city, items: await fetchCity(city) })),
+    );
+    const citySummaries = await summarizeGroups(fetched, apiKey, knownKeys);
     const collected = await Promise.all(
-      batch.map(async (city) => {
-        const items = await fetchCity(city);
-        const summaries = await summarize(city, items, apiKey);
+      fetched.map(async ({ key, city, items }) => {
+        const summaries = citySummaries.get(key) ?? [];
         return items.map((it, i) => {
           const kind = classify(it.title);
           const dedupe = keyFor(city.slug, it.title);
@@ -1780,18 +1916,22 @@ export async function collectAll(
     5,
   );
   for (let b = 0; b < guideEntries.length && within(0.55); b += 5) {
-    const guideRows = await Promise.all(
-      guideEntries.slice(b, b + 5).map(async (g) => {
+    const guideFetched = await Promise.all(
+      guideEntries.slice(b, b + 5).map(async (g, gi) => {
         const items =
           g.kind === "feed"
             ? await fetchCityGuide(g.entry as { citySlug: string; label: string; urls: string[] })
             : g.kind === "nri"
               ? await fetchNriEventSearch(g.entry as { citySlug: string; name: string })
               : await fetchGuideSearch(g.entry as { citySlug: string; name: string });
-
         const slug = g.entry.citySlug;
-        const city = cityBySlug(slug) ?? BAY_AREA;
-        const summaries = await summarize(city, items, apiKey);
+        return { key: `guide:${g.kind}:${slug}:${gi}`, city: cityBySlug(slug) ?? BAY_AREA, items, g, slug };
+      }),
+    );
+    const guideSummaries = await summarizeGroups(guideFetched, apiKey, knownKeys);
+    const guideRows = await Promise.all(
+      guideFetched.map(async ({ key, items, g, slug }) => {
+        const summaries = guideSummaries.get(key) ?? [];
         return items.map((it, i) => {
           // The NRI pass only keeps community happenings, so those always file
           // as events (a temple festival still files as temple).
@@ -1829,10 +1969,18 @@ export async function collectAll(
   }
 
   // Region-wide NRI, community-event and temple items.
+  const topicFetched = await Promise.all(
+    (within(0.72) ? TOPIC_GROUPS : []).map(async (group, gi) => ({
+      key: `topic:${gi}`,
+      city: BAY_AREA,
+      items: await fetchTopics(group),
+      group,
+    })),
+  );
+  const topicSummaries = await summarizeGroups(topicFetched, apiKey, knownKeys);
   const topicRows = await Promise.all(
-    (within(0.72) ? TOPIC_GROUPS : []).map(async (group) => {
-      const items = await fetchTopics(group);
-      const summaries = await summarize(BAY_AREA, items, apiKey);
+    topicFetched.map(async ({ key, items, group }) => {
+      const summaries = topicSummaries.get(key) ?? [];
       return items.map((it, i) => {
         const dedupe = keyFor(BAY_AREA.slug, it.title);
         return {
@@ -1869,10 +2017,18 @@ export async function collectAll(
   const publisherBatches: CollectedItem[][] = [];
   const publisherList = rotate(PUBLISHER_FEEDS, 8);
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
+  const publisherFetched = await Promise.all(
+    publisherList.slice(b, b + 8).map(async (feed, fi) => ({
+      key: `pub:${b}:${fi}`,
+      city: BAY_AREA,
+      items: await fetchPublisher(feed),
+      feed,
+    })),
+  );
+  const publisherSummaries = await summarizeGroups(publisherFetched, apiKey, knownKeys);
   const publisherRows = await Promise.all(
-    publisherList.slice(b, b + 8).map(async (feed) => {
-      const items = await fetchPublisher(feed);
-      const summaries = await summarize(BAY_AREA, items, apiKey);
+    publisherFetched.map(async ({ key, items, feed }) => {
+      const summaries = publisherSummaries.get(key) ?? [];
       return items.map((it, i) => {
         const dedupe = keyFor(BAY_AREA.slug, it.title);
         const kind = feed.kind === "news" ? classify(it.title) : feed.kind;
@@ -2001,8 +2157,15 @@ export async function collectAll(
       r.kind !== "temple" ||
       isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.source_url }),
   );
+  // Before/after measure of the summary batching: one line per run.
+  const note =
+    `gemini summary calls: ${aiUsage.calls} (batches ${aiUsage.batches}, ` +
+    `items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped})`;
+  console.log(`[collect] ${note}`);
+  lastDiag.notes.push(note);
   return dedupeCollected(templeSafe);
 }
+
 
 /** Picture desks that feed the Gallery grid. */
 const GALLERY_FEED_NAMES = [
