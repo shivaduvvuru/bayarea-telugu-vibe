@@ -454,43 +454,57 @@ export async function ingestDirectoryFromOsm(
         const needsReview = incomplete && !mapped.website;
         if (needsReview) report.needsReview += 1;
 
-        const { error } = await db.from("directory_entities").insert({
-          entity_type: mapped.entity_type,
-          category: mapped.category,
-          subcategory: mapped.subcategory,
-          extra_categories: mapped.extra_categories,
-          community_tags: mapped.community_tags,
-          service_tags: mapped.service_tags,
-          slug: mapped.slug,
-          name: mapped.name,
-          description: mapped.description,
-          address: mapped.address,
-          city: mapped.city,
-          county: mapped.county,
-          zip: mapped.zip,
-          latitude: mapped.latitude,
-          longitude: mapped.longitude,
-          phone: mapped.phone,
-          email: mapped.email,
-          website: mapped.website,
-          hours: mapped.hours,
-          accessibility: mapped.accessibility,
-          deity: mapped.deity,
-          events_url: mapped.events_url,
-          status: "published",
-          needs_review: needsReview,
-          source: "osm",
-          source_id: mapped.osm_id,
-          osm_id: mapped.osm_id,
-          attribution: OSM_ATTRIBUTION,
-          dedupe_key: primaryDupeKey(mapped),
-          last_synced_at: now,
-        } as never);
+        const { data: inserted, error } = await db
+          .from("directory_entities")
+          .insert({
+            entity_type: mapped.entity_type,
+            category: mapped.category,
+            subcategory: mapped.subcategory,
+            extra_categories: mapped.extra_categories,
+            community_tags: mapped.community_tags,
+            service_tags: mapped.service_tags,
+            slug: mapped.slug,
+            name: mapped.name,
+            description: mapped.description,
+            address: mapped.address,
+            city: mapped.city,
+            county: mapped.county,
+            zip: mapped.zip,
+            latitude: mapped.latitude,
+            longitude: mapped.longitude,
+            phone: mapped.phone,
+            email: mapped.email,
+            website: mapped.website,
+            hours: mapped.hours,
+            accessibility: mapped.accessibility,
+            deity: mapped.deity,
+            events_url: mapped.events_url,
+            status: "published",
+            needs_review: needsReview,
+            source: "osm",
+            source_id: mapped.osm_id,
+            osm_id: mapped.osm_id,
+            attribution: OSM_ATTRIBUTION,
+            dedupe_key: primaryDupeKey(mapped),
+            last_synced_at: now,
+          } as never)
+          .select("id")
+          .single();
         if (error) {
           report.errors.push(`${mapped.name}: ${error.message}`);
           continue;
         }
-        for (const key of keys) if (!byKey.has(key)) byKey.set(key, { id: "new" } as ExistingRow);
+        // Cache the real row so a later hit in the same run merges instead of
+        // trying to update a placeholder id.
+        const cached = {
+          ...(mapped as unknown as ExistingRow),
+          id: (inserted as { id: string } | null)?.id ?? "",
+        } as ExistingRow;
+        if (cached.id) {
+          byOsm.set(mapped.osm_id, cached);
+          for (const key of keys) if (!byKey.has(key)) byKey.set(key, cached);
+        }
+
         report.added += 1;
         line.added += 1;
       }

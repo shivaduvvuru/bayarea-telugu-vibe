@@ -38,13 +38,17 @@ export const Route = createFileRoute("/api/public/hooks/directory-ingest")({
           categories?: unknown;
           maxQueries?: unknown;
           preview?: unknown;
+          mode?: unknown;
         };
         const asList = (value: unknown) =>
           Array.isArray(value) ? value.slice(0, 12).map(String) : [];
         const counties = asList(body.counties);
         const categories = asList(body.categories);
-        const maxQueries = Math.min(Math.max(Number(body.maxQueries ?? 10) || 10, 1), 10);
         const preview = body.preview === true;
+        const burst = body.mode === "burst";
+        const maxQueries = burst
+          ? Math.min(Math.max(Number(body.maxQueries ?? 50) || 50, 1), 50)
+          : Math.min(Math.max(Number(body.maxQueries ?? 10) || 10, 1), 10);
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { ingestDirectoryFromOsm } = await import("@/lib/directory-osm.server");
@@ -54,61 +58,100 @@ export const Route = createFileRoute("/api/public/hooks/directory-ingest")({
 
         const slices = directorySlices();
         const explicit = counties.length > 0 || categories.length > 0;
-        let cursor = 0;
-        let slice = explicit ? null : slices[0]!;
-        if (!explicit) {
-          cursor = (await readSliceCursor(supabaseAdmin as never)) % slices.length;
-          slice = slices[cursor]!;
-        }
-
         const startedAt = Date.now();
-        let report;
-        try {
-          report = await ingestDirectoryFromOsm(supabaseAdmin as never, {
-            counties: explicit ? (counties.length ? counties : undefined) : [slice!.county],
-            categories: explicit
-              ? categories.length
-                ? categories
-                : undefined
-              : [slice!.category],
-            maxQueries,
+        const BUDGET_MS = 60_000;
+
+        const totals = {
+          queriesRun: 0,
+          discovered: 0,
+          added: 0,
+          updated: 0,
+          merged: 0,
+          errors: [] as string[],
+        };
+        const slicesRun: string[] = [];
+        let cursor = 0;
+        let ok = true;
+
+        const runOne = async (opts: { counties?: string[] | undefined; categories?: string[] | undefined; cap: number }) => {
+          const report = await ingestDirectoryFromOsm(supabaseAdmin as never, {
+            counties: opts.counties,
+            categories: opts.categories,
+            maxQueries: opts.cap,
             preview,
           });
+          totals.queriesRun += report.queriesRun;
+          totals.discovered += report.discovered;
+          totals.added += report.added;
+          totals.updated += report.updated;
+          totals.merged += report.duplicatesMerged;
+          if (report.errors?.length) totals.errors.push(...report.errors);
+          if (!report.ok) ok = false;
+        };
+
+        try {
+          if (explicit) {
+            await runOne({
+              counties: counties.length ? counties : undefined,
+              categories: categories.length ? categories : undefined,
+              cap: maxQueries,
+            });
+          } else {
+            cursor = (await readSliceCursor(supabaseAdmin as never)) % slices.length;
+            let index = cursor;
+            do {
+              const slice = slices[index % slices.length]!;
+              const remainingQueries = maxQueries - totals.queriesRun;
+              if (remainingQueries <= 0) break;
+              await runOne({
+                counties: [slice.county],
+                categories: [slice.category],
+                cap: burst ? Math.min(remainingQueries, 10) : remainingQueries,
+              });
+              slicesRun.push(`${slice.county}:${slice.category}`);
+              index += 1;
+              if (!preview) {
+                await writeSliceCursor(
+                  supabaseAdmin as never,
+                  index,
+                  slices.length,
+                  `${slice.county}:${slice.category}`,
+                );
+              }
+            } while (burst && Date.now() - startedAt < BUDGET_MS && totals.queriesRun < maxQueries);
+          }
         } catch (error) {
           return Response.json(
-            { ok: false, error: error instanceof Error ? error.message : "Ingest failed" },
+            {
+              ok: false,
+              error: error instanceof Error ? error.message : "Ingest failed",
+              ...totals,
+              slices: slicesRun,
+            },
             { status: 500 },
           );
         }
 
-        // 60-second budget: the Overpass loop already caps itself at maxQueries,
-        // so we only record how much of the window the run consumed.
         const elapsedMs = Date.now() - startedAt;
 
-        if (!explicit && !preview) {
-          await writeSliceCursor(
-            supabaseAdmin as never,
-            cursor + 1,
-            slices.length,
-            `${slice!.county}:${slice!.category}`,
-          );
-        }
-
         return Response.json({
-          ok: report.ok,
+          ok,
           preview,
-          slice: explicit ? null : `${slice!.county}:${slice!.category}`,
-          queriesRun: report.queriesRun,
-          discovered: report.discovered,
-          added: report.added,
-          updated: report.updated,
-          merged: report.duplicatesMerged,
-          remaining: explicit ? 0 : Math.max(slices.length - (cursor + 1), 0),
+          mode: burst ? "burst" : "slice",
+          slice: explicit ? null : (slicesRun[0] ?? null),
+          slices: explicit ? null : slicesRun,
+          queriesRun: totals.queriesRun,
+          discovered: totals.discovered,
+          added: totals.added,
+          updated: totals.updated,
+          merged: totals.merged,
+          remaining: explicit ? 0 : Math.max(slices.length - (cursor + slicesRun.length), 0),
           totalSlices: slices.length,
           elapsedMs,
-          budgetExceeded: elapsedMs > 60_000,
-          errors: report.errors,
+          budgetExceeded: elapsedMs > BUDGET_MS,
+          errors: totals.errors,
         });
+
       },
     },
   },
