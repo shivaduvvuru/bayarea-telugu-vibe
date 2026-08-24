@@ -67,6 +67,7 @@ import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as TemplesCalendarRouteImport } from './routes/temples.calendar'
 import { Route as TemplesNewsRouteImport } from './routes/temples.news'
+import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as FoodCollectionSlugRouteImport } from './routes/food.collection.$slug'
 import { Route as FoodRestaurantSlugRouteImport } from './routes/food.restaurant.$slug'
@@ -78,6 +79,8 @@ import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/p
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicHooksDedupeSweepRouteImport } from './routes/api/public/hooks/dedupe-sweep'
 import { Route as ApiPublicHooksDirectoryIngestRouteImport } from './routes/api/public/hooks/directory-ingest'
+import { Route as ApiPublicHooksHealthAuditRouteImport } from './routes/api/public/hooks/health-audit'
+import { Route as ApiPublicHooksIndiaIngestRouteImport } from './routes/api/public/hooks/india-ingest'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
 import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
@@ -373,6 +376,12 @@ const TemplesNewsRoute = TemplesNewsRouteImport.update({
   path: '/news',
   getParentRoute: () => TemplesRoute,
 } as any)
+const AuthenticatedAdminHealthRoute =
+  AuthenticatedAdminHealthRouteImport.update({
+    id: '/health',
+    path: '/health',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicRefreshContentRoute = ApiPublicRefreshContentRouteImport.update({
   id: '/api/public/refresh-content',
   path: '/api/public/refresh-content',
@@ -430,6 +439,18 @@ const ApiPublicHooksDirectoryIngestRoute =
   ApiPublicHooksDirectoryIngestRouteImport.update({
     id: '/api/public/hooks/directory-ingest',
     path: '/api/public/hooks/directory-ingest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksHealthAuditRoute =
+  ApiPublicHooksHealthAuditRouteImport.update({
+    id: '/api/public/hooks/health-audit',
+    path: '/api/public/hooks/health-audit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksIndiaIngestRoute =
+  ApiPublicHooksIndiaIngestRouteImport.update({
+    id: '/api/public/hooks/india-ingest',
+    path: '/api/public/hooks/india-ingest',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksIngestSourcesRoute =
@@ -500,7 +521,7 @@ export interface FileRoutesByFullPath {
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
   '/temples': typeof TemplesRouteWithChildren
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -520,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -531,6 +553,8 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
+  '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -572,7 +596,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -591,6 +615,7 @@ export interface FileRoutesByTo {
   '/forums': typeof ForumsIndexRoute
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
+  '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -602,6 +627,8 @@ export interface FileRoutesByTo {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
+  '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -648,7 +675,7 @@ export interface FileRoutesById {
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
   '/temples': typeof TemplesRouteWithChildren
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/health': typeof AuthenticatedHealthRoute
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
@@ -668,6 +695,7 @@ export interface FileRoutesById {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -679,6 +707,8 @@ export interface FileRoutesById {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
+  '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -745,6 +775,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -756,6 +787,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/health-audit'
+    | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -816,6 +849,7 @@ export interface FileRouteTypes {
     | '/forums'
     | '/property'
     | '/temples'
+    | '/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -827,6 +861,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/health-audit'
+    | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -892,6 +928,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/_authenticated/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -903,6 +940,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/health-audit'
+    | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -963,6 +1002,8 @@ export interface RootRouteChildren {
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicHooksDedupeSweepRoute: typeof ApiPublicHooksDedupeSweepRoute
   ApiPublicHooksDirectoryIngestRoute: typeof ApiPublicHooksDirectoryIngestRoute
+  ApiPublicHooksHealthAuditRoute: typeof ApiPublicHooksHealthAuditRoute
+  ApiPublicHooksIndiaIngestRoute: typeof ApiPublicHooksIndiaIngestRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
   ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
@@ -1378,6 +1419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplesNewsRouteImport
       parentRoute: typeof TemplesRoute
     }
+    '/_authenticated/admin/health': {
+      id: '/_authenticated/admin/health'
+      path: '/health'
+      fullPath: '/admin/health'
+      preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/refresh-content': {
       id: '/api/public/refresh-content'
       path: '/api/public/refresh-content'
@@ -1455,6 +1503,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDirectoryIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/health-audit': {
+      id: '/api/public/hooks/health-audit'
+      path: '/api/public/hooks/health-audit'
+      fullPath: '/api/public/hooks/health-audit'
+      preLoaderRoute: typeof ApiPublicHooksHealthAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/india-ingest': {
+      id: '/api/public/hooks/india-ingest'
+      path: '/api/public/hooks/india-ingest'
+      fullPath: '/api/public/hooks/india-ingest'
+      preLoaderRoute: typeof ApiPublicHooksIndiaIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/ingest-sources': {
       id: '/api/public/hooks/ingest-sources'
       path: '/api/public/hooks/ingest-sources'
@@ -1493,13 +1555,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedHealthRoute: typeof AuthenticatedHealthRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedHealthRoute: AuthenticatedHealthRoute,
 }
 
@@ -1624,6 +1697,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicHooksDedupeSweepRoute: ApiPublicHooksDedupeSweepRoute,
   ApiPublicHooksDirectoryIngestRoute: ApiPublicHooksDirectoryIngestRoute,
+  ApiPublicHooksHealthAuditRoute: ApiPublicHooksHealthAuditRoute,
+  ApiPublicHooksIndiaIngestRoute: ApiPublicHooksIndiaIngestRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
   ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
