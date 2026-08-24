@@ -10,7 +10,15 @@
  * Matching rules (first hit wins, evaluated in the database):
  *  1. identical or normalised title (lowercase, punctuation stripped)
  *  2. identical link / source URL
- *  3. body text similarity >= threshold (pg_trgm), last 30 days
+ *  3. headline similarity >= 0.85 (pg_trgm), last 7 days
+ *  4. loose headline similarity >= 0.55, OR >= 3 shared proper nouns/numbers,
+ *     inside 72 hours — the "same story, different publisher" case
+ *  5. body text similarity >= threshold (pg_trgm), last 30 days
+ *
+ * Rule 4 is in OBSERVATION MODE until `OBSERVE_LOOSE_UNTIL`: matches are logged
+ * to `rejected_duplicates` (reason `title-weak` / `tokens`) but the story is
+ * still published, so the thresholds can be tuned on real pairs before anything
+ * is hidden automatically. Remove the date to make it blocking.
  *
  * Threshold note: 0.85 can occasionally catch a genuine follow-up to a breaking
  * story, so headlines that read as updates are exempted from the *body* rule
@@ -18,15 +26,28 @@
  */
 
 export const BODY_SIMILARITY_THRESHOLD = 0.85;
+/** Loose headline threshold for cross-publisher repeats. */
+export const LOOSE_TITLE_THRESHOLD = 0.55;
+/** Until this date, loose matches are recorded but not acted on. */
+export const OBSERVE_LOOSE_UNTIL = Date.parse("2026-09-01T00:00:00Z");
 
 const UPDATE_HEADLINE =
   /\b(update[ds]?|latest|live|breaking|developing|follow[- ]?up|part\s?\d|day\s?\d)\b/i;
 
+export type DuplicateReason = "title" | "url" | "body" | "title-weak" | "tokens";
+
 export type DuplicateHit = {
   id: string;
   score: number;
-  reason: "title" | "url" | "body";
+  reason: DuplicateReason;
 };
+
+/** True while a loose match should only be logged, never enforced. */
+export function isObservationOnly(reason: DuplicateReason): boolean {
+  return (
+    (reason === "title-weak" || reason === "tokens") && Date.now() < OBSERVE_LOOSE_UNTIL
+  );
+}
 
 type Db = {
   rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
@@ -79,6 +100,7 @@ export async function findArticleDuplicate(
       _link: candidate.link_url ?? null,
       _body: body,
       _threshold: candidate.threshold ?? BODY_SIMILARITY_THRESHOLD,
+      _loose: LOOSE_TITLE_THRESHOLD,
     });
     if (error) return null;
     const rows = (data ?? []) as DuplicateHit[];
@@ -142,8 +164,9 @@ export async function guardArticle(
 ): Promise<{ duplicate: false } | { duplicate: true; hit: DuplicateHit }> {
   const hit = await findArticleDuplicate(db, candidate);
   if (!hit) return { duplicate: false };
+  const observed = isObservationOnly(hit.reason);
   await logRejectedDuplicate(db, {
-    reason: hit.reason,
+    reason: observed ? `observe:${hit.reason}` : hit.reason,
     score: hit.score,
     title: candidate.title ?? null,
     link_url: candidate.link_url ?? null,
@@ -151,6 +174,9 @@ export async function guardArticle(
     original_id: hit.id,
     source: candidate.source ?? null,
     entry_point: candidate.entry_point,
+    payload: observed ? { mode: "observation", enforced: false } : {},
   });
+  // Observation window: the pair is recorded for tuning, the story still runs.
+  if (observed) return { duplicate: false };
   return { duplicate: true, hit };
 }
