@@ -1663,10 +1663,11 @@ async function summarize(city: City, items: RawItem[], apiKey: string | undefine
     const { text } = await generateText({
       model: gateway("google/gemini-3.1-flash-lite"),
       prompt:
-        `You write short editorial notes for a Telugu-American community news desk in ${city.en}, California.\n` +
-        `For each numbered headline below, write ONE neutral sentence (max 28 words) explaining what it means for local residents. Do not invent facts beyond the headline.\n` +
+        `You write short neutral notes for a Telugu-American community news desk.\n` +
+        `For each numbered headline below, write ONE neutral sentence (max 28 words) summarizing the headline. Do not invent facts beyond the headline, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
         `Reply with exactly ${items.length} lines, each formatted as "<number>. <sentence>". No other text.\n\n` +
         items.map((it, i) => `${i + 1}. ${it.title} (${it.source})`).join("\n"),
+
     });
 
     const map = new Map<number, string>();
