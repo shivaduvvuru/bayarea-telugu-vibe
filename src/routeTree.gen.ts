@@ -50,6 +50,7 @@ import { Route as ArticleSlugRouteImport } from './routes/article.$slug'
 import { Route as CategoryCategoryRouteImport } from './routes/category.$category'
 import { Route as CityCityRouteImport } from './routes/city.$city'
 import { Route as DirectoryIndexRouteImport } from './routes/directory.index'
+import { Route as DirectorySlugRouteImport } from './routes/directory.$slug'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsTempleCalendarRouteImport } from './routes/events.temple-calendar'
 import { Route as FoodIndexRouteImport } from './routes/food.index'
@@ -284,6 +285,11 @@ const DirectoryIndexRoute = DirectoryIndexRouteImport.update({
   path: '/directory/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DirectorySlugRoute = DirectorySlugRouteImport.update({
+  id: '/directory/$slug',
+  path: '/directory/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -478,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -546,6 +553,7 @@ export interface FileRoutesByTo {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -618,6 +626,7 @@ export interface FileRoutesById {
   '/article/$slug': typeof ArticleSlugRoute
   '/category/$category': typeof CategoryCategoryRoute
   '/city/$city': typeof CityCityRoute
+  '/directory/$slug': typeof DirectorySlugRoute
   '/events/temple-calendar': typeof EventsTempleCalendarRoute
   '/food/add': typeof FoodAddRoute
   '/food/deals': typeof FoodDealsRoute
@@ -691,6 +700,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -759,6 +769,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -830,6 +841,7 @@ export interface FileRouteTypes {
     | '/article/$slug'
     | '/category/$category'
     | '/city/$city'
+    | '/directory/$slug'
     | '/events/temple-calendar'
     | '/food/add'
     | '/food/deals'
@@ -901,6 +913,7 @@ export interface RootRouteChildren {
   ArticleSlugRoute: typeof ArticleSlugRoute
   CategoryCategoryRoute: typeof CategoryCategoryRoute
   CityCityRoute: typeof CityCityRoute
+  DirectorySlugRoute: typeof DirectorySlugRoute
   PropertyCampaignRoute: typeof PropertyCampaignRouteWithChildren
   DirectoryIndexRoute: typeof DirectoryIndexRoute
   ForumsIndexRoute: typeof ForumsIndexRoute
@@ -1205,6 +1218,13 @@ declare module '@tanstack/react-router' {
       path: '/directory'
       fullPath: '/directory/'
       preLoaderRoute: typeof DirectoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/directory/$slug': {
+      id: '/directory/$slug'
+      path: '/directory/$slug'
+      fullPath: '/directory/$slug'
+      preLoaderRoute: typeof DirectorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/': {
@@ -1530,6 +1550,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticleSlugRoute: ArticleSlugRoute,
   CategoryCategoryRoute: CategoryCategoryRoute,
   CityCityRoute: CityCityRoute,
+  DirectorySlugRoute: DirectorySlugRoute,
   PropertyCampaignRoute: PropertyCampaignRouteWithChildren,
   DirectoryIndexRoute: DirectoryIndexRoute,
   ForumsIndexRoute: ForumsIndexRoute,
