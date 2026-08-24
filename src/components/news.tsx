@@ -280,31 +280,67 @@ export function StoryCard({ article }: { article: Article }) {
   );
 }
 
+/**
+ * List row with a thumbnail on the left. Stories that arrived without artwork
+ * fall back to a masthead tile, so the column never has a ragged left edge.
+ */
 export function ListRow({ article }: { article: Article }) {
   return (
-    <li className="border-b border-border py-3 last:border-0">
+    <li className="flex items-start gap-3 border-b border-border py-3 last:border-0 sm:gap-4">
       <Link
         to="/article/$slug"
         params={{ slug: article.slug }}
-        className={headlineClass(
-          article,
-          "block min-h-11 text-base leading-snug font-semibold headline-link",
-        )}
+        aria-label={article.title}
+        className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
       >
-        {article.title}
+        {article.image ? (
+          <SmartImage
+            src={article.image}
+            alt={article.title}
+            width={320}
+            height={220}
+            sizes="(min-width: 640px) 160px, 96px"
+            optimizedWidth={320}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="h-full w-full object-cover object-top"
+          />
+        ) : (
+          <img
+            src={masthead}
+            alt={article.title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-contain p-2 opacity-80"
+          />
+        )}
       </Link>
-      <p className="mt-1 text-xs text-muted-foreground">
-        <RelativeDate iso={article.date} />
-      </p>
-      <StoryActions
-        id={article.slug}
-        title={article.title}
-        url={`/article/${article.slug}`}
-        context="list"
-      />
+      <div className="min-w-0 flex-1">
+        <Link
+          to="/article/$slug"
+          params={{ slug: article.slug }}
+          className={headlineClass(
+            article,
+            "block text-base leading-snug font-semibold headline-link",
+          )}
+        >
+          {article.title}
+        </Link>
+        <p className="mt-1 text-xs text-muted-foreground">
+          <RelativeDate iso={article.date} />
+        </p>
+        <StoryActions
+          id={article.slug}
+          title={article.title}
+          url={`/article/${article.slug}`}
+          context="list"
+        />
+      </div>
     </li>
   );
 }
+
 
 /** Compact card used inside the horizontal "Today in the Bay Area" rail. */
 export function RailCard({ article }: { article: Article }) {
