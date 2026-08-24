@@ -712,6 +712,30 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_slice_fingerprints: {
+        Row: {
+          checked_at: string
+          element_count: number
+          fingerprint: string
+          slice: string
+          updated_at: string
+        }
+        Insert: {
+          checked_at?: string
+          element_count?: number
+          fingerprint: string
+          slice: string
+          updated_at?: string
+        }
+        Update: {
+          checked_at?: string
+          element_count?: number
+          fingerprint?: string
+          slice?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       editorial_reviews: {
         Row: {
           action: string
