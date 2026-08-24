@@ -7,7 +7,7 @@ const COMMUNITY = [
   { to: "/events", label: "Events" },
   { to: "/temples", label: "Temples" },
   { to: "/directory", label: "Directory" },
-  { to: "/local-directory", label: "Local Directory" },
+  { to: "/directory", label: "Local Directory" },
   { to: "/associations", label: "Associations" },
   { to: "/people", label: "People" },
 ] as const;

@@ -72,6 +72,7 @@ import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$cam
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
+import { Route as ApiPublicHooksDirectoryIngestRouteImport } from './routes/api/public/hooks/directory-ingest'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
 import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
@@ -394,6 +395,12 @@ const ApiPublicHooksCollectNewsRoute =
     path: '/api/public/hooks/collect-news',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDirectoryIngestRoute =
+  ApiPublicHooksDirectoryIngestRouteImport.update({
+    id: '/api/public/hooks/directory-ingest',
+    path: '/api/public/hooks/directory-ingest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIngestSourcesRoute =
   ApiPublicHooksIngestSourcesRouteImport.update({
     id: '/api/public/hooks/ingest-sources',
@@ -487,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -552,6 +560,7 @@ export interface FileRoutesByTo {
   '/property/$campaign': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -623,6 +632,7 @@ export interface FileRoutesById {
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
@@ -694,6 +704,7 @@ export interface FileRouteTypes {
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -759,6 +770,7 @@ export interface FileRouteTypes {
     | '/property/$campaign'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -829,6 +841,7 @@ export interface FileRouteTypes {
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
     | '/api/public/hooks/temple-calendar'
@@ -883,6 +896,7 @@ export interface RootRouteChildren {
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
+  ApiPublicHooksDirectoryIngestRoute: typeof ApiPublicHooksDirectoryIngestRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
   ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
@@ -1333,6 +1347,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCollectNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/directory-ingest': {
+      id: '/api/public/hooks/directory-ingest'
+      path: '/api/public/hooks/directory-ingest'
+      fullPath: '/api/public/hooks/directory-ingest'
+      preLoaderRoute: typeof ApiPublicHooksDirectoryIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/ingest-sources': {
       id: '/api/public/hooks/ingest-sources'
       path: '/api/public/hooks/ingest-sources'
@@ -1496,6 +1517,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
+  ApiPublicHooksDirectoryIngestRoute: ApiPublicHooksDirectoryIngestRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
   ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
