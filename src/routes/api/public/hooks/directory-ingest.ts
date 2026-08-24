@@ -73,7 +73,7 @@ export const Route = createFileRoute("/api/public/hooks/directory-ingest")({
         let cursor = 0;
         let ok = true;
 
-        const runOne = async (opts: { counties?: string[]; categories?: string[]; cap: number }) => {
+        const runOne = async (opts: { counties?: string[] | undefined; categories?: string[] | undefined; cap: number }) => {
           const report = await ingestDirectoryFromOsm(supabaseAdmin as never, {
             counties: opts.counties,
             categories: opts.categories,
