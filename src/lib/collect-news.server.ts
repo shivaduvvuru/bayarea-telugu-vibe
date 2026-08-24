@@ -10,6 +10,12 @@ import {
 } from "./google-news.server";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
+import {
+  newBatchMetrics,
+  runSummaryBatches,
+  SUMMARY_CONCURRENCY,
+  type SummaryEntry,
+} from "./summary-batch";
 
 export type CollectedItem = {
   dedupe_key: string;
