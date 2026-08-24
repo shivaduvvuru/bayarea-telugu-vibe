@@ -47,22 +47,26 @@ export const submitContent = createServerFn({ method: "POST" })
     const db = await admin();
     const blank = (v?: string) => (v && v.length > 0 ? v : null);
     const key = dedupeKey(data.title);
-    // Flag submissions that repeat something already on the site.
-    const { data: clash } = key
-      ? await db
-          .from("content_items")
-          .select("id")
-          .eq("dedupe_key", key)
-          .neq("status", "duplicate")
-          .limit(1)
-          .maybeSingle()
-      : { data: null };
+    // Fully automatic duplicate rejection: identical/normalised title, identical
+    // link, or >=85% body similarity. Nothing is saved, nobody is asked — the
+    // caller simply receives the id of the story already on the site.
+    const { guardArticle } = await import("@/lib/duplicate-guard.server");
+    const guard = await guardArticle(db as never, {
+      title: data.title,
+      link_url: blank(data.link_url),
+      body: blank(data.body) ?? blank(data.summary),
+      dedupe_key: key || null,
+      source: "submission",
+      entry_point: "submit",
+    });
+    if (guard.duplicate) {
+      return { ok: true, duplicate: true, id: guard.hit.id };
+    }
     const { data: row, error } = await db
       .from("content_items")
       .insert({
       source: "submission",
-      status: clash ? "duplicate" : "pending",
-      duplicate_of: clash?.id ?? null,
+      status: "pending",
       dedupe_key: key || null,
       placement: "auto",
       kind: data.kind,
@@ -88,8 +92,9 @@ export const submitContent = createServerFn({ method: "POST" })
       submitter_email: data.submitter_email,
     });
     if (contactError) console.error("submitContent contact insert failed", contactError);
-    return { ok: true, duplicate: Boolean(clash) };
+    return { ok: true, duplicate: false, id: row.id };
   });
+
 
 /** Uploads a submission photo (base64) and returns its public media path. */
 export const uploadSubmissionPhoto = createServerFn({ method: "POST" })
@@ -107,17 +112,29 @@ export const uploadSubmissionPhoto = createServerFn({ method: "POST" })
     if (bytes.byteLength > 5_000_000) throw new Error("Image must be under 5 MB.");
     const { admin } = await import("@/lib/cms.server");
     const db = await admin();
-    const ext = (data.filename.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
-    const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await db.storage
-      .from("submissions")
-      .upload(path, bytes, { contentType: data.contentType, upsert: false });
-    if (error) {
-      console.error("uploadSubmissionPhoto failed", error);
-      throw new Error("Upload failed. Please try a smaller image.");
-    }
-    return { path: `/api/public/media/${path}` };
+    // Exact (SHA-256) and look-alike (pHash) fingerprints decide automatically
+    // whether this file is stored at all: a repeat reuses the existing photo.
+    const { dedupeUpload } = await import("@/lib/image-dedupe.server");
+    const match = await dedupeUpload(
+      db as never,
+      new Uint8Array(bytes),
+      { contentType: data.contentType },
+      async () => {
+        const ext = (data.filename.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
+        const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await db.storage
+          .from("submissions")
+          .upload(path, bytes, { contentType: data.contentType, upsert: false });
+        if (error) {
+          console.error("uploadSubmissionPhoto failed", error);
+          throw new Error("Upload failed. Please try a smaller image.");
+        }
+        return `/api/public/media/${path}`;
+      },
+    );
+    return { path: match.url, deduplicated: match.duplicate };
   });
+
 
 /** Everything an editor may review, newest first. */
 export const listReviewQueue = createServerFn({ method: "GET" })
@@ -198,10 +215,22 @@ export const createItem = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { assertStaff } = await import("@/lib/cms.server");
+    const { assertStaff, admin } = await import("@/lib/cms.server");
     await assertStaff(context.supabase as never, context.userId);
     const blank = (v?: string) => (v && v.length > 0 ? v : null);
+    // The admin panel is not exempt: the same automatic check runs here.
+    const { guardArticle } = await import("@/lib/duplicate-guard.server");
+    const guard = await guardArticle((await admin()) as never, {
+      title: data.title,
+      link_url: blank(data.link_url),
+      body: blank(data.body) ?? blank(data.summary),
+      dedupe_key: dedupeKey(data.title) || null,
+      source: "admin",
+      entry_point: "admin",
+    });
+    if (guard.duplicate) return { ok: true, duplicate: true, id: guard.hit.id };
     const { classifyForPublish } = await import("@/lib/classify-at-publish.server");
+
     const { error } = await context.supabase.from("content_items").insert({
       ...classifyForPublish({
         title: data.title,
@@ -227,7 +256,8 @@ export const createItem = createServerFn({ method: "POST" })
       event_start: blank(data.event_start) ? new Date(data.event_start!).toISOString() : null,
     });
     if (error) throw error;
-    return { ok: true };
+    return { ok: true, duplicate: false };
+
   });
 
 /** Roles of the signed-in user, plus a one-time first-admin claim. */

@@ -26,9 +26,27 @@ export async function publishRawItems(ids: string[]): Promise<number> {
   // Editorial rule: a news card without artwork is not published at all.
   // Calendar items (events) are exempt — they are notices, not photo stories.
   const rejected: Record<string, any>[] = [];
-  const publishable: Record<string, any>[] = [];
+  const candidates: Record<string, any>[] = [];
   for (const row of all) {
     if (!row["event_start"] && !usableImage(row["image_url"])) rejected.push(row);
+    else candidates.push(row);
+  }
+
+  // Automatic duplicate rejection before anything is written: normalised title,
+  // canonical URL or >=85% body similarity against what the site already holds.
+  const { guardArticle } = await import("@/lib/duplicate-guard.server");
+  const publishable: Record<string, any>[] = [];
+  const duplicates: { row: Record<string, any>; contentId: string }[] = [];
+  for (const row of candidates) {
+    const guard = await guardArticle(db as never, {
+      title: row["digest_headline"] || row["original_title"],
+      link_url: row["canonical_url"],
+      body: row["what_happened"] || row["excerpt"],
+      dedupe_key: row["dedupe_key"],
+      source: row["source_name"],
+      entry_point: "raw-ingest",
+    });
+    if (guard.duplicate) duplicates.push({ row, contentId: guard.hit.id });
     else publishable.push(row);
   }
 
@@ -41,7 +59,23 @@ export async function publishRawItems(ids: string[]): Promise<number> {
         rejected.map((r) => r["id"]),
       );
   }
+  if (duplicates.length) {
+    // Silently retired, pointed at the story already on the site.
+    await Promise.all(
+      duplicates.map(({ row, contentId }) =>
+        db
+          .from("raw_ingestion_items")
+          .update({
+            processing_status: "duplicate",
+            dedupe_status: "duplicate",
+            published_content_item_id: contentId,
+          })
+          .eq("id", row["id"]),
+      ),
+    );
+  }
   if (!publishable.length) return 0;
+
 
   // Cluster attribution for the whole batch in one read.
   const clusterIds = [

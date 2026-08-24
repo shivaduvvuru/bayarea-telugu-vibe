@@ -1033,6 +1033,39 @@ export type Database = {
         }
         Relationships: []
       }
+      image_fingerprints: {
+        Row: {
+          bytes: number | null
+          content_type: string | null
+          created_at: string
+          file_hash: string | null
+          id: string
+          image_url: string
+          perceptual_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          bytes?: number | null
+          content_type?: string | null
+          created_at?: string
+          file_hash?: string | null
+          id?: string
+          image_url: string
+          perceptual_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bytes?: number | null
+          content_type?: string | null
+          created_at?: string
+          file_hash?: string | null
+          id?: string
+          image_url?: string
+          perceptual_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       photo_likes: {
         Row: {
           likes: number
@@ -1695,6 +1728,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rejected_duplicates: {
+        Row: {
+          created_at: string
+          dedupe_key: string | null
+          entry_point: string | null
+          id: string
+          kind: string
+          link_url: string | null
+          original_id: string | null
+          original_url: string | null
+          payload: Json
+          reason: string
+          score: number | null
+          source: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key?: string | null
+          entry_point?: string | null
+          id?: string
+          kind?: string
+          link_url?: string | null
+          original_id?: string | null
+          original_url?: string | null
+          payload?: Json
+          reason: string
+          score?: number | null
+          source?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string | null
+          entry_point?: string | null
+          id?: string
+          kind?: string
+          link_url?: string | null
+          original_id?: string | null
+          original_url?: string | null
+          payload?: Json
+          reason?: string
+          score?: number | null
+          source?: string | null
+          title?: string | null
+        }
+        Relationships: []
       }
       restaurant_claim_contacts: {
         Row: {
@@ -2486,6 +2567,19 @@ export type Database = {
       bump_photo_like: {
         Args: { _delta: number; _slug: string }
         Returns: number
+      }
+      find_article_duplicate: {
+        Args: {
+          _body?: string
+          _link?: string
+          _threshold?: number
+          _title: string
+        }
+        Returns: {
+          id: string
+          reason: string
+          score: number
+        }[]
       }
       has_role: {
         Args: {

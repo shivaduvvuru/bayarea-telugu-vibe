@@ -60,13 +60,32 @@ export async function sweepDuplicates(
     .order("published_at", { ascending: true })
     .limit(5000);
 
-  const ids = duplicateIds((data ?? []) as Row[]);
+  const rows = (data ?? []) as Row[];
+  const ids = duplicateIds(rows);
+  const byId = new Map(rows.map((r) => [r.id, r] as const));
   for (let i = 0; i < ids.length; i += 200) {
     await admin
       .from("content_items")
       .update({ placement: "hidden" })
       .in("id", ids.slice(i, i + 200));
   }
+  // Logging only — nothing here waits for review.
+  if (ids.length) {
+    const { logRejectedDuplicate } = await import("./duplicate-guard.server");
+    for (const id of ids) {
+      const row = byId.get(id);
+      await logRejectedDuplicate(admin as never, {
+        reason: "sweep",
+        title: row?.title ?? null,
+        link_url: row?.link_url ?? null,
+        dedupe_key: row?.dedupe_key ?? null,
+        original_id: null,
+        entry_point: "daily-sweep",
+        payload: { unpublished_id: id },
+      });
+    }
+  }
   return ids.length;
 }
+
 
