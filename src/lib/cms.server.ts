@@ -98,21 +98,41 @@ export async function ingest(rows: IngestRow[]) {
     for (const r of data ?? []) if (r.dedupe_key) existing.set(r.dedupe_key, r.id);
   }
 
+  // Server-side duplicate guard: title / URL / body-similarity check against
+  // everything already stored. Runs for every entry point that reaches ingest
+  // (feed collection, desk backlog flush, WordPress sync). No review step: a
+  // match is stored as "duplicate" (never shown) and logged with its original.
+  const { guardArticle } = await import("./duplicate-guard.server");
+  const guardHits = new Map<string, { id: string; score: number; reason: string }>();
+  for (const r of fresh) {
+    const guard = await guardArticle(db as never, {
+      title: r.title,
+      link_url: r.link_url ?? null,
+      body: (r as { body?: string | null }).body ?? r.summary ?? null,
+      dedupe_key: dedupeKey(r.title) || null,
+      source: r.source,
+      entry_point: "ingest",
+    });
+    if (guard.duplicate) guardHits.set(r.source_ref, guard.hit);
+  }
+
   const now = new Date().toISOString();
   const payload = [
     ...fresh.map((r) => {
       const key = dedupeKey(r.title);
-      const clash = key ? existing.get(key) : undefined;
+      const hit = guardHits.get(r.source_ref);
+      const clash = hit?.id ?? (key ? existing.get(key) : undefined);
       return {
         ...r,
         ...classifyForPublish(r as never),
         dedupe_key: key || null,
         status: clash ? "duplicate" : "published",
         duplicate_of: clash ?? null,
-        placement: "auto",
+        placement: clash ? "hidden" : "auto",
         published_at: r.published_at ?? now,
       };
     }),
+
     // Repeats found inside this same pull are recorded too, so editors can see
     // which source keeps re-sending the same item.
     ...inBatch.flatMap((group) =>
