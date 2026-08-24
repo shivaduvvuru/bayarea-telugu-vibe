@@ -34,7 +34,15 @@ export const OBSERVE_LOOSE_UNTIL = Date.parse("2026-09-01T00:00:00Z");
 const UPDATE_HEADLINE =
   /\b(update[ds]?|latest|live|breaking|developing|follow[- ]?up|part\s?\d|day\s?\d)\b/i;
 
-export type DuplicateReason = "title" | "url" | "body" | "title-weak" | "tokens";
+export type DuplicateReason =
+  | "title"
+  | "url"
+  | "body"
+  | "title-weak"
+  | "tokens"
+  | "url-canonical"
+  | "title-source"
+  | "image-canonical";
 
 export type DuplicateHit = {
   id: string;
