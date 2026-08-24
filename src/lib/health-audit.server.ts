@@ -9,7 +9,7 @@
  * Server-only.
  */
 import { sendPushover, MAX_BODY } from "./pushover.server";
-import { INDIA_FEEDS } from "./india-ingest.server";
+import { INDIA_FEEDS, QUIET_SOURCES } from "./india-ingest.server";
 
 const SITE = "https://project--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app";
 
@@ -135,7 +135,10 @@ async function sourceHealth(): Promise<SourceHealth[]> {
       consecutiveFailures,
       items72h,
       items7d,
-      flagged: consecutiveFailures >= 3 || (ranIn72h && items72h === 0),
+      flagged:
+        consecutiveFailures >= 3 ||
+        (ranIn72h && items72h === 0 && !QUIET_SOURCES.has(source)),
+
     });
   }
   return out.sort((a, b) => a.items7d - b.items7d);
