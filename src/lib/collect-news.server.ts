@@ -1656,59 +1656,17 @@ export let lastAiError: string | null = null;
  */
 export const aiUsage = { calls: 0, itemsSummarized: 0, itemsSkipped: 0, batches: 0 };
 
-/** Headlines per summary call. Kept well under the point where quality drops. */
-const SUMMARY_ITEM_CAP = 25;
-/** Cities/feed groups combined into one call. Drop to 2 if cities get mixed up. */
-const SUMMARY_GROUP_CAP = 3;
+/**
+ * Full batching metrics for the run: calls, per-item failovers, malformed
+ * batches and throttling. Persisted by `recordSummaryRun` and shown on
+ * /admin/health.
+ */
+export let aiBatchMetrics = newBatchMetrics();
 
 type SummaryGroup = { key: string; city: City; items: RawItem[] };
 
 function fallbackSummary(item: RawItem) {
   return `Reported by ${item.source}. Verify details and add the Telugu translation before publishing.`;
-}
-
-/** Pulls the summaries out of the model reply, whether it is JSON or a fenced block. */
-function parseSummaryJson(text: string): Map<string, string> {
-  const out = new Map<string, string>();
-  const start = text.indexOf("[");
-  const end = text.lastIndexOf("]");
-  if (start < 0 || end <= start) return out;
-  try {
-    const parsed = JSON.parse(text.slice(start, end + 1)) as unknown;
-    if (!Array.isArray(parsed)) return out;
-    for (const row of parsed) {
-      const r = row as { id?: unknown; summary?: unknown };
-      const id = typeof r.id === "string" ? r.id : String(r.id ?? "");
-      const summary = typeof r.summary === "string" ? r.summary.trim() : "";
-      if (id && summary) out.set(id, summary);
-    }
-  } catch {
-    return out;
-  }
-  return out;
-}
-
-/** One batched Gemini call: several cities' headlines in, id-keyed summaries out. */
-async function summarizeChunk(
-  entries: { id: string; group: SummaryGroup; item: RawItem }[],
-  apiKey: string,
-): Promise<Map<string, string>> {
-  const cities = [...new Set(entries.map((e) => e.group.city.en))];
-  const gateway = createLovableAiGatewayProvider(apiKey);
-  aiUsage.calls += 1;
-  aiUsage.itemsSummarized += entries.length;
-  const { text } = await generateText({
-    model: gateway("google/gemini-3.1-flash-lite"),
-    prompt:
-      `You write short neutral notes for a Telugu-American community news desk.\n` +
-      `Each item below belongs to one of these desks: ${cities.join(", ")}. Treat every item on its own — never mix facts between items or desks.\n` +
-      `For each item write ONE neutral sentence (max 28 words) summarizing that headline. Do not invent facts beyond the headline, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
-      `Reply with JSON only: an array of {"id": "<the item id>", "summary": "<sentence>"} with exactly ${entries.length} entries, one per item id, in the same order. No prose, no code fence.\n\n` +
-      entries
-        .map((e) => `{"id": "${e.id}", "desk": "${e.group.city.en}", "headline": ${JSON.stringify(`${e.item.title} (${e.item.source})`)}}`)
-        .join("\n"),
-  });
-  return parseSummaryJson(text);
 }
 
 /**
@@ -1717,7 +1675,9 @@ async function summarizeChunk(
  * Groups are packed into as few model calls as possible (up to
  * SUMMARY_GROUP_CAP desks and SUMMARY_ITEM_CAP headlines each) and anything
  * whose dedupe key is already stored or already rejected is never sent — a
- * batch with nothing new makes no call at all.
+ * batch with nothing new makes no call at all. Replies are validated against
+ * the exact ids that were sent; anything missing or malformed is re-summarized
+ * one item at a time instead of being silently dropped.
  */
 async function summarizeGroups(
   groups: SummaryGroup[],
@@ -1733,57 +1693,48 @@ async function summarizeGroups(
 
   // Anything already in the store (or already rejected) is dropped downstream,
   // so it never earns a summary call.
-  const entries: { id: string; group: SummaryGroup; item: RawItem; index: number }[] = [];
+  type Group = { key: string; desk: string; index: number };
+  const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number })[] = [];
   for (const g of groups) {
     g.items.forEach((item, index) => {
       if (known?.has(keyFor(g.city.slug, item.title))) {
         aiUsage.itemsSkipped += 1;
         return;
       }
-      entries.push({ id: `${g.key}#${index}`, group: g, item, index });
+      entries.push({
+        id: `${g.key}#${index}`,
+        group: { key: g.key, desk: g.city.en, index },
+        text: `${item.title} (${item.source})`,
+        groupKey: g.key,
+        itemIndex: index,
+      });
     });
   }
   if (!entries.length) return result;
 
-  const chunks: typeof entries[] = [];
-  let current: typeof entries = [];
-  let groupsInChunk = new Set<string>();
-  for (const e of entries) {
-    const wouldExceed =
-      current.length >= SUMMARY_ITEM_CAP ||
-      (!groupsInChunk.has(e.group.key) && groupsInChunk.size >= SUMMARY_GROUP_CAP);
-    if (wouldExceed && current.length) {
-      chunks.push(current);
-      current = [];
-      groupsInChunk = new Set();
-    }
-    current.push(e);
-    groupsInChunk.add(e.group.key);
-  }
-  if (current.length) chunks.push(current);
-
-  aiUsage.batches += chunks.length;
-  const parsed = await Promise.all(
-    chunks.map(async (chunk) => {
-      try {
-        const map = await summarizeChunk(chunk, apiKey);
-        if (map.size) lastAiError = null;
-        return map;
-      } catch (e) {
-        lastAiError = e instanceof Error ? e.message : String(e);
-        console.error("summarize failed", e);
-        return new Map<string, string>();
-      }
-    }),
+  const gateway = createLovableAiGatewayProvider(apiKey);
+  const { summaries, errors } = await runSummaryBatches<Group>(
+    entries,
+    async (prompt) => {
+      const { text } = await generateText({
+        model: gateway("google/gemini-3.1-flash-lite"),
+        prompt,
+      });
+      return text;
+    },
+    { metrics: aiBatchMetrics, concurrency: SUMMARY_CONCURRENCY },
   );
 
-  const merged = new Map<string, string>();
-  for (const map of parsed) for (const [k, v] of map) merged.set(k, v);
+  aiUsage.calls = aiBatchMetrics.calls;
+  aiUsage.batches = aiBatchMetrics.batches;
+  aiUsage.itemsSummarized = aiBatchMetrics.itemsSummarized;
+  lastAiError = summaries.size ? null : (errors[0] ?? lastAiError);
+
   for (const e of entries) {
-    const summary = merged.get(e.id);
+    const summary = summaries.get(e.id);
     if (!summary) continue;
-    const list = result.get(e.group.key);
-    if (list) list[e.index] = summary;
+    const list = result.get(e.groupKey);
+    if (list) list[e.itemIndex] = summary;
   }
   return result;
 }
