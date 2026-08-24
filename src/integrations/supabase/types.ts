@@ -2335,6 +2335,66 @@ export type Database = {
         }
         Relationships: []
       }
+      summary_runs: {
+        Row: {
+          avg_batch_size: number
+          batches: number
+          calls: number
+          created_at: string
+          fallback_calls: number
+          id: string
+          items_skipped: number
+          items_summarized: number
+          malformed_batches: number
+          missing_entries: number
+          retries: number
+          throttled: number
+          trigger: string
+          truncation_rate: number
+          unknown_entries: number
+          unresolved: number
+          warnings: string[]
+        }
+        Insert: {
+          avg_batch_size?: number
+          batches?: number
+          calls?: number
+          created_at?: string
+          fallback_calls?: number
+          id?: string
+          items_skipped?: number
+          items_summarized?: number
+          malformed_batches?: number
+          missing_entries?: number
+          retries?: number
+          throttled?: number
+          trigger?: string
+          truncation_rate?: number
+          unknown_entries?: number
+          unresolved?: number
+          warnings?: string[]
+        }
+        Update: {
+          avg_batch_size?: number
+          batches?: number
+          calls?: number
+          created_at?: string
+          fallback_calls?: number
+          id?: string
+          items_skipped?: number
+          items_summarized?: number
+          malformed_batches?: number
+          missing_entries?: number
+          retries?: number
+          throttled?: number
+          trigger?: string
+          truncation_rate?: number
+          unknown_entries?: number
+          unresolved?: number
+          warnings?: string[]
+        }
+        Relationships: []
+      }
       temple_events: {
         Row: {
           all_day: boolean
