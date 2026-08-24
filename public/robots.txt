@@ -12,5 +12,18 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /desk
+Disallow: /directory-ingest
+Disallow: /food-ingest
+Disallow: /food-merge
+Disallow: /temple-sources
+Disallow: /property-desk
+Disallow: /property-videos
+Disallow: /command-center
+Disallow: /glamour-dashboard
+Disallow: /luxedesk
+Disallow: /admin
+Disallow: /health
+Disallow: /api/
 
-Sitemap: https://bayarea-telugu-vibe.lovable.app/sitemap.xml
+Sitemap: https://timesbayarea.com/sitemap.xml
