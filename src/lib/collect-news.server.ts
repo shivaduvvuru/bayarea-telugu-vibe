@@ -11,11 +11,14 @@ import {
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 import {
+  averageBatchSize,
   newBatchMetrics,
   runSummaryBatches,
   SUMMARY_CONCURRENCY,
+  truncationRate,
   type SummaryEntry,
 } from "./summary-batch";
+import { recordSummaryRun } from "./summary-metrics.server";
 
 export type CollectedItem = {
   dedupe_key: string;
