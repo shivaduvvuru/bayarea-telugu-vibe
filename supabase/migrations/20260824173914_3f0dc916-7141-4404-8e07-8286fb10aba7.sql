@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.find_article_duplicate(text, text, text, numeric) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.find_article_duplicate(text, text, text, numeric) TO service_role;
