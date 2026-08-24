@@ -42,11 +42,19 @@ export async function publishRawItems(ids: string[]): Promise<number> {
       title: row["digest_headline"] || row["original_title"],
       link_url: row["canonical_url"],
       body: row["what_happened"] || row["excerpt"],
+      image_url: row["image_url"],
       dedupe_key: row["dedupe_key"],
       source: row["source_name"],
       entry_point: "raw-ingest",
     });
-    if (guard.duplicate) duplicates.push({ row, contentId: guard.hit.id });
+    if (guard.duplicate) {
+      console.log(
+        `[dedupe] rejected ${guard.hit.reason} score=${guard.hit.score} original=${guard.hit.id} ` +
+          `source="${row["source_name"]}" title="${row["digest_headline"] || row["original_title"]}" ` +
+          `url=${row["canonical_url"]}`,
+      );
+      duplicates.push({ row, contentId: guard.hit.id });
+    }
     else publishable.push(row);
   }
 

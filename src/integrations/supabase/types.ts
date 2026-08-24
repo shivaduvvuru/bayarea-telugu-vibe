@@ -116,6 +116,8 @@ export type Database = {
         Row: {
           ai_generated_at: string | null
           body: string | null
+          canonical_image: string | null
+          canonical_url: string | null
           category: string | null
           city: string | null
           confidence: Database["public"]["Enums"]["source_confidence"] | null
@@ -133,6 +135,7 @@ export type Database = {
           is_local: boolean
           kind: string
           link_url: string | null
+          norm_title: string | null
           people_checked_at: string | null
           people_count: number | null
           placement: string
@@ -158,6 +161,8 @@ export type Database = {
         Insert: {
           ai_generated_at?: string | null
           body?: string | null
+          canonical_image?: string | null
+          canonical_url?: string | null
           category?: string | null
           city?: string | null
           confidence?: Database["public"]["Enums"]["source_confidence"] | null
@@ -175,6 +180,7 @@ export type Database = {
           is_local?: boolean
           kind?: string
           link_url?: string | null
+          norm_title?: string | null
           people_checked_at?: string | null
           people_count?: number | null
           placement?: string
@@ -200,6 +206,8 @@ export type Database = {
         Update: {
           ai_generated_at?: string | null
           body?: string | null
+          canonical_image?: string | null
+          canonical_url?: string | null
           category?: string | null
           city?: string | null
           confidence?: Database["public"]["Enums"]["source_confidence"] | null
@@ -217,6 +225,7 @@ export type Database = {
           is_local?: boolean
           kind?: string
           link_url?: string | null
+          norm_title?: string | null
           people_checked_at?: string | null
           people_count?: number | null
           placement?: string
@@ -2660,6 +2669,8 @@ export type Database = {
         Args: { _delta: number; _slug: string }
         Returns: number
       }
+      canonical_image: { Args: { _url: string }; Returns: string }
+      canonical_link: { Args: { _url: string }; Returns: string }
       find_article_duplicate: {
         Args: {
           _body?: string
@@ -2687,6 +2698,7 @@ export type Database = {
         Returns: undefined
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      norm_title_strict: { Args: { _title: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "editor"
