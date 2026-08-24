@@ -30,13 +30,13 @@ const countsQuery = queryOptions({
 
 /** Filter state lives in the URL so filtered views are shareable and crawlable. */
 interface DirectorySearch {
-  q?: string;
-  category?: string;
-  subcategory?: string;
-  county?: string;
-  city?: string;
-  community?: string;
-  verified?: boolean;
+  q?: string | undefined;
+  category?: string | undefined;
+  subcategory?: string | undefined;
+  county?: string | undefined;
+  city?: string | undefined;
+  community?: string | undefined;
+  verified?: boolean | undefined;
 }
 
 const str = (v: unknown) => (typeof v === "string" && v ? v.slice(0, 80) : undefined);
@@ -70,13 +70,13 @@ function resultsQuery(s: DirectorySearch) {
 
 export const Route = createFileRoute("/directory/")({
   validateSearch: (search: Record<string, unknown>): DirectorySearch => ({
-    q: str(search.q),
-    category: str(search.category),
-    subcategory: str(search.subcategory),
-    county: str(search.county),
-    city: str(search.city),
-    community: str(search.community),
-    verified: search.verified === true || search.verified === "true" ? true : undefined,
+    q: str(search['q']),
+    category: str(search['category']),
+    subcategory: str(search['subcategory']),
+    county: str(search['county']),
+    city: str(search['city']),
+    community: str(search['community']),
+    verified: search['verified'] === true || search['verified'] === "true" ? true : undefined,
   }),
   loaderDeps: ({ search }) => search,
   // The first page of listings is fetched here, not in the browser, so crawlers
@@ -143,8 +143,8 @@ function DirectoryPage() {
   const [qDraft, setQDraft] = useState(search.q ?? "");
   const [showFilters, setShowFilters] = useState(false);
 
-  const patch = (next: Partial<DirectorySearch>) =>
-    navigate({ search: (prev) => ({ ...prev, ...next }), replace: true });
+  const patch = (next: DirectorySearch) =>
+    navigate({ search: ((prev: DirectorySearch) => ({ ...prev, ...next })) as never, replace: true });
 
   const countFor = (key: string) =>
     counts.categories.find((c) => c.key === key)?.total ?? 0;
@@ -233,7 +233,11 @@ function DirectoryPage() {
         <div className="flex gap-2 pb-1">
           <Link
             to="/directory"
-            search={(prev) => ({ ...prev, category: undefined, subcategory: undefined })}
+            search={((prev: DirectorySearch) => ({
+              ...prev,
+              category: undefined,
+              subcategory: undefined,
+            })) as never}
             className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold ${
               !search.category ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground"
             }`}
@@ -244,11 +248,11 @@ function DirectoryPage() {
             <Link
               key={c.key}
               to="/directory"
-              search={(prev) => ({
+              search={((prev: DirectorySearch) => ({
                 ...prev,
                 category: search.category === c.key ? undefined : c.key,
                 subcategory: undefined,
-              })}
+              })) as never}
               className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold ${
                 search.category === c.key
                   ? "border-primary bg-primary/10 text-primary"
