@@ -199,20 +199,39 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               discovered_at: new Date().toISOString(),
             }];
           });
+          // Visual screening is the single most expensive step in the pass, so a
+          // picture is only ever screened once: anything already judged in an
+          // earlier run is skipped, and each run screens at most a fixed batch.
+          const SCREEN_BUDGET = 24;
+          const allScreenable = picturePool.flatMap((row) => {
+            const image = (row.payload as { image?: string | null } | undefined)?.image;
+            return image ? [{ id: row.item_id, image }] : [];
+          });
+          const alreadyScreened = new Set<string>();
+          if (allScreenable.length) {
+            const { data: prior } = await supabaseAdmin
+              .from("picture_intake")
+              .select("image_url")
+              .in("image_url", allScreenable.slice(0, 300).map((s) => s.image))
+              .neq("screening_state", "screening");
+            for (const row of (prior ?? []) as { image_url: string | null }[]) {
+              if (row.image_url) alreadyScreened.add(row.image_url);
+            }
+          }
           if (intakeRows.length) {
             const { error: intakeError } = await supabaseAdmin
               .from("picture_intake")
               .upsert(intakeRows as never, { onConflict: "item_id" });
             if (intakeError) throw intakeError;
           }
-          const screenable = picturePool.flatMap((row) => {
-            const image = (row.payload as { image?: string | null } | undefined)?.image;
-            return image ? [{ id: row.item_id, image }] : [];
-          });
+          const screenable = allScreenable
+            .filter((s) => !alreadyScreened.has(s.image))
+            .slice(0, SCREEN_BUDGET);
           const verification = await verifySoloWomanPhotos(
             screenable,
             process.env["LOVABLE_API_KEY"],
           );
+
           const blocked = picturePool.filter((row) => verification.rejected.has(row.item_id));
           const rejectReasons: Record<string, number> = {};
           for (const row of blocked) {
