@@ -26,7 +26,6 @@ const RAIL = [
   { to: "/food/restaurants", label: "Restaurants" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
-  { to: "/directory", label: "Local Directory" },
   { to: "/associations", label: "Associations & Community" },
   { to: "/connect", label: "Services" },
   { to: "/forums", label: "Forums" },
