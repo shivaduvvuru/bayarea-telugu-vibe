@@ -25,6 +25,8 @@
  * (they still must not repeat a title or URL).
  */
 
+import { canonicalUrl, canonicalImage, strictTitleKey } from "./dedupe";
+
 export const BODY_SIMILARITY_THRESHOLD = 0.85;
 /** Loose headline threshold for cross-publisher repeats. */
 export const LOOSE_TITLE_THRESHOLD = 0.55;
@@ -230,6 +232,7 @@ export async function guardArticle(
     title?: string | null;
     link_url?: string | null;
     body?: string | null;
+    image_url?: string | null;
     dedupe_key?: string | null;
     source?: string | null;
     entry_point: string;
