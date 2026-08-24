@@ -1,37 +1,37 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { listDirectory } from "@/lib/content.functions";
-import { listClaimOverrides } from "@/lib/claims.functions";
-import { ClaimForm } from "@/components/claim-form";
-import type { DirectoryEntry } from "@/lib/content";
-import { CommunityAppeal } from "@/components/ads";
-import { CITY_REGIONS } from "@/lib/content";
-import { regionOf, resolveCity } from "@/lib/directory-city";
+import { Suspense, useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { directoryCategoryCounts, searchDirectory } from "@/lib/directory.functions";
 import {
-  COMMUNITY_EMAIL,
-  DIRECTORY_CATEGORIES,
-} from "@/lib/community-data";
+  COMMUNITY_TAGS,
+  DIRECTORY_TAXONOMY,
+  subcategoriesFor,
+} from "@/lib/directory-taxonomy";
+import { BAY_AREA_COUNTIES } from "@/lib/directory-geo";
+import { COMMUNITY_EMAIL } from "@/lib/community-data";
+import {
+  CommunityOrgs,
+  claimOverridesQuery,
+  communityOrgsQuery,
+} from "@/components/community-orgs";
+import { CommunityAppeal } from "@/components/ads";
+import type { DirectoryEntity } from "@/lib/directory";
 
-const TITLE = "Community Directory — Times Bay Area";
+const TITLE = "Bay Area Local Directory — Times Bay Area";
 const DESC =
-  "Temples, associations and Telugu community organisations across the San Francisco Bay Area.";
+  "Temples, restaurants, doctors, tutors, trades, shops, community organisations and civic offices across all nine Bay Area counties.";
 
-const directoryQuery = queryOptions({
-  queryKey: ["wp", "directory"],
-  queryFn: () => listDirectory(),
-});
-
-const overridesQuery = queryOptions({
-  queryKey: ["directory", "claim-overrides"],
-  queryFn: () => listClaimOverrides(),
-  staleTime: 5 * 60 * 1000,
+const countsQuery = queryOptions({
+  queryKey: ["local-directory", "counts"],
+  queryFn: () => directoryCategoryCounts(),
+  staleTime: 10 * 60 * 1000,
 });
 
 export const Route = createFileRoute("/directory")({
   loader: ({ context }) => {
-    context.queryClient.ensureQueryData(directoryQuery);
-    context.queryClient.ensureQueryData(overridesQuery);
+    context.queryClient.ensureQueryData(countsQuery);
+    context.queryClient.prefetchQuery(communityOrgsQuery);
+    context.queryClient.prefetchQuery(claimOverridesQuery);
   },
   head: () => ({
     meta: [
@@ -52,303 +52,336 @@ export const Route = createFileRoute("/directory")({
 });
 
 function DirectoryPage() {
-  const { data: entries } = useSuspenseQuery(directoryQuery);
-  const { data: overrides } = useSuspenseQuery(overridesQuery);
+  const { data: counts } = useSuspenseQuery(countsQuery);
   const [q, setQ] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [city, setCity] = useState<string | null>(null);
-  const [claiming, setClaiming] = useState<number | null>(null);
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [county, setCounty] = useState("");
+  const [city, setCity] = useState("");
+  const [community, setCommunity] = useState("");
+  const [verified, setVerified] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Verified owner corrections win over the stored listing details.
-  const byListing = useMemo(() => {
-    const map = new Map<number, (typeof overrides)[number]>();
-    for (const o of overrides) map.set(o.listing_id, o);
-    return map;
-  }, [overrides]);
+  const countFor = (key: string) =>
+    counts.categories.find((c) => c.key === key)?.total ?? 0;
 
-  const text = (e: DirectoryEntry) =>
-    `${e.title} ${e.excerpt} ${e.category ?? ""}`.toLowerCase();
-  // Each listing is assigned to one of the 16 Bay Area cities once, from its
-  // address line, so the Location filter and the city labels agree.
-  const cityOf = useMemo(() => {
-    const map = new Map<number, string | null>();
-    for (const e of entries) {
-      map.set(e.id, byListing.get(e.id)?.city ?? resolveCity(e.title, e.excerpt));
-    }
-    return map;
-  }, [entries, byListing]);
-  // Category buttons prefer the stored category term and fall back to
-  // a text match, so grocery listings land under Super Markets either way.
-  const inCategory = (e: DirectoryEntry, term: string) => {
-    // Tolerate plural/singular differences between our labels ("Restaurants")
-    // and the stored terms ("Restaurant").
-    const t = term.toLowerCase().split(" /")[0]!.replace(/s$/, "");
-    return e.category ? e.category.toLowerCase().includes(t) : text(e).includes(t);
-  };
-  const count = (term: string) => entries.filter((e) => inCategory(e, term)).length;
-  const cityCount = (name: string) =>
-    entries.filter((e) => cityOf.get(e.id) === name).length;
+  const cityOptions = useMemo(() => {
+    const inCounty = county
+      ? (BAY_AREA_COUNTIES.find((c) => c.key === county)?.cities ?? []).map((c) => c.name)
+      : null;
+    return counts.cities.filter((c) => !inCounty || inCounty.includes(c.city));
+  }, [counts.cities, county]);
 
-  const filtered = useMemo(
-    () =>
-      entries.filter((e) => {
-        const hay = text(e);
-        if (q && !hay.includes(q.toLowerCase())) return false;
-        if (category && !inCategory(e, category)) return false;
-        if (city && cityOf.get(e.id) !== city) return false;
-        return true;
+  const results = useQuery({
+    queryKey: ["local-directory", "search", { q, category, subcategory, county, city, community, verified }],
+    queryFn: () =>
+      searchDirectory({
+        data: {
+          q,
+          category,
+          subcategory,
+          county: county
+            ? (BAY_AREA_COUNTIES.find((c) => c.key === county)?.name ?? "")
+            : "",
+          city,
+          community,
+          verified,
+          limit: 120,
+        },
       }),
-    [entries, q, category, city, cityOf],
-  );
+    staleTime: 60 * 1000,
+  });
 
-  // Listings are grouped region-first (South Bay, East Bay, Peninsula, ...)
-  // and then city by city inside each region.
-  const grouped = useMemo(() => {
-    const byCity = new Map<string, DirectoryEntry[]>();
-    for (const e of filtered) {
-      const key = cityOf.get(e.id) ?? "Elsewhere in the Bay Area";
-      const list = byCity.get(key);
-      if (list) list.push(e);
-      else byCity.set(key, [e]);
-    }
-    const regions = CITY_REGIONS.map((r) => ({
-      region: r.en,
-      regionTe: r.te,
-      cities: r.cities
-        .filter((c) => byCity.has(c.en))
-        .map((c) => ({ city: c.en, cityTe: c.te, items: byCity.get(c.en)! })),
-    }));
-    if (byCity.has("Elsewhere in the Bay Area")) {
-      regions.push({
-        region: "Elsewhere in the Bay Area",
-        regionTe: "బే ఏరియా ఇతర ప్రాంతాలు",
-        cities: [
-          {
-            city: "Elsewhere in the Bay Area",
-            cityTe: "",
-            items: byCity.get("Elsewhere in the Bay Area")!,
-          },
-        ],
-      });
-    }
-    return regions.filter((r) => r.cities.length > 0);
-  }, [filtered, cityOf]);
+  const rows = (results.data ?? []) as DirectoryEntity[];
+  const activeCount = [category, subcategory, county, city, community].filter(Boolean).length + (verified ? 1 : 0);
+  // A category with no stored rows yet is still being imported from open data,
+  // so we say so rather than showing an empty grid.
+  const categoryPending = category !== "" && countFor(category) === 0;
 
   const reset = () => {
     setQ("");
-    setCategory(null);
-    setCity(null);
+    setCategory("");
+    setSubcategory("");
+    setCounty("");
+    setCity("");
+    setCommunity("");
+    setVerified(false);
   };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-3xl font-bold text-ink">Community Directory</h1>
-      <p className="te-text mt-1 text-sm text-muted-foreground">డైరెక్టరీ</p>
-      <p className="mt-3 rounded-sm border border-border bg-surface-tint px-4 py-3 text-sm text-foreground">
-        Do you want your business house to be included in our Directory? Please send the
-        information to{" "}
-        <a href={`mailto:${COMMUNITY_EMAIL}`} className="font-semibold text-primary hover:underline">
-          {COMMUNITY_EMAIL}
-        </a>
-        .
+      <h1 className="text-3xl font-bold text-ink">Bay Area Local Directory</h1>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        {counts.total.toLocaleString()} listings across all nine counties — built on open data, free
+        for the community, and correctable by the owners themselves.
       </p>
 
-      <div className="mt-6 flex gap-2">
-        <label className="sr-only" htmlFor="dir-search">
-          Search directory
+      <div className="mt-5 flex flex-wrap gap-2">
+        <label className="sr-only" htmlFor="ld-search">
+          Search the directory
         </label>
         <input
-          id="dir-search"
+          id="ld-search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search directory..."
-          className="min-h-11 w-full max-w-md rounded-sm border border-border bg-background px-3 text-base text-ink"
+          placeholder="Search name or keyword..."
+          className="min-h-11 w-full max-w-sm rounded-sm border border-border bg-background px-3 text-base text-ink"
         />
         <button
           type="button"
-          onClick={reset}
+          onClick={() => setShowFilters((v) => !v)}
           className="min-h-11 rounded-sm border border-border px-4 text-sm font-semibold text-ink hover:border-primary"
+          aria-expanded={showFilters}
         >
-          Reset
+          Filters{activeCount > 0 ? ` (${activeCount})` : ""}
         </button>
+        {activeCount > 0 && (
+          <button
+            type="button"
+            onClick={reset}
+            className="min-h-11 rounded-sm border border-border px-4 text-sm font-semibold text-ink hover:border-primary"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
-      {/* Column 1: statistics. Columns 2-4: listings. */}
-      <div className="mt-6 grid gap-8 lg:grid-cols-[240px_1fr]">
-        <aside className="space-y-6">
-          <div>
-            <h2 className="border-b-2 border-primary pb-1.5 text-sm font-bold uppercase tracking-wide text-ink">
-              Category
-            </h2>
-            <ul className="mt-2">
-              {DIRECTORY_CATEGORIES.map((c) => (
-                <li key={c}>
-                  <button
-                    type="button"
-                    onClick={() => setCategory(category === c ? null : c)}
-                    className={`flex min-h-9 w-full items-center justify-between gap-2 text-left text-sm ${
-                      category === c ? "font-bold text-primary" : "text-foreground"
-                    }`}
-                  >
-                    <span className="min-w-0 truncate">{c}</span>
-                    <span className="shrink-0 text-xs text-muted-foreground">{count(c)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="border-b-2 border-primary pb-1.5 text-sm font-bold uppercase tracking-wide text-ink">
-              Location
-            </h2>
-            {CITY_REGIONS.map((r) => (
-              <div key={r.key} className="mt-3">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {r.en}
-                </p>
-                <ul className="mt-1">
-                  {r.cities.map((c) => (
-                    <li key={c.slug}>
-                      <button
-                        type="button"
-                        onClick={() => setCity(city === c.en ? null : c.en)}
-                        className={`flex min-h-9 w-full items-center justify-between gap-2 text-left text-sm ${
-                          city === c.en ? "font-bold text-primary" : "text-foreground"
-                        }`}
-                      >
-                        <span className="min-w-0 truncate">{c.en}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {cityCount(c.en)}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </aside>
-
-        <div>
-          <p className="mb-3 text-sm text-muted-foreground">
-            {filtered.length} listing{filtered.length === 1 ? "" : "s"}
-            {category ? ` in ${category}` : ""}
-            {city ? ` — ${city}, ${regionOf(city)}` : ""}
-          </p>
-          {filtered.length === 0 ? (
-            <p className="text-muted-foreground">No listings match this filter yet.</p>
-          ) : (
-            <div className="space-y-10">
-              {grouped.map((region) => (
-                <section key={region.region}>
-                  <h2 className="border-b-2 border-primary pb-1.5 text-lg font-bold text-ink">
-                    {region.region}
-                    <span className="te-text mt-0.5 block text-xs font-medium text-muted-foreground">
-                      {region.regionTe}
-                    </span>
-                  </h2>
-                  {region.cities.map((group) => (
-                <section key={group.city} className="mt-6">
-                  <h3 className="border-b border-border pb-1.5 text-sm font-bold uppercase tracking-wide text-ink">
-                    {group.city === "Elsewhere in the Bay Area" ? (
-                      group.city
-                    ) : (
-                      <Link
-                        to="/city/$city"
-                        params={{
-                          city: group.city.toLowerCase().replace(/\s+/g, "-"),
-                        }}
-                        className="hover:text-primary"
-                      >
-                        {group.city}
-                      </Link>
-                    )}
-                    <span className="ml-2 font-normal normal-case text-muted-foreground">
-                      {group.items.length} listing{group.items.length === 1 ? "" : "s"}
-                    </span>
-                  </h3>
-                  <div className="mt-4 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {group.items.map((e) => (
-                <article key={e.id} className="border border-border">
-                  {e.image && (
-                    <img
-                      src={e.image}
-                      alt={e.title}
-                      loading="lazy"
-                      width={600}
-                      height={400}
-                      className="aspect-[3/2] w-full object-cover"
-                    />
-                  )}
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold text-ink">{e.title}</h3>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                      {[e.category, cityOf.get(e.id)].filter(Boolean).join(" · ")}
-                    </p>
-                    {e.excerpt && (
-                      <p className="mt-2 text-sm text-muted-foreground">{e.excerpt}</p>
-                    )}
-                    {e.duplicates && e.duplicates.length > 0 && (
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {e.duplicates.length + 1} listings merged
-                      </p>
-                    )}
-                    {(() => {
-                      const o = byListing.get(e.id);
-                      return o ? (
-                        <dl className="mt-2 space-y-0.5 text-xs text-foreground">
-                          {o.hours && (
-                            <div>
-                              <dt className="inline font-semibold">Hours: </dt>
-                              <dd className="inline">{o.hours}</dd>
-                            </div>
-                          )}
-                          {o.phone && (
-                            <div>
-                              <dt className="inline font-semibold">Phone: </dt>
-                              <dd className="inline">{o.phone}</dd>
-                            </div>
-                          )}
-                          {o.address && (
-                            <div>
-                              <dt className="inline font-semibold">Address: </dt>
-                              <dd className="inline">{o.address}</dd>
-                            </div>
-                          )}
-                          <p className="pt-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
-                            Owner verified
-                          </p>
-                        </dl>
-                      ) : null;
-                    })()}
-                    {claiming === e.id ? (
-                      <ClaimForm
-                        listingId={e.id}
-                        listingTitle={e.title}
-                        suggestedCity={cityOf.get(e.id) ?? null}
-                        onClose={() => setClaiming(null)}
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setClaiming(e.id)}
-                        className="mt-3 min-h-11 rounded-sm border border-border px-3 text-xs font-semibold text-ink hover:border-primary hover:text-primary"
-                      >
-                        Is this your business? Claim &amp; correct
-                      </button>
-                    )}
-                  </div>
-                </article>
-                    ))}
-                  </div>
-                </section>
-                  ))}
-                </section>
-              ))}
-            </div>
-          )}
+      {/* Category rail: compact, horizontally scrollable on phones. */}
+      <div className="mt-4 -mx-4 overflow-x-auto px-4">
+        <div className="flex gap-2 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              setCategory("");
+              setSubcategory("");
+            }}
+            className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold ${
+              category === "" ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {DIRECTORY_TAXONOMY.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => {
+                setCategory(category === c.key ? "" : c.key);
+                setSubcategory("");
+              }}
+              className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold ${
+                category === c.key
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-foreground"
+              }`}
+            >
+              {c.label}
+              <span className="ml-1 font-normal text-muted-foreground">{countFor(c.key)}</span>
+            </button>
+          ))}
         </div>
       </div>
+
+      {showFilters && (
+        <div className="mt-3 grid gap-3 rounded-sm border border-border bg-surface-tint p-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Subcategory
+            <select
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              disabled={!category}
+              className="mt-1 min-h-10 w-full rounded-sm border border-border bg-background px-2 text-sm font-normal normal-case text-ink"
+            >
+              <option value="">All</option>
+              {subcategoriesFor(category).map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            County
+            <select
+              value={county}
+              onChange={(e) => {
+                setCounty(e.target.value);
+                setCity("");
+              }}
+              className="mt-1 min-h-10 w-full rounded-sm border border-border bg-background px-2 text-sm font-normal normal-case text-ink"
+            >
+              <option value="">All counties</option>
+              {BAY_AREA_COUNTIES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            City
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="mt-1 min-h-10 w-full rounded-sm border border-border bg-background px-2 text-sm font-normal normal-case text-ink"
+            >
+              <option value="">All cities</option>
+              {cityOptions.map((c) => (
+                <option key={c.city} value={c.city}>
+                  {c.city} ({c.total})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Community relevance
+            <select
+              value={community}
+              onChange={(e) => setCommunity(e.target.value)}
+              className="mt-1 min-h-10 w-full rounded-sm border border-border bg-background px-2 text-sm font-normal normal-case text-ink"
+            >
+              <option value="">Everything</option>
+              {COMMUNITY_TAGS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              checked={verified}
+              onChange={(e) => setVerified(e.target.checked)}
+              className="size-4"
+            />
+            Owner-verified only
+          </label>
+        </div>
+      )}
+
+      <p className="mt-5 text-sm text-muted-foreground" aria-live="polite">
+        {results.isPending
+          ? "Loading listings…"
+          : `${rows.length} listing${rows.length === 1 ? "" : "s"}`}
+      </p>
+
+      {results.error && (
+        <p className="mt-3 text-sm text-destructive" role="alert">
+          {results.error instanceof Error ? results.error.message : "Search failed."}
+        </p>
+      )}
+
+      {categoryPending && (
+        <p className="mt-3 rounded-sm border border-border bg-surface-tint px-3 py-2 text-sm text-muted-foreground">
+          This category is being added — listings arrive automatically as our open-data import
+          works through the nine counties.
+        </p>
+      )}
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {rows.map((e) => (
+          <article key={e.id} className="flex flex-col border border-border p-4">
+            <h2 className="text-base font-bold text-ink">{e.name}</h2>
+            <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
+              {[e.city, e.county].filter(Boolean).join(" · ")}
+            </p>
+            {e.description && (
+              <p className="mt-2 text-sm text-muted-foreground">{e.description}</p>
+            )}
+            <dl className="mt-2 space-y-0.5 text-xs text-foreground">
+              {e.address && (
+                <div>
+                  <dt className="inline font-semibold">Address: </dt>
+                  <dd className="inline">{e.address}</dd>
+                </div>
+              )}
+              {e.hours && (
+                <div>
+                  <dt className="inline font-semibold">Hours: </dt>
+                  <dd className="inline">{e.hours}</dd>
+                </div>
+              )}
+              {e.accessibility && (
+                <div>
+                  <dt className="inline font-semibold">Access: </dt>
+                  <dd className="inline">{e.accessibility}</dd>
+                </div>
+              )}
+            </dl>
+            {(e.community_tags.length > 0 || e.service_tags.length > 0) && (
+              <ul className="mt-2 flex flex-wrap gap-1">
+                {[...e.community_tags, ...e.service_tags].slice(0, 5).map((t) => (
+                  <li
+                    key={t}
+                    className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
+              {e.phone && (
+                <a href={`tel:${e.phone.replace(/\s+/g, "")}`} className="text-primary hover:underline">
+                  Call
+                </a>
+              )}
+              {e.website && (
+                <a
+                  href={e.website}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="text-primary hover:underline"
+                >
+                  Website
+                </a>
+              )}
+              {e.latitude != null && e.longitude != null && (
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${e.latitude}&mlon=${e.longitude}#map=17/${e.latitude}/${e.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Map
+                </a>
+              )}
+              <a
+                href={`mailto:${COMMUNITY_EMAIL}?subject=${encodeURIComponent(`Directory correction: ${e.name}`)}`}
+                className="text-muted-foreground hover:text-primary hover:underline"
+              >
+                Suggest a correction
+              </a>
+            </div>
+            {/* ODbL requires the OpenStreetMap credit stored at ingest to stay visible. */}
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {e.verified_status ? "Owner verified · " : ""}
+              {e.attribution ?? "Community listing"}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      {!results.isPending && rows.length === 0 && !categoryPending && (
+        <p className="mt-6 text-sm text-muted-foreground">
+          Nothing here yet for this filter. Email{" "}
+          <a href={`mailto:${COMMUNITY_EMAIL}`} className="font-semibold text-primary hover:underline">
+            {COMMUNITY_EMAIL}
+          </a>{" "}
+          to add a listing.
+        </p>
+      )}
+
+      <Suspense
+        fallback={
+          <p className="mt-12 border-t border-border pt-8 text-sm text-muted-foreground">
+            Loading community organisations…
+          </p>
+        }
+      >
+        <CommunityOrgs />
+      </Suspense>
 
       <CommunityAppeal what="business houses" />
     </div>
