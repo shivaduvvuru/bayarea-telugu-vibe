@@ -215,10 +215,22 @@ export const createItem = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { assertStaff } = await import("@/lib/cms.server");
+    const { assertStaff, admin } = await import("@/lib/cms.server");
     await assertStaff(context.supabase as never, context.userId);
     const blank = (v?: string) => (v && v.length > 0 ? v : null);
+    // The admin panel is not exempt: the same automatic check runs here.
+    const { guardArticle } = await import("@/lib/duplicate-guard.server");
+    const guard = await guardArticle((await admin()) as never, {
+      title: data.title,
+      link_url: blank(data.link_url),
+      body: blank(data.body) ?? blank(data.summary),
+      dedupe_key: dedupeKey(data.title) || null,
+      source: "admin",
+      entry_point: "admin",
+    });
+    if (guard.duplicate) return { ok: true, duplicate: true, id: guard.hit.id };
     const { classifyForPublish } = await import("@/lib/classify-at-publish.server");
+
     const { error } = await context.supabase.from("content_items").insert({
       ...classifyForPublish({
         title: data.title,
