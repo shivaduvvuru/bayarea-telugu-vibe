@@ -282,41 +282,53 @@ export function StoryCard({ article }: { article: Article }) {
 }
 
 /**
- * List row with a thumbnail on the left. Stories that arrived without artwork
- * fall back to a masthead tile, so the column never has a ragged left edge.
+ * Fixed-size list thumbnail. Missing artwork — and remote photos that 404 after
+ * the page has rendered — both fall back to the masthead tile, so the column
+ * never shows a broken-image box.
  */
+function ListThumb({ article }: { article: Article }) {
+  const [failed, setFailed] = useState(false);
+  const logo = !article.image || failed;
+  return (
+    <Link
+      to="/article/$slug"
+      params={{ slug: article.slug }}
+      aria-label={article.title}
+      className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
+    >
+      {logo ? (
+        <img
+          src={masthead}
+          alt={article.title}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain p-2 opacity-80"
+        />
+      ) : (
+        <SmartImage
+          src={article.image!}
+          alt={article.title}
+          width={320}
+          height={220}
+          sizes="(min-width: 640px) 160px, 96px"
+          optimizedWidth={320}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer-when-downgrade"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover object-top"
+        />
+      )}
+    </Link>
+  );
+}
+
+/** List row: fixed thumbnail on the left, headline, date and actions beside it. */
 export function ListRow({ article }: { article: Article }) {
   return (
     <li className="flex items-start gap-3 border-b border-border py-3 last:border-0 sm:gap-4">
-      <Link
-        to="/article/$slug"
-        params={{ slug: article.slug }}
-        aria-label={article.title}
-        className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
-      >
-        {article.image ? (
-          <SmartImage
-            src={article.image}
-            alt={article.title}
-            width={320}
-            height={220}
-            sizes="(min-width: 640px) 160px, 96px"
-            optimizedWidth={320}
-            loading="lazy"
-            decoding="async"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="h-full w-full object-cover object-top"
-          />
-        ) : (
-          <img
-            src={masthead}
-            alt={article.title}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-contain p-2 opacity-80"
-          />
-        )}
-      </Link>
+      <ListThumb article={article} />
+
       <div className="min-w-0 flex-1">
         <Link
           to="/article/$slug"
