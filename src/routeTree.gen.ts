@@ -72,6 +72,7 @@ import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$cam
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
+import { Route as ApiPublicHooksDedupeSweepRouteImport } from './routes/api/public/hooks/dedupe-sweep'
 import { Route as ApiPublicHooksDirectoryIngestRouteImport } from './routes/api/public/hooks/directory-ingest'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
@@ -395,6 +396,12 @@ const ApiPublicHooksCollectNewsRoute =
     path: '/api/public/hooks/collect-news',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDedupeSweepRoute =
+  ApiPublicHooksDedupeSweepRouteImport.update({
+    id: '/api/public/hooks/dedupe-sweep',
+    path: '/api/public/hooks/dedupe-sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDirectoryIngestRoute =
   ApiPublicHooksDirectoryIngestRouteImport.update({
     id: '/api/public/hooks/directory-ingest',
@@ -494,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
@@ -560,6 +568,7 @@ export interface FileRoutesByTo {
   '/property/$campaign': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
@@ -632,6 +641,7 @@ export interface FileRoutesById {
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
+  '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
@@ -704,6 +714,7 @@ export interface FileRouteTypes {
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
@@ -770,6 +781,7 @@ export interface FileRouteTypes {
     | '/property/$campaign'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
@@ -841,6 +853,7 @@ export interface FileRouteTypes {
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
     | '/api/public/hooks/collect-news'
+    | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
@@ -896,6 +909,7 @@ export interface RootRouteChildren {
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
+  ApiPublicHooksDedupeSweepRoute: typeof ApiPublicHooksDedupeSweepRoute
   ApiPublicHooksDirectoryIngestRoute: typeof ApiPublicHooksDirectoryIngestRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
@@ -1347,6 +1361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCollectNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/dedupe-sweep': {
+      id: '/api/public/hooks/dedupe-sweep'
+      path: '/api/public/hooks/dedupe-sweep'
+      fullPath: '/api/public/hooks/dedupe-sweep'
+      preLoaderRoute: typeof ApiPublicHooksDedupeSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/directory-ingest': {
       id: '/api/public/hooks/directory-ingest'
       path: '/api/public/hooks/directory-ingest'
@@ -1517,6 +1538,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
+  ApiPublicHooksDedupeSweepRoute: ApiPublicHooksDedupeSweepRoute,
   ApiPublicHooksDirectoryIngestRoute: ApiPublicHooksDirectoryIngestRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
