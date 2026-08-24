@@ -1815,6 +1815,7 @@ export async function collectAll(
   aiUsage.itemsSummarized = 0;
   aiUsage.itemsSkipped = 0;
   aiUsage.batches = 0;
+  aiBatchMetrics = newBatchMetrics();
   const knownKeys = await loadKnownKeys();
 
 
