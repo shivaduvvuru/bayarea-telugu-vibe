@@ -2118,9 +2118,14 @@ export async function collectAll(
   // Before/after measure of the summary batching: one line per run.
   const note =
     `gemini summary calls: ${aiUsage.calls} (batches ${aiUsage.batches}, ` +
-    `items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped})`;
+    `avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, ` +
+    `items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped}, ` +
+    `truncation ${(truncationRate(aiBatchMetrics) * 100).toFixed(1)}%, retries ${aiBatchMetrics.retry.retries})`;
   console.log(`[collect] ${note}`);
   lastDiag.notes.push(note);
+  // Records the run and alerts when call volume or truncation regresses.
+  const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, "collect");
+  for (const w of warnings) lastDiag.notes.push(`summary warning: ${w}`);
   return dedupeCollected(templeSafe);
 }
 
