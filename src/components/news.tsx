@@ -288,6 +288,11 @@ export function StoryCard({ article }: { article: Article }) {
  */
 function ListThumb({ article }: { article: Article }) {
   const [failed, setFailed] = useState(false);
+  // An image streamed with the SSR HTML can finish failing before React attaches
+  // onError, so the mounted element is inspected once as well.
+  const check = (node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth === 0) setFailed(true);
+  };
   const logo = !article.image || failed;
   return (
     <Link
@@ -315,6 +320,7 @@ function ListThumb({ article }: { article: Article }) {
           loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer-when-downgrade"
+          ref={check}
           onError={() => setFailed(true)}
           className="h-full w-full object-cover object-top"
         />
