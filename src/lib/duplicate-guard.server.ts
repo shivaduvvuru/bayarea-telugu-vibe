@@ -164,8 +164,9 @@ export async function guardArticle(
 ): Promise<{ duplicate: false } | { duplicate: true; hit: DuplicateHit }> {
   const hit = await findArticleDuplicate(db, candidate);
   if (!hit) return { duplicate: false };
+  const observed = isObservationOnly(hit.reason);
   await logRejectedDuplicate(db, {
-    reason: hit.reason,
+    reason: observed ? `observe:${hit.reason}` : hit.reason,
     score: hit.score,
     title: candidate.title ?? null,
     link_url: candidate.link_url ?? null,
@@ -173,6 +174,9 @@ export async function guardArticle(
     original_id: hit.id,
     source: candidate.source ?? null,
     entry_point: candidate.entry_point,
+    payload: observed ? { mode: "observation", enforced: false } : {},
   });
+  // Observation window: the pair is recorded for tuning, the story still runs.
+  if (observed) return { duplicate: false };
   return { duplicate: true, hit };
 }
