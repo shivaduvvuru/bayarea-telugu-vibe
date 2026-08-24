@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Clock } from "lucide-react";
 import { type Article, articleLang, categoryBySlug, formatDate } from "@/lib/content";
@@ -6,6 +6,7 @@ import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 import { SourceChip } from "@/components/source-credit";
 import { SmartImage } from "@/components/smart-image";
+import masthead from "@/assets/masthead.webp";
 
 
 
@@ -280,31 +281,87 @@ export function StoryCard({ article }: { article: Article }) {
   );
 }
 
+/**
+ * Fixed-size list thumbnail. Missing artwork — and remote photos that 404 after
+ * the page has rendered — both fall back to the masthead tile, so the column
+ * never shows a broken-image box.
+ */
+function ListThumb({ article }: { article: Article }) {
+  const [failed, setFailed] = useState(false);
+  // An image streamed with the SSR HTML can finish failing before React attaches
+  // onError, so the mounted element is inspected once as well.
+  const box = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    const img = box.current?.querySelector("img");
+    if (img?.complete && img.naturalWidth === 0) setFailed(true);
+  }, [article.image]);
+  const logo = !article.image || failed;
+  return (
+    <Link
+      ref={box}
+      to="/article/$slug"
+      params={{ slug: article.slug }}
+      aria-label={article.title}
+      className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
+    >
+      {logo ? (
+        <img
+          src={masthead}
+          alt={article.title}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain p-2 opacity-80"
+        />
+      ) : (
+        <SmartImage
+          src={article.image!}
+          alt={article.title}
+          width={320}
+          height={220}
+          sizes="(min-width: 640px) 160px, 96px"
+          optimizedWidth={320}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer-when-downgrade"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover object-top"
+        />
+      )}
+    </Link>
+  );
+}
+
+/** List row: fixed thumbnail on the left, headline, date and actions beside it. */
 export function ListRow({ article }: { article: Article }) {
   return (
-    <li className="border-b border-border py-3 last:border-0">
-      <Link
-        to="/article/$slug"
-        params={{ slug: article.slug }}
-        className={headlineClass(
-          article,
-          "block min-h-11 text-base leading-snug font-semibold headline-link",
-        )}
-      >
-        {article.title}
-      </Link>
-      <p className="mt-1 text-xs text-muted-foreground">
-        <RelativeDate iso={article.date} />
-      </p>
-      <StoryActions
-        id={article.slug}
-        title={article.title}
-        url={`/article/${article.slug}`}
-        context="list"
-      />
+    <li className="flex items-start gap-3 border-b border-border py-3 last:border-0 sm:gap-4">
+      <ListThumb article={article} />
+
+      <div className="min-w-0 flex-1">
+        <Link
+          to="/article/$slug"
+          params={{ slug: article.slug }}
+          className={headlineClass(
+            article,
+            "block text-base leading-snug font-semibold headline-link",
+          )}
+        >
+          {article.title}
+        </Link>
+        <p className="mt-1 text-xs text-muted-foreground">
+          <RelativeDate iso={article.date} />
+        </p>
+        <StoryActions
+          id={article.slug}
+          title={article.title}
+          url={`/article/${article.slug}`}
+          context="list"
+        />
+      </div>
     </li>
   );
 }
+
 
 /** Compact card used inside the horizontal "Today in the Bay Area" rail. */
 export function RailCard({ article }: { article: Article }) {
