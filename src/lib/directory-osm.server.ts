@@ -411,7 +411,7 @@ export async function ingestDirectoryFromOsm(
             .eq("slice", sliceId);
           continue;
         }
-        freshFingerprints.set(sliceId, fingerprint);
+        freshFingerprints.set(sliceId, `${fingerprint}|${elements.length}`);
       }
 
       for (const el of elements.slice(0, perQuery * 3)) {
@@ -566,9 +566,10 @@ export async function ingestDirectoryFromOsm(
 
   if (freshFingerprints.size) {
     await db.from("directory_slice_fingerprints").upsert(
-      [...freshFingerprints.entries()].map(([slice, fingerprint]) => ({
+      [...freshFingerprints.entries()].map(([slice, stored]) => ({
         slice,
-        fingerprint,
+        fingerprint: stored.split("|")[0]!,
+        element_count: Number(stored.split("|")[1] ?? 0),
         checked_at: now,
         updated_at: now,
       })) as never,
