@@ -40,6 +40,7 @@ import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as PropertyDeskRouteImport } from './routes/property-desk'
 import { Route as PropertyVideosRouteImport } from './routes/property-videos'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapDirectoryDotxmlRouteImport } from './routes/sitemap-directory[.]xml'
 import { Route as SitemapPagesDotxmlRouteImport } from './routes/sitemap-pages[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
@@ -234,6 +235,11 @@ const PropertyVideosRoute = PropertyVideosRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDirectoryDotxmlRoute = SitemapDirectoryDotxmlRouteImport.update({
+  id: '/sitemap-directory.xml',
+  path: '/sitemap-directory.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapPagesDotxmlRoute = SitemapPagesDotxmlRouteImport.update({
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -552,6 +559,7 @@ export interface FileRoutesByTo {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -625,6 +633,7 @@ export interface FileRoutesById {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-directory.xml': typeof SitemapDirectoryDotxmlRoute
   '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
@@ -700,6 +709,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
@@ -771,6 +781,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
@@ -843,6 +854,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-directory.xml'
     | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
@@ -918,6 +930,7 @@ export interface RootRouteChildren {
   PropertyDeskRoute: typeof PropertyDeskRoute
   PropertyVideosRoute: typeof PropertyVideosRoute
   SearchRoute: typeof SearchRoute
+  SitemapDirectoryDotxmlRoute: typeof SitemapDirectoryDotxmlRoute
   SitemapPagesDotxmlRoute: typeof SitemapPagesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
@@ -1161,6 +1174,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-directory.xml': {
+      id: '/sitemap-directory.xml'
+      path: '/sitemap-directory.xml'
+      fullPath: '/sitemap-directory.xml'
+      preLoaderRoute: typeof SitemapDirectoryDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap-pages.xml': {
@@ -1563,6 +1583,7 @@ const rootRouteChildren: RootRouteChildren = {
   PropertyDeskRoute: PropertyDeskRoute,
   PropertyVideosRoute: PropertyVideosRoute,
   SearchRoute: SearchRoute,
+  SitemapDirectoryDotxmlRoute: SitemapDirectoryDotxmlRoute,
   SitemapPagesDotxmlRoute: SitemapPagesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
