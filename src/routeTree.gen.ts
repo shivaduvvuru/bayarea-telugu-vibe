@@ -40,6 +40,7 @@ import { Route as PoliticsRouteImport } from './routes/politics'
 import { Route as PropertyDeskRouteImport } from './routes/property-desk'
 import { Route as PropertyVideosRouteImport } from './routes/property-videos'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapPagesDotxmlRouteImport } from './routes/sitemap-pages[.]xml'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SubmitRouteImport } from './routes/submit'
 import { Route as TempleSourcesRouteImport } from './routes/temple-sources'
@@ -233,6 +234,11 @@ const PropertyVideosRoute = PropertyVideosRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapPagesDotxmlRoute = SitemapPagesDotxmlRouteImport.update({
+  id: '/sitemap-pages.xml',
+  path: '/sitemap-pages.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -475,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -545,6 +552,7 @@ export interface FileRoutesByTo {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -617,6 +625,7 @@ export interface FileRoutesById {
   '/property-desk': typeof PropertyDeskRoute
   '/property-videos': typeof PropertyVideosRoute
   '/search': typeof SearchRoute
+  '/sitemap-pages.xml': typeof SitemapPagesDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/submit': typeof SubmitRoute
   '/temple-sources': typeof TempleSourcesRoute
@@ -691,6 +700,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -761,6 +771,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/property-desk'
     | '/property-videos'
     | '/search'
+    | '/sitemap-pages.xml'
     | '/sitemap.xml'
     | '/submit'
     | '/temple-sources'
@@ -906,6 +918,7 @@ export interface RootRouteChildren {
   PropertyDeskRoute: typeof PropertyDeskRoute
   PropertyVideosRoute: typeof PropertyVideosRoute
   SearchRoute: typeof SearchRoute
+  SitemapPagesDotxmlRoute: typeof SitemapPagesDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SubmitRoute: typeof SubmitRoute
   TempleSourcesRoute: typeof TempleSourcesRoute
@@ -1148,6 +1161,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-pages.xml': {
+      id: '/sitemap-pages.xml'
+      path: '/sitemap-pages.xml'
+      fullPath: '/sitemap-pages.xml'
+      preLoaderRoute: typeof SitemapPagesDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1543,6 +1563,7 @@ const rootRouteChildren: RootRouteChildren = {
   PropertyDeskRoute: PropertyDeskRoute,
   PropertyVideosRoute: PropertyVideosRoute,
   SearchRoute: SearchRoute,
+  SitemapPagesDotxmlRoute: SitemapPagesDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SubmitRoute: SubmitRoute,
   TempleSourcesRoute: TempleSourcesRoute,
