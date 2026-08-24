@@ -149,11 +149,26 @@ const galleryQueryFor = (pocket: number) =>
  */
 const homeStatesQuery = queryOptions({
   queryKey: ["wp", "posts", "india-states", "home"],
-  queryFn: () => listPosts({ data: { category: "india-news", perPage: 40, compact: true } }),
+  // Read the two state desks directly instead of filtering a general India
+  // page: a busy national news day used to push every Telangana/Andhra story
+  // out of the top of that list, leaving this block permanently empty.
+  queryFn: async () => {
+    const desks = ["india-telangana", "india-andhra", "india-news"] as const;
+    const results = await Promise.all(
+      desks.map((category) =>
+        listPosts({ data: { category, perPage: 12, compact: true } }).catch((err) => {
+          console.error(`Home-state news read failed for ${category}:`, err);
+          return [] as Article[];
+        }),
+      ),
+    );
+    return results.flat();
+  },
   staleTime: 5 * 60 * 1000,
   refetchInterval: 15 * 60 * 1000,
   refetchOnWindowFocus: true,
 });
+
 
 /** Community-submitted and editor-published items from the newsroom CMS. */
 const communityQuery = queryOptions({
@@ -602,7 +617,10 @@ function Home() {
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
   const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
-  const { data: indiaStates = [] } = useQuery(homeStatesQuery);
+  const homeStatesRead = useQuery(homeStatesQuery);
+  const indiaStates = homeStatesRead.data ?? [];
+  if (homeStatesRead.error) console.error("Home-state news query failed:", homeStatesRead.error);
+
   const { data: templeFeeds = [] } = useQuery(templeQuery);
   const { data: politicsGroups = [] } = useQuery(politicsQuery);
 
@@ -682,11 +700,17 @@ function Home() {
     const uniqueTemples = takeUnique(templeNews, homepageSeen, 6);
     const uniquePolitics = takeUnique(politics, homepageSeen, 6);
     const uniqueFallbackEvents = takeUnique(events, homepageSeen, 5);
+    // Prefer the two state desks; when neither has anything new, fall back to
+    // the most recent India coverage rather than showing an empty block.
+    const stateStories = indiaStates.filter(
+      (a) => a.category === "india-telangana" || a.category === "india-andhra",
+    );
     const homeStates = takeUnique(
-      indiaStates.filter((a) => a.category === "india-telangana" || a.category === "india-andhra"),
+      stateStories.length ? stateStories : indiaStates,
       homepageSeen,
       8,
     );
+
     // "Happening soon": compact, chronological, utility-first. Upcoming events only
     // (an event drops off after its own day) and each row carries its classified
     // label (Temple / Spiritual, Community Event, FunZone, …).
@@ -882,8 +906,13 @@ function Home() {
             Telangana &amp; Andhra
           </Head>
           {homeStates.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Loading home-state news…</p>
+            <p className="text-sm text-muted-foreground">
+              {homeStatesRead.isLoading
+                ? "Loading home-state news…"
+                : "No new stories yet — check back shortly."}
+            </p>
           ) : (
+
             <div>
               {homeStates.map((a) => (
                 <Row key={a.slug} a={a} />

@@ -1066,6 +1066,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ingest_runs: {
+        Row: {
+          category: string | null
+          error: string | null
+          finished_at: string
+          id: string
+          items_found: number
+          items_inserted: number
+          mode: string
+          run_id: string
+          source: string
+          started_at: string
+          status: string
+          trigger: string
+        }
+        Insert: {
+          category?: string | null
+          error?: string | null
+          finished_at?: string
+          id?: string
+          items_found?: number
+          items_inserted?: number
+          mode: string
+          run_id: string
+          source: string
+          started_at?: string
+          status: string
+          trigger?: string
+        }
+        Update: {
+          category?: string | null
+          error?: string | null
+          finished_at?: string
+          id?: string
+          items_found?: number
+          items_inserted?: number
+          mode?: string
+          run_id?: string
+          source?: string
+          started_at?: string
+          status?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
       photo_likes: {
         Row: {
           likes: number
