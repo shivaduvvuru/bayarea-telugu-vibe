@@ -6,6 +6,7 @@ import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 import { SourceChip } from "@/components/source-credit";
 import { SmartImage } from "@/components/smart-image";
+import masthead from "@/assets/masthead.webp";
 
 
 
