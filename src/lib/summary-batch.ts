@@ -27,6 +27,8 @@ export interface SummaryEntry<G extends { key: string; desk: string }> {
   group: G;
   /** Text handed to the model — headline plus publisher. */
   text: string;
+  /** Publisher name, used only to attribute single-item calls in the guard log. */
+  source?: string;
 }
 
 export interface BatchMetrics {
@@ -45,6 +47,8 @@ export interface BatchMetrics {
   unknownEntries: number;
   /** Entries left on the fallback sentence because every call failed. */
   unresolved: number;
+  /** Publishers that caused single-item calls, for the calls-per-headline guard. */
+  singleItemSources: Record<string, number>;
   retry: RetryStats;
 }
 
@@ -58,18 +62,26 @@ export function newBatchMetrics(): BatchMetrics {
     missingEntries: 0,
     unknownEntries: 0,
     unresolved: 0,
+    singleItemSources: {},
     retry: newRetryStats(),
   };
 }
 
 /** Headlines per batched call. Kept well under the point where quality drops. */
 export const SUMMARY_ITEM_CAP = 25;
-/** Desks combined into one call. Drop to 2 if desks ever get mixed up. */
-export const SUMMARY_GROUP_CAP = 3;
+/**
+ * Desks combined into one call. Unlimited by design: capping desks per call was
+ * the batching regression — every extra source added its own small remainder
+ * call, pushing calls-per-headline up. Item bodies are truncated instead, so a
+ * mixed-desk batch still fits the token budget.
+ */
+export const SUMMARY_GROUP_CAP = Number.POSITIVE_INFINITY;
 /** Batched calls allowed in flight at once — the gateway budget is shared. */
 export const SUMMARY_CONCURRENCY = 2;
+/** Per-headline characters sent to the model, so long-body sources never split a batch. */
+export const SUMMARY_TEXT_CAP = 800;
 
-/** Packs entries into calls of at most SUMMARY_ITEM_CAP items / SUMMARY_GROUP_CAP desks. */
+/** Packs entries into calls of at most SUMMARY_ITEM_CAP items / groupCap desks. */
 export function chunkEntries<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
   itemCap = SUMMARY_ITEM_CAP,
@@ -93,6 +105,28 @@ export function chunkEntries<G extends { key: string; desk: string }>(
   if (current.length) chunks.push(current);
   return chunks;
 }
+
+/** Drops entries whose canonical link or normalized title was already queued. */
+export function dedupeEntries<G extends { key: string; desk: string }>(
+  entries: readonly SummaryEntry<G>[],
+  keysOf: (entry: SummaryEntry<G>) => readonly (string | null | undefined)[],
+): { queue: SummaryEntry<G>[]; aliases: Map<string, string>; dropped: number } {
+  const queue: SummaryEntry<G>[] = [];
+  const seen = new Map<string, string>();
+  const aliases = new Map<string, string>();
+  for (const entry of entries) {
+    const keys = keysOf(entry).filter((k): k is string => !!k);
+    const hit = keys.map((k) => seen.get(k)).find((id) => !!id);
+    if (hit) {
+      aliases.set(entry.id, hit);
+      continue;
+    }
+    queue.push(entry);
+    for (const key of keys) if (!seen.has(key)) seen.set(key, entry.id);
+  }
+  return { queue, aliases, dropped: entries.length - queue.length };
+}
+
 
 /** The prompt for one call. Each item is a self-contained JSON line with its id. */
 export function buildPrompt<G extends { key: string; desk: string }>(
