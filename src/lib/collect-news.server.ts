@@ -687,6 +687,12 @@ const PUBLISHER_FEEDS: {
   { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
   // Telugu cinema trade desks — filed under Cinema, photo-led stories also
   // surface in Gallery.
+  {
+    name: "Telugu Times Cinema",
+    url: "https://www.telugutimes.net/en/cinemas/feed/",
+    kind: "news",
+    limit: 10,
+  },
   { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 6 },
   { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 5 },
   { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 5 },
