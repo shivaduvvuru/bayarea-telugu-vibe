@@ -26,6 +26,8 @@ export type IndiaFeed = {
   fallback: "india-national" | "india-telangana" | "india-andhra" | "india-immigration" | "india-nri";
   limit?: number;
   match?: RegExp;
+  /** Links matching this pattern belong to another desk and are skipped. */
+  skipLink?: RegExp;
 };
 
 /**
@@ -131,6 +133,8 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     url: "https://www.telugutimes.net/en/feed/",
     fallback: "india-national",
     limit: 12,
+    // Cinema/OTT coverage from the same publisher is read by the Cinema desk.
+    skipLink: /\/en\/cinemas\//i,
   },
   {
     name: "Telugu Times Web Stories",
@@ -258,6 +262,7 @@ async function readFeed(feed: IndiaFeed): Promise<Parsed[]> {
   for (const item of items) {
     const hay = `${item.title} ${item.summary}`;
     if (feed.match && !feed.match.test(hay)) continue;
+    if (feed.skipLink?.test(item.link)) continue;
     if (!recent(item.published)) continue;
     const key = urlKey(item.link);
     if (seen.has(key)) continue;
