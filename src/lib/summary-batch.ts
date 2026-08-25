@@ -11,15 +11,15 @@
  *    returned summary is matched back by that id only (never by position), so a
  *    reordered or partial reply can never attach one item's text to another;
  *  - the reply is validated against the exact set of ids that was sent. Any
- *    malformed, missing, empty or unknown entry is reported and re-summarized
- *    one item at a time, so a bad batch degrades into extra calls rather than
- *    wrong or missing summaries.
+ *    malformed, missing, empty or unknown entry is reported and retried safely,
+ *    so a bad batch degrades into controlled retries rather than wrong or
+ *    missing summaries.
  *
  * Deliberately free of network, Supabase and React imports so the ingest tests
  * can drive it with a fake model.
  */
 
-import { mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
+import { isTokenLimit, mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
 
 /** One headline queued for summarization. */
 export interface SummaryEntry<G extends { key: string; desk: string }> {
@@ -231,9 +231,10 @@ export interface RunOptions {
 /**
  * Summarizes every entry, batching where possible.
  *
- * A batch that fails or comes back incomplete is retried once as a batch and
- * then halved — single-item calls only happen when the batch is already one
- * item, which is what keeps calls-per-headline low as sources are added.
+ * A batch that fails from throttling is retried at the same size with backoff;
+ * splitting would multiply calls into the same rate limit. Only token-limit or
+ * malformed/missing JSON responses are halved, and single-item calls only happen
+ * when the reduced batch is already one item.
  */
 export async function runSummaryBatches<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
@@ -265,16 +266,6 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
     const ids = chunk.map((e) => e.id);
     const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
 
-    metrics.calls += 1;
-    if (single) {
-      metrics.fallbackCalls += 1;
-      const source = chunk[0]!.source ?? chunk[0]!.group.desk;
-      metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
-    } else {
-      metrics.batches += 1;
-      metrics.batchedItems += chunk.length;
-    }
-
     const halve = async (list: SummaryEntry<G>[]) => {
       if (list.length === 1) {
         await summarizeChunk(list, `${label}.single`);
@@ -292,6 +283,19 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
         baseMs,
         label: `gemini ${label} (${chunk.length} items)`,
         stats: metrics.retry,
+        onAttempt: () => {
+          metrics.calls += 1;
+          if (single) {
+            metrics.fallbackCalls += 1;
+            const first = chunk[0];
+            if (!first) return;
+            const source = first.source ?? first.group.desk;
+            metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
+          } else {
+            metrics.batches += 1;
+            metrics.batchedItems += chunk.length;
+          }
+        },
         log,
       });
     } catch (error) {
@@ -301,7 +305,8 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
       log(note);
       errors.push(note);
       if (single) metrics.unresolved += 1;
-      else await halve(chunk);
+      else if (isTokenLimit(error)) await halve(chunk);
+      else metrics.unresolved += chunk.length;
       return;
     }
 

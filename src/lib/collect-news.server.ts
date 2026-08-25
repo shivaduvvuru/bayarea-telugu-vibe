@@ -23,6 +23,7 @@ import {
   type SummaryEntry,
 } from "./summary-batch";
 import { recordSummaryRun } from "./summary-metrics.server";
+import { withRetry } from "./retry";
 
 export type CollectedItem = {
   dedupe_key: string;
@@ -369,6 +370,14 @@ export const lastDiag = {
       }
     >,
   },
+  /** Google News health for this run: source sweeps requested vs items returned. */
+  googleNews: {
+    requested: 0,
+    fetched: 0,
+    returned: 0,
+    errors: {} as Record<string, number>,
+    bySource: {} as Record<string, { requested: number; fetched: number; returned: number; errors: Record<string, number> }>,
+  },
   /** Picture-intake funnel for the ingestion dashboard. */
   gallery: {
     discovered: 0,
@@ -379,6 +388,48 @@ export const lastDiag = {
     bySource: {} as Record<string, { discovered: number; candidates: number }>,
   },
 };
+
+function isGoogleNewsFeed(url: string): boolean {
+  try {
+    return new URL(url).hostname === "news.google.com";
+  } catch {
+    return false;
+  }
+}
+
+function googleDiag(label: string) {
+  return (lastDiag.googleNews.bySource[label] ??= { requested: 0, fetched: 0, returned: 0, errors: {} });
+}
+
+function recordGoogleError(label: string, status: string) {
+  lastDiag.googleNews.errors[status] = (lastDiag.googleNews.errors[status] ?? 0) + 1;
+  const stat = googleDiag(label);
+  stat.errors[status] = (stat.errors[status] ?? 0) + 1;
+}
+
+function formatCountMap(counts: Record<string, number>): string {
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, count]) => `${key}:${count}`)
+    .join(", ");
+}
+
+function googleNewsSummaryNote(): string {
+  const errors = formatCountMap(lastDiag.googleNews.errors);
+  const cinema = Object.entries(lastDiag.googleNews.bySource).filter(([name]) => {
+    const feed = PUBLISHER_FEEDS.find((f) => f.name === name);
+    return feed ? isCinemaPublisher(feed) : /cinema|ott|micro|drama|topic:news/i.test(name);
+  });
+  const cinemaRequested = cinema.reduce((sum, [, stat]) => sum + stat.requested, 0);
+  const cinemaFetched = cinema.reduce((sum, [, stat]) => sum + stat.fetched, 0);
+  const cinemaReturned = cinema.reduce((sum, [, stat]) => sum + stat.returned, 0);
+  return (
+    `Google News: ${lastDiag.googleNews.fetched}/${lastDiag.googleNews.requested} feeds succeeded, ` +
+    `${lastDiag.googleNews.returned} items returned` +
+    (errors ? `, errors ${errors}` : "") +
+    `; Cinema/OTT Google sweeps: ${cinemaFetched}/${cinemaRequested} feeds succeeded, ${cinemaReturned} items returned`
+  );
+}
 
 function publisherDiag(name: string) {
   return (lastDiag.publishers.bySource[name] ??= {
@@ -396,26 +447,54 @@ function publisherDiag(name: string) {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-async function fetchFeed(url: string, attempt = 0): Promise<RawItem[] | null> {
+async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<RawItem[] | null> {
+  const google = isGoogleNewsFeed(url);
+  const label = opts.label ?? (google ? "Google News" : new URL(url).host);
+  if (google) {
+    lastDiag.googleNews.requested += 1;
+    googleDiag(label).requested += 1;
+  }
   try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" } });
-    if (!res.ok) {
-      // Google/Bing throttle bursts with 429/503 — back off briefly and retry
-      // instead of losing a whole feed (this used to silently drop the
-      // glamour / picture searches on busy runs).
-      if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
-        return fetchFeed(url, attempt + 1);
-      }
-      if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
-      return null;
-    }
+    const res = await withRetry(
+      async () => {
+        const response = await fetch(url, {
+          headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+        });
+        if (!response.ok) {
+          const error = new Error(`HTTP ${response.status} ${new URL(url).host}`) as Error & {
+            status?: number;
+            headers?: Headers;
+          };
+          error.status = response.status;
+          error.headers = response.headers;
+          throw error;
+        }
+        return response;
+      },
+      {
+        attempts: google ? 4 : 3,
+        baseMs: google ? 1_200 : 800,
+        maxMs: google ? 12_000 : 5_000,
+        label: google ? `Google News ${label}` : label,
+        log: (line) => {
+          if (google || lastDiag.notes.length < 6) console.warn(line);
+        },
+      },
+    );
     const items = parseRss(await res.text());
+    if (google) {
+      lastDiag.googleNews.fetched += 1;
+      lastDiag.googleNews.returned += items.length;
+      const stat = googleDiag(label);
+      stat.fetched += 1;
+      stat.returned += items.length;
+    }
     // Google News wraps the publisher URL; unwrapped links show a Google
     // interstitial instead of the story, so resolve them before storing.
     const map = await resolveGoogleNewsUrls(items.map((i) => i.link));
     return map.size ? items.map((i) => ({ ...i, link: map.get(i.link) ?? i.link })) : items;
   } catch (e) {
+    if (google) recordGoogleError(label, e instanceof Error ? (e.message.match(/\b\d{3}\b/)?.[0] ?? e.message) : String(e));
     if (lastDiag.notes.length < 6)
       lastDiag.notes.push(`${new URL(url).host}: ${e instanceof Error ? e.message : String(e)}`);
     return null;
@@ -437,11 +516,13 @@ async function fetchCity(city: City): Promise<RawItem[]> {
       // the article artwork. Google News is the fallback but hides the real URL.
       let parsed = await fetchFeed(
         `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+        { label: `city:${city.slug}:bing` },
       );
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
             `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+            { label: `city:${city.slug}:google` },
           )) ?? parsed;
       }
       if (!parsed) return [];
@@ -606,11 +687,13 @@ async function fetchTopics(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
         `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+        { label: `topic:${group.kind}:bing` },
       );
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
             `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+            { label: `topic:${group.kind}:google` },
           )) ?? parsed;
       }
       if (!parsed) return [];
@@ -1576,8 +1659,12 @@ async function fetchPublisher(
 ): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
-  const parsed = await fetchFeed(feed.url);
-  if (!parsed?.length) return [];
+  const parsed = await fetchFeed(feed.url, { label: feed.name });
+  if (!parsed?.length) {
+    const errors = formatCountMap(lastDiag.googleNews.bySource[feed.name]?.errors ?? {});
+    if (errors) stat.error = errors;
+    return [];
+  }
   stat.returned += parsed.length;
   lastDiag.fetched += 1;
   lastDiag.raw += parsed.length;
@@ -1785,7 +1872,7 @@ async function fetchCityGuide(entry: {
 }): Promise<RawItem[]> {
   const results = await Promise.all(
     entry.urls.map(async (url) => {
-      const parsed = await fetchFeed(url);
+      const parsed = await fetchFeed(url, { label: entry.label });
       if (!parsed?.length) return [];
       lastDiag.fetched += 1;
       lastDiag.raw += parsed.length;
@@ -1822,10 +1909,12 @@ async function fetchGuideSearch(city: { citySlug: string; name: string }): Promi
   // answers with an empty channel, so it is only the fallback now.
   let parsed = await fetchFeed(
     `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:21d&hl=en-US&gl=US&ceid=US:en`,
+    { label: `guide:${city.citySlug}:google` },
   );
   if (!parsed?.length) {
     parsed = await fetchFeed(
       `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      { label: `guide:${city.citySlug}:bing` },
     );
   }
   if (!parsed?.length) return [];
@@ -1868,10 +1957,12 @@ async function fetchNriEventSearch(city: {
   const q = `"${city.name}" California (Telugu OR Indian OR Hindu OR "South Asian" OR desi) (event OR festival OR concert OR mela OR "cultural program" OR temple OR Diwali OR Ugadi OR Sankranti OR Navratri OR Garba OR Holi OR fundraiser OR "community meet")`;
   let parsed = await fetchFeed(
     `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:30d&hl=en-US&gl=US&ceid=US:en`,
+    { label: `nri-events:${city.citySlug}:google` },
   );
   if (!parsed?.length) {
     parsed = await fetchFeed(
       `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      { label: `nri-events:${city.citySlug}:bing` },
     );
   }
   if (!parsed?.length) return [];
@@ -2088,6 +2179,7 @@ export async function collectAll(
   lastDiag.duplicates = 0;
   lastDiag.notes = [];
   lastDiag.publishers = { selected: [], bySource: {} };
+  lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
   aiUsage.calls = 0;
   aiUsage.itemsSummarized = 0;
   aiUsage.itemsSkipped = 0;
@@ -2433,6 +2525,8 @@ export async function collectAll(
     }
   }
 
+  lastDiag.notes.push(googleNewsSummaryNote());
+
   // Temple coverage stays strictly religious and from reliable/temple sources.
   const templeSafe = rows.filter(
     (r) =>
@@ -2565,6 +2659,7 @@ export async function collectGallery(
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   if (!opts?.keepFunnel) {
+    lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
     lastDiag.gallery = {
       discovered: 0,
       noImage: 0,

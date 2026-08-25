@@ -29,10 +29,71 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Transient by default: rate limits, upstream 5xx, timeouts and network drops. */
 export function isTransient(error: unknown): boolean {
+  const status = statusCodeOf(error);
+  if (status === 429 || (status !== null && status >= 500 && status <= 599)) return true;
   const message = error instanceof Error ? error.message : String(error ?? "");
   return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|temporarily|busy|network|fetch failed|ECONN|socket/i.test(
     message,
   );
+}
+
+/** Best-effort HTTP status extraction for SDK/fetch errors. */
+export function statusCodeOf(error: unknown): number | null {
+  if (!error || typeof error !== "object") return null;
+  const bag = error as {
+    status?: unknown;
+    statusCode?: unknown;
+    code?: unknown;
+    response?: { status?: unknown };
+  };
+  for (const value of [bag.status, bag.statusCode, bag.response?.status, bag.code]) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && /^\d{3}$/.test(value)) return Number(value);
+  }
+  return null;
+}
+
+/** True only for rate-limit failures; callers should retry same-size batches. */
+export function isRateLimit(error: unknown): boolean {
+  if (statusCodeOf(error) === 429) return true;
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /\b429\b|rate.?limit|too many requests/i.test(message);
+}
+
+/** Token/context-size failures are the one case where smaller batches help. */
+export function isTokenLimit(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /token|context|too (?:large|long)|maximum length|max(?:imum)? input|input size|payload too large|\b400\b/i.test(
+    message,
+  );
+}
+
+function headerValue(headers: unknown, name: string): string | null {
+  if (!headers) return null;
+  if (headers instanceof Headers) return headers.get(name);
+  if (typeof headers === "object" && "get" in headers && typeof headers.get === "function") {
+    const value = headers.get(name);
+    return typeof value === "string" ? value : null;
+  }
+  if (typeof headers === "object") {
+    const record = headers as Record<string, unknown>;
+    const exact = record[name] ?? record[name.toLowerCase()] ?? record[name.toUpperCase()];
+    return typeof exact === "string" ? exact : null;
+  }
+  return null;
+}
+
+/** Retry-After in milliseconds, when an SDK/fetch error carries one. */
+export function retryAfterMs(error: unknown): number | null {
+  if (!error || typeof error !== "object") return null;
+  const bag = error as { headers?: unknown; response?: { headers?: unknown } };
+  const raw = headerValue(bag.headers, "retry-after") ?? headerValue(bag.response?.headers, "retry-after");
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(raw);
+  if (Number.isNaN(date)) return null;
+  return Math.max(0, date - Date.now());
 }
 
 export interface RetryOptions {
@@ -49,6 +110,8 @@ export interface RetryOptions {
   retryable?: (error: unknown) => boolean;
   /** Seconds the caller must wait, when the failure carries a Retry-After. */
   retryAfterMs?: (error: unknown) => number | null;
+  /** Called before every actual attempt, including retries. */
+  onAttempt?: (attempt: number) => void;
   log?: (line: string) => void;
 }
 
@@ -67,11 +130,12 @@ export async function withRetry<T>(task: () => Promise<T>, opts: RetryOptions = 
   let lastError: unknown;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
+      opts.onAttempt?.(attempt);
       return await task();
     } catch (error) {
       lastError = error;
       if (attempt === attempts || !retryable(error)) break;
-      const hinted = opts.retryAfterMs?.(error) ?? null;
+      const hinted = opts.retryAfterMs?.(error) ?? retryAfterMs(error);
       const backoff = Math.min(maxMs, baseMs * 2 ** (attempt - 1));
       const wait = Math.round(hinted ?? backoff * (0.7 + Math.random() * 0.6));
       if (opts.stats) {
@@ -112,7 +176,9 @@ export async function mapWithLimit<T, R>(
     for (;;) {
       const index = cursor++;
       if (index >= items.length) return;
-      out[index] = await task(items[index]!, index);
+      const item = items[index];
+      if (typeof item === "undefined") return;
+      out[index] = await task(item, index);
     }
   });
   await Promise.all(workers);

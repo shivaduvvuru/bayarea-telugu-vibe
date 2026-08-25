@@ -620,12 +620,13 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               deskPictures: rows.filter((r) => isPicture(r as unknown as Record<string, unknown>))
                 .length,
               publishers: lastDiag.publishers,
+              googleNews: lastDiag.googleNews,
               notes: lastDiag.notes,
             },
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length, googleNews: lastDiag.googleNews }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);
