@@ -619,6 +619,8 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               duplicatesRemoved: beforeDuplicateFilter - rows.length,
               deskPictures: rows.filter((r) => isPicture(r as unknown as Record<string, unknown>))
                 .length,
+              publishers: lastDiag.publishers,
+              notes: lastDiag.notes,
             },
             ok: true,
             finished_at: finishedAt,

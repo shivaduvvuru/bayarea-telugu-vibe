@@ -33,9 +33,7 @@ export function deskRowToIngest(row: Row): IngestRow {
   // editorial quality decision, so keep those picks in Glamour even when a
   // generic headline does not satisfy the automatic classifier.
   const pictureDesk = itemId.startsWith("gal-");
-  const gallery =
-    kind === "news" && !firstParty && !!image &&
-    (pictureDesk || isStarGallery(title, summary, linkUrl));
+  const gallery = kind === "news" && !firstParty && !!image && pictureDesk && isStarGallery(title, summary, linkUrl);
   const micro = !gallery && kind === "news" && !firstParty && isMicroDrama(title, summary, linkUrl);
   const cinema = !gallery && !micro && kind === "news" && !firstParty && isCinema(title, summary, linkUrl);
   const indiaSlug =
