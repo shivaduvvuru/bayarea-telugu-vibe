@@ -1295,6 +1295,194 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 5,
   },
+
+  // ── Master media-monitoring list: established cinema / OTT / micro-drama
+  // desks across Telugu, Malayalam, Tamil, Hindi, Hollywood, Korean and
+  // Chinese entertainment. Direct RSS where the publisher offers one, Google
+  // News site: sweeps otherwise. Feeds rotate per run, so breadth here costs
+  // nothing extra per collection cycle.
+
+  // Tollywood — Telugu cinema, OTT and box office
+  { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 5 },
+  {
+    name: "CineJosh & Tollywood.net",
+    url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Idlebrain (search)",
+    url: "https://news.google.com/rss/search?q=site:idlebrain.com+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 5,
+  },
+  {
+    name: "TrackTollywood box office",
+    url: "https://news.google.com/rss/search?q=site:tracktollywood.com+OR+site:andhraboxoffice.com+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "IndiaGlitz Telugu",
+    url: "https://news.google.com/rss/search?q=site:indiaglitz.com+telugu+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Sakshi & Eenadu cinema",
+    url: "https://news.google.com/rss/search?q=(site:sakshi.com+OR+site:eenadu.net)+(cinema+OR+%E0%B0%B8%E0%B0%BF%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BE)+when:3d&hl=te&gl=IN&ceid=IN:te",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Cinema Express South",
+    url: "https://news.google.com/rss/search?q=site:cinemaexpress.com+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // OTT / streaming specialists
+  {
+    name: "OTTplay releases",
+    url: "https://news.google.com/rss/search?q=site:ottplay.com+(release+OR+streaming+OR+review+OR+%22OTT%22)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Binged OTT releases",
+    url: "https://news.google.com/rss/search?q=site:binged.com+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "What's on Netflix",
+    url: "https://www.whats-on-netflix.com/feed/",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Kerala TV OTT calendar",
+    url: "https://news.google.com/rss/search?q=site:keralatv.in+(OTT+OR+release+OR+streaming)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // Mollywood — Malayalam cinema
+  {
+    name: "Onmanorama entertainment",
+    url: "https://news.google.com/rss/search?q=site:onmanorama.com+entertainment+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Mathrubhumi & The Cue movies",
+    url: "https://news.google.com/rss/search?q=(site:mathrubhumi.com+OR+site:thecue.in)+(movie+OR+cinema+OR+film)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // Bollywood / Hindi entertainment and box office
+  
+  {
+    name: "Filmfare & Koimoi",
+    url: "https://news.google.com/rss/search?q=(site:filmfare.com+OR+site:koimoi.com)+when:2d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Box office trackers",
+    url: "https://news.google.com/rss/search?q=(site:sacnilk.com+OR+site:boxofficeindia.com)+(box+office+OR+collection)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "PeepingMoon & Bollywood Life",
+    url: "https://news.google.com/rss/search?q=(site:peepingmoon.com+OR+site:bollywoodlife.com)+when:2d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // Hollywood / global trades
+  { name: "Variety", url: "https://variety.com/feed/", kind: "news", limit: 6 },
+  { name: "Deadline", url: "https://deadline.com/feed/", kind: "news", limit: 6 },
+  {
+    name: "The Hollywood Reporter",
+    url: "https://www.hollywoodreporter.com/feed/",
+    kind: "news",
+    limit: 6,
+  },
+  { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 5 },
+  { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 5 },
+  {
+    // Screen Daily and Collider block direct RSS reads, so both come through
+    // Google News site: sweeps instead.
+    name: "Screen Daily & Collider",
+    url: "https://news.google.com/rss/search?q=(site:screendaily.com+OR+site:collider.com)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // Korean — K-drama, K-film, OTT
+  { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 8 },
+  {
+    name: "Korea entertainment dailies",
+    url: "https://news.google.com/rss/search?q=(site:koreajoongangdaily.joins.com+OR+site:koreaherald.com+OR+site:koreatimes.co.kr)+(drama+OR+film+OR+entertainment)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "KoBiz Korean film",
+    url: "https://news.google.com/rss/search?q=(site:koreanfilm.or.kr+OR+%22Korean+Film+Council%22)+(box+office+OR+film+OR+industry)+when:14d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 5,
+  },
+  {
+    name: "K-drama trackers",
+    url: "https://news.google.com/rss/search?q=(site:mydramalist.com+OR+site:hancinema.net+OR+site:dramabeans.com)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+
+  // Chinese — C-drama, film, micro-drama industry
+  {
+    name: "China entertainment (English)",
+    url: "https://news.google.com/rss/search?q=(site:chinadaily.com.cn+OR+site:sixthtone.com+OR+site:scmp.com+OR+site:chinafilminsider.com)+(film+OR+drama+OR+entertainment+OR+%22short+drama%22)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "China box office & platforms",
+    url: "https://news.google.com/rss/search?q=(Maoyan+OR+Douban+OR+iQiyi+OR+Youku+OR+%22Mango+TV%22+OR+Tencent+Video+OR+Bilibili)+(drama+OR+film+OR+box+office+OR+series)+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Hongguo & Douyin short drama",
+    url: "https://news.google.com/rss/search?q=(Hongguo+OR+Douyin+OR+Kuaishou+OR+%22WeChat+Channels%22)+(%22short+drama%22+OR+duanju+OR+%22micro+drama%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 8,
+  },
+
+  // Global micro-drama / vertical-series apps and their trade coverage
+  {
+    name: "Vertical drama apps wire",
+    url: "https://news.google.com/rss/search?q=(ReelShort+OR+DramaBox+OR+GoodShort+OR+ShortMax+OR+FlexTV+OR+NetShort+OR+MoboReels+OR+TopShort+OR+DreameShort+OR+Melolo+OR+%22My+Drama%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "Micro-drama business desks",
+    url: "https://news.google.com/rss/search?q=(site:tubefilter.com+OR+site:digiday.com+OR+site:variety.com+OR+site:deadline.com+OR+site:hollywoodreporter.com+OR+site:sensortower.com)+(%22short+drama%22+OR+%22micro+drama%22+OR+%22microdrama%22+OR+duanju+OR+%22vertical+series%22)+when:30d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 10,
+  },
+  {
+    name: "India micro-drama trade desks",
+    url: "https://news.google.com/rss/search?q=(site:medianama.com+OR+site:exchange4media.com+OR+site:afaqs.com+OR+site:mediabrief.com+OR+site:indiantelevision.com)+(%22short+drama%22+OR+%22micro+drama%22+OR+%22vertical+video%22+OR+OTT)+when:30d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 8,
+  },
+
   // Telugu-language cinema and star coverage (Telugu script headlines).
   {
     name: "తెలుగు సినిమా",
@@ -2204,6 +2392,7 @@ const GALLERY_FEED_NAMES = [
   "Micro-drama stars (Bing)",
 
 
+  "Soompi",
   "Instagram photo dumps",
   "Social media buzz",
   "Star photo stories",
