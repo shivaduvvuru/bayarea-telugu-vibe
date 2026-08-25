@@ -266,15 +266,6 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
     const ids = chunk.map((e) => e.id);
     const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
 
-    if (single) {
-      metrics.fallbackCalls += 1;
-      const source = chunk[0]!.source ?? chunk[0]!.group.desk;
-      metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
-    } else {
-      metrics.batches += 1;
-      metrics.batchedItems += chunk.length;
-    }
-
     const halve = async (list: SummaryEntry<G>[]) => {
       if (list.length === 1) {
         await summarizeChunk(list, `${label}.single`);
@@ -294,6 +285,14 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
         stats: metrics.retry,
         onAttempt: () => {
           metrics.calls += 1;
+          if (single) {
+            metrics.fallbackCalls += 1;
+            const source = chunk[0]!.source ?? chunk[0]!.group.desk;
+            metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
+          } else {
+            metrics.batches += 1;
+            metrics.batchedItems += chunk.length;
+          }
         },
         log,
       });
