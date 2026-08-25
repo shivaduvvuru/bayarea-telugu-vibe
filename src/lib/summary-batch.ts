@@ -47,6 +47,8 @@ export interface BatchMetrics {
   unknownEntries: number;
   /** Entries left on the fallback sentence because every call failed. */
   unresolved: number;
+  /** Items sent inside multi-item calls — the divisor for average batch size. */
+  batchedItems: number;
   /** Publishers that caused single-item calls, for the calls-per-headline guard. */
   singleItemSources: Record<string, number>;
   retry: RetryStats;
@@ -62,6 +64,7 @@ export function newBatchMetrics(): BatchMetrics {
     missingEntries: 0,
     unknownEntries: 0,
     unresolved: 0,
+    batchedItems: 0,
     singleItemSources: {},
     retry: newRetryStats(),
   };
@@ -245,6 +248,10 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
 
   const chunks = chunkEntries(entries, opts.itemCap ?? SUMMARY_ITEM_CAP, opts.groupCap ?? SUMMARY_GROUP_CAP);
 
+  // Counted once per distinct headline, never again on a retry or a split, so
+  // calls-per-headline stays comparable across runs.
+  metrics.itemsSummarized += entries.length;
+
   const attempts = opts.attempts ?? 3;
   const baseMs = opts.baseMs ?? 800;
 
@@ -259,13 +266,13 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
     const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
 
     metrics.calls += 1;
-    metrics.itemsSummarized += chunk.length;
     if (single) {
       metrics.fallbackCalls += 1;
       const source = chunk[0]!.source ?? chunk[0]!.group.desk;
       metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
     } else {
       metrics.batches += 1;
+      metrics.batchedItems += chunk.length;
     }
 
     const halve = async (list: SummaryEntry<G>[]) => {
@@ -355,7 +362,7 @@ export function topSingleCallSources(m: BatchMetrics, limit = 5): { source: stri
 /** Average items per batched call — the headline number on the admin panel. */
 export function averageBatchSize(m: BatchMetrics): number {
   if (!m.batches) return 0;
-  return Math.round((m.itemsSummarized / m.batches) * 10) / 10;
+  return Math.round((m.batchedItems / m.batches) * 10) / 10;
 }
 
 /**
