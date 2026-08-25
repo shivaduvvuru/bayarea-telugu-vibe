@@ -291,7 +291,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // Clear the historic backlog in bounded batches: unverified rows already
           // sitting in the desk are screened and non-solo photos are deleted.
           const { sweepIntakeToSoloWomen } = await import("@/lib/picture-solo-sweep.server");
-          const soloSweep = galleryOnly
+          const intakeSoloSweep = galleryOnly
             ? await sweepIntakeToSoloWomen(40)
             : { screened: 0, kept: 0, deleted: 0, undecided: 0 };
           const pictureFunnel = {
@@ -305,7 +305,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             safetyBlocked: blocked.length,
             reasons: rejectReasons,
             bySource: lastDiagSnapshot().gallery.bySource,
-            soloSweep,
+            soloSweep: intakeSoloSweep,
             toDesk: picturePool.length,
           };
 
