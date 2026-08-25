@@ -26,6 +26,8 @@ export type IndiaFeed = {
   fallback: "india-national" | "india-telangana" | "india-andhra" | "india-immigration" | "india-nri";
   limit?: number;
   match?: RegExp;
+  /** Links matching this pattern belong to another desk and are skipped. */
+  skipLink?: RegExp;
 };
 
 /**
