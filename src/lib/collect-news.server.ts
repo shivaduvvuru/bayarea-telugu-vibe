@@ -2085,13 +2085,8 @@ export async function collectAll(
    * summarization runs at the end and patches the rows in place.
    */
   const summaryPool: SummaryGroup[] = [];
-  const summaryPatches: { key: string; index: number; row: CollectedItem }[] = [];
   const queueSummaries = (groups: { key: string; city: City; items: RawItem[] }[]) => {
     for (const g of groups) summaryPool.push({ key: g.key, city: g.city, items: g.items });
-  };
-  const registerRows = (key: string, built: CollectedItem[]) => {
-    built.forEach((row, index) => summaryPatches.push({ key, index, row }));
-    return built;
   };
 
 
@@ -2396,6 +2391,29 @@ export async function collectAll(
   }
 
 
+
+  // One batched summarization for every pass in this run. Rows carry an empty
+  // summary until this point; they are matched back by dedupe key, which is how
+  // each pass already identifies its own items.
+  if (summaryPool.length) {
+    const pooledSummaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
+    const byKey = new Map<string, string>();
+    for (const g of summaryPool) {
+      const list = pooledSummaries.get(g.key) ?? [];
+      g.items.forEach((item, index) => {
+        const summary = list[index];
+        const key = keyFor(g.city.slug, item.title);
+        if (summary && !byKey.has(key)) byKey.set(key, summary);
+      });
+    }
+    for (const row of rows) {
+      if (row.summary) continue;
+      const summary = byKey.get(row.dedupe_key);
+      if (!summary) continue;
+      row.summary = summary;
+      (row.payload as { summary?: string }).summary = summary;
+    }
+  }
 
   // Temple coverage stays strictly religious and from reliable/temple sources.
   const templeSafe = rows.filter(
