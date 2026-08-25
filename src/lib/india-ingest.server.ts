@@ -125,6 +125,19 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     fallback: "india-nri",
     limit: 8,
   },
+  // Telugu Times network — English desk and the picture-led web stories.
+  {
+    name: "Telugu Times (English)",
+    url: "https://www.telugutimes.net/en/feed/",
+    fallback: "india-national",
+    limit: 12,
+  },
+  {
+    name: "Telugu Times Web Stories",
+    url: "https://www.telugutimes.net/web-stories/feed/",
+    fallback: "india-national",
+    limit: 8,
+  },
   {
     name: "New India Abroad",
     url: "https://news.google.com/rss/search?q=site%3Anewindiaabroad.com+when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
