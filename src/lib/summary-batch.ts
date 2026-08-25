@@ -266,7 +266,6 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
     const ids = chunk.map((e) => e.id);
     const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
 
-    metrics.calls += 1;
     if (single) {
       metrics.fallbackCalls += 1;
       const source = chunk[0]!.source ?? chunk[0]!.group.desk;
@@ -293,6 +292,9 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
         baseMs,
         label: `gemini ${label} (${chunk.length} items)`,
         stats: metrics.retry,
+        onAttempt: () => {
+          metrics.calls += 1;
+        },
         log,
       });
     } catch (error) {

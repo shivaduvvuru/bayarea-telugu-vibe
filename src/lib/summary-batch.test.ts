@@ -183,6 +183,47 @@ describe("runSummaryBatches", () => {
     expect(callsPerHeadline(metrics)).toBeLessThan(0.35);
   });
 
+  it("does not split a throttled batch into more calls", async () => {
+    const big = Array.from({ length: 8 }, (_, i) => entry(`r#${i}`, "Cinema", `headline ${i}`));
+    const metrics = newBatchMetrics();
+    const sizes: number[] = [];
+    const { summaries } = await runSummaryBatches(
+      big,
+      async (prompt) => {
+        sizes.push([...prompt.matchAll(/\{"id": "([^"<]+)"/g)].length);
+        throw new Error("429 rate limit");
+      },
+      { metrics, baseMs: 1, attempts: 3, log: () => {} },
+    );
+
+    expect(sizes).toEqual([8, 8, 8]);
+    expect(metrics.calls).toBe(3);
+    expect(metrics.retry.retries).toBe(2);
+    expect(metrics.fallbackCalls).toBe(0);
+    expect(metrics.unresolved).toBe(8);
+    expect(summaries.size).toBe(0);
+  });
+
+  it("halves token-limit failures because smaller batches can fit", async () => {
+    const big = Array.from({ length: 8 }, (_, i) => entry(`t#${i}`, "Cinema", `headline ${i}`));
+    const metrics = newBatchMetrics();
+    const sizes: number[] = [];
+    const { summaries } = await runSummaryBatches(
+      big,
+      async (prompt) => {
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
+        sizes.push(ids.length);
+        if (ids.length > 4) throw new Error("400 token limit exceeded");
+        return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
+      },
+      { metrics, baseMs: 1, attempts: 2, log: () => {} },
+    );
+
+    expect(sizes).toEqual([8, 4, 4]);
+    expect(metrics.fallbackCalls).toBe(0);
+    expect(summaries.size).toBe(8);
+  });
+
   it("attributes single-item calls to their publisher", async () => {
     const metrics = newBatchMetrics();
     await runSummaryBatches(
@@ -241,6 +282,7 @@ describe("runSummaryBatches", () => {
       { metrics, baseMs: 1, log: () => {} },
     );
     expect(attempts).toBe(2);
+    expect(metrics.calls).toBe(2);
     expect(metrics.retry.retries).toBe(1);
     expect(summaries.size).toBe(1);
   });

@@ -110,6 +110,8 @@ export interface RetryOptions {
   retryable?: (error: unknown) => boolean;
   /** Seconds the caller must wait, when the failure carries a Retry-After. */
   retryAfterMs?: (error: unknown) => number | null;
+  /** Called before every actual attempt, including retries. */
+  onAttempt?: (attempt: number) => void;
   log?: (line: string) => void;
 }
 
@@ -128,6 +130,7 @@ export async function withRetry<T>(task: () => Promise<T>, opts: RetryOptions = 
   let lastError: unknown;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
+      opts.onAttempt?.(attempt);
       return await task();
     } catch (error) {
       lastError = error;
