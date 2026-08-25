@@ -1403,8 +1403,14 @@ const PUBLISHER_FEEDS: {
   },
   { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 5 },
   { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 5 },
-  { name: "Screen Daily", url: "https://www.screendaily.com/feeds/rss/news", kind: "news", limit: 5 },
-  { name: "Collider", url: "https://collider.com/feed/", kind: "news", limit: 5 },
+  {
+    // Screen Daily and Collider block direct RSS reads, so both come through
+    // Google News site: sweeps instead.
+    name: "Screen Daily & Collider",
+    url: "https://news.google.com/rss/search?q=(site:screendaily.com+OR+site:collider.com)+when:3d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
 
   // Korean — K-drama, K-film, OTT
   { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 8 },
