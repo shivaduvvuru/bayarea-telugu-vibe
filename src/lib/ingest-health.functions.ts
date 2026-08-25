@@ -53,3 +53,13 @@ export const runAuditNow = createServerFn({ method: "POST" })
     const result = await runDailyAudit();
     return { notified: result.notified, retried: result.retried, issues: result.report.issues };
   });
+
+/** Staff-only diagnostics for the batched Gemini summary calls. */
+export const getSummaryDiagnostics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertStaff } = await import("@/lib/cms.server");
+    await assertStaff(context.supabase, context.userId);
+    const { summaryDiagnostics } = await import("@/lib/summary-metrics.server");
+    return summaryDiagnostics();
+  });

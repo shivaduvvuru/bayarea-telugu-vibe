@@ -9,6 +9,7 @@ import {
   sendTestAlert,
 } from "@/lib/ingest-health.functions";
 import { Button } from "@/components/ui/button";
+import { SummaryDiagnosticsPanel } from "@/components/summary-diagnostics-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/health")({
   head: () => ({
@@ -213,6 +214,8 @@ function IngestHealthPage() {
               ))}
             </ul>
           </section>
+
+          <SummaryDiagnosticsPanel />
 
           <p className="mt-8 text-xs text-muted-foreground">
             Checked {new Date(report.checkedAt).toLocaleString()}
