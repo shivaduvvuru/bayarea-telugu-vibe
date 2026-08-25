@@ -67,6 +67,7 @@ import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as TemplesCalendarRouteImport } from './routes/temples.calendar'
 import { Route as TemplesNewsRouteImport } from './routes/temples.news'
+import { Route as AuthenticatedAdminDuplicatesRouteImport } from './routes/_authenticated/admin.duplicates'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as FoodCollectionSlugRouteImport } from './routes/food.collection.$slug'
@@ -376,6 +377,12 @@ const TemplesNewsRoute = TemplesNewsRouteImport.update({
   path: '/news',
   getParentRoute: () => TemplesRoute,
 } as any)
+const AuthenticatedAdminDuplicatesRoute =
+  AuthenticatedAdminDuplicatesRouteImport.update({
+    id: '/duplicates',
+    path: '/duplicates',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminHealthRoute =
   AuthenticatedAdminHealthRouteImport.update({
     id: '/health',
@@ -541,6 +548,7 @@ export interface FileRoutesByFullPath {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
@@ -615,6 +623,7 @@ export interface FileRoutesByTo {
   '/forums': typeof ForumsIndexRoute
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
+  '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
@@ -695,6 +704,7 @@ export interface FileRoutesById {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/_authenticated/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
@@ -775,6 +785,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/admin/duplicates'
     | '/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
@@ -849,6 +860,7 @@ export interface FileRouteTypes {
     | '/forums'
     | '/property'
     | '/temples'
+    | '/admin/duplicates'
     | '/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
@@ -928,6 +940,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/_authenticated/admin/duplicates'
     | '/_authenticated/admin/health'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
@@ -1419,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplesNewsRouteImport
       parentRoute: typeof TemplesRoute
     }
+    '/_authenticated/admin/duplicates': {
+      id: '/_authenticated/admin/duplicates'
+      path: '/duplicates'
+      fullPath: '/admin/duplicates'
+      preLoaderRoute: typeof AuthenticatedAdminDuplicatesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/health': {
       id: '/_authenticated/admin/health'
       path: '/health'
@@ -1556,10 +1576,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDuplicatesRoute: typeof AuthenticatedAdminDuplicatesRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDuplicatesRoute: AuthenticatedAdminDuplicatesRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
 }
 
