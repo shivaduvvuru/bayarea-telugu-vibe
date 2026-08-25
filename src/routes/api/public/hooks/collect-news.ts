@@ -231,11 +231,27 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             screenable,
             process.env["LOVABLE_API_KEY"],
           );
+          // Glamour intake is single-woman only, so a safety pass is not enough:
+          // every cleared photo is also counted and anything with more than one
+          // person is blocked instead of reaching the review desk.
+          const { countPeopleInPhotos } = await import("@/lib/photo-subject.server");
+          const cleared = screenable.filter(
+            (s) => verification.accepted.has(s.id) && !verification.unchecked.has(s.id),
+          );
+          const peopleCounts = await countPeopleInPhotos(cleared, process.env["LOVABLE_API_KEY"]);
+          const soloIds = new Set(cleared.filter((s) => peopleCounts.get(s.id) === 1).map((s) => s.id));
+          const groupIds = new Set(
+            cleared.filter((s) => (peopleCounts.get(s.id) ?? 1) > 1).map((s) => s.id),
+          );
 
-          const blocked = picturePool.filter((row) => verification.rejected.has(row.item_id));
+          const blocked = picturePool.filter(
+            (row) => verification.rejected.has(row.item_id) || groupIds.has(row.item_id),
+          );
           const rejectReasons: Record<string, number> = {};
           for (const row of blocked) {
-            const reason = verification.reasons.get(row.item_id) ?? "no_primary_woman";
+            const reason = groupIds.has(row.item_id)
+              ? "group_photo"
+              : (verification.reasons.get(row.item_id) ?? "no_primary_woman");
             rejectReasons[reason] = (rejectReasons[reason] ?? 0) + 1;
           }
           if (blocked.length) {
@@ -246,24 +262,38 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
                   .update({
                     stage: "safety_blocked",
                     screening_state: "blocked",
-                    safety_reason: verification.reasons.get(row.item_id) ?? "no_primary_woman",
+                    safety_reason: groupIds.has(row.item_id)
+                      ? "group_photo"
+                      : (verification.reasons.get(row.item_id) ?? "no_primary_woman"),
                   } as never)
                   .eq("item_id", row.item_id),
               ),
             );
           }
+          // Only confirmed single-woman photos are stamped as ready for review;
+          // anything unjudged stays unverified and is retried on a later pass.
+          if (soloIds.size) {
+            await supabaseAdmin
+              .from("picture_intake")
+              .update({ screening_state: "passed", safety_reason: null } as never)
+              .in("item_id", [...soloIds]);
+          }
           picturePool = picturePool
-            .filter((row) => verification.accepted.has(row.item_id))
+            .filter((row) => soloIds.has(row.item_id))
             .map((row) => ({
               ...row,
               payload: {
                 ...row.payload,
                 review_type: "picture",
-                ...(verification.unchecked.has(row.item_id)
-                  ? {}
-                  : { solo_verified: "screened-v3" }),
+                solo_verified: "screened-v4",
               },
             }));
+          // Clear the historic backlog in bounded batches: unverified rows already
+          // sitting in the desk are screened and non-solo photos are deleted.
+          const { sweepIntakeToSoloWomen } = await import("@/lib/picture-solo-sweep.server");
+          const soloSweep = galleryOnly
+            ? await sweepIntakeToSoloWomen(40)
+            : { screened: 0, kept: 0, deleted: 0, undecided: 0 };
           const pictureFunnel = {
             discovered: lastDiagSnapshot().gallery.discovered,
             noImage: lastDiagSnapshot().gallery.noImage,
@@ -271,12 +301,14 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             hardNews: lastDiagSnapshot().gallery.hardNews,
             candidates: discoveredPictures,
             screened: screenable.length - verification.unchecked.size,
-            unscreenedPassed: verification.unchecked.size,
+            unscreenedPassed: 0,
             safetyBlocked: blocked.length,
             reasons: rejectReasons,
             bySource: lastDiagSnapshot().gallery.bySource,
+            soloSweep,
             toDesk: picturePool.length,
           };
+
           const collected = dedupeCollected([...newsPool, ...picturePool]);
 
 
