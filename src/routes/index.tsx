@@ -545,12 +545,20 @@ function GlamourGrid({ pocket }: { pocket: number }) {
 
   const tiles = useMemo(() => {
     const fillCount = Math.max(0, 6 - pinned.length);
-    const start = rotatable.length ? (galleryPage * fillCount) % rotatable.length : 0;
+    // Newest approvals always lead the folder (first in, first shown). Only the
+    // remaining tiles rotate, so an editor's latest approvals are visible
+    // straight away instead of waiting for the rotation to reach them.
+    const lead = rotatable.slice(0, Math.min(2, fillCount));
+    const tail = rotatable.slice(lead.length);
+    const rotateCount = Math.max(0, fillCount - lead.length);
+    const start = tail.length && rotateCount ? (galleryPage * rotateCount) % tail.length : 0;
     return [
       ...pinned,
-      ...[...rotatable.slice(start), ...rotatable.slice(0, start)].slice(0, fillCount),
+      ...lead,
+      ...[...tail.slice(start), ...tail.slice(0, start)].slice(0, rotateCount),
     ];
   }, [pinned, rotatable, galleryPage]);
+
 
   return (
     <>
