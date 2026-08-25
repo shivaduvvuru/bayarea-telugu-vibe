@@ -15,7 +15,8 @@ const MICRO_TEXT =
   /micro[- ]?drama|micro[- ]?dramas|microdrama|mini[- ]?drama|short[- ]?drama|vertical (?:drama|series|video series|micro)|snap[- ]?drama|quick[- ]?drama|\breelshort\b|\bdramabox\b|\bflickreels\b|dramawave|goodshort|shortmax|moboreels|flickreels|holywater|my drama|\bkalos\b|melolo|pocket ?fm|kuku ?fm|flick ?tv|chai shots|bullet ?drama|duanju|短剧|숏드라마|세로드라마|vigloo|topreels|goodshort|fatafat|sharechat drama|మైక్రో డ్రామా|షార్ట్ డ్రామా/i;
 
 /** Publishers and trade desks that cover the short-vertical business. */
-const MICRO_HOSTS = /reelshort|dramabox|flickreels|flicktv|holywater|micro-?drama/i;
+const MICRO_HOSTS =
+  /reelshort|dramabox|flickreels|flicktv|holywater|micro-?drama|short-?drama|goodshort|shortmax|flextv|netshort|moboreels|topshort|dreameshort|melolo|vigloo|hongguo|duanju|dataeye|tubefilter/i;
 
 /**
  * Artist cues: the desk also carries the women who front these verticals in the
