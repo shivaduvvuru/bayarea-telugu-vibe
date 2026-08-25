@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildPrompt,
   chunkEntries,
+  callsPerHeadline,
+  dedupeEntries,
+  topSingleCallSources,
   newBatchMetrics,
   runSummaryBatches,
   validateBatchResponse,
@@ -44,14 +47,29 @@ function echoModel(opts: { drop?: string[]; extra?: boolean; garbage?: boolean }
 }
 
 describe("chunkEntries", () => {
-  it("caps items and desks per call", () => {
+  it("caps items per call", () => {
     const many = Array.from({ length: 30 }, (_, i) => entry(`a#${i}`, "San Jose", `t${i}`));
     expect(chunkEntries(many).map((c) => c.length)).toEqual([25, 5]);
+  });
 
-    const desks = ["a", "b", "c", "d"].map((d) => entry(`${d}#0`, d, d));
-    const chunks = chunkEntries(desks);
-    expect(chunks).toHaveLength(2);
-    expect(new Set(chunks[0]!.map((e) => e.group.desk)).size).toBe(3);
+  it("never splits a call just because desks differ", () => {
+    // The regression: one call per source group. Many desks now share one call.
+    const desks = Array.from({ length: 12 }, (_, i) => entry(`d${i}#0`, `desk-${i}`, `t${i}`));
+    expect(chunkEntries(desks)).toHaveLength(1);
+  });
+});
+
+describe("dedupeEntries", () => {
+  it("keeps one copy of a story that arrived from several feeds", () => {
+    const rows = [
+      { id: "a", url: "https://x.com/story", title: "Same Story" },
+      { id: "b", url: "https://x.com/story?utm_source=rss", title: "Same story" },
+      { id: "c", url: "https://y.com/other", title: "Other story" },
+    ];
+    const { queue, aliases, dropped } = dedupeEntries(rows, (r) => [r.url.split("?")[0], r.title.toLowerCase()]);
+    expect(queue.map((r) => r.id)).toEqual(["a", "c"]);
+    expect(aliases.get("b")).toBe("a");
+    expect(dropped).toBe(1);
   });
 });
 
@@ -137,6 +155,50 @@ describe("runSummaryBatches", () => {
     await runSummaryBatches([], idle.call, { metrics: empty });
     expect(idle.prompts).toHaveLength(0);
     expect(empty.calls).toBe(0);
+  });
+
+  it("halves a partly failed batch instead of going straight to singles", async () => {
+    const big = Array.from({ length: 8 }, (_, i) => entry(`x#${i}`, "San Jose", `headline ${i}`));
+    const metrics = newBatchMetrics();
+    let calls = 0;
+    const sizes: number[] = [];
+    await runSummaryBatches(
+      big,
+      async (prompt) => {
+        const ids = [...prompt.matchAll(/\{"id": "([^"]+)"/g)].map((m) => m[1]!);
+        sizes.push(ids.length);
+        calls += 1;
+        // The first call returns nothing usable; every later call is fine.
+        if (calls === 1) return "not json";
+        return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
+      },
+      { metrics, baseMs: 1, log: () => {} },
+    );
+    expect(sizes[0]).toBe(8);
+    // Retried as one batch first, and never as eight single-item calls.
+    expect(sizes[1]).toBe(8);
+    expect(metrics.fallbackCalls).toBe(0);
+    // Every headline counted once, no matter how many calls it took.
+    expect(metrics.itemsSummarized).toBe(8);
+    expect(callsPerHeadline(metrics)).toBeLessThan(0.35);
+  });
+
+  it("attributes single-item calls to their publisher", async () => {
+    const metrics = newBatchMetrics();
+    await runSummaryBatches(
+      [
+        { ...entry("p#0", "San Jose", "one (Variety)"), source: "Variety" },
+        { ...entry("p#1", "San Jose", "two (Deadline)"), source: "Deadline" },
+      ],
+      async (prompt) => {
+        const ids = [...prompt.matchAll(/\{"id": "([^"]+)"/g)].map((m) => m[1]!);
+        if (ids.length > 1) return "not json";
+        return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
+      },
+      { metrics, baseMs: 1, log: () => {} },
+    );
+    expect(metrics.fallbackCalls).toBe(2);
+    expect(topSingleCallSources(metrics).map((s) => s.source).sort()).toEqual(["Deadline", "Variety"]);
   });
 
   it("fails over to per-item calls for dropped entries", async () => {
