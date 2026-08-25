@@ -407,6 +407,30 @@ function recordGoogleError(label: string, status: string) {
   stat.errors[status] = (stat.errors[status] ?? 0) + 1;
 }
 
+function formatCountMap(counts: Record<string, number>): string {
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, count]) => `${key}:${count}`)
+    .join(", ");
+}
+
+function googleNewsSummaryNote(): string {
+  const errors = formatCountMap(lastDiag.googleNews.errors);
+  const cinema = Object.entries(lastDiag.googleNews.bySource).filter(([name]) => {
+    const feed = PUBLISHER_FEEDS.find((f) => f.name === name);
+    return feed ? isCinemaPublisher(feed) : /cinema|ott|micro|drama|topic:news/i.test(name);
+  });
+  const cinemaRequested = cinema.reduce((sum, [, stat]) => sum + stat.requested, 0);
+  const cinemaFetched = cinema.reduce((sum, [, stat]) => sum + stat.fetched, 0);
+  const cinemaReturned = cinema.reduce((sum, [, stat]) => sum + stat.returned, 0);
+  return (
+    `Google News: ${lastDiag.googleNews.fetched}/${lastDiag.googleNews.requested} feeds succeeded, ` +
+    `${lastDiag.googleNews.returned} items returned` +
+    (errors ? `, errors ${errors}` : "") +
+    `; Cinema/OTT Google sweeps: ${cinemaFetched}/${cinemaRequested} feeds succeeded, ${cinemaReturned} items returned`
+  );
+}
+
 function publisherDiag(name: string) {
   return (lastDiag.publishers.bySource[name] ??= {
     requests: 0,
@@ -1636,7 +1660,11 @@ async function fetchPublisher(
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
   const parsed = await fetchFeed(feed.url, { label: feed.name });
-  if (!parsed?.length) return [];
+  if (!parsed?.length) {
+    const errors = formatCountMap(lastDiag.googleNews.bySource[feed.name]?.errors ?? {});
+    if (errors) stat.error = errors;
+    return [];
+  }
   stat.returned += parsed.length;
   lastDiag.fetched += 1;
   lastDiag.raw += parsed.length;
@@ -2497,9 +2525,7 @@ export async function collectAll(
     }
   }
 
-  lastDiag.notes.push(
-    `Google News: ${lastDiag.googleNews.returned}/${lastDiag.googleNews.requested} requested items returned across ${lastDiag.googleNews.fetched} successful feed(s)`,
-  );
+  lastDiag.notes.push(googleNewsSummaryNote());
 
   // Temple coverage stays strictly religious and from reliable/temple sources.
   const templeSafe = rows.filter(
@@ -2633,6 +2659,7 @@ export async function collectGallery(
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   if (!opts?.keepFunnel) {
+    lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
     lastDiag.gallery = {
       discovered: 0,
       noImage: 0,
