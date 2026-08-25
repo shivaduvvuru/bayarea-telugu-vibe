@@ -1958,7 +1958,7 @@ async function summarizeGroups(
   // Anything already in the store (or already rejected) is dropped downstream,
   // so it never earns a summary call.
   type Group = { key: string; desk: string; index: number };
-  const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number })[] = [];
+  const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number; link: string })[] = [];
   for (const g of groups) {
     g.items.forEach((item, index) => {
       if (known?.has(keyFor(g.city.slug, item.title))) {
@@ -1969,16 +1969,27 @@ async function summarizeGroups(
         id: `${g.key}#${index}`,
         group: { key: g.key, desk: g.city.en, index },
         text: `${item.title} (${item.source})`,
+        source: item.source,
         groupKey: g.key,
         itemIndex: index,
+        link: item.link,
       });
     });
   }
   if (!entries.length) return result;
 
+  // Dedupe runs before the queue, not after: overlapping Telugu / OTT feeds
+  // carry the same story under different links, and summarizing each copy was
+  // pure waste. Copies reuse the summary of the item that was actually sent.
+  const { queue, aliases, dropped } = dedupeEntries(entries, (e) => [
+    canonicalUrl(e.link),
+    strictTitleKey(e.text.replace(/\s*\([^)]*\)\s*$/, "")),
+  ]);
+  aiUsage.itemsSkipped += dropped;
+
   const gateway = createLovableAiGatewayProvider(apiKey);
   const { summaries, errors } = await runSummaryBatches<Group>(
-    entries,
+    queue,
     async (prompt) => {
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
@@ -1995,11 +2006,12 @@ async function summarizeGroups(
   lastAiError = summaries.size ? null : (errors[0] ?? lastAiError);
 
   for (const e of entries) {
-    const summary = summaries.get(e.id);
+    const summary = summaries.get(e.id) ?? summaries.get(aliases.get(e.id) ?? "");
     if (!summary) continue;
     const list = result.get(e.groupKey);
     if (list) list[e.itemIndex] = summary;
   }
+
   return result;
 }
 
