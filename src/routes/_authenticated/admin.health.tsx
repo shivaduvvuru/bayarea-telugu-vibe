@@ -95,6 +95,9 @@ function IngestHealthPage() {
           <Button variant="outline" asChild>
             <Link to="/admin">Newsroom</Link>
           </Button>
+          <Button variant="outline" asChild>
+            <Link to="/admin/duplicates">Duplicate audit</Link>
+          </Button>
           <Button variant="outline" onClick={() => alert.mutate()} disabled={busy}>
             Send test alert
           </Button>
