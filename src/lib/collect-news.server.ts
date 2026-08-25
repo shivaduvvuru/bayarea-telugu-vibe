@@ -23,6 +23,7 @@ import {
   type SummaryEntry,
 } from "./summary-batch";
 import { recordSummaryRun } from "./summary-metrics.server";
+import { withRetry } from "./retry";
 
 export type CollectedItem = {
   dedupe_key: string;
@@ -369,6 +370,14 @@ export const lastDiag = {
       }
     >,
   },
+  /** Google News health for this run: source sweeps requested vs items returned. */
+  googleNews: {
+    requested: 0,
+    fetched: 0,
+    returned: 0,
+    errors: {} as Record<string, number>,
+    bySource: {} as Record<string, { requested: number; fetched: number; returned: number; errors: Record<string, number> }>,
+  },
   /** Picture-intake funnel for the ingestion dashboard. */
   gallery: {
     discovered: 0,
@@ -379,6 +388,24 @@ export const lastDiag = {
     bySource: {} as Record<string, { discovered: number; candidates: number }>,
   },
 };
+
+function isGoogleNewsFeed(url: string): boolean {
+  try {
+    return new URL(url).hostname === "news.google.com";
+  } catch {
+    return false;
+  }
+}
+
+function googleDiag(label: string) {
+  return (lastDiag.googleNews.bySource[label] ??= { requested: 0, fetched: 0, returned: 0, errors: {} });
+}
+
+function recordGoogleError(label: string, status: string) {
+  lastDiag.googleNews.errors[status] = (lastDiag.googleNews.errors[status] ?? 0) + 1;
+  const stat = googleDiag(label);
+  stat.errors[status] = (stat.errors[status] ?? 0) + 1;
+}
 
 function publisherDiag(name: string) {
   return (lastDiag.publishers.bySource[name] ??= {
@@ -396,26 +423,54 @@ function publisherDiag(name: string) {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-async function fetchFeed(url: string, attempt = 0): Promise<RawItem[] | null> {
+async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<RawItem[] | null> {
+  const google = isGoogleNewsFeed(url);
+  const label = opts.label ?? (google ? "Google News" : new URL(url).host);
+  if (google) {
+    lastDiag.googleNews.requested += 1;
+    googleDiag(label).requested += 1;
+  }
   try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" } });
-    if (!res.ok) {
-      // Google/Bing throttle bursts with 429/503 — back off briefly and retry
-      // instead of losing a whole feed (this used to silently drop the
-      // glamour / picture searches on busy runs).
-      if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
-        return fetchFeed(url, attempt + 1);
-      }
-      if (lastDiag.notes.length < 6) lastDiag.notes.push(`HTTP ${res.status} ${new URL(url).host}`);
-      return null;
-    }
+    const res = await withRetry(
+      async () => {
+        const response = await fetch(url, {
+          headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+        });
+        if (!response.ok) {
+          const error = new Error(`HTTP ${response.status} ${new URL(url).host}`) as Error & {
+            status?: number;
+            headers?: Headers;
+          };
+          error.status = response.status;
+          error.headers = response.headers;
+          throw error;
+        }
+        return response;
+      },
+      {
+        attempts: google ? 4 : 3,
+        baseMs: google ? 1_200 : 800,
+        maxMs: google ? 12_000 : 5_000,
+        label: google ? `Google News ${label}` : label,
+        log: (line) => {
+          if (google || lastDiag.notes.length < 6) console.warn(line);
+        },
+      },
+    );
     const items = parseRss(await res.text());
+    if (google) {
+      lastDiag.googleNews.fetched += 1;
+      lastDiag.googleNews.returned += items.length;
+      const stat = googleDiag(label);
+      stat.fetched += 1;
+      stat.returned += items.length;
+    }
     // Google News wraps the publisher URL; unwrapped links show a Google
     // interstitial instead of the story, so resolve them before storing.
     const map = await resolveGoogleNewsUrls(items.map((i) => i.link));
     return map.size ? items.map((i) => ({ ...i, link: map.get(i.link) ?? i.link })) : items;
   } catch (e) {
+    if (google) recordGoogleError(label, e instanceof Error ? (e.message.match(/\b\d{3}\b/)?.[0] ?? e.message) : String(e));
     if (lastDiag.notes.length < 6)
       lastDiag.notes.push(`${new URL(url).host}: ${e instanceof Error ? e.message : String(e)}`);
     return null;
