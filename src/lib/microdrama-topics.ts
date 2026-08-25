@@ -28,6 +28,13 @@ const MICRO_ARTIST =
 const MICRO_ARTIST_CONTEXT =
   /vertical|short[- ]?form|short[- ]?drama|micro|duanju|reelshort|dramabox|goodshort|shortmax|flick ?tv|kuku|pocket ?fm|sharechat|1[- ]?minute|60[- ]?second|episode drop/i;
 
+/**
+ * Live action only: the desk carries filmed verticals with real actors. Animated,
+ * anime, AI-generated, motion-comic, webtoon and game-engine verticals are out.
+ */
+const NOT_LIVE_ACTION =
+  /\banime\b|\banimated\b|\banimation\b|\bcartoon\b|\bmanhwa\b|\bmanhua\b|\bmanga\b|\bwebtoon\b|\bwebcomic\b|motion comic|\bcgi\b|\bvfx[- ]only\b|\bai[- ](?:generated|made|animated|avatar|actor|actors|cast)\b|\bgenerative ai\b|\bsora\b|\bveo\s?\d?\b|\bvirtual (?:idol|influencer|actor)\b|\bvtuber\b|machinima|\bmachine[- ]animated\b|\bpuppet(?:ry)?\b|stop[- ]motion|\bgacha\b|\bdonghua\b|动画|아니메|애니메이션|యానిమే|యానిమేషన్/i;
+
 /** True when a story is about the vertical micro-drama format or its players. */
 export function isMicroDrama(
   title: string | null | undefined,
@@ -35,8 +42,10 @@ export function isMicroDrama(
   sourceUrl?: string | null,
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
+  if (NOT_LIVE_ACTION.test(text)) return false;
   if (MICRO_TEXT.test(text)) return true;
   if (MICRO_ARTIST.test(text) && MICRO_ARTIST_CONTEXT.test(text)) return true;
   return MICRO_HOSTS.test((sourceUrl ?? "").toLowerCase());
 }
+
 
