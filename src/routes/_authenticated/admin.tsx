@@ -14,6 +14,7 @@ import { CONTENT_KINDS, PLACEMENTS, type ContentItem } from "@/lib/cms";
 import { listForumQueue, moderateForum } from "@/lib/forum.functions";
 import { categoryLabel } from "@/lib/forum";
 import { listClaims, reviewClaim } from "@/lib/claims.functions";
+import { resolveDuplicates } from "@/lib/duplicate-cleanup.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
