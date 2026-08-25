@@ -58,7 +58,7 @@ export async function sweepIntakeToSoloWomen(limit = 40): Promise<SoloIntakeSwee
   if (keep.length) {
     await db
       .from("picture_intake")
-      .update({ screening_state: "passed", safety_reason: null, people_verified_at: new Date().toISOString() } as never)
+      .update({ screening_state: "passed", safety_reason: null } as never)
       .in("item_id", keep);
   }
   if (drop.length) await purgePictureItems(drop);
