@@ -171,6 +171,8 @@ function base(columns: string = LIST_COLUMNS) {
     .select(columns)
     .eq("status", "published")
     .neq("placement", "hidden")
+    .not("summary", "is", null)
+    .neq("summary", "")
     .in("kind", ["news", "announcement", "event"]);
 }
 
