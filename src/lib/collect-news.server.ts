@@ -1304,7 +1304,12 @@ const PUBLISHER_FEEDS: {
 
   // Tollywood — Telugu cinema, OTT and box office
   { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 5 },
-  { name: "CineJosh", url: "https://www.cinejosh.com/rssfeed/telugu-cinema-news.xml", kind: "news", limit: 5 },
+  {
+    name: "CineJosh & Tollywood.net",
+    url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
   {
     name: "Idlebrain (search)",
     url: "https://news.google.com/rss/search?q=site:idlebrain.com+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
