@@ -1377,7 +1377,7 @@ const PUBLISHER_FEEDS: {
   },
 
   // Bollywood / Hindi entertainment and box office
-  { name: "Koimoi", url: "https://www.koimoi.com/feed/", kind: "news", limit: 5 },
+  
   { name: "Filmfare", url: "https://www.filmfare.com/feeds/feed.xml", kind: "news", limit: 5 },
   {
     name: "Box office trackers",
