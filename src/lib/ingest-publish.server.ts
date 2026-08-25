@@ -59,14 +59,17 @@ export async function publishRawItems(ids: string[]): Promise<number> {
   }
 
   if (rejected.length) {
+    // dedupe_status is an enum, so the reason lives on the row's own status:
+    // writing a free-text value here silently failed and left rows stuck.
     await db
       .from("raw_ingestion_items")
-      .update({ processing_status: "rejected", dedupe_status: "no-image" })
+      .update({ processing_status: "rejected" })
       .in(
         "id",
         rejected.map((r) => r["id"]),
       );
   }
+
   if (duplicates.length) {
     // Silently retired, pointed at the story already on the site.
     await Promise.all(
