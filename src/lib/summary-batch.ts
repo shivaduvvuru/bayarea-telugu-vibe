@@ -110,11 +110,11 @@ export function chunkEntries<G extends { key: string; desk: string }>(
 }
 
 /** Drops entries whose canonical link or normalized title was already queued. */
-export function dedupeEntries<G extends { key: string; desk: string }>(
-  entries: readonly SummaryEntry<G>[],
-  keysOf: (entry: SummaryEntry<G>) => readonly (string | null | undefined)[],
-): { queue: SummaryEntry<G>[]; aliases: Map<string, string>; dropped: number } {
-  const queue: SummaryEntry<G>[] = [];
+export function dedupeEntries<E extends { id: string }>(
+  entries: readonly E[],
+  keysOf: (entry: E) => readonly (string | null | undefined)[],
+): { queue: E[]; aliases: Map<string, string>; dropped: number } {
+  const queue: E[] = [];
   const seen = new Map<string, string>();
   const aliases = new Map<string, string>();
   for (const entry of entries) {
