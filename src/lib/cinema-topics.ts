@@ -13,9 +13,24 @@ const CINEMA_TEXT =
   /tollywood|bollywood|kollywood|mollywood|sandalwood|hollywood|telugu (?:film|movie|cinema|actor|actress|hero|heroine)|(?:tamil|malayalam|kannada) (?:film|movie|cinema|actor|actress|hero|heroine)|hindi (?:film|movie|cinema)|box office|first look|teaser|trailer|movie review|film review|ott release|pre[- ]release (?:event|business)|audio launch|censor|cast(?:ing)? (?:announce|update)|shooting (?:begins|update|wrap)|film ?fare|national film award|academy award|oscar|\bbiopic\b|సినిమా|చిత్రం|టాలీవుడ్|బాలీవుడ్|హాలీవుడ్|హీరో|హీరోయిన్|నటి|నటుడు|ట్రైలర్|టీజర్|ఫస్ట్ లుక్|ఓటీటీ|బాక్సాఫీస్|వెబ్ సిరీస్|రిలీజ్|మూవీ|సినిమాలు|టాలీవుడ్/i;
 
 
-/** Well-known film-trade publishers whose whole feed is cinema. */
-const CINEMA_HOSTS =
-  /123telugu|gulte|greatandhra|telugutimes\.net\/en\/cinemas|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|telugucinema\.com|tracktollywood|andhraboxoffice|aakashavaani|tollywood\.net|boxofficeindia|ottplay|binged\.com|whats-on-netflix|keralatv\.in|onmanorama\.com\/entertainment|thecue\.in|mathrubhumi\.com\/movies|moviecrow|sifymovies|peepingmoon|screendaily|indiewire|thewrap|collider\.com|screenrant|movieweb|slashfilm|cinemablend|denofgeek|empireonline|rottentomatoes|metacritic|rogerebert|soompi|koreanfilm\.or\.kr|hancinema|mydramalist|dramabeans|allkpop|koreaboo|koreajoongangdaily|koreaherald|koreatimes|chinafilminsider|sixthtone|douban|maoyan|1905\.com|guduodata|tubefilter|moneycontrol\.com\/entertainment|news18\.com\/photogallery|ndtv\.com\/entertainment|ndtvmovies|indiatoday\.in\/movies|indiatoday\.in\/television|etimes|timesofindia\.indiatimes\.com\/entertainment|deccanchronicle\.com\/entertainment|freepressjournal\.in\/entertainment|thehindu\.com\/entertainment|iwmbuzz|bollywoodlife|spotboye|variety|deadline|hollywoodreporter|eonline|pagesix|justjared|tmz|entertainmenttonight|people\.com|vogue|elle|glamour\.com/i;
+/** Dedicated film / OTT publishers whose whole feed can be treated as cinema. */
+const CINEMA_TRADE_HOSTS =
+  /123telugu|telugucinema\.com|idlebrain|filmibeat|bollywoodhungama|cinejosh|sacnilk|indiaglitz|movietalkies|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|tracktollywood|andhraboxoffice|aakashavaani|tollywood\.net|boxofficeindia|ottplay|binged\.com|whats-on-netflix|keralatv\.in|thecue\.in|moviecrow|sifymovies|peepingmoon|screendaily|indiewire|thewrap|collider\.com|screenrant|movieweb|slashfilm|cinemablend|denofgeek|empireonline|rottentomatoes|metacritic|rogerebert|soompi|koreanfilm\.or\.kr|hancinema|mydramalist|dramabeans|chinafilminsider|douban|maoyan|1905\.com|guduodata/i;
+
+/** Broad publishers only count when the URL itself is clearly entertainment. */
+const CINEMA_SECTION_URL =
+  /\/(?:entertainment|movies?|cinema|film|films|ott|web-?series|tv-?shows|television|k-?drama|c-?drama|bollywood|tollywood|kollywood|mollywood|sandalwood|hollywood)(?:\/|[-_])/i;
+
+/** Generic Indian and lifestyle sections that frequently leak into film feeds. */
+const NON_CINEMA_URL =
+  /\/(?:life-style|lifestyle|news|business|education|city|cities|india|world|sports|astrology|parenting|baby-names|southern-states|national)(?:\/|[-_])/i;
+
+function urlLooksCinema(url: string): boolean {
+  if (!url) return false;
+  if (CINEMA_TRADE_HOSTS.test(url)) return true;
+  if (NON_CINEMA_URL.test(url) && !CINEMA_SECTION_URL.test(url)) return false;
+  return CINEMA_SECTION_URL.test(url);
+}
 
 
 /** True when a story reads as film / entertainment coverage. */
@@ -26,7 +41,7 @@ export function isCinema(
 ): boolean {
   const text = `${title ?? ""} ${summary ?? ""}`;
   if (CINEMA_TEXT.test(text)) return true;
-  return CINEMA_HOSTS.test((sourceUrl ?? "").toLowerCase());
+  return urlLooksCinema((sourceUrl ?? "").toLowerCase());
 }
 
 /**
@@ -86,7 +101,7 @@ export function isStarGallery(
   // its photo galleries and event picture posts belong in Glamourie too.
   const ownSite = /telugutimes\.net/i.test(url);
   const photoDesk =
-    (PHOTO_DESK_URL.test(url) && (CINEMA_HOSTS.test(url) || ENTERTAINMENT_URL.test(url))) ||
+    (PHOTO_DESK_URL.test(url) && (urlLooksCinema(url) || ENTERTAINMENT_URL.test(url))) ||
     (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));
   const photoLed = PHOTO_LED.test(text) || photoDesk;
   if (!photoLed) return false;
