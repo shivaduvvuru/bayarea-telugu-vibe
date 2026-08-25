@@ -1378,7 +1378,12 @@ const PUBLISHER_FEEDS: {
 
   // Bollywood / Hindi entertainment and box office
   
-  { name: "Filmfare", url: "https://www.filmfare.com/feeds/feed.xml", kind: "news", limit: 5 },
+  {
+    name: "Filmfare & Koimoi",
+    url: "https://news.google.com/rss/search?q=(site:filmfare.com+OR+site:koimoi.com)+when:2d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
   {
     name: "Box office trackers",
     url: "https://news.google.com/rss/search?q=(site:sacnilk.com+OR+site:boxofficeindia.com)+(box+office+OR+collection)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
