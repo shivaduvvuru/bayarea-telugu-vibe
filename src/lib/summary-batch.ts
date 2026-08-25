@@ -139,7 +139,12 @@ export function buildPrompt<G extends { key: string; desk: string }>(
     `For each item write ONE neutral sentence (max 28 words) summarizing that headline only. Do not invent facts beyond that item's headline, do not borrow details from another item, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
     `Reply with JSON only: an array of {"id": "<the item id>", "summary": "<sentence>"} with exactly ${entries.length} entries, one per item id given below. No prose, no code fence.\n\n` +
     entries
-      .map((e) => `{"id": ${JSON.stringify(e.id)}, "desk": ${JSON.stringify(e.group.desk)}, "headline": ${JSON.stringify(e.text)}}`)
+      .map((e) => {
+        // Long-body publishers are truncated so a token budget never forces the
+        // batch to split into single-item calls.
+        const text = e.text.length > SUMMARY_TEXT_CAP ? `${e.text.slice(0, SUMMARY_TEXT_CAP)}…` : e.text;
+        return `{"id": ${JSON.stringify(e.id)}, "desk": ${JSON.stringify(e.group.desk)}, "headline": ${JSON.stringify(text)}}`;
+      })
       .join("\n")
   );
 }
