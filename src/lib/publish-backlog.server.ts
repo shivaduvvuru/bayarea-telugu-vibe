@@ -43,28 +43,34 @@ export async function publishNewsBacklog(limit = 200): Promise<{
   released: number;
   published: number;
   failed: number;
+  held: number;
 }> {
   const db = supabaseAdmin as never as {
     from: (t: string) => any;
   };
 
+  const { isSensitive } = await import("@/lib/auto-publish");
+
   // 1. Release anything still marked pending that is not a picture.
   const { data: pending } = await db
     .from("digest_queue")
-    .select("item_id,payload,kind")
+    .select("item_id,payload,kind,title,summary")
     .eq("status", "pending")
     .in("kind", ["news", "event", "temple"])
     .limit(1000);
   const pendingRows = (pending ?? []) as Record<string, unknown>[];
-  const releasable = pendingRows
-    .filter((r) => !isPictureRow(r) && hasArtwork(r))
-    .map((r) => String(r["item_id"] ?? ""))
-    .filter(Boolean);
+  const plain = pendingRows.filter((r) => !isPictureRow(r));
+  const idOf = (r: Record<string, unknown>) => String(r["item_id"] ?? "");
+  // Sensitive stories (crime, courts, allegations, tragedy) always wait for a
+  // human editor — they stay pending in the review desk.
+  const sensitive = plain.filter((r) =>
+    isSensitive(r["title"] as string | null, r["summary"] as string | null),
+  );
+  const safe = plain.filter((r) => !sensitive.includes(r));
+  const releasable = safe.filter(hasArtwork).map(idOf).filter(Boolean);
   // Imageless news never reaches the site: drop it out of the queue.
-  const imageless = pendingRows
-    .filter((r) => !isPictureRow(r) && !hasArtwork(r))
-    .map((r) => String(r["item_id"] ?? ""))
-    .filter(Boolean);
+  const imageless = safe.filter((r) => !hasArtwork(r)).map(idOf).filter(Boolean);
+
   for (let i = 0; i < imageless.length; i += 200) {
     await db
       .from("digest_queue")
