@@ -19,7 +19,7 @@
  * can drive it with a fake model.
  */
 
-import { mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
+import { isRateLimit, isTokenLimit, mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
 
 /** One headline queued for summarization. */
 export interface SummaryEntry<G extends { key: string; desk: string }> {
@@ -231,9 +231,10 @@ export interface RunOptions {
 /**
  * Summarizes every entry, batching where possible.
  *
- * A batch that fails or comes back incomplete is retried once as a batch and
- * then halved — single-item calls only happen when the batch is already one
- * item, which is what keeps calls-per-headline low as sources are added.
+ * A batch that fails from throttling is retried at the same size with backoff;
+ * splitting would multiply calls into the same rate limit. Only token-limit or
+ * malformed/missing JSON responses are halved, and single-item calls only happen
+ * when the reduced batch is already one item.
  */
 export async function runSummaryBatches<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
@@ -293,6 +294,7 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
         label: `gemini ${label} (${chunk.length} items)`,
         stats: metrics.retry,
         log,
+        retryable: (error) => isRateLimit(error) || /\b(500|502|503|504)\b|timeout|timed out|temporarily|busy|network|fetch failed|ECONN|socket/i.test(error instanceof Error ? error.message : String(error ?? "")),
       });
     } catch (error) {
       const note = `[summarize] ${label} failed (${desks}): ${
@@ -301,7 +303,8 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
       log(note);
       errors.push(note);
       if (single) metrics.unresolved += 1;
-      else await halve(chunk);
+      else if (isTokenLimit(error)) await halve(chunk);
+      else metrics.unresolved += chunk.length;
       return;
     }
 
