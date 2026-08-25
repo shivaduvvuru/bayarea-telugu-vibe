@@ -250,7 +250,7 @@ export function PictureDeskWorkspace({
           if (result.error) throw new Error(result.error);
         }
       } catch (caught) {
-        toast.error(caught instanceof Error ? caught.message : "Could not save the action");
+        toast.error(friendlyError(caught));
       }
     })();
   };
@@ -265,7 +265,7 @@ export function PictureDeskWorkspace({
       if (result.error) throw new Error(result.error);
       toast.success(`Deleted ${result.deleted || ids.length} picture${ids.length === 1 ? "" : "s"} permanently`);
     } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not delete the picture");
+      toast.error(friendlyError(caught));
     }
   };
 
