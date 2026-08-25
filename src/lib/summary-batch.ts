@@ -287,7 +287,9 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
           metrics.calls += 1;
           if (single) {
             metrics.fallbackCalls += 1;
-            const source = chunk[0]!.source ?? chunk[0]!.group.desk;
+            const first = chunk[0];
+            if (!first) return;
+            const source = first.source ?? first.group.desk;
             metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
           } else {
             metrics.batches += 1;

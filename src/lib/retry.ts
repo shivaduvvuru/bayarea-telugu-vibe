@@ -30,7 +30,7 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 /** Transient by default: rate limits, upstream 5xx, timeouts and network drops. */
 export function isTransient(error: unknown): boolean {
   const status = statusCodeOf(error);
-  if (status === 429 || (status >= 500 && status <= 599)) return true;
+  if (status === 429 || (status !== null && status >= 500 && status <= 599)) return true;
   const message = error instanceof Error ? error.message : String(error ?? "");
   return /\b(429|500|502|503|504)\b|rate.?limit|timeout|timed out|temporarily|busy|network|fetch failed|ECONN|socket/i.test(
     message,
@@ -176,7 +176,9 @@ export async function mapWithLimit<T, R>(
     for (;;) {
       const index = cursor++;
       if (index >= items.length) return;
-      out[index] = await task(items[index]!, index);
+      const item = items[index];
+      if (typeof item === "undefined") return;
+      out[index] = await task(item, index);
     }
   });
   await Promise.all(workers);

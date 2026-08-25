@@ -38,7 +38,7 @@ function echoModel(opts: { drop?: string[]; extra?: boolean; garbage?: boolean }
     // Dropping only happens on batched calls, so the per-item retry succeeds.
     const batched = ids.length > 1;
     const rows = ids
-      .filter(([, id]) => !(batched && opts.drop?.includes(id!)))
+      .filter(([, id]) => !(batched && typeof id === "string" && opts.drop?.includes(id)))
       .map(([, id, desk, headline]) => ({ id, summary: `${desk}: ${headline}` }));
     if (opts.extra) rows.push({ id: "not-a-real-id", summary: "invented" });
     return JSON.stringify(rows);
@@ -131,7 +131,9 @@ describe("runSummaryBatches", () => {
     // Each summary must repeat its own desk and its own headline, and must not
     // contain any other item's headline.
     for (const e of FIXTURE) {
-      const summary = summaries.get(e.id)!;
+      const summary = summaries.get(e.id);
+      expect(summary).toBeDefined();
+      if (!summary) continue;
       expect(summary).toContain(e.group.desk);
       expect(summary).toContain(e.text);
       for (const other of FIXTURE) {
@@ -165,7 +167,9 @@ describe("runSummaryBatches", () => {
     await runSummaryBatches(
       big,
       async (prompt) => {
-        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)]
+          .map((m) => m[1])
+          .filter((id): id is string => typeof id === "string");
         sizes.push(ids.length);
         calls += 1;
         // The first call returns nothing usable; every later call is fine.
@@ -211,7 +215,9 @@ describe("runSummaryBatches", () => {
     const { summaries } = await runSummaryBatches(
       big,
       async (prompt) => {
-        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)]
+          .map((m) => m[1])
+          .filter((id): id is string => typeof id === "string");
         sizes.push(ids.length);
         if (ids.length > 4) throw new Error("400 token limit exceeded");
         return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
@@ -232,7 +238,9 @@ describe("runSummaryBatches", () => {
         { ...entry("p#1", "San Jose", "two (Deadline)"), source: "Deadline" },
       ],
       async (prompt) => {
-        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)]
+          .map((m) => m[1])
+          .filter((id): id is string => typeof id === "string");
         if (ids.length > 1) return "not json";
         return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
       },
@@ -273,7 +281,7 @@ describe("runSummaryBatches", () => {
     let attempts = 0;
     const metrics = newBatchMetrics();
     const { summaries } = await runSummaryBatches(
-      [FIXTURE[0]!],
+      FIXTURE.slice(0, 1),
       async (prompt) => {
         attempts++;
         if (attempts === 1) throw new Error("429 rate limit");
@@ -290,7 +298,7 @@ describe("runSummaryBatches", () => {
   it("keeps the placeholder when every call fails, and says so", async () => {
     const metrics = newBatchMetrics();
     const { summaries } = await runSummaryBatches(
-      [FIXTURE[0]!],
+      FIXTURE.slice(0, 1),
       async () => {
         throw new Error("503 upstream down");
       },
