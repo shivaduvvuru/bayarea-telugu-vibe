@@ -15,7 +15,7 @@ const CINEMA_TEXT =
 
 /** Well-known film-trade publishers whose whole feed is cinema. */
 const CINEMA_HOSTS =
-  /123telugu|gulte|greatandhra|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery|ndtv\.com\/entertainment|ndtvmovies|indiatoday\.in\/movies|indiatoday\.in\/television|etimes|timesofindia\.indiatimes\.com\/entertainment|deccanchronicle\.com\/entertainment|freepressjournal\.in\/entertainment|thehindu\.com\/entertainment|iwmbuzz|bollywoodlife|spotboye|variety|deadline|hollywoodreporter|eonline|pagesix|justjared|tmz|entertainmenttonight|people\.com|vogue|elle|glamour\.com/i;
+  /123telugu|gulte|greatandhra|telugutimes\.net\/en\/cinemas|idlebrain|m9\.news|filmibeat|pinkvilla|bollywoodhungama|cinejosh|telugu360|sacnilk|koimoi|indiaglitz|movietalkies|mirchi9|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|moneycontrol\.com\/entertainment|news18\.com\/photogallery|ndtv\.com\/entertainment|ndtvmovies|indiatoday\.in\/movies|indiatoday\.in\/television|etimes|timesofindia\.indiatimes\.com\/entertainment|deccanchronicle\.com\/entertainment|freepressjournal\.in\/entertainment|thehindu\.com\/entertainment|iwmbuzz|bollywoodlife|spotboye|variety|deadline|hollywoodreporter|eonline|pagesix|justjared|tmz|entertainmenttonight|people\.com|vogue|elle|glamour\.com/i;
 
 
 /** True when a story reads as film / entertainment coverage. */
