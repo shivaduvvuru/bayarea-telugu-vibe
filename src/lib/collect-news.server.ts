@@ -2392,6 +2392,7 @@ const GALLERY_FEED_NAMES = [
   "Micro-drama stars (Bing)",
 
 
+  "Soompi",
   "Instagram photo dumps",
   "Social media buzz",
   "Star photo stories",
