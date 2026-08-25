@@ -11,15 +11,15 @@
  *    returned summary is matched back by that id only (never by position), so a
  *    reordered or partial reply can never attach one item's text to another;
  *  - the reply is validated against the exact set of ids that was sent. Any
- *    malformed, missing, empty or unknown entry is reported and re-summarized
- *    one item at a time, so a bad batch degrades into extra calls rather than
- *    wrong or missing summaries.
+ *    malformed, missing, empty or unknown entry is reported and retried safely,
+ *    so a bad batch degrades into controlled retries rather than wrong or
+ *    missing summaries.
  *
  * Deliberately free of network, Supabase and React imports so the ingest tests
  * can drive it with a fake model.
  */
 
-import { isRateLimit, isTokenLimit, mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
+import { isTokenLimit, mapWithLimit, newRetryStats, withRetry, type RetryStats } from "./retry";
 
 /** One headline queued for summarization. */
 export interface SummaryEntry<G extends { key: string; desk: string }> {
@@ -294,7 +294,6 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
         label: `gemini ${label} (${chunk.length} items)`,
         stats: metrics.retry,
         log,
-        retryable: (error) => isRateLimit(error) || /\b(500|502|503|504)\b|timeout|timed out|temporarily|busy|network|fetch failed|ECONN|socket/i.test(error instanceof Error ? error.message : String(error ?? "")),
       });
     } catch (error) {
       const note = `[summarize] ${label} failed (${desks}): ${
