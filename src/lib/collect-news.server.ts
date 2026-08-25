@@ -492,11 +492,13 @@ async function fetchCity(city: City): Promise<RawItem[]> {
       // the article artwork. Google News is the fallback but hides the real URL.
       let parsed = await fetchFeed(
         `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+        { label: `city:${city.slug}:bing` },
       );
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
             `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:2d&hl=en-US&gl=US&ceid=US:en`,
+            { label: `city:${city.slug}:google` },
           )) ?? parsed;
       }
       if (!parsed) return [];
@@ -661,11 +663,13 @@ async function fetchTopics(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
         `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+        { label: `topic:${group.kind}:bing` },
       );
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
             `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+            { label: `topic:${group.kind}:google` },
           )) ?? parsed;
       }
       if (!parsed) return [];
@@ -1631,7 +1635,7 @@ async function fetchPublisher(
 ): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
-  const parsed = await fetchFeed(feed.url);
+  const parsed = await fetchFeed(feed.url, { label: feed.name });
   if (!parsed?.length) return [];
   stat.returned += parsed.length;
   lastDiag.fetched += 1;
@@ -1840,7 +1844,7 @@ async function fetchCityGuide(entry: {
 }): Promise<RawItem[]> {
   const results = await Promise.all(
     entry.urls.map(async (url) => {
-      const parsed = await fetchFeed(url);
+      const parsed = await fetchFeed(url, { label: entry.label });
       if (!parsed?.length) return [];
       lastDiag.fetched += 1;
       lastDiag.raw += parsed.length;
@@ -1877,10 +1881,12 @@ async function fetchGuideSearch(city: { citySlug: string; name: string }): Promi
   // answers with an empty channel, so it is only the fallback now.
   let parsed = await fetchFeed(
     `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:21d&hl=en-US&gl=US&ceid=US:en`,
+    { label: `guide:${city.citySlug}:google` },
   );
   if (!parsed?.length) {
     parsed = await fetchFeed(
       `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      { label: `guide:${city.citySlug}:bing` },
     );
   }
   if (!parsed?.length) return [];
@@ -1923,10 +1929,12 @@ async function fetchNriEventSearch(city: {
   const q = `"${city.name}" California (Telugu OR Indian OR Hindu OR "South Asian" OR desi) (event OR festival OR concert OR mela OR "cultural program" OR temple OR Diwali OR Ugadi OR Sankranti OR Navratri OR Garba OR Holi OR fundraiser OR "community meet")`;
   let parsed = await fetchFeed(
     `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:30d&hl=en-US&gl=US&ceid=US:en`,
+    { label: `nri-events:${city.citySlug}:google` },
   );
   if (!parsed?.length) {
     parsed = await fetchFeed(
       `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=RSS&cc=us&setmkt=en-us&setlang=en-us`,
+      { label: `nri-events:${city.citySlug}:bing` },
     );
   }
   if (!parsed?.length) return [];
@@ -2143,6 +2151,7 @@ export async function collectAll(
   lastDiag.duplicates = 0;
   lastDiag.notes = [];
   lastDiag.publishers = { selected: [], bySource: {} };
+  lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
   aiUsage.calls = 0;
   aiUsage.itemsSummarized = 0;
   aiUsage.itemsSkipped = 0;
@@ -2487,6 +2496,10 @@ export async function collectAll(
       (row.payload as { summary?: string }).summary = summary;
     }
   }
+
+  lastDiag.notes.push(
+    `Google News: ${lastDiag.googleNews.returned}/${lastDiag.googleNews.requested} requested items returned across ${lastDiag.googleNews.fetched} successful feed(s)`,
+  );
 
   // Temple coverage stays strictly religious and from reliable/temple sources.
   const templeSafe = rows.filter(
