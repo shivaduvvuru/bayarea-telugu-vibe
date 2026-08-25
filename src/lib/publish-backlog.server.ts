@@ -61,11 +61,19 @@ export async function publishNewsBacklog(limit = 200): Promise<{
   const pendingRows = (pending ?? []) as Record<string, unknown>[];
   const plain = pendingRows.filter((r) => !isPictureRow(r));
   const idOf = (r: Record<string, unknown>) => String(r["item_id"] ?? "");
-  // Sensitive stories (crime, courts, allegations, tragedy) always wait for a
-  // human editor — they stay pending in the review desk.
+  // Sensitive stories (crime, courts, allegations, tragedy) are not a category
+  // this paper publishes at all: they leave the queue instead of sitting in the
+  // desk waiting for a decision that never comes.
   const sensitive = plain.filter((r) =>
     isSensitive(r["title"] as string | null, r["summary"] as string | null),
   );
+  const sensitiveIds = sensitive.map(idOf).filter(Boolean);
+  for (let i = 0; i < sensitiveIds.length; i += 200) {
+    await db
+      .from("digest_queue")
+      .update({ status: "rejected", error: "sensitive category — not published" })
+      .in("item_id", sensitiveIds.slice(i, i + 200));
+  }
   const safe = plain.filter((r) => !sensitive.includes(r));
   const releasable = safe.filter(hasArtwork).map(idOf).filter(Boolean);
   // Imageless news never reaches the site: drop it out of the queue.
