@@ -2077,6 +2077,23 @@ export async function collectAll(
   aiBatchMetrics = newBatchMetrics();
   const knownKeys = await loadKnownKeys();
 
+  /**
+   * One pooled summary queue for the whole run. Each pass used to summarize its
+   * own fetch immediately, so every pass (and every newly added source group)
+   * left a small remainder call behind — that is what pushed calls-per-headline
+   * from ~0.28 to 0.50. Passes now only queue their groups; a single batched
+   * summarization runs at the end and patches the rows in place.
+   */
+  const summaryPool: SummaryGroup[] = [];
+  const summaryPatches: { key: string; index: number; row: CollectedItem }[] = [];
+  const queueSummaries = (groups: { key: string; city: City; items: RawItem[] }[]) => {
+    for (const g of groups) summaryPool.push({ key: g.key, city: g.city, items: g.items });
+  };
+  const registerRows = (key: string, built: CollectedItem[]) => {
+    built.forEach((row, index) => summaryPatches.push({ key, index, row }));
+    return built;
+  };
+
 
   const cityList = rotate(CITIES, 4);
   for (let b = 0; b < cityList.length && within(0.35); b += 4) {
@@ -2085,7 +2102,8 @@ export async function collectAll(
     const fetched = await Promise.all(
       batch.map(async (city) => ({ key: `city:${city.slug}`, city, items: await fetchCity(city) })),
     );
-    const citySummaries = await summarizeGroups(fetched, apiKey, knownKeys);
+    queueSummaries(fetched);
+  const citySummaries = new Map<string, string[]>();
     const collected = await Promise.all(
       fetched.map(async ({ key, city, items }) => {
         const summaries = citySummaries.get(key) ?? [];
@@ -2145,7 +2163,8 @@ export async function collectAll(
         return { key: `guide:${g.kind}:${slug}:${gi}`, city: cityBySlug(slug) ?? BAY_AREA, items, g, slug };
       }),
     );
-    const guideSummaries = await summarizeGroups(guideFetched, apiKey, knownKeys);
+    queueSummaries(guideFetched);
+  const guideSummaries = new Map<string, string[]>();
     const guideRows = await Promise.all(
       guideFetched.map(async ({ key, items, g, slug }) => {
         const summaries = guideSummaries.get(key) ?? [];
@@ -2194,7 +2213,8 @@ export async function collectAll(
       group,
     })),
   );
-  const topicSummaries = await summarizeGroups(topicFetched, apiKey, knownKeys);
+  queueSummaries(topicFetched);
+  const topicSummaries = new Map<string, string[]>();
   const topicRows = await Promise.all(
     topicFetched.map(async ({ key, items, group }) => {
       const summaries = topicSummaries.get(key) ?? [];
@@ -2250,7 +2270,8 @@ export async function collectAll(
       feed,
     })),
   );
-  const publisherSummaries = await summarizeGroups(publisherFetched, apiKey, knownKeys);
+  queueSummaries(publisherFetched);
+  const publisherSummaries = new Map<string, string[]>();
   const publisherRows = await Promise.all(
     publisherFetched.map(async ({ key, items, feed }) => {
       const summaries = publisherSummaries.get(key) ?? [];
