@@ -93,6 +93,19 @@ function unwrap<T>(value: unknown, key: string): T | null {
   return unwrap<T>(record["data"] ?? record["result"], key);
 }
 
+/**
+ * A stalled request comes back as a page-reload stub rather than a result.
+ * Show the editor what actually happened instead of raw markup.
+ */
+function friendlyError(caught: unknown): string {
+  const raw = caught instanceof Error ? caught.message : typeof caught === "string" ? caught : "";
+  if (/<html|FORCE_RELOAD|Unexpected token '<'|<!doctype/i.test(raw)) {
+    return "That batch took too long to save. Fewer pictures at a time will go through — the ones already saved are kept.";
+  }
+  return raw || "Could not save the action";
+}
+
+
 
 export function PictureDeskWorkspace({
   deskToken,
