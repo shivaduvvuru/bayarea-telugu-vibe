@@ -34,7 +34,7 @@ function echoModel(opts: { drop?: string[]; extra?: boolean; garbage?: boolean }
   const call = async (prompt: string) => {
     prompts.push(prompt);
     if (opts.garbage && prompts.length === 1) return "Sure! Here are your summaries:";
-    const ids = [...prompt.matchAll(/\{"id": "([^"]+)", "desk": "([^"]+)", "headline": "([^"]+)"/g)];
+    const ids = [...prompt.matchAll(/\{"id": "([^"<]+)", "desk": "([^"]+)", "headline": "([^"]+)"/g)];
     // Dropping only happens on batched calls, so the per-item retry succeeds.
     const batched = ids.length > 1;
     const rows = ids
@@ -165,7 +165,7 @@ describe("runSummaryBatches", () => {
     await runSummaryBatches(
       big,
       async (prompt) => {
-        const ids = [...prompt.matchAll(/\{"id": "([^"]+)"/g)].map((m) => m[1]!);
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
         sizes.push(ids.length);
         calls += 1;
         // The first call returns nothing usable; every later call is fine.
@@ -191,7 +191,7 @@ describe("runSummaryBatches", () => {
         { ...entry("p#1", "San Jose", "two (Deadline)"), source: "Deadline" },
       ],
       async (prompt) => {
-        const ids = [...prompt.matchAll(/\{"id": "([^"]+)"/g)].map((m) => m[1]!);
+        const ids = [...prompt.matchAll(/\{"id": "([^"<]+)"/g)].map((m) => m[1]!);
         if (ids.length > 1) return "not json";
         return JSON.stringify(ids.map((id) => ({ id, summary: `S ${id}` })));
       },
