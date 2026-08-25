@@ -57,10 +57,13 @@ export async function pictureIntakeCounts(db: Db) {
   const stages = ["usable", "pending", "approved", "rejected", "safety_blocked"];
   const [pairs, allResult] = await Promise.all([
     Promise.all(stages.map(async (stage) => {
-      const { count, error } = await db
+      let q = db
         .from("picture_intake")
         .select("item_id", { count: "exact", head: true })
         .eq("stage", stage);
+      // Ready for Review counts only verified single-woman photos.
+      if (stage === "usable" || stage === "pending") q = q.eq("screening_state", "passed");
+      const { count, error } = await q;
       if (error) throw new Error(error.message);
       return [stage, count ?? 0] as const;
     })),
@@ -69,6 +72,7 @@ export async function pictureIntakeCounts(db: Db) {
   if (allResult.error) throw new Error(allResult.error.message);
   const counts = Object.fromEntries(pairs) as Record<string, number>;
   counts["usable"] = (counts["usable"] ?? 0) + (counts["pending"] ?? 0);
+
   counts["discovered"] = allResult.count ?? 0;
   return counts;
 }
