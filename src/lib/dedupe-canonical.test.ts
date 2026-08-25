@@ -112,7 +112,7 @@ describe("strictTitleKey", () => {
       [
         "Metro Rail Phase 2 gets Centre's nod — 5 corridors cleared",
         "Metro Rail Phase 2 gets Centre\u2019s nod \u2014 5 corridors cleared",
-        "metro rail phase 2 gets centres nod   5 corridors cleared",
+        "metro rail phase 2 gets centre s nod   5 corridors cleared",
         "Metro Rail Phase 2 Gets Centre's Nod – 5 Corridors Cleared!",
         "  Metro  Rail   Phase 2 gets Centre's nod... 5 corridors cleared  ",
       ],
