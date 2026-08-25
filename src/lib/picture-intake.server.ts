@@ -40,8 +40,12 @@ export async function listPictureIntake(
       "item_id,queue_item_id,stage,image_url,title,summary,source,source_url,city_slug,industry,star,event,safety_reason,screening_state,discovered_at",
       { count: "exact" },
     );
-  if (input.bucket === "usable") query = query.in("stage", ["usable", "pending"]);
+  // Ready for Review is single-woman glamour only: a photo appears here only
+  // after the visual screen confirmed exactly one adult woman in the frame.
+  if (input.bucket === "usable")
+    query = query.in("stage", ["usable", "pending"]).eq("screening_state", "passed");
   else if (input.bucket !== "discovered") query = query.eq("stage", input.bucket);
+
   const { data, error, count } = await query
     .order("updated_at", { ascending: false })
     .range(from, from + input.pageSize - 1);
