@@ -1,5 +1,5 @@
 import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
-import { dedupeKey } from "./dedupe";
+import { canonicalUrl, dedupeKey, strictTitleKey } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
 import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery } from "./cinema-topics";
@@ -13,9 +13,12 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 import {
   averageBatchSize,
+  callsPerHeadline,
+  dedupeEntries,
   newBatchMetrics,
   runSummaryBatches,
   SUMMARY_CONCURRENCY,
+  topSingleCallSources,
   truncationRate,
   type SummaryEntry,
 } from "./summary-batch";
@@ -1911,6 +1914,9 @@ function guideKind(item: RawItem): CollectedItem["kind"] {
 
 export let lastAiError: string | null = null;
 
+/** Calls per headline above this means the batcher is degrading toward singles. */
+export const CALLS_PER_HEADLINE_LIMIT = 0.35;
+
 /**
  * Gemini summary calls made by the current run. One call used to be made per
  * city / feed group, which meant dozens of tiny requests per pass; groups are
@@ -2434,14 +2440,28 @@ export async function collectAll(
       isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.source_url }),
   );
   // Before/after measure of the summary batching: one line per run.
+  const perHeadline = callsPerHeadline(aiBatchMetrics);
   const note =
-    `gemini summary calls: ${aiUsage.calls} (batches ${aiUsage.batches}, ` +
+    `gemini summary calls: ${aiUsage.calls} (calls_per_headline ${perHeadline}, batches ${aiUsage.batches}, ` +
     `avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, ` +
     `items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped}, ` +
     `truncation ${(truncationRate(aiBatchMetrics) * 100).toFixed(1)}%, retries ${aiBatchMetrics.retry.retries})`;
   console.log(`[collect] ${note}`);
   lastDiag.notes.push(note);
   // Records the run and alerts when call volume or truncation regresses.
+  // Guard: batching is only working while this ratio stays low. Above the
+  // threshold, name the publishers whose items became single-item calls.
+  if (perHeadline > CALLS_PER_HEADLINE_LIMIT && aiBatchMetrics.itemsSummarized > 0) {
+    const worst = topSingleCallSources(aiBatchMetrics, 5)
+      .map((s) => `${s.source} (${s.calls})`)
+      .join(", ");
+    const warn =
+      `summary batching warning: calls_per_headline ${perHeadline} exceeded ${CALLS_PER_HEADLINE_LIMIT} ` +
+      `(avg batch ${averageBatchSize(aiBatchMetrics)})` +
+      (worst ? ` — most single-item calls: ${worst}` : "");
+    console.warn(`[collect] ${warn}`);
+    lastDiag.notes.push(warn);
+  }
   const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, "collect");
   for (const w of warnings) lastDiag.notes.push(`summary warning: ${w}`);
   return dedupeCollected(templeSafe);
