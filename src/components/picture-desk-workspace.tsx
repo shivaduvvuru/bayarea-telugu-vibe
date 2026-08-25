@@ -93,6 +93,19 @@ function unwrap<T>(value: unknown, key: string): T | null {
   return unwrap<T>(record["data"] ?? record["result"], key);
 }
 
+/**
+ * A stalled request comes back as a page-reload stub rather than a result.
+ * Show the editor what actually happened instead of raw markup.
+ */
+function friendlyError(caught: unknown): string {
+  const raw = caught instanceof Error ? caught.message : typeof caught === "string" ? caught : "";
+  if (/<html|FORCE_RELOAD|Unexpected token '<'|<!doctype/i.test(raw)) {
+    return "That batch took too long to save. Fewer pictures at a time will go through — the ones already saved are kept.";
+  }
+  return raw || "Could not save the action";
+}
+
+
 
 export function PictureDeskWorkspace({
   deskToken,
@@ -237,7 +250,7 @@ export function PictureDeskWorkspace({
           if (result.error) throw new Error(result.error);
         }
       } catch (caught) {
-        toast.error(caught instanceof Error ? caught.message : "Could not save the action");
+        toast.error(friendlyError(caught));
       }
     })();
   };
@@ -252,31 +265,63 @@ export function PictureDeskWorkspace({
       if (result.error) throw new Error(result.error);
       toast.success(`Deleted ${result.deleted || ids.length} picture${ids.length === 1 ? "" : "s"} permanently`);
     } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not delete the picture");
+      toast.error(friendlyError(caught));
     }
   };
 
-  /** Batch action: one request, toast, then sync the desk. */
+  /**
+   * Batch action. Large selections used to be sent as a single request, which
+   * the server could not finish in time — the desk then received a reload stub
+   * instead of a result. Work is now committed in small chunks so a slow chunk
+   * can be retried without losing everything already approved.
+   */
   const act = async (stage: "pending" | "approved" | "rejected" | "duplicate", ids = selectedIds) => {
     if (!ids.length) return;
     setActing(true);
+    const CHUNK = 8;
+    let done = 0;
+    let failed = 0;
+    let lastError = "";
     try {
-      await moveItems({ data: { itemIds: ids, stage, deskToken } });
-      if (stage === "approved") {
-        const queueIds = items
-          .filter((item) => ids.includes(item.item_id))
-          .map((item) => item.queue_item_id ?? item.item_id);
-        const result = await publishApproved({ data: { itemIds: queueIds, deskToken } });
-        if (result.error) throw new Error(result.error);
+      for (let index = 0; index < ids.length; index += CHUNK) {
+        const chunk = ids.slice(index, index + CHUNK);
+        try {
+          await moveItems({ data: { itemIds: chunk, stage, deskToken } });
+          if (stage === "approved") {
+            const queueIds = items
+              .filter((item) => chunk.includes(item.item_id))
+              .map((item) => item.queue_item_id ?? item.item_id);
+            if (queueIds.length) {
+              const result = await publishApproved({ data: { itemIds: queueIds, deskToken } });
+              if (result.error) throw new Error(result.error);
+            }
+          }
+          done += chunk.length;
+        } catch (caught) {
+          failed += chunk.length;
+          lastError = friendlyError(caught);
+          if (/unauthorized|session|401/i.test(lastError)) throw caught;
+        }
+        setLastFetch(`${done} of ${ids.length} processed${failed ? ` · ${failed} failed` : ""}`);
       }
-      toast.success(`${ids.length} picture${ids.length === 1 ? "" : "s"} ${stage === "pending" ? "moved to review" : stage}`);
+
+      if (done) {
+        toast.success(
+          `${done} picture${done === 1 ? "" : "s"} ${stage === "pending" ? "moved to review" : stage}` +
+            (failed ? ` · ${failed} could not be saved` : ""),
+        );
+      }
+      if (failed && !done) toast.error(lastError || "Could not save the action");
       await load();
     } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not save the action");
+      const message = friendlyError(caught);
+      toast.error(message);
+      if (/unauthorized|session|401/i.test(message)) onSessionExpired();
     } finally {
       setActing(false);
     }
   };
+
 
 
   return (
