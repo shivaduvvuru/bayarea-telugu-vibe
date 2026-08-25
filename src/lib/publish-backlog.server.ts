@@ -126,5 +126,5 @@ export async function publishNewsBacklog(limit = 200): Promise<{
     clearFeedCache();
   }
 
-  return { released: releasable.length, published, failed };
+  return { released: releasable.length, published, failed, held: sensitive.length };
 }
