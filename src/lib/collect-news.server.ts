@@ -1567,7 +1567,10 @@ function recent(published: string | null): boolean {
   return Date.now() - t <= MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
 }
 
-async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<RawItem[]> {
+async function fetchPublisher(
+  feed: (typeof PUBLISHER_FEEDS)[number],
+  opts?: { galleryMode?: boolean },
+): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
   const parsed = await fetchFeed(feed.url);
@@ -1593,7 +1596,7 @@ async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<R
   stat.kept += merged.length;
   stat.withImage += merged.filter((item) => !!item.image).length;
   for (const item of merged) {
-    const gallery = isStarGallery(item.title, null, item.link);
+    const gallery = !!opts?.galleryMode && isStarGallery(item.title, null, item.link);
     const microDrama = !gallery && isMicroDrama(item.title, null, item.link);
     const cinema = !gallery && !microDrama && isCinema(item.title, null, item.link);
     if (gallery) stat.gallery += 1;
@@ -1605,7 +1608,12 @@ async function fetchPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): Promise<R
   return merged;
 }
 
+function isGalleryPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
+  return GALLERY_FEED_NAMES.includes(feed.name);
+}
+
 function isCinemaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
+  if (isGalleryPublisher(feed)) return false;
   const hay = `${feed.name} ${feed.url}`;
   return /cinema|movie|film|ott|stream|bollywood|tollywood|kollywood|mollywood|sandalwood|hollywood|soompi|korea|drama|box office|telugu360|mirchi9|m9\.news|123telugu|gulte|greatandhra|cinejosh|idlebrain|tracktollywood|indiaglitz|filmfare|koimoi|variety|deadline|hollywoodreporter|indiewire|thewrap/i.test(
     hay,
@@ -2230,7 +2238,7 @@ export async function collectAll(
   // the public Cinema page populated by only older broad-source items.
   const publisherList = [
     ...rotatedPublishers.filter(isCinemaPublisher),
-    ...rotatedPublishers.filter((feed) => !isCinemaPublisher(feed)),
+    ...rotatedPublishers.filter((feed) => !isCinemaPublisher(feed) && !isGalleryPublisher(feed)),
   ];
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   lastDiag.publishers.selected.push(...publisherList.slice(b, b + 8).map((feed) => feed.name));
@@ -2417,8 +2425,6 @@ const GALLERY_FEED_NAMES = [
   "Instagram buzz",
   "Red carpet & events",
   "గ్లామర్ ఫోటోలు",
-  "Pinkvilla",
-  "Bollywood Hungama",
   "Kollywood heroines",
   "Mollywood heroines",
   "Sandalwood heroines",
@@ -2462,7 +2468,6 @@ const GALLERY_FEED_NAMES = [
   "Bollywood heroine pics daily",
   "TOI entertainment photos",
   "Telugu heroine photos (Telugu)",
-  "Telugu360",
   "Heroine photo galleries (wide)",
   "Ragalahari galleries",
   "TeluguStop photos",
@@ -2518,7 +2523,7 @@ export async function collectGallery(
   for (let b = 0; b < feeds.length; b += 6) {
     const batches = await Promise.all(
       feeds.slice(b, b + 6).map(async (feed) => {
-        const items = await fetchPublisher(feed);
+        const items = await fetchPublisher(feed, { galleryMode: true });
         // No AI note on the picture path: a photo set needs no editorial
         // sentence, and the gateway call was collapsing the picture pool.
         return items.map((it) => {
