@@ -27,6 +27,8 @@ export interface SummaryEntry<G extends { key: string; desk: string }> {
   group: G;
   /** Text handed to the model — headline plus publisher. */
   text: string;
+  /** Publisher name, used only to attribute single-item calls in the guard log. */
+  source?: string;
 }
 
 export interface BatchMetrics {
@@ -45,6 +47,10 @@ export interface BatchMetrics {
   unknownEntries: number;
   /** Entries left on the fallback sentence because every call failed. */
   unresolved: number;
+  /** Items sent inside multi-item calls — the divisor for average batch size. */
+  batchedItems: number;
+  /** Publishers that caused single-item calls, for the calls-per-headline guard. */
+  singleItemSources: Record<string, number>;
   retry: RetryStats;
 }
 
@@ -58,18 +64,27 @@ export function newBatchMetrics(): BatchMetrics {
     missingEntries: 0,
     unknownEntries: 0,
     unresolved: 0,
+    batchedItems: 0,
+    singleItemSources: {},
     retry: newRetryStats(),
   };
 }
 
 /** Headlines per batched call. Kept well under the point where quality drops. */
 export const SUMMARY_ITEM_CAP = 25;
-/** Desks combined into one call. Drop to 2 if desks ever get mixed up. */
-export const SUMMARY_GROUP_CAP = 3;
+/**
+ * Desks combined into one call. Unlimited by design: capping desks per call was
+ * the batching regression — every extra source added its own small remainder
+ * call, pushing calls-per-headline up. Item bodies are truncated instead, so a
+ * mixed-desk batch still fits the token budget.
+ */
+export const SUMMARY_GROUP_CAP = Number.POSITIVE_INFINITY;
 /** Batched calls allowed in flight at once — the gateway budget is shared. */
 export const SUMMARY_CONCURRENCY = 2;
+/** Per-headline characters sent to the model, so long-body sources never split a batch. */
+export const SUMMARY_TEXT_CAP = 800;
 
-/** Packs entries into calls of at most SUMMARY_ITEM_CAP items / SUMMARY_GROUP_CAP desks. */
+/** Packs entries into calls of at most SUMMARY_ITEM_CAP items / groupCap desks. */
 export function chunkEntries<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
   itemCap = SUMMARY_ITEM_CAP,
@@ -94,6 +109,28 @@ export function chunkEntries<G extends { key: string; desk: string }>(
   return chunks;
 }
 
+/** Drops entries whose canonical link or normalized title was already queued. */
+export function dedupeEntries<E extends { id: string }>(
+  entries: readonly E[],
+  keysOf: (entry: E) => readonly (string | null | undefined)[],
+): { queue: E[]; aliases: Map<string, string>; dropped: number } {
+  const queue: E[] = [];
+  const seen = new Map<string, string>();
+  const aliases = new Map<string, string>();
+  for (const entry of entries) {
+    const keys = keysOf(entry).filter((k): k is string => !!k);
+    const hit = keys.map((k) => seen.get(k)).find((id) => !!id);
+    if (hit) {
+      aliases.set(entry.id, hit);
+      continue;
+    }
+    queue.push(entry);
+    for (const key of keys) if (!seen.has(key)) seen.set(key, entry.id);
+  }
+  return { queue, aliases, dropped: entries.length - queue.length };
+}
+
+
 /** The prompt for one call. Each item is a self-contained JSON line with its id. */
 export function buildPrompt<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
@@ -105,7 +142,12 @@ export function buildPrompt<G extends { key: string; desk: string }>(
     `For each item write ONE neutral sentence (max 28 words) summarizing that headline only. Do not invent facts beyond that item's headline, do not borrow details from another item, and do not add a local or Bay Area angle unless the headline itself has one.\n` +
     `Reply with JSON only: an array of {"id": "<the item id>", "summary": "<sentence>"} with exactly ${entries.length} entries, one per item id given below. No prose, no code fence.\n\n` +
     entries
-      .map((e) => `{"id": ${JSON.stringify(e.id)}, "desk": ${JSON.stringify(e.group.desk)}, "headline": ${JSON.stringify(e.text)}}`)
+      .map((e) => {
+        // Long-body publishers are truncated so a token budget never forces the
+        // batch to split into single-item calls.
+        const text = e.text.length > SUMMARY_TEXT_CAP ? `${e.text.slice(0, SUMMARY_TEXT_CAP)}…` : e.text;
+        return `{"id": ${JSON.stringify(e.id)}, "desk": ${JSON.stringify(e.group.desk)}, "headline": ${JSON.stringify(text)}}`;
+      })
       .join("\n")
   );
 }
@@ -187,8 +229,11 @@ export interface RunOptions {
 }
 
 /**
- * Summarizes every entry, batching where possible and falling back to one call
- * per item for anything a batch failed to return validly.
+ * Summarizes every entry, batching where possible.
+ *
+ * A batch that fails or comes back incomplete is retried once as a batch and
+ * then halved — single-item calls only happen when the batch is already one
+ * item, which is what keeps calls-per-headline low as sources are added.
  */
 export async function runSummaryBatches<G extends { key: string; desk: string }>(
   entries: readonly SummaryEntry<G>[],
@@ -202,96 +247,122 @@ export async function runSummaryBatches<G extends { key: string; desk: string }>
   if (!entries.length) return { summaries, metrics, errors };
 
   const chunks = chunkEntries(entries, opts.itemCap ?? SUMMARY_ITEM_CAP, opts.groupCap ?? SUMMARY_GROUP_CAP);
-  metrics.batches += chunks.length;
 
-  const needsFallback: SummaryEntry<G>[] = [];
+  // Counted once per distinct headline, never again on a retry or a split, so
+  // calls-per-headline stays comparable across runs.
+  metrics.itemsSummarized += entries.length;
+
+  const attempts = opts.attempts ?? 3;
+  const baseMs = opts.baseMs ?? 800;
+
+  /** Runs one call for `chunk`; halves on failure instead of going per item. */
+  const summarizeChunk = async (
+    chunk: SummaryEntry<G>[],
+    label: string,
+    retriedWhole = false,
+  ): Promise<void> => {
+    const single = chunk.length === 1;
+    const ids = chunk.map((e) => e.id);
+    const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
+
+    metrics.calls += 1;
+    if (single) {
+      metrics.fallbackCalls += 1;
+      const source = chunk[0]!.source ?? chunk[0]!.group.desk;
+      metrics.singleItemSources[source] = (metrics.singleItemSources[source] ?? 0) + 1;
+    } else {
+      metrics.batches += 1;
+      metrics.batchedItems += chunk.length;
+    }
+
+    const halve = async (list: SummaryEntry<G>[]) => {
+      if (list.length === 1) {
+        await summarizeChunk(list, `${label}.single`);
+        return;
+      }
+      const mid = Math.ceil(list.length / 2);
+      await summarizeChunk(list.slice(0, mid), `${label}.a`);
+      await summarizeChunk(list.slice(mid), `${label}.b`);
+    };
+
+    let text: string;
+    try {
+      text = await withRetry(() => call(buildPrompt(chunk), single ? "item" : "batch"), {
+        attempts: single ? Math.min(2, attempts) : attempts,
+        baseMs,
+        label: `gemini ${label} (${chunk.length} items)`,
+        stats: metrics.retry,
+        log,
+      });
+    } catch (error) {
+      const note = `[summarize] ${label} failed (${desks}): ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      log(note);
+      errors.push(note);
+      if (single) metrics.unresolved += 1;
+      else await halve(chunk);
+      return;
+    }
+
+    const result = validateBatchResponse(text, ids);
+    for (const [id, summary] of result.summaries) summaries.set(id, summary);
+    if (result.malformed) metrics.malformedBatches += 1;
+    metrics.missingEntries += result.missing.length;
+    metrics.unknownEntries += result.unknown.length;
+    if (!result.missing.length) return;
+
+    if (single) {
+      metrics.unresolved += 1;
+      return;
+    }
+
+    const pending = chunk.filter((e) => result.missing.includes(e.id));
+    const wholeBatchMissing = pending.length === chunk.length;
+    const note =
+      `[summarize] ${label} invalid (${desks}): ` +
+      `${result.malformed ? "malformed JSON, " : ""}` +
+      `${result.missing.length} missing, ${result.unknown.length} unknown id(s) — ` +
+      `${wholeBatchMissing && !retriedWhole ? "retrying as one batch" : "splitting the batch"}`;
+    log(note);
+    errors.push(note);
+
+    if (wholeBatchMissing && !retriedWhole) {
+      await summarizeChunk(chunk, `${label}.retry`, true);
+      return;
+    }
+    await halve(pending);
+  };
 
   await mapWithLimit(
     chunks,
     opts.concurrency ?? SUMMARY_CONCURRENCY,
-    async (chunk, batchIndex) => {
-      const ids = chunk.map((e) => e.id);
-      const desks = [...new Set(chunk.map((e) => e.group.desk))].join(", ");
-      try {
-        const text = await withRetry(() => {
-          metrics.calls += 1;
-          metrics.itemsSummarized += chunk.length;
-          return call(buildPrompt(chunk), "batch");
-        }, {
-          attempts: opts.attempts ?? 3,
-          baseMs: opts.baseMs ?? 800,
-          label: `gemini batch ${batchIndex + 1} (${chunk.length} items)`,
-          stats: metrics.retry,
-          log,
-        });
-        const result = validateBatchResponse(text, ids);
-        for (const [id, summary] of result.summaries) summaries.set(id, summary);
-        if (result.malformed) metrics.malformedBatches += 1;
-        metrics.missingEntries += result.missing.length;
-        metrics.unknownEntries += result.unknown.length;
-        if (result.malformed || result.missing.length || result.unknown.length) {
-          const note =
-            `[summarize] batch ${batchIndex + 1} invalid (${desks}): ` +
-            `${result.malformed ? "malformed JSON, " : ""}` +
-            `${result.missing.length} missing, ${result.unknown.length} unknown id(s) — ` +
-            `falling back to per-item summaries`;
-          log(note);
-          errors.push(note);
-          for (const entry of chunk) if (result.missing.includes(entry.id)) needsFallback.push(entry);
-        }
-      } catch (error) {
-        const note = `[summarize] batch ${batchIndex + 1} failed (${desks}): ${
-          error instanceof Error ? error.message : String(error)
-        }`;
-        log(note);
-        errors.push(note);
-        needsFallback.push(...chunk);
-      }
-    },
+    async (chunk, batchIndex) => summarizeChunk(chunk, `batch ${batchIndex + 1}`),
     { label: "gemini summary batches", stats: metrics.retry, log },
   );
-
-  if (needsFallback.length) {
-    await mapWithLimit(
-      needsFallback,
-      opts.concurrency ?? SUMMARY_CONCURRENCY,
-      async (entry) => {
-        try {
-          const text = await withRetry(() => {
-            metrics.calls += 1;
-            metrics.fallbackCalls += 1;
-            return call(buildPrompt([entry]), "item");
-          }, {
-            attempts: opts.attempts ?? 2,
-            baseMs: opts.baseMs ?? 800,
-            label: `gemini per-item retry ${entry.id}`,
-            stats: metrics.retry,
-            log,
-          });
-          const single = validateBatchResponse(text, [entry.id]);
-          const summary = single.summaries.get(entry.id);
-          if (summary) summaries.set(entry.id, summary);
-          else metrics.unresolved += 1;
-        } catch (error) {
-          metrics.unresolved += 1;
-          log(
-            `[summarize] per-item summary failed for ${entry.id}: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
-      },
-      { label: "gemini per-item summaries", stats: metrics.retry, log },
-    );
-  }
 
   return { summaries, metrics, errors };
 }
 
+/** Calls made per headline sent — the guard number. Lower is better. */
+export function callsPerHeadline(m: BatchMetrics): number {
+  if (!m.itemsSummarized) return 0;
+  return Math.round((m.calls / m.itemsSummarized) * 100) / 100;
+}
+
+/** Publishers responsible for the most single-item calls, worst first. */
+export function topSingleCallSources(m: BatchMetrics, limit = 5): { source: string; calls: number }[] {
+  return Object.entries(m.singleItemSources)
+    .map(([source, calls]) => ({ source, calls }))
+    .sort((a, b) => b.calls - a.calls)
+    .slice(0, limit);
+}
+
+
 /** Average items per batched call — the headline number on the admin panel. */
 export function averageBatchSize(m: BatchMetrics): number {
   if (!m.batches) return 0;
-  return Math.round((m.itemsSummarized / m.batches) * 10) / 10;
+  return Math.round((m.batchedItems / m.batches) * 10) / 10;
 }
 
 /**

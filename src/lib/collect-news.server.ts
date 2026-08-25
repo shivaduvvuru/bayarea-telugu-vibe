@@ -1,5 +1,5 @@
 import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
-import { dedupeKey } from "./dedupe";
+import { canonicalUrl, dedupeKey, strictTitleKey } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
 import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery } from "./cinema-topics";
@@ -13,9 +13,12 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { generateText } from "ai";
 import {
   averageBatchSize,
+  callsPerHeadline,
+  dedupeEntries,
   newBatchMetrics,
   runSummaryBatches,
   SUMMARY_CONCURRENCY,
+  topSingleCallSources,
   truncationRate,
   type SummaryEntry,
 } from "./summary-batch";
@@ -1911,6 +1914,9 @@ function guideKind(item: RawItem): CollectedItem["kind"] {
 
 export let lastAiError: string | null = null;
 
+/** Calls per headline above this means the batcher is degrading toward singles. */
+export const CALLS_PER_HEADLINE_LIMIT = 0.35;
+
 /**
  * Gemini summary calls made by the current run. One call used to be made per
  * city / feed group, which meant dozens of tiny requests per pass; groups are
@@ -1958,7 +1964,7 @@ async function summarizeGroups(
   // Anything already in the store (or already rejected) is dropped downstream,
   // so it never earns a summary call.
   type Group = { key: string; desk: string; index: number };
-  const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number })[] = [];
+  const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number; link: string })[] = [];
   for (const g of groups) {
     g.items.forEach((item, index) => {
       if (known?.has(keyFor(g.city.slug, item.title))) {
@@ -1969,16 +1975,27 @@ async function summarizeGroups(
         id: `${g.key}#${index}`,
         group: { key: g.key, desk: g.city.en, index },
         text: `${item.title} (${item.source})`,
+        source: item.source,
         groupKey: g.key,
         itemIndex: index,
+        link: item.link,
       });
     });
   }
   if (!entries.length) return result;
 
+  // Dedupe runs before the queue, not after: overlapping Telugu / OTT feeds
+  // carry the same story under different links, and summarizing each copy was
+  // pure waste. Copies reuse the summary of the item that was actually sent.
+  const { queue, aliases, dropped } = dedupeEntries(entries, (e) => [
+    canonicalUrl(e.link),
+    strictTitleKey(e.text.replace(/\s*\([^)]*\)\s*$/, "")),
+  ]);
+  aiUsage.itemsSkipped += dropped;
+
   const gateway = createLovableAiGatewayProvider(apiKey);
   const { summaries, errors } = await runSummaryBatches<Group>(
-    entries,
+    queue,
     async (prompt) => {
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
@@ -1995,11 +2012,12 @@ async function summarizeGroups(
   lastAiError = summaries.size ? null : (errors[0] ?? lastAiError);
 
   for (const e of entries) {
-    const summary = summaries.get(e.id);
+    const summary = summaries.get(e.id) ?? summaries.get(aliases.get(e.id) ?? "");
     if (!summary) continue;
     const list = result.get(e.groupKey);
     if (list) list[e.itemIndex] = summary;
   }
+
   return result;
 }
 
@@ -2077,6 +2095,18 @@ export async function collectAll(
   aiBatchMetrics = newBatchMetrics();
   const knownKeys = await loadKnownKeys();
 
+  /**
+   * One pooled summary queue for the whole run. Each pass used to summarize its
+   * own fetch immediately, so every pass (and every newly added source group)
+   * left a small remainder call behind — that is what pushed calls-per-headline
+   * from ~0.28 to 0.50. Passes now only queue their groups; a single batched
+   * summarization runs at the end and patches the rows in place.
+   */
+  const summaryPool: SummaryGroup[] = [];
+  const queueSummaries = (groups: { key: string; city: City; items: RawItem[] }[]) => {
+    for (const g of groups) summaryPool.push({ key: g.key, city: g.city, items: g.items });
+  };
+
 
   const cityList = rotate(CITIES, 4);
   for (let b = 0; b < cityList.length && within(0.35); b += 4) {
@@ -2085,7 +2115,8 @@ export async function collectAll(
     const fetched = await Promise.all(
       batch.map(async (city) => ({ key: `city:${city.slug}`, city, items: await fetchCity(city) })),
     );
-    const citySummaries = await summarizeGroups(fetched, apiKey, knownKeys);
+    queueSummaries(fetched);
+  const citySummaries = new Map<string, string[]>();
     const collected = await Promise.all(
       fetched.map(async ({ key, city, items }) => {
         const summaries = citySummaries.get(key) ?? [];
@@ -2145,7 +2176,8 @@ export async function collectAll(
         return { key: `guide:${g.kind}:${slug}:${gi}`, city: cityBySlug(slug) ?? BAY_AREA, items, g, slug };
       }),
     );
-    const guideSummaries = await summarizeGroups(guideFetched, apiKey, knownKeys);
+    queueSummaries(guideFetched);
+  const guideSummaries = new Map<string, string[]>();
     const guideRows = await Promise.all(
       guideFetched.map(async ({ key, items, g, slug }) => {
         const summaries = guideSummaries.get(key) ?? [];
@@ -2194,7 +2226,8 @@ export async function collectAll(
       group,
     })),
   );
-  const topicSummaries = await summarizeGroups(topicFetched, apiKey, knownKeys);
+  queueSummaries(topicFetched);
+  const topicSummaries = new Map<string, string[]>();
   const topicRows = await Promise.all(
     topicFetched.map(async ({ key, items, group }) => {
       const summaries = topicSummaries.get(key) ?? [];
@@ -2250,7 +2283,8 @@ export async function collectAll(
       feed,
     })),
   );
-  const publisherSummaries = await summarizeGroups(publisherFetched, apiKey, knownKeys);
+  queueSummaries(publisherFetched);
+  const publisherSummaries = new Map<string, string[]>();
   const publisherRows = await Promise.all(
     publisherFetched.map(async ({ key, items, feed }) => {
       const summaries = publisherSummaries.get(key) ?? [];
@@ -2376,6 +2410,29 @@ export async function collectAll(
 
 
 
+  // One batched summarization for every pass in this run. Rows carry an empty
+  // summary until this point; they are matched back by dedupe key, which is how
+  // each pass already identifies its own items.
+  if (summaryPool.length) {
+    const pooledSummaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
+    const byKey = new Map<string, string>();
+    for (const g of summaryPool) {
+      const list = pooledSummaries.get(g.key) ?? [];
+      g.items.forEach((item, index) => {
+        const summary = list[index];
+        const key = keyFor(g.city.slug, item.title);
+        if (summary && !byKey.has(key)) byKey.set(key, summary);
+      });
+    }
+    for (const row of rows) {
+      if (row.summary) continue;
+      const summary = byKey.get(row.dedupe_key);
+      if (!summary) continue;
+      row.summary = summary;
+      (row.payload as { summary?: string }).summary = summary;
+    }
+  }
+
   // Temple coverage stays strictly religious and from reliable/temple sources.
   const templeSafe = rows.filter(
     (r) =>
@@ -2383,14 +2440,28 @@ export async function collectAll(
       isTempleNewsClean({ title: r.title, summary: r.summary, sourceUrl: r.source_url }),
   );
   // Before/after measure of the summary batching: one line per run.
+  const perHeadline = callsPerHeadline(aiBatchMetrics);
   const note =
-    `gemini summary calls: ${aiUsage.calls} (batches ${aiUsage.batches}, ` +
+    `gemini summary calls: ${aiUsage.calls} (calls_per_headline ${perHeadline}, batches ${aiUsage.batches}, ` +
     `avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, ` +
     `items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped}, ` +
     `truncation ${(truncationRate(aiBatchMetrics) * 100).toFixed(1)}%, retries ${aiBatchMetrics.retry.retries})`;
   console.log(`[collect] ${note}`);
   lastDiag.notes.push(note);
   // Records the run and alerts when call volume or truncation regresses.
+  // Guard: batching is only working while this ratio stays low. Above the
+  // threshold, name the publishers whose items became single-item calls.
+  if (perHeadline > CALLS_PER_HEADLINE_LIMIT && aiBatchMetrics.itemsSummarized > 0) {
+    const worst = topSingleCallSources(aiBatchMetrics, 5)
+      .map((s) => `${s.source} (${s.calls})`)
+      .join(", ");
+    const warn =
+      `summary batching warning: calls_per_headline ${perHeadline} exceeded ${CALLS_PER_HEADLINE_LIMIT} ` +
+      `(avg batch ${averageBatchSize(aiBatchMetrics)})` +
+      (worst ? ` — most single-item calls: ${worst}` : "");
+    console.warn(`[collect] ${warn}`);
+    lastDiag.notes.push(warn);
+  }
   const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, "collect");
   for (const w of warnings) lastDiag.notes.push(`summary warning: ${w}`);
   return dedupeCollected(templeSafe);
