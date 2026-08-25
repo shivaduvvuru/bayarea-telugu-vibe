@@ -14,6 +14,7 @@ import { CONTENT_KINDS, PLACEMENTS, type ContentItem } from "@/lib/cms";
 import { listForumQueue, moderateForum } from "@/lib/forum.functions";
 import { categoryLabel } from "@/lib/forum";
 import { listClaims, reviewClaim } from "@/lib/claims.functions";
+import { resolveDuplicates } from "@/lib/duplicate-cleanup.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,11 +43,25 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function DuplicateAlert() {
+  const qc = useQueryClient();
   const list = useServerFn(listReviewQueue);
+  const resolve = useServerFn(resolveDuplicates);
   const query = useQuery({
     queryKey: ["cms", "queue", "duplicate"],
     queryFn: () => list({ data: { status: "duplicate", limit: 200 } }),
   });
+
+  const cleanup = useMutation({
+    mutationFn: () => resolve({}),
+    onSuccess: (r) => {
+      toast.success(
+        `Kept one story per event: ${r.promoted} published, ${r.deleted} repeats removed.`,
+      );
+      qc.invalidateQueries({ queryKey: ["cms"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const count = query.data?.length ?? 0;
   if (count === 0) return null;
   return (
@@ -54,9 +69,17 @@ function DuplicateAlert() {
       role="alert"
       className="mt-6 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm"
     >
-      <strong>{count} duplicate {count === 1 ? "item was" : "items were"} blocked.</strong>{" "}
-      They repeat a headline or listing already on the site and were kept out of public
-      pages automatically. Open the Duplicates tab to review or publish one anyway.
+      <strong>
+        {count} duplicate {count === 1 ? "item was" : "items were"} blocked.
+      </strong>{" "}
+      They repeat a headline or listing already on the site and were kept out of public pages
+      automatically. Keep one story per event and clear the rest, or open the Duplicates tab to
+      review them.
+      <div className="mt-3">
+        <Button size="sm" onClick={() => cleanup.mutate()} disabled={cleanup.isPending}>
+          {cleanup.isPending ? "Filtering…" : "Keep one, remove the rest"}
+        </Button>
+      </div>
     </div>
   );
 }
