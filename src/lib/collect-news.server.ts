@@ -470,6 +470,7 @@ export const lastDiag = {
 };
 
 function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
+  googleFailures = 0;
   lastDiag.fetched = 0;
   lastDiag.raw = 0;
   lastDiag.kept = 0;
@@ -523,6 +524,18 @@ function recordClassified(source: string, category: string) {
     (lastDiag.classification.byCategory[category] ?? 0) + 1;
   const bySource = (lastDiag.classification.bySource[source] ??= {});
   bySource[category] = (bySource[category] ?? 0) + 1;
+}
+
+/**
+ * Google News circuit breaker. Google tarpits a busy client with silent
+ * timeouts rather than a 429; once a few requests in a run have timed out,
+ * every remaining Google request is skipped so the budget goes to publishers
+ * that are answering. Reset per run.
+ */
+const GOOGLE_TRIP_AFTER = 3;
+let googleFailures = 0;
+function googleDown(): boolean {
+  return googleFailures >= GOOGLE_TRIP_AFTER;
 }
 
 function isGoogleNewsFeed(url: string): boolean {
@@ -589,6 +602,10 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
   if (google) {
     lastDiag.googleNews.requested += 1;
     googleDiag(label).requested += 1;
+    if (googleDown()) {
+      recordGoogleError(label, "skipped: circuit open");
+      return null;
+    }
   }
   try {
     const res = await withRetry(
@@ -609,9 +626,11 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
         return response;
       },
       {
-        attempts: google ? 4 : 3,
-        baseMs: google ? 1_200 : 800,
-        maxMs: google ? 12_000 : 5_000,
+        // Google is either fast or tarpitting; a long retry ladder only
+        // burns the run budget. Two tries, short backoff, then the breaker.
+        attempts: 2,
+        baseMs: google ? 600 : 800,
+        maxMs: google ? 2_000 : 5_000,
         label: google ? `Google News ${label}` : label,
         log: (line) => {
           if (google || lastDiag.notes.length < 6) console.warn(line);
@@ -630,7 +649,11 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
     // resolving all ~100 items of every search feed was most of the run time.
     return items;
   } catch (e) {
-    if (google) recordGoogleError(label, e instanceof Error ? (e.message.match(/\b\d{3}\b/)?.[0] ?? e.message) : String(e));
+    if (google) {
+      googleFailures += 1;
+      recordGoogleError(label, e instanceof Error ? (e.message.match(/\b\d{3}\b/)?.[0] ?? e.message) : String(e));
+      if (googleFailures === GOOGLE_TRIP_AFTER) lastDiag.notes.push("Google News: circuit opened after repeated timeouts; remaining Google feeds skipped this run");
+    }
     if (lastDiag.notes.length < 6)
       lastDiag.notes.push(`${new URL(url).host}: ${e instanceof Error ? e.message : String(e)}`);
     return null;
@@ -718,7 +741,7 @@ async function addImages(items: RawItem[]): Promise<void> {
   });
   // One batched resolution for the kept Google-wrapped links.
   const wrapped = todo.filter((i) => i.link && isGoogleNewsUrl(i.link)).map((i) => i.link);
-  if (wrapped.length) {
+  if (wrapped.length && !googleDown()) {
     const map = await resolveGoogleNewsUrls(wrapped).catch(() => new Map<string, string>());
     for (const item of todo) {
       const real = map.get(item.link);
@@ -2289,7 +2312,6 @@ async function summarizeGroups(
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
         prompt,
-        maxOutputTokens: 4096,
       });
       return text;
     },
@@ -2738,10 +2760,13 @@ export async function collectAll(
 
 
 /** Dedicated Cinema/OTT run: topic sweep + direct media publishers with its own budget. */
+/** Cinema publishers read per run; the rest wait for the next rotation slot. */
+const DESK_PUBLISHERS_PER_RUN = 16;
+
 export async function collectDesk(
   desk: "cinema",
   apiKey: string | undefined,
-  opts?: { deadlineMs?: number },
+  opts?: { deadlineMs?: number; slice?: number; sliceSize?: number },
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   resetRunDiagnostics();
@@ -2752,10 +2777,18 @@ export async function collectDesk(
   const summaryPool: SummaryGroup[] = [];
   const rows: CollectedItem[] = [];
 
-  const topicGroups = TOPIC_GROUPS.filter((group) => {
+  // Rotation: every run reads one topic group and one slice of the publisher
+  // list, so a 30-minute cron covers every source within ~90 minutes while
+  // each run stays well inside its budget. Direct RSS feeds go first — they
+  // are fast and never throttled — and Google search feeds fill the tail.
+  const slice = opts?.slice ?? Math.floor(Date.now() / (30 * 60 * 1000));
+  const allTopicGroups = TOPIC_GROUPS.filter((group) => {
     const kind = topicDesk(group);
     return kind === "cinema" || kind === "micro-drama";
   });
+  const topicGroups = allTopicGroups.length
+    ? [allTopicGroups[slice % allTopicGroups.length]!]
+    : [];
   const topicFetched = await Promise.all(
     topicGroups.map(async (group, index) => ({
       key: `cinema-topic:${index}`,
@@ -2768,10 +2801,18 @@ export async function collectDesk(
   );
   summaryPool.push(...topicFetched.map(({ key, city, items }) => ({ key, city, items })));
 
-  const publisherFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher).map((feed) => ({
+  const cinemaFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher).map((feed) => ({
     ...feed,
     limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
   }));
+  const sliceSize = opts?.sliceSize ?? DESK_PUBLISHERS_PER_RUN;
+  const start = (slice * sliceSize) % Math.max(1, cinemaFeeds.length);
+  const rotated = [...cinemaFeeds.slice(start), ...cinemaFeeds.slice(0, start)].slice(0, sliceSize);
+  const publisherFeeds = [
+    ...rotated.filter((f) => !isGoogleNewsFeed(f.url) && !/bing\.com/.test(f.url)),
+    ...rotated.filter((f) => /bing\.com/.test(f.url)),
+    ...rotated.filter((f) => isGoogleNewsFeed(f.url)),
+  ];
   for (let b = 0; b < publisherFeeds.length && inBudget(); b += 8) {
     const slice = publisherFeeds.slice(b, b + 8);
     lastDiag.publishers.selected.push(...slice.map((feed) => feed.name));
