@@ -256,7 +256,14 @@ function DriveImportPage() {
 
       {load.data ? (
         <section className="mt-6 rounded-lg border p-4">
-          <h2 className="text-lg font-semibold">{load.data.meta.name}</h2>
+          <h2 className="text-lg font-semibold">
+            {load.data.meta.name}
+            {confirmedId === load.data.meta.id ? (
+              <span className="ml-2 align-middle text-xs font-medium text-primary">
+                confirmed
+              </span>
+            ) : null}
+          </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             File ID {load.data.meta.id} · {load.data.meta.mimeType} ·{" "}
             {formatSize(load.data.bytes)}
