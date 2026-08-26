@@ -749,9 +749,21 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
 ];
 
 const TOPIC_MAX = 8;
+const DESK_TOPIC_MAX: Record<string, number> = {
+  cinema: 40,
+  "micro-drama": 20,
+};
+
+function topicDesk(group: (typeof TOPIC_GROUPS)[number]): "cinema" | "micro-drama" | "other" {
+  const text = `${group.queries.join(" ")} ${group.match.source}`;
+  if (/micro|vertical|reelshort|dramabox|duanju|short[- ]?drama/i.test(text)) return "micro-drama";
+  if (/cinema|movie|film|ott|stream|tollywood|bollywood|hollywood|web series/i.test(text)) return "cinema";
+  return "other";
+}
 
 async function fetchTopics(
   group: (typeof TOPIC_GROUPS)[number],
+  opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
   const results = await Promise.all(
@@ -781,7 +793,7 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item);
-    if (merged.length >= TOPIC_MAX) break;
+    if (merged.length >= (opts?.limit ?? TOPIC_MAX)) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
