@@ -14,6 +14,7 @@ import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { uniqueByContent } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
+import { glamourRotation } from "./glamour-rotation";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
@@ -66,6 +67,8 @@ type Row = {
   source?: string | null;
   resolved_category?: string | null;
   is_local?: boolean | null;
+  /** When a reader was last shown this picture (Glamour rotation only). */
+  last_shown_at?: string | null;
 };
 
 /**
@@ -74,9 +77,10 @@ type Row = {
  * hundreds of rows was pure waste. The article page reads `body` on its own.
  */
 const LIST_COLUMNS =
-  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source, resolved_category, is_local";
+  "id, title, summary, image_url, link_url, city, category, published_at, created_at, source, resolved_category, is_local, last_shown_at";
 
 const DETAIL_COLUMNS = `${LIST_COLUMNS}, body`;
+
 
 /** Minimal escape so a summary can stand in for article HTML on list reads. */
 function escapeText(text: string) {
@@ -316,10 +320,14 @@ async function readPosts(
         galleryImage(r.image_url) &&
         (r.category === "gallery" || isStarGallery(r.title, r.summary, r.link_url)),
     );
+    // Least-recently-shown first, reshuffled every day: pictures nobody has
+    // seen lead the folder, then the ones seen longest ago, and the order is
+    // never yesterday's order rotated (see glamour-rotation).
+    const ordered = glamourRotation([...stamped, ...fallback]);
     // `page` walks a window through the whole picture folder, so a later read
     // returns photos the reader has not been shown yet instead of the same
     // newest batch. Falls back to the first window once the folder runs out.
-    const all = dedupeArticles([...stamped, ...fallback].map(toArticle));
+    const all = dedupeArticles(ordered.map(toArticle));
     const from = page * limit;
     return from < all.length ? all.slice(from, from + limit) : all.slice(0, limit);
   }
