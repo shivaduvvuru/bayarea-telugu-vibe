@@ -894,9 +894,9 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 10,
   },
-  { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 6 },
-  { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 5 },
-  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 5 },
+  { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 12 },
+  { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 12 },
+  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 12 },
   {
     name: "Telugu cinema",
     url: "https://news.google.com/rss/search?q=Telugu+cinema+OR+Tollywood+movie+news+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -953,9 +953,9 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
   // Glamour / social-media picture desks feeding the Gallery grid.
-  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 6 },
-  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 5 },
-  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 5 },
+  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 12 },
+  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 12 },
+  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 12 },
   {
     name: "Glamour shoots",
     url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+OR+Hollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -1308,7 +1308,7 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
-  { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
+  { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 12 },
   // Micro-drama desk: Bing's news RSS stopped returning items, so these read
   // through Google News RSS, which answers with a deep pool of vertical
   // short-drama coverage from India, China and the US.
@@ -1504,7 +1504,7 @@ const PUBLISHER_FEEDS: {
   // nothing extra per collection cycle.
 
   // Tollywood — Telugu cinema, OTT and box office
-  { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 5 },
+  { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 15 },
   {
     name: "CineJosh & Tollywood.net",
     url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
@@ -1604,16 +1604,16 @@ const PUBLISHER_FEEDS: {
   },
 
   // Hollywood / global trades
-  { name: "Variety", url: "https://variety.com/feed/", kind: "news", limit: 6 },
-  { name: "Deadline", url: "https://deadline.com/feed/", kind: "news", limit: 6 },
+  { name: "Variety", url: "https://variety.com/feed/", kind: "news", limit: 15 },
+  { name: "Deadline", url: "https://deadline.com/feed/", kind: "news", limit: 15 },
   {
     name: "The Hollywood Reporter",
     url: "https://www.hollywoodreporter.com/feed/",
     kind: "news",
     limit: 6,
   },
-  { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 5 },
-  { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 5 },
+  { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 12 },
+  { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 12 },
   {
     // Screen Daily and Collider block direct RSS reads, so both come through
     // Google News site: sweeps instead.
@@ -1624,7 +1624,7 @@ const PUBLISHER_FEEDS: {
   },
 
   // Korean — K-drama, K-film, OTT
-  { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 8 },
+  { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 15 },
   {
     name: "Korea entertainment dailies",
     url: "https://news.google.com/rss/search?q=(site:koreajoongangdaily.joins.com+OR+site:koreaherald.com+OR+site:koreatimes.co.kr)+(drama+OR+film+OR+entertainment)+when:3d&hl=en-US&gl=US&ceid=US:en",
@@ -1714,7 +1714,13 @@ const PUBLISHER_FEEDS: {
   { name: "eTimes photos", url: "https://timesofindia.indiatimes.com/rssfeeds/-2128672765.cms", kind: "news", limit: 20 },
   { name: "eTimes Telugu", url: "https://timesofindia.indiatimes.com/rssfeeds/2886704.cms", kind: "news", limit: 20 },
   { name: "The Hindu Movies", url: "https://www.thehindu.com/entertainment/movies/feeder/default.rss", kind: "news", limit: 30 },
-  { name: "Free Press Entertainment", url: "https://www.freepressjournal.in/stories.rss?section=entertainment", kind: "news", limit: 20 },
+  {
+    name: "Free Press Entertainment",
+    url: "https://news.google.com/rss/search?q=site:freepressjournal.in+(movie+OR+cinema+OR+film+OR+OTT+OR+Bollywood)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 12,
+    match: /movie|cinema|film|ott|bollywood|actor|actress|trailer|teaser|review|box office/i,
+  },
   { name: "Deccan Chronicle Entertainment", url: "https://www.deccanchronicle.com/google_feeds.xml", kind: "news", limit: 30 },
 
 
