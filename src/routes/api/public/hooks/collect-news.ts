@@ -104,7 +104,11 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const { ingest } = await import("@/lib/cms.server");
             const { errorMessage } = await import("@/lib/error-message");
 
-            const collectedRaw = await collectDesk("cinema", process.env["LOVABLE_API_KEY"], { deadlineMs: 75_000 });
+            // pg_net gives the hook 120 s. Fetch ≤55 s, summaries ≤25 s more,
+            // publishing stops at 100 s; anything unpublished stays approved
+            // in the queue and goes out on the next slot.
+            const PUBLISH_CUTOFF_MS = 100_000;
+            const collectedRaw = await collectDesk("cinema", process.env["LOVABLE_API_KEY"], { deadlineMs: 55_000 });
             const known = await loadKnownKeys(supabaseAdmin as never);
             const fresh = collectedRaw.filter((r) => !isKnownStory(known, r));
 
@@ -132,7 +136,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               .contains("payload", { desk: "cinema" })
               .limit(300);
             const batch = (queued ?? []) as unknown as Record<string, unknown>[];
+            let deferred = 0;
             for (let i = 0; i < batch.length; i += 25) {
+              if (Date.now() - startedAt > PUBLISH_CUTOFF_MS) {
+                deferred = batch.length - i;
+                break;
+              }
               const chunk = batch.slice(i, i + 25);
               const chunkIds = chunk.map((r) => String(r["item_id"]));
               try {
@@ -161,6 +170,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
               autoApproved: ids.length,
               held: marked.length - ids.length,
               published: publishedCount,
+              deferredToNextRun: deferred,
               publishers: lastDiag.publishers,
               googleNews: lastDiag.googleNews,
               classification: lastDiag.classification,
@@ -572,7 +582,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const batch = (queued ?? []) as unknown as Record<string, unknown>[];
             // Published in small chunks: one malformed row used to fail the
             // whole 500-row insert, so the entire approved backlog stayed stuck.
+            let deferred = 0;
             for (let i = 0; i < batch.length; i += 25) {
+              if (Date.now() - startedAt > PUBLISH_CUTOFF_MS) {
+                deferred = batch.length - i;
+                break;
+              }
               const chunk = batch.slice(i, i + 25);
               const ids = chunk.map((r) => String(r["item_id"]));
               try {
