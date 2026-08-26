@@ -12,17 +12,25 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const { hookAuthorized, unauthorized } = await import("@/lib/hook-auth.server");
         if (!(await hookAuthorized(request))) return unauthorized();
 
-        const { collectAll, collectGallery, dedupeCollected, urlKey, backfillMissingImages } =
-          await import("@/lib/collect-news.server");
+        const {
+          collectAll,
+          collectDesk,
+          collectGallery,
+          dedupeCollected,
+          storyIdentityKeys,
+          urlKey,
+          backfillMissingImages,
+        } = await import("@/lib/collect-news.server");
 
-        // { "mode": "gallery" } runs only the star / photo desks (3-hourly job).
+        // { "mode": "gallery" } runs only the star / photo desks; { "mode": "cinema" } runs only Cinema/OTT.
         const body = (await request.json().catch(() => ({}))) as {
           mode?: string;
           trigger?: string;
         };
         const galleryOnly = body?.mode === "gallery";
+        const cinemaOnly = body?.mode === "cinema";
+        const runMode = galleryOnly ? "gallery" : cinemaOnly ? "cinema" : "all";
         const trigger = body?.trigger === "manual" ? "manual" : "cron";
-        const { dedupeKey } = await import("@/lib/dedupe");
         const { lastDiag: collectDiag } = await import("@/lib/collect-news.server");
         const lastDiagSnapshot = () => collectDiag;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -119,10 +127,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // reached the publishing step — which is why sections went stale.
           let newsPool = galleryOnly
             ? []
-            : await collectAll(process.env["LOVABLE_API_KEY"], {
-                deadlineMs: 40_000,
-                slice: Math.floor(Date.now() / (20 * 60 * 1000)),
-              });
+            : cinemaOnly
+              ? await collectDesk("cinema", process.env["LOVABLE_API_KEY"], { deadlineMs: 90_000 })
+              : await collectAll(process.env["LOVABLE_API_KEY"], {
+                  deadlineMs: 40_000,
+                  slice: Math.floor(Date.now() / (20 * 60 * 1000)),
+                });
           // The picture desks have their own frequent job, so a news pass no
           // longer drags the photo sweep and its image screening along with it.
           // Combining both made a single request run for minutes and be killed.
@@ -379,30 +389,34 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
 
           const storedKeys = new Set([
-            ...(stored ?? []).map((r) => r.dedupe_key ?? ""),
-            ...(published ?? []).map((r) => r.dedupe_key ?? ""),
-            ...(rejected ?? []).map((r) => r.dedupe_key ?? ""),
-            ...(rejected ?? []).map((r) => r.item_id ?? ""),
+            ...(stored ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
+            ...(published ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
+            ...(rejected ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
+            ...(rejected ?? []).map((r) => (r.item_id ? `d:${r.item_id}` : "")),
             // desk rows publish as source_ref "editorial-desk:<item_id>"
-            ...(published ?? []).map((r) => (r.source_ref ?? "").replace(/^editorial-desk:/, "")),
+            ...(published ?? []).map((r) => {
+              const ref = (r.source_ref ?? "").replace(/^editorial-desk:/, "");
+              return ref ? `d:${ref}` : "";
+            }),
           ]);
+          const knownContentKeys = new Set<string>();
+          for (const row of stored ?? []) {
+            for (const key of storyIdentityKeys(row.title, row.source_url)) knownContentKeys.add(key);
+          }
+          for (const row of published ?? []) {
+            for (const key of storyIdentityKeys(row.title, row.link_url ?? row.source_ref)) knownContentKeys.add(key);
+          }
+          for (const row of rejected ?? []) {
+            for (const key of storyIdentityKeys(row.title, null)) knownContentKeys.add(key);
+          }
 
           const beforeDuplicateFilter = collected.length;
           const rows = dedupeCollected(
             collected.filter(
-              (r) => !storedKeys.has(r.dedupe_key) && !storedKeys.has(String(r.item_id ?? "")),
+              (r) => !storedKeys.has(`d:${r.dedupe_key}`) && !storedKeys.has(`d:${String(r.item_id ?? "")}`),
             ),
             {
-              titles: [
-                ...(stored ?? []).map((r) => dedupeKey(r.title ?? "")),
-                ...(published ?? []).map((r) => dedupeKey(r.title ?? "")),
-                ...(rejected ?? []).map((r) => dedupeKey(r.title ?? "")),
-              ],
-
-              urls: [
-                ...(stored ?? []).map((r) => (r.source_url ? urlKey(r.source_url) : "")),
-                ...(published ?? []).map((r) => (r.link_url ? urlKey(r.link_url) : "")),
-              ],
+              content: knownContentKeys,
             },
           );
           const pendingPictureIds = new Set(
@@ -540,7 +554,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
           // Mirror the WordPress site: anything unpublished there disappears here.
           let wpRemoved = 0;
-          if (!galleryOnly) {
+          if (!galleryOnly && !cinemaOnly) {
             try {
               const { fetchWordPressPosts, syncWordPressRemovals } = await import(
                 "@/lib/wp-source.server"
@@ -608,7 +622,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           const finishedAt = new Date().toISOString();
           // Status log so the site can show when the last pull completed.
           await supabaseAdmin.from("collect_runs").insert({
-            mode: galleryOnly ? "gallery" : "all",
+            mode: runMode,
             trigger,
             collected: rows.length,
             published: publishedCount,
@@ -626,7 +640,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: galleryOnly ? "gallery" : "all", collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length, googleNews: lastDiag.googleNews }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: runMode, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length, googleNews: lastDiag.googleNews }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);
@@ -634,7 +648,7 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           try {
             await supabaseAdmin
               .from("collect_runs")
-              .insert({ mode: galleryOnly ? "gallery" : "all", trigger, ok: false, error: message } as never);
+              .insert({ mode: runMode, trigger, ok: false, error: message } as never);
           } catch {
             /* status logging must never mask the original failure */
           }

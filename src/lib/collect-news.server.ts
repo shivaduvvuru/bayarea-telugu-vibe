@@ -76,7 +76,7 @@ function storyUrlKey(raw: string | null | undefined): string | null {
   return canonicalUrl(raw) ?? urlKey(raw);
 }
 
-function storyIdentityKeys(title: string | null | undefined, url: string | null | undefined): string[] {
+export function storyIdentityKeys(title: string | null | undefined, url: string | null | undefined): string[] {
   const u = storyUrlKey(url);
   const t = strictTitleKey(title);
   if (u) return [`u:${u}`, ...(t ? [`ut:${u}|${t}`] : [])];
