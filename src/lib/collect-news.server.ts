@@ -138,7 +138,7 @@ async function msnImage(link: string): Promise<string | null> {
   try {
     const res = await fetch(`https://assets.msn.com/content/view/v2/Detail/en-us/${id}`, {
       headers: { "User-Agent": UA, Accept: "application/json" },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return null;
     const json = (await res.json()) as { imageResources?: { url?: string; width?: number }[] };
