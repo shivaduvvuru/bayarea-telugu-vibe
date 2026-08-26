@@ -41,9 +41,9 @@ function escapeQuery(value: string) {
 }
 
 export async function listDriveFiles(opts: {
-  search?: string;
-  folderId?: string;
-  pageToken?: string;
+  search?: string | undefined;
+  folderId?: string | undefined;
+  pageToken?: string | undefined;
 }): Promise<{ files: DriveFile[]; nextPageToken: string | null }> {
   const clauses = ["trashed = false"];
   const search = opts.search?.trim();
