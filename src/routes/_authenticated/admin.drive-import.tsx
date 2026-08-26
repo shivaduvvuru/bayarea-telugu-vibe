@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { browseDrive, previewDriveFile } from "@/lib/drive.functions";
+import { autoMatchClaudeFile, browseDrive, previewDriveFile } from "@/lib/drive.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
