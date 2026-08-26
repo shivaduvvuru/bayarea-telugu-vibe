@@ -2,8 +2,8 @@ import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { canonicalUrl, dedupeKey, strictTitleKey } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
-import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery } from "./cinema-topics";
-import { isMicroDrama } from "./microdrama-topics";
+import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
+import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
@@ -67,6 +67,26 @@ function keyFor(citySlug: string, title: string) {
     h2 = (h2 * 33) ^ base.charCodeAt(i);
   }
   return `${citySlug}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
+}
+
+const DESK_PLACEHOLDER_IMAGE = "/cinema-placeholder.webp";
+
+function storyUrlKey(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  return canonicalUrl(raw) ?? urlKey(raw);
+}
+
+function storyIdentityKeys(title: string | null | undefined, url: string | null | undefined): string[] {
+  const u = storyUrlKey(url);
+  const t = strictTitleKey(title);
+  if (u) return [`u:${u}`, ...(t ? [`ut:${u}|${t}`] : [])];
+  return t ? [`t:${t}`] : [];
+}
+
+function itemDedupeKey(citySlug: string, title: string, url: string | null | undefined): string {
+  const u = storyUrlKey(url);
+  const t = strictTitleKey(title) ?? normalize(title);
+  return keyFor(citySlug, u ? `${u}|${t}` : t);
 }
 
 function decodeEntities(s: string) {
@@ -250,7 +270,7 @@ async function ogImage(link: string): Promise<string | null> {
     const res = await fetch(link, {
       headers: { "User-Agent": UA, Accept: "text/html,*/*" },
       redirect: "follow",
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return null;
     const html = (await res.text()).slice(0, 200_000);
@@ -530,6 +550,7 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
       async () => {
         const response = await fetch(url, {
           headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+          signal: AbortSignal.timeout(5000),
         });
         if (!response.ok) {
           const error = new Error(`HTTP ${response.status} ${new URL(url).host}`) as Error & {
@@ -793,7 +814,7 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item);
-    if (merged.length >= (opts?.limit ?? TOPIC_MAX)) break;
+    if (merged.length >= (opts?.limit ?? DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX)) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
@@ -1799,6 +1820,20 @@ function isCinemaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
   );
 }
 
+function isIndiaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
+  if (isCinemaPublisher(feed) || isGalleryPublisher(feed)) return false;
+  const hay = `${feed.name} ${feed.url}`;
+  return /new india abroad|india west|american bazaar|times of india|ndtv india|the hindu|deccan chronicle|new indian express|telangana|andhra|amaravati|uscis|murthy|immigration|consulate|telugu times/i.test(
+    hay,
+  );
+}
+
+function deskCategoryForItem(item: RawItem, fallback: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG): typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG {
+  if (isMicroDrama(item.title, item.detail, item.link)) return MICRO_DRAMA_SLUG;
+  if (isCinema(item.title, item.detail, item.link)) return CINEMA_SLUG;
+  return fallback;
+}
+
 /**
  * City activity guides and municipal calendars (Redwood City's activity guide,
  * Milpitas / Dublin recreation calendars, and the equivalent page on each other
@@ -2147,7 +2182,7 @@ async function summarizeGroups(
   const entries: (SummaryEntry<Group> & { groupKey: string; itemIndex: number; link: string })[] = [];
   for (const g of groups) {
     g.items.forEach((item, index) => {
-      if (known?.has(keyFor(g.city.slug, item.title))) {
+      if (known && storyIdentityKeys(item.title, item.link).some((key) => known.has(key))) {
         aiUsage.itemsSkipped += 1;
         return;
       }
@@ -2167,10 +2202,9 @@ async function summarizeGroups(
   // Dedupe runs before the queue, not after: overlapping Telugu / OTT feeds
   // carry the same story under different links, and summarizing each copy was
   // pure waste. Copies reuse the summary of the item that was actually sent.
-  const { queue, aliases, dropped } = dedupeEntries(entries, (e) => [
-    canonicalUrl(e.link),
-    strictTitleKey(e.text.replace(/\s*\([^)]*\)\s*$/, "")),
-  ]);
+  const { queue, aliases, dropped } = dedupeEntries(entries, (e) =>
+    storyIdentityKeys(e.text.replace(/\s*\([^)]*\)\s*$/, ""), e.link),
+  );
   aiUsage.itemsSkipped += dropped;
 
   const gateway = createLovableAiGatewayProvider(apiKey);
@@ -2210,23 +2244,28 @@ async function loadKnownKeys(): Promise<Set<string>> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [queued, rejected, live] = await Promise.all([
-      supabaseAdmin.from("digest_queue").select("dedupe_key").limit(20000),
-      supabaseAdmin.from("digest_rejects").select("dedupe_key").limit(20000),
-      // Already on the site: the biggest bucket, and the one that used to be
-      // re-summarized on every pass.
-      supabaseAdmin.from("content_items").select("dedupe_key").limit(20000),
+      supabaseAdmin.from("digest_queue").select("title, source_url, dedupe_key").limit(20000),
+      supabaseAdmin.from("digest_rejects").select("title, item_id, dedupe_key").limit(20000),
+      supabaseAdmin.from("content_items").select("title, link_url, source_ref, dedupe_key").limit(20000),
     ]);
-    for (const rows of [queued.data ?? [], rejected.data ?? [], live.data ?? []]) {
-      for (const row of rows as { dedupe_key: string | null }[]) {
-        if (row.dedupe_key) keys.add(row.dedupe_key);
-      }
+    for (const row of (queued.data ?? []) as { title: string | null; source_url: string | null; dedupe_key: string | null }[]) {
+      for (const key of storyIdentityKeys(row.title, row.source_url)) keys.add(key);
+      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
+    }
+    for (const row of (rejected.data ?? []) as { title: string | null; item_id: string | null; dedupe_key: string | null }[]) {
+      for (const key of storyIdentityKeys(row.title, null)) keys.add(key);
+      if (row.item_id) keys.add(`d:${row.item_id}`);
+      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
+    }
+    for (const row of (live.data ?? []) as { title: string | null; link_url: string | null; source_ref: string | null; dedupe_key: string | null }[]) {
+      for (const key of storyIdentityKeys(row.title, row.link_url ?? row.source_ref)) keys.add(key);
+      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
     }
   } catch (e) {
     console.error("known-key preload failed", e);
   }
   return keys;
 }
-
 /** Collect fresh items for every city. Returns rows ready for a dedupe-safe upsert. */
 /**
  * Full news pass, read in rotating slices inside a hard time budget.
@@ -2261,19 +2300,8 @@ export async function collectAll(
     const start = ((slice * step) % list.length + list.length) % list.length;
     return [...list.slice(start), ...list.slice(0, start)];
   };
-  lastDiag.fetched = 0;
-  lastDiag.raw = 0;
-  lastDiag.kept = 0;
-  lastDiag.images = 0;
-  lastDiag.duplicates = 0;
-  lastDiag.notes = [];
-  lastDiag.publishers = { selected: [], bySource: {} };
-  lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
-  aiUsage.calls = 0;
-  aiUsage.itemsSummarized = 0;
-  aiUsage.itemsSkipped = 0;
-  aiUsage.batches = 0;
-  aiBatchMetrics = newBatchMetrics();
+  resetRunDiagnostics();
+  resetAiUsage();
   const knownKeys = await loadKnownKeys();
 
   /**
@@ -2303,7 +2331,7 @@ export async function collectAll(
         const summaries = citySummaries.get(key) ?? [];
         return items.map((it, i) => {
           const kind = classify(it.title);
-          const dedupe = keyFor(city.slug, it.title);
+          const dedupe = itemDedupeKey(city.slug, it.title, it.link);
           return {
             dedupe_key: dedupe,
             item_id: dedupe,
@@ -2367,7 +2395,7 @@ export async function collectAll(
           // as events (a temple festival still files as temple).
           const kind =
             g.kind === "nri" ? (TEMPLE_WORDS.test(it.title) ? "temple" : "event") : guideKind(it);
-          const dedupe = keyFor(slug, it.title);
+          const dedupe = itemDedupeKey(slug, it.title, it.link);
           return {
             dedupe_key: dedupe,
             item_id: dedupe,
@@ -2400,7 +2428,7 @@ export async function collectAll(
 
   // Region-wide NRI, community-event and temple items.
   const topicFetched = await Promise.all(
-    (within(0.72) ? TOPIC_GROUPS : []).map(async (group, gi) => ({
+    (within(0.72) ? TOPIC_GROUPS.filter((group) => topicDesk(group) === "other") : []).map(async (group, gi) => ({
       key: `topic:${gi}`,
       city: BAY_AREA,
       items: await fetchTopics(group),
@@ -2413,7 +2441,7 @@ export async function collectAll(
     topicFetched.map(async ({ key, items, group }) => {
       const summaries = topicSummaries.get(key) ?? [];
       return items.map((it, i) => {
-        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
         return {
           dedupe_key: dedupe,
           item_id: dedupe,
@@ -2450,10 +2478,9 @@ export async function collectAll(
   // Cinema / OTT / micro-drama sources run first. The prior all-source rotation
   // often spent its budget before reaching the newly added media desks, leaving
   // the public Cinema page populated by only older broad-source items.
-  const publisherList = [
-    ...rotatedPublishers.filter(isCinemaPublisher),
-    ...rotatedPublishers.filter((feed) => !isCinemaPublisher(feed) && !isGalleryPublisher(feed)),
-  ];
+  const publisherList = rotatedPublishers.filter(
+    (feed) => !isCinemaPublisher(feed) && !isGalleryPublisher(feed) && !isIndiaPublisher(feed),
+  );
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   lastDiag.publishers.selected.push(...publisherList.slice(b, b + 8).map((feed) => feed.name));
   const publisherFetched = await Promise.all(
@@ -2470,7 +2497,7 @@ export async function collectAll(
     publisherFetched.map(async ({ key, items, feed }) => {
       const summaries = publisherSummaries.get(key) ?? [];
       return items.map((it, i) => {
-        const dedupe = keyFor(BAY_AREA.slug, it.title);
+        const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
         const kind = feed.kind === "news" ? classify(it.title) : feed.kind;
         return {
           dedupe_key: dedupe,
@@ -2516,7 +2543,7 @@ export async function collectAll(
           : p.categorySlug === "temples"
             ? ("temple" as const)
             : classify(p.title);
-      const dedupe = keyFor(BAY_AREA.slug, p.title);
+      const dedupe = itemDedupeKey(BAY_AREA.slug, p.title, p.link);
       rows.push({
         dedupe_key: dedupe,
         item_id: dedupe,
@@ -2557,7 +2584,7 @@ export async function collectAll(
         CITIES.find((c) => c.en.toLowerCase() === t.source.city.toLowerCase())?.slug ??
         BAY_AREA.slug;
       for (const a of t.announcements.slice(0, 4)) {
-        const dedupe = keyFor(slug, `${t.source.name} ${a.title}`);
+        const dedupe = itemDedupeKey(slug, `${t.source.name} ${a.title}`, a.url || t.source.site);
         rows.push({
           dedupe_key: dedupe,
           item_id: dedupe,
@@ -2601,7 +2628,7 @@ export async function collectAll(
       const list = pooledSummaries.get(g.key) ?? [];
       g.items.forEach((item, index) => {
         const summary = list[index];
-        const key = keyFor(g.city.slug, item.title);
+        const key = itemDedupeKey(g.city.slug, item.title, item.link);
         if (summary && !byKey.has(key)) byKey.set(key, summary);
       });
     }
@@ -2614,6 +2641,7 @@ export async function collectAll(
     }
   }
 
+  syncSummaryDiag();
   lastDiag.notes.push(googleNewsSummaryNote());
 
   // Temple coverage stays strictly religious and from reliable/temple sources.
@@ -2648,6 +2676,112 @@ export async function collectAll(
   const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, "collect");
   for (const w of warnings) lastDiag.notes.push(`summary warning: ${w}`);
   return dedupeCollected(templeSafe);
+}
+
+
+/** Dedicated Cinema/OTT run: topic sweep + direct media publishers with its own budget. */
+export async function collectDesk(
+  desk: "cinema",
+  apiKey: string | undefined,
+  opts?: { deadlineMs?: number },
+): Promise<CollectedItem[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  resetRunDiagnostics();
+  resetAiUsage();
+  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 90_000, 10_000), 120_000);
+  const inBudget = () => Date.now() < deadline;
+  const knownKeys = await loadKnownKeys();
+  const summaryPool: SummaryGroup[] = [];
+  const rows: CollectedItem[] = [];
+
+  const topicGroups = TOPIC_GROUPS.filter((group) => {
+    const kind = topicDesk(group);
+    return kind === "cinema" || kind === "micro-drama";
+  });
+  const topicFetched = await Promise.all(
+    topicGroups.map(async (group, index) => ({
+      key: `cinema-topic:${index}`,
+      city: BAY_AREA,
+      items: inBudget()
+        ? await fetchTopics(group, { limit: DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX })
+        : [],
+      group,
+    })),
+  );
+  summaryPool.push(...topicFetched.map(({ key, city, items }) => ({ key, city, items })));
+
+  const publisherFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher).map((feed) => ({
+    ...feed,
+    limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
+  }));
+  for (let b = 0; b < publisherFeeds.length && inBudget(); b += 8) {
+    const slice = publisherFeeds.slice(b, b + 8);
+    lastDiag.publishers.selected.push(...slice.map((feed) => feed.name));
+    const fetched = await Promise.all(
+      slice.map(async (feed, index) => ({
+        key: `cinema-pub:${b}:${index}`,
+        city: BAY_AREA,
+        items: await fetchPublisher(feed),
+        feed,
+      })),
+    );
+    summaryPool.push(...fetched.map(({ key, city, items }) => ({ key, city, items })));
+  }
+
+  const summaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
+  const append = (key: string, items: RawItem[], sourceName?: string, fallbackCategory: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG = CINEMA_SLUG) => {
+    const list = summaries.get(key) ?? [];
+    items.forEach((it, i) => {
+      const category = deskCategoryForItem(it, fallbackCategory);
+      const summary = list[i] ?? fallbackSummary(it);
+      const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
+      const image = it.image ?? DESK_PLACEHOLDER_IMAGE;
+      const source = it.source || sourceName || "Cinema/OTT";
+      recordClassified(source, category);
+      rows.push({
+        dedupe_key: dedupe,
+        item_id: dedupe,
+        digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
+        kind: "news",
+        city_slug: BAY_AREA.slug,
+        title: it.title,
+        summary,
+        source,
+        source_url: it.link,
+        published_at: it.published,
+        origin: "feed",
+        payload: {
+          id: dedupe,
+          kind: "news",
+          citySlug: BAY_AREA.slug,
+          title: it.title,
+          summary,
+          source,
+          sourceUrl: it.link,
+          image,
+          category,
+          resolved_category: CINEMA_SLUG,
+          desk,
+          collectedAt: today,
+        },
+      });
+    });
+  };
+
+  for (const group of topicFetched) append(group.key, group.items, undefined, topicDesk(group.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
+  for (const group of summaryPool.filter((g) => g.key.startsWith("cinema-pub:"))) {
+    append(group.key, group.items);
+  }
+
+  syncSummaryDiag();
+  lastDiag.notes.push(googleNewsSummaryNote());
+  const perHeadline = callsPerHeadline(aiBatchMetrics);
+  lastDiag.notes.push(
+    `gemini summary calls: ${aiUsage.calls} (calls_per_headline ${perHeadline}, batches ${aiUsage.batches}, avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped})`,
+  );
+  const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, `collect:${desk}`);
+  for (const warning of warnings) lastDiag.notes.push(`summary warning: ${warning}`);
+  return dedupeCollected(rows);
 }
 
 
@@ -2877,25 +3011,29 @@ export function urlKey(raw: string): string {
  */
 export function dedupeCollected(
   rows: CollectedItem[],
-  existing?: { titles?: Iterable<string>; urls?: Iterable<string> },
+  existing?: { titles?: Iterable<string>; urls?: Iterable<string>; content?: Iterable<string> },
 ): CollectedItem[] {
   const seenKey = new Set<string>();
-  const seenTitle = new Set(existing?.titles ?? []);
+  const seenContent = new Set(existing?.content ?? []);
   const seenUrl = new Set(existing?.urls ?? []);
   const unique: CollectedItem[] = [];
   for (const r of rows) {
-    // Picture rows are de-duplicated by article URL only: photo desks recycle
-    // one headline for every new set, so a title match is not a duplicate.
-    const isGallery = !!(r.payload as { gallery?: boolean } | undefined)?.gallery;
-    const tk = isGallery ? "" : dedupeKey(r.title);
-    const uk = r.source_url ? urlKey(r.source_url) : "";
-    if (seenKey.has(r.dedupe_key) || (tk && seenTitle.has(tk)) || (uk && seenUrl.has(uk))) {
+    const keys = storyIdentityKeys(r.title, r.source_url);
+    const urls = keys.filter((key) => key.startsWith("u:"));
+    const contentKeys = keys.filter((key) => !key.startsWith("u:"));
+    if (
+      seenKey.has(r.dedupe_key) ||
+      urls.some((key) => seenUrl.has(key) || seenContent.has(key)) ||
+      contentKeys.some((key) => seenContent.has(key))
+    ) {
       lastDiag.duplicates += 1;
       continue;
     }
     seenKey.add(r.dedupe_key);
-    if (tk) seenTitle.add(tk);
-    if (uk) seenUrl.add(uk);
+    for (const key of keys) {
+      if (key.startsWith("u:")) seenUrl.add(key);
+      seenContent.add(key);
+    }
 
     unique.push(r);
   }
