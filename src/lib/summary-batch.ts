@@ -71,7 +71,7 @@ export function newBatchMetrics(): BatchMetrics {
 }
 
 /** Headlines per batched call. Kept well under the point where quality drops. */
-export const SUMMARY_ITEM_CAP = 25;
+export const SUMMARY_ITEM_CAP = 12;
 /**
  * Desks combined into one call. Unlimited by design: capping desks per call was
  * the batching regression — every extra source added its own small remainder

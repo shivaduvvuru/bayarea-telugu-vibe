@@ -104,6 +104,15 @@ function descriptionSummary(detail: string | undefined, title: string): string |
   return text.length >= MIN_DESCRIPTION_CHARS ? text : null;
 }
 
+/** Hostname as a last-resort publisher label. */
+function safeHost(link: string): string {
+  try {
+    return new URL(link).hostname.replace(/^www\./, "");
+  } catch {
+    return "Web";
+  }
+}
+
 function storyUrlKey(raw: string | null | undefined): string | null {
   if (!raw) return null;
   return canonicalUrl(raw) ?? urlKey(raw);
@@ -378,9 +387,12 @@ function parseRss(xml: string): RawItem[] {
   for (const b of blocks) {
     const rawTitle = tag(b, "title");
     if (!rawTitle) continue;
-    const source = tag(b, "source") || rawTitle.split(" - ").slice(-1)[0] || "Web";
+    // Publisher from <source>, else the " - Publisher" suffix Google adds —
+    // never the headline itself (that was showing up as the source on cards).
+    const parts = rawTitle.split(" - ");
+    const source = tag(b, "source") || (parts.length > 1 ? parts[parts.length - 1]!.trim() : "");
     const title = rawTitle
-      .replace(new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "")
+      .replace(source ? new RegExp(`\\s-\\s${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) : /$^/, "")
       // Aggregator newsletter prefixes ("Patch AM:", "SF:") add nothing.
       .replace(/^(?:patch\s*(?:am|pm)|sf|sj|nyc)\s*:\s*/i, "")
       .trim();
@@ -614,10 +626,9 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
       stat.fetched += 1;
       stat.returned += items.length;
     }
-    // Google News wraps the publisher URL; unwrapped links show a Google
-    // interstitial instead of the story, so resolve them before storing.
-    const map = await resolveGoogleNewsUrls(items.map((i) => i.link));
-    return map.size ? items.map((i) => ({ ...i, link: map.get(i.link) ?? i.link })) : items;
+    // Google wrappers are resolved later, in addImages, for kept items only —
+    // resolving all ~100 items of every search feed was most of the run time.
+    return items;
   } catch (e) {
     if (google) recordGoogleError(label, e instanceof Error ? (e.message.match(/\b\d{3}\b/)?.[0] ?? e.message) : String(e));
     if (lastDiag.notes.length < 6)
@@ -691,14 +702,32 @@ async function fetchCity(city: City): Promise<RawItem[]> {
  * duplicates downstream) and run with bounded concurrency.
  */
 async function addImages(items: RawItem[]): Promise<void> {
+  const isKnown = (item: RawItem) => {
+    if (!runKnown) return false;
+    if (storyIdentityKeys(item.title, item.link).some((k) => runKnown!.has(k))) return true;
+    // Google-wrapped links never match a stored publisher URL; the title does.
+    const t = strictTitleKey(item.title);
+    return !!t && runKnown.has(`t:${t}`);
+  };
   const todo = items.filter((item) => {
-    if (runKnown && storyIdentityKeys(item.title, item.link).some((k) => runKnown!.has(k))) {
+    if (isKnown(item)) {
       item.image = usableImage(item.image);
       return false;
     }
     return true;
   });
-  await mapWithLimit(todo, IMAGE_FETCH_CONCURRENCY, async (item) => {
+  // One batched resolution for the kept Google-wrapped links.
+  const wrapped = todo.filter((i) => i.link && isGoogleNewsUrl(i.link)).map((i) => i.link);
+  if (wrapped.length) {
+    const map = await resolveGoogleNewsUrls(wrapped).catch(() => new Map<string, string>());
+    for (const item of todo) {
+      const real = map.get(item.link);
+      if (real && real !== item.link) item.link = real;
+    }
+    // A resolved link may now match a stored story after all.
+    for (const item of todo) if (isKnown(item)) item.image = usableImage(item.image);
+  }
+  await mapWithLimit(todo.filter((i) => !isKnown(i)), IMAGE_FETCH_CONCURRENCY, async (item) => {
     // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
     // and let the story render as a typographic card.
     if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
@@ -852,7 +881,7 @@ async function fetchTopics(
     const k = normalize(item.title);
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
-    merged.push(item);
+    merged.push(item.source ? item : { ...item, source: safeHost(item.link) });
     if (merged.length >= (opts?.limit ?? DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX)) break;
   }
   await addImages(merged);
@@ -2260,6 +2289,7 @@ async function summarizeGroups(
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
         prompt,
+        maxOutputTokens: 4096,
       });
       return text;
     },
