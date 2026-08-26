@@ -144,7 +144,9 @@ export async function ingest(rows: IngestRow[]) {
     ...fresh.map((r) => {
       const key = dedupeKey(r.title);
       const hit = guardHits.get(r.source_ref);
-      const clash = hit?.id ?? (key ? existing.get(key) : undefined);
+      // Look up with the same canonical URL+title key the map was built with.
+      const storyKey = canonicalStoryKey(r);
+      const clash = hit?.id ?? (storyKey ? existing.get(storyKey) : undefined);
       return {
         ...r,
         ...classifyForPublish(r as never),

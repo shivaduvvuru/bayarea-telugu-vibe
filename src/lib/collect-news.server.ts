@@ -69,7 +69,8 @@ function keyFor(citySlug: string, title: string) {
   return `${citySlug}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
 }
 
-const DESK_PLACEHOLDER_IMAGE = "/cinema-card.webp";
+/** No placeholder asset exists in the site; a null image renders the typographic card. */
+const DESK_PLACEHOLDER_IMAGE: string | null = null;
 
 /**
  * Stories the site already carries, for the run in progress. Set once at the
