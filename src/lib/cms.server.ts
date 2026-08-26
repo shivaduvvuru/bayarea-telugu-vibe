@@ -3,6 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { PUBLIC_COLUMNS, type ContentItem } from "@/lib/cms";
 import { canonicalUrl, dedupeBy, dedupeKey, strictTitleKey } from "@/lib/dedupe";
 import { classifyForPublish } from "@/lib/classify-at-publish.server";
+import { mapWithLimit } from "@/lib/retry";
 
 /** Anonymous, RLS-respecting client for reading published items during SSR. */
 export function publicClient() {
@@ -116,7 +117,10 @@ export async function ingest(rows: IngestRow[]) {
   // match is stored as "duplicate" (never shown) and logged with its original.
   const { guardArticle } = await import("./duplicate-guard.server");
   const guardHits = new Map<string, { id: string; score: number; reason: string }>();
-  for (const r of fresh) {
+  // The guard is one or more DB round trips per row; running them strictly
+  // one after another made a 25-row publish chunk take seconds. Bounded
+  // parallelism keeps the DB load flat while cutting wall time ~4x.
+  await mapWithLimit(fresh, 4, async (r) => {
     const guard = await guardArticle(db as never, {
       title: r.title,
       link_url: r.link_url ?? null,
@@ -133,7 +137,7 @@ export async function ingest(rows: IngestRow[]) {
       );
       guardHits.set(r.source_ref, guard.hit);
     }
-  }
+  }, { label: "duplicate guard" });
 
   const now = new Date().toISOString();
   const payload = [

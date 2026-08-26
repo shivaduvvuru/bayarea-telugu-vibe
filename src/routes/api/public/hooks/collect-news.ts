@@ -91,6 +91,106 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
 
 
 
+        // { "mode": "cinema" } — Cinema/OTT/micro-drama only. Deliberately
+        // skips the picture screening, WordPress mirror, gallery rotation and
+        // site-wide duplicate sweep: those belong to the full/gallery jobs and
+        // were the reason a cinema run cost as much as a full run.
+        if (cinemaOnly) {
+          const startedAt = Date.now();
+          try {
+            const { loadKnownKeys, isKnownStory, rememberKeys } = await import("@/lib/known-keys.server");
+            const { canAutoPublish } = await import("@/lib/auto-publish");
+            const { deskRowToIngest } = await import("@/lib/desk-publish.server");
+            const { ingest } = await import("@/lib/cms.server");
+            const { errorMessage } = await import("@/lib/error-message");
+
+            const collectedRaw = await collectDesk("cinema", process.env["LOVABLE_API_KEY"], { deadlineMs: 75_000 });
+            const known = await loadKnownKeys(supabaseAdmin as never);
+            const fresh = collectedRaw.filter((r) => !isKnownStory(known, r));
+
+            const marked = fresh.map((r) => ({
+              ...r,
+              status: canAutoPublish(r.kind, r.title, r.summary) ? "approved" : "pending",
+            }));
+            if (marked.length) {
+              const { error } = await supabaseAdmin
+                .from("digest_queue")
+                .upsert(marked as never, { onConflict: "dedupe_key", ignoreDuplicates: true });
+              if (error) throw error;
+              rememberKeys(marked.flatMap((r) => [`d:${r.dedupe_key}`, ...storyIdentityKeys(r.title, r.source_url)]));
+            }
+
+            // Publish only this run's approved rows plus any earlier cinema
+            // rows still waiting — not the whole site backlog.
+            const ids = marked.filter((r) => r.status === "approved").map((r) => r.item_id);
+            let publishedCount = 0;
+            const { data: queued } = await supabaseAdmin
+              .from("digest_queue")
+              .select("*")
+              .eq("status", "approved")
+              .neq("upload_status", "sent")
+              .contains("payload", { desk: "cinema" })
+              .limit(300);
+            const batch = (queued ?? []) as unknown as Record<string, unknown>[];
+            for (let i = 0; i < batch.length; i += 25) {
+              const chunk = batch.slice(i, i + 25);
+              const chunkIds = chunk.map((r) => String(r["item_id"]));
+              try {
+                await ingest(chunk.map(deskRowToIngest));
+                await supabaseAdmin
+                  .from("digest_queue")
+                  .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
+                  .in("item_id", chunkIds);
+                publishedCount += chunk.length;
+              } catch (e) {
+                const message = errorMessage(e);
+                console.error("cinema publish chunk failed", message);
+                await supabaseAdmin
+                  .from("digest_queue")
+                  .update({ upload_status: "failed", error: message })
+                  .in("item_id", chunkIds);
+              }
+            }
+
+            const { lastAiError, lastDiag } = await import("@/lib/collect-news.server");
+            const finishedAt = new Date().toISOString();
+            const funnel = {
+              fetched: collectedRaw.length,
+              alreadyKnown: collectedRaw.length - fresh.length,
+              queued: marked.length,
+              autoApproved: ids.length,
+              held: marked.length - ids.length,
+              published: publishedCount,
+              publishers: lastDiag.publishers,
+              googleNews: lastDiag.googleNews,
+              classification: lastDiag.classification,
+              summary: lastDiag.summary,
+              notes: lastDiag.notes,
+              elapsedMs: Date.now() - startedAt,
+            };
+            await supabaseAdmin.from("collect_runs").insert({
+              mode: runMode,
+              trigger,
+              collected: marked.length,
+              published: publishedCount,
+              held: marked.length - ids.length,
+              duplicates_hidden: 0,
+              funnel,
+              ok: true,
+              finished_at: finishedAt,
+            } as never);
+            return Response.json({ ok: true, mode: runMode, ...funnel, aiError: lastAiError, at: finishedAt });
+          } catch (e) {
+            const { errorMessage } = await import("@/lib/error-message");
+            const message = errorMessage(e);
+            console.error("collect-news (cinema) failed", message);
+            try {
+              await supabaseAdmin.from("collect_runs").insert({ mode: runMode, trigger, ok: false, error: message } as never);
+            } catch { /* never mask the original failure */ }
+            return Response.json({ ok: false, error: message }, { status: 500 });
+          }
+        }
+
         try {
           // A full pull also sweeps the picture desks, so Glamourie photos land
           // in the review queue alongside the day's stories.
@@ -326,42 +426,14 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           // anything already published to the newsroom, and anything an editor rejected.
           // Paged reads: the Data API caps a single select at 1000 rows, so an
           // unpaged fetch made the duplicate memory partial and inconsistent.
-          const readAll = async <T>(
-            table: "digest_queue" | "content_items" | "digest_rejects",
-            columns: string,
-          ): Promise<T[]> => {
-            const out: T[] = [];
-            for (let page = 0; page < 12; page++) {
-              const from = page * 1000;
-              const { data, error } = await supabaseAdmin
-                .from(table)
-                .select(columns)
-                .range(from, from + 999);
-              if (error) throw error;
-              const chunk = (data ?? []) as unknown as T[];
-              out.push(...chunk);
-              if (chunk.length < 1000) break;
-            }
-            return out;
-          };
-          const [stored, published, rejected] = await Promise.all([
-            readAll<{ dedupe_key: string | null; title: string | null; source_url: string | null }>(
-              "digest_queue",
-              "dedupe_key, title, source_url",
-            ),
-            readAll<{
-              id: string;
-              title: string | null;
-              link_url: string | null;
-              source_ref: string | null;
-              dedupe_key: string | null;
-              image_url: string | null;
-            }>("content_items", "id, title, link_url, source_ref, dedupe_key, image_url"),
-            readAll<{ dedupe_key: string | null; item_id: string | null; title: string | null }>(
-              "digest_rejects",
-              "dedupe_key, item_id, title",
-            ),
-          ]);
+          // One windowed, paged read shared with the collector (which already
+          // loaded and cached it for the summary skip), instead of three
+          // unbounded table scans on every run.
+          const { loadKnownKeys: loadKnown } = await import("@/lib/known-keys.server");
+          const known = await loadKnown(supabaseAdmin as never);
+          const storedKeys = known.keys;
+          const knownContentKeys = known.keys;
+          const published = known.imageless;
 
           // A repeated source URL is normally discarded below, but it can still
           // enrich an older published card whose first collection missed its
@@ -373,7 +445,6 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             if (key && typeof image === "string" && image) refreshedImages.set(key, image);
           }
           const imageRepairs = published.flatMap((row) => {
-            if (row.image_url || !row.link_url) return [];
             const image = refreshedImages.get(urlKey(row.link_url));
             return image ? [{ id: row.id, image }] : [];
           });
@@ -384,31 +455,9 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           );
           // Publisher-agnostic pass: fetch original artwork for any published
           // story still stored without a picture, whatever the source.
-          await backfillMissingImages(supabaseAdmin as never, 60).catch(() => null);
+          if (!galleryOnly) await backfillMissingImages(supabaseAdmin as never, 40).catch(() => null);
 
 
-
-          const storedKeys = new Set([
-            ...(stored ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
-            ...(published ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
-            ...(rejected ?? []).map((r) => (r.dedupe_key ? `d:${r.dedupe_key}` : "")),
-            ...(rejected ?? []).map((r) => (r.item_id ? `d:${r.item_id}` : "")),
-            // desk rows publish as source_ref "editorial-desk:<item_id>"
-            ...(published ?? []).map((r) => {
-              const ref = (r.source_ref ?? "").replace(/^editorial-desk:/, "");
-              return ref ? `d:${ref}` : "";
-            }),
-          ]);
-          const knownContentKeys = new Set<string>();
-          for (const row of stored ?? []) {
-            for (const key of storyIdentityKeys(row.title, row.source_url)) knownContentKeys.add(key);
-          }
-          for (const row of published ?? []) {
-            for (const key of storyIdentityKeys(row.title, row.link_url ?? row.source_ref)) knownContentKeys.add(key);
-          }
-          for (const row of rejected ?? []) {
-            for (const key of storyIdentityKeys(row.title, null)) knownContentKeys.add(key);
-          }
 
           const beforeDuplicateFilter = collected.length;
           const rows = dedupeCollected(
