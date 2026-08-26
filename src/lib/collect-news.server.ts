@@ -2289,6 +2289,7 @@ async function summarizeGroups(
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
         prompt,
+        maxOutputTokens: 4096,
       });
       return text;
     },
