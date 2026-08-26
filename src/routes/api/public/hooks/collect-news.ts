@@ -109,10 +109,6 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
             const { ingest } = await import("@/lib/cms.server");
             const { errorMessage } = await import("@/lib/error-message");
 
-            // pg_net gives the hook 120 s. Fetch ≤55 s, summaries ≤25 s more,
-            // publishing stops at 100 s; anything unpublished stays approved
-            // in the queue and goes out on the next slot.
-            const PUBLISH_CUTOFF_MS = 100_000;
             const collectedRaw = await collectDesk("cinema", process.env["LOVABLE_API_KEY"], { deadlineMs: 55_000 });
             const known = await loadKnownKeys(supabaseAdmin as never);
             const fresh = collectedRaw.filter((r) => !isKnownStory(known, r));
