@@ -67,6 +67,7 @@ const REASON_LABEL: Record<string, string> = {
   minor_or_age_uncertain: "Age uncertain",
   explicit_content: "Explicit content",
   image_corrupt: "Image could not be read",
+  screen_unavailable: "Safety screen unavailable",
 };
 
 type Category = "all" | "glamour" | "cinema" | "micro";
