@@ -20,3 +20,8 @@ export const previewDriveFile = createServerFn({ method: "POST" })
     const { readDriveFileText } = await import("@/lib/drive.server");
     return readDriveFileText(data.fileId);
   });
+
+export const autoMatchClaudeFile = createServerFn({ method: "GET" }).handler(async () => {
+  const { autoMatchDriveFile } = await import("@/lib/drive.server");
+  return autoMatchDriveFile();
+});

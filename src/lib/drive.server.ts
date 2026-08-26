@@ -129,3 +129,97 @@ export async function readDriveFileText(fileId: string) {
     text: printable > 0.85 ? text : "",
   };
 }
+
+/* ---------- Auto-match: guess the Claude download file ---------- */
+
+const NAME_HINTS: Array<{ pattern: RegExp; points: number; why: string }> = [
+  { pattern: /claude/i, points: 60, why: "name mentions Claude" },
+  { pattern: /known-keys/i, points: 45, why: "matches known-keys patch file" },
+  { pattern: /collect-news/i, points: 45, why: "matches collect-news patch file" },
+  { pattern: /\bcms\b|cms\.server/i, points: 30, why: "matches cms.server patch file" },
+  { pattern: /cinema/i, points: 30, why: "mentions cinema ingest" },
+  { pattern: /ingest/i, points: 25, why: "mentions ingest" },
+  { pattern: /patch|efficiency|fix/i, points: 20, why: "looks like a patch bundle" },
+  { pattern: /handoff/i, points: 15, why: "mentions handoff" },
+  { pattern: /\.(zip|tar|tgz|gz|7z)$/i, points: 25, why: "archive of files" },
+  { pattern: /\.(ts|tsx|js|md|txt|json)$/i, points: 20, why: "source or text file" },
+];
+
+const NAME_PENALTIES: Array<{ pattern: RegExp; points: number }> = [
+  { pattern: /\.(png|jpe?g|gif|heic|mp4|mov|pdf|xlsx?|docx?|pptx?)$/i, points: 45 },
+  { pattern: /invoice|exhibit|receipt|backup|db_/i, points: 30 },
+];
+
+const SEARCH_TERMS = [
+  "claude",
+  "known-keys",
+  "collect-news",
+  "cms",
+  "cinema",
+  "ingest",
+  "patch",
+];
+
+export type DriveMatch = DriveFile & { score: number; reasons: string[] };
+
+export async function autoMatchDriveFile(): Promise<{
+  best: DriveMatch | null;
+  candidates: DriveMatch[];
+  scanned: number;
+}> {
+  const seen = new Map<string, DriveFile>();
+
+  const batches = await Promise.all(
+    SEARCH_TERMS.map((term) =>
+      listDriveFiles({ search: term }).catch(() => ({ files: [], nextPageToken: null })),
+    ),
+  );
+  // Also consider whatever changed most recently, in case naming is unusual.
+  const recent = await listDriveFiles({}).catch(() => ({ files: [], nextPageToken: null }));
+
+  for (const batch of [...batches, recent]) {
+    for (const file of batch.files) {
+      if (!file.isFolder) seen.set(file.id, file);
+    }
+  }
+
+  const now = Date.now();
+  const scored: DriveMatch[] = [...seen.values()].map((file) => {
+    const reasons: string[] = [];
+    let score = 0;
+
+    for (const hint of NAME_HINTS) {
+      if (hint.pattern.test(file.name)) {
+        score += hint.points;
+        reasons.push(hint.why);
+      }
+    }
+    for (const penalty of NAME_PENALTIES) {
+      if (penalty.pattern.test(file.name)) score -= penalty.points;
+    }
+
+    const ageHours = file.modifiedTime
+      ? (now - Date.parse(file.modifiedTime)) / 3_600_000
+      : Number.POSITIVE_INFINITY;
+    if (ageHours <= 6) {
+      score += 35;
+      reasons.push("modified in the last few hours");
+    } else if (ageHours <= 48) {
+      score += 20;
+      reasons.push("modified in the last two days");
+    } else if (ageHours <= 24 * 7) {
+      score += 8;
+    }
+
+    if (file.size != null && file.size > 0 && file.size < 2_000_000) score += 5;
+
+    return { ...file, score, reasons };
+  });
+
+  const candidates = scored
+    .filter((f) => f.score > 0)
+    .sort((a, b) => b.score - a.score || (b.modifiedTime ?? "").localeCompare(a.modifiedTime ?? ""))
+    .slice(0, 6);
+
+  return { best: candidates[0] ?? null, candidates, scanned: seen.size };
+}
