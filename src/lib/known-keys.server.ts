@@ -11,6 +11,7 @@
  * for a short TTL so back-to-back runs pay for it once.
  */
 import { storyIdentityKeys } from "./collect-news.server";
+import { strictTitleKey } from "./dedupe";
 
 export type KnownKeys = {
   /** `d:<dedupe_key|item_id>` and `u:/t:/ut:` identity keys, all in one set. */
@@ -74,12 +75,18 @@ export async function loadKnownKeys(db: Admin, opts: { force?: boolean } = {}): 
     ).catch(() => [] as { dedupe_key: string | null; item_id: string | null; title: string | null }[]),
   ]);
 
+  const addTitle = (title: string | null) => {
+    const t = strictTitleKey(title);
+    if (t) keys.add(`t:${t}`);
+  };
   for (const r of queued) {
+    addTitle(r.title);
     if (r.dedupe_key) keys.add(`d:${r.dedupe_key}`);
     if (r.item_id) keys.add(`d:${r.item_id}`);
     for (const k of storyIdentityKeys(r.title, r.source_url)) keys.add(k);
   }
   for (const r of live) {
+    addTitle(r.title);
     if (r.dedupe_key) keys.add(`d:${r.dedupe_key}`);
     const ref = (r.source_ref ?? "").replace(/^editorial-desk:/, "");
     if (ref) keys.add(`d:${ref}`);
@@ -87,6 +94,7 @@ export async function loadKnownKeys(db: Admin, opts: { force?: boolean } = {}): 
     if (!r.image_url && r.link_url) imageless.push({ id: r.id, link_url: r.link_url });
   }
   for (const r of rejected) {
+    addTitle(r.title);
     if (r.dedupe_key) keys.add(`d:${r.dedupe_key}`);
     if (r.item_id) keys.add(`d:${r.item_id}`);
     for (const k of storyIdentityKeys(r.title, null)) keys.add(k);
