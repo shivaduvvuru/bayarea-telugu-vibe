@@ -4,6 +4,7 @@ import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
 import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery } from "./cinema-topics";
 import { isMicroDrama } from "./microdrama-topics";
+import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
@@ -137,7 +138,7 @@ async function msnImage(link: string): Promise<string | null> {
   try {
     const res = await fetch(`https://assets.msn.com/content/view/v2/Detail/en-us/${id}`, {
       headers: { "User-Agent": UA, Accept: "application/json" },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return null;
     const json = (await res.json()) as { imageResources?: { url?: string; width?: number }[] };
@@ -387,7 +388,77 @@ export const lastDiag = {
     candidates: 0,
     bySource: {} as Record<string, { discovered: number; candidates: number }>,
   },
+  /** Publish-time routing expected from this collector run. */
+  classification: {
+    byCategory: {} as Record<string, number>,
+    bySource: {} as Record<string, Record<string, number>>,
+  },
+  /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
+  summary: {
+    calls: 0,
+    calls_per_headline: 0,
+    avg_batch_size: 0,
+    fallback_calls: 0,
+    total_headlines: 0,
+    batches: 0,
+  },
 };
+
+function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
+  lastDiag.fetched = 0;
+  lastDiag.raw = 0;
+  lastDiag.kept = 0;
+  lastDiag.images = 0;
+  lastDiag.duplicates = 0;
+  lastDiag.notes = [];
+  lastDiag.publishers = { selected: [], bySource: {} };
+  lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
+  lastDiag.classification = { byCategory: {}, bySource: {} };
+  lastDiag.summary = {
+    calls: 0,
+    calls_per_headline: 0,
+    avg_batch_size: 0,
+    fallback_calls: 0,
+    total_headlines: 0,
+    batches: 0,
+  };
+  if (!opts.keepGallery) {
+    lastDiag.gallery = {
+      discovered: 0,
+      noImage: 0,
+      imageUnusable: 0,
+      hardNews: 0,
+      candidates: 0,
+      bySource: {},
+    };
+  }
+}
+
+function resetAiUsage() {
+  aiUsage.calls = 0;
+  aiUsage.itemsSummarized = 0;
+  aiUsage.itemsSkipped = 0;
+  aiUsage.batches = 0;
+  aiBatchMetrics = newBatchMetrics();
+}
+
+function syncSummaryDiag() {
+  lastDiag.summary = {
+    calls: aiUsage.calls,
+    calls_per_headline: Number(callsPerHeadline(aiBatchMetrics)),
+    avg_batch_size: Number(averageBatchSize(aiBatchMetrics)),
+    fallback_calls: aiBatchMetrics.fallbackCalls,
+    total_headlines: aiUsage.itemsSummarized,
+    batches: aiUsage.batches,
+  };
+}
+
+function recordClassified(source: string, category: string) {
+  lastDiag.classification.byCategory[category] =
+    (lastDiag.classification.byCategory[category] ?? 0) + 1;
+  const bySource = (lastDiag.classification.bySource[source] ??= {});
+  bySource[category] = (bySource[category] ?? 0) + 1;
+}
 
 function isGoogleNewsFeed(url: string): boolean {
   try {
@@ -678,9 +749,21 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
 ];
 
 const TOPIC_MAX = 8;
+const DESK_TOPIC_MAX: Record<string, number> = {
+  cinema: 40,
+  "micro-drama": 20,
+};
+
+function topicDesk(group: (typeof TOPIC_GROUPS)[number]): "cinema" | "micro-drama" | "other" {
+  const text = `${group.queries.join(" ")} ${group.match.source}`;
+  if (/micro|vertical|reelshort|dramabox|duanju|short[- ]?drama/i.test(text)) return "micro-drama";
+  if (/cinema|movie|film|ott|stream|tollywood|bollywood|hollywood|web series/i.test(text)) return "cinema";
+  return "other";
+}
 
 async function fetchTopics(
   group: (typeof TOPIC_GROUPS)[number],
+  opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
   const results = await Promise.all(
@@ -710,7 +793,7 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item);
-    if (merged.length >= TOPIC_MAX) break;
+    if (merged.length >= (opts?.limit ?? TOPIC_MAX)) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
@@ -811,9 +894,9 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 10,
   },
-  { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 6 },
-  { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 5 },
-  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 5 },
+  { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 12 },
+  { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 12 },
+  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 12 },
   {
     name: "Telugu cinema",
     url: "https://news.google.com/rss/search?q=Telugu+cinema+OR+Tollywood+movie+news+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -870,9 +953,9 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
   // Glamour / social-media picture desks feeding the Gallery grid.
-  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 6 },
-  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 5 },
-  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 5 },
+  { name: "M9 News", url: "https://www.m9.news/feed", kind: "news", limit: 12 },
+  { name: "Mirchi9", url: "https://www.mirchi9.com/feed", kind: "news", limit: 12 },
+  { name: "Telugu360", url: "https://www.telugu360.com/feed", kind: "news", limit: 12 },
   {
     name: "Glamour shoots",
     url: "https://news.google.com/rss/search?q=(%22glamorous+photos%22+OR+%22glamour+photoshoot%22+OR+%22hot+photos%22+OR+%22sizzling+photos%22+OR+%22stunning+stills%22+OR+%22bold+look%22)+(Telugu+OR+Tollywood+OR+Bollywood+OR+Hollywood+actress)+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -1225,7 +1308,7 @@ const PUBLISHER_FEEDS: {
     kind: "news",
     limit: 6,
   },
-  { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 5 },
+  { name: "Pinkvilla", url: "https://www.pinkvilla.com/rss.xml", kind: "news", limit: 12 },
   // Micro-drama desk: Bing's news RSS stopped returning items, so these read
   // through Google News RSS, which answers with a deep pool of vertical
   // short-drama coverage from India, China and the US.
@@ -1421,7 +1504,7 @@ const PUBLISHER_FEEDS: {
   // nothing extra per collection cycle.
 
   // Tollywood — Telugu cinema, OTT and box office
-  { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 5 },
+  { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 15 },
   {
     name: "CineJosh & Tollywood.net",
     url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
@@ -1521,16 +1604,16 @@ const PUBLISHER_FEEDS: {
   },
 
   // Hollywood / global trades
-  { name: "Variety", url: "https://variety.com/feed/", kind: "news", limit: 6 },
-  { name: "Deadline", url: "https://deadline.com/feed/", kind: "news", limit: 6 },
+  { name: "Variety", url: "https://variety.com/feed/", kind: "news", limit: 15 },
+  { name: "Deadline", url: "https://deadline.com/feed/", kind: "news", limit: 15 },
   {
     name: "The Hollywood Reporter",
     url: "https://www.hollywoodreporter.com/feed/",
     kind: "news",
     limit: 6,
   },
-  { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 5 },
-  { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 5 },
+  { name: "IndieWire", url: "https://www.indiewire.com/feed/", kind: "news", limit: 12 },
+  { name: "TheWrap", url: "https://www.thewrap.com/feed/", kind: "news", limit: 12 },
   {
     // Screen Daily and Collider block direct RSS reads, so both come through
     // Google News site: sweeps instead.
@@ -1541,7 +1624,7 @@ const PUBLISHER_FEEDS: {
   },
 
   // Korean — K-drama, K-film, OTT
-  { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 8 },
+  { name: "Soompi", url: "https://www.soompi.com/feed", kind: "news", limit: 15 },
   {
     name: "Korea entertainment dailies",
     url: "https://news.google.com/rss/search?q=(site:koreajoongangdaily.joins.com+OR+site:koreaherald.com+OR+site:koreatimes.co.kr)+(drama+OR+film+OR+entertainment)+when:3d&hl=en-US&gl=US&ceid=US:en",
@@ -1631,7 +1714,13 @@ const PUBLISHER_FEEDS: {
   { name: "eTimes photos", url: "https://timesofindia.indiatimes.com/rssfeeds/-2128672765.cms", kind: "news", limit: 20 },
   { name: "eTimes Telugu", url: "https://timesofindia.indiatimes.com/rssfeeds/2886704.cms", kind: "news", limit: 20 },
   { name: "The Hindu Movies", url: "https://www.thehindu.com/entertainment/movies/feeder/default.rss", kind: "news", limit: 30 },
-  { name: "Free Press Entertainment", url: "https://www.freepressjournal.in/stories.rss?section=entertainment", kind: "news", limit: 20 },
+  {
+    name: "Free Press Entertainment",
+    url: "https://news.google.com/rss/search?q=site:freepressjournal.in+(movie+OR+cinema+OR+film+OR+OTT+OR+Bollywood)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 12,
+    match: /movie|cinema|film|ott|bollywood|actor|actress|trailer|teaser|review|box office/i,
+  },
   { name: "Deccan Chronicle Entertainment", url: "https://www.deccanchronicle.com/google_feeds.xml", kind: "news", limit: 30 },
 
 
