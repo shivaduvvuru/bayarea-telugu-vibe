@@ -15,6 +15,7 @@ import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
 import { LIVE_DESKS, mixInto, postsQuery, isTempleArticle } from "@/lib/category-query";
 import { TempleWeekStrip } from "@/components/temple-week-strip";
+import { useGlamourShown } from "@/lib/use-glamour-shown";
 
 
 export const Route = createFileRoute("/category/$category")({
@@ -117,6 +118,11 @@ function CategoryPage() {
   const pageSize = cat.slug === "gallery" ? 16 : 12;
   const [limit, setLimit] = useState(pageSize);
   const shown = articles.slice(0, limit);
+  // Persist "last shown" for the Glamour pictures actually on screen.
+  useGlamourShown(
+    cat.slug === "gallery" ? shown.map((a) => a.slug) : [],
+    cat.slug === "gallery",
+  );
   const live = LIVE_DESKS.includes(cat.slug);
   const liveKeys = [["wp", "posts", cat.slug]];
 

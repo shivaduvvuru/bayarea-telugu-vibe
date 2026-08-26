@@ -134,6 +134,7 @@ export type Database = {
           image_url: string | null
           is_local: boolean
           kind: string
+          last_shown_at: string | null
           link_url: string | null
           norm_title: string | null
           people_checked_at: string | null
@@ -179,6 +180,7 @@ export type Database = {
           image_url?: string | null
           is_local?: boolean
           kind?: string
+          last_shown_at?: string | null
           link_url?: string | null
           norm_title?: string | null
           people_checked_at?: string | null
@@ -224,6 +226,7 @@ export type Database = {
           image_url?: string | null
           is_local?: boolean
           kind?: string
+          last_shown_at?: string | null
           link_url?: string | null
           norm_title?: string | null
           people_checked_at?: string | null
