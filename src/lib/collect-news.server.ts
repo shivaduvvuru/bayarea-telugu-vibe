@@ -388,7 +388,77 @@ export const lastDiag = {
     candidates: 0,
     bySource: {} as Record<string, { discovered: number; candidates: number }>,
   },
+  /** Publish-time routing expected from this collector run. */
+  classification: {
+    byCategory: {} as Record<string, number>,
+    bySource: {} as Record<string, Record<string, number>>,
+  },
+  /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
+  summary: {
+    calls: 0,
+    calls_per_headline: 0,
+    avg_batch_size: 0,
+    fallback_calls: 0,
+    total_headlines: 0,
+    batches: 0,
+  },
 };
+
+function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
+  lastDiag.fetched = 0;
+  lastDiag.raw = 0;
+  lastDiag.kept = 0;
+  lastDiag.images = 0;
+  lastDiag.duplicates = 0;
+  lastDiag.notes = [];
+  lastDiag.publishers = { selected: [], bySource: {} };
+  lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
+  lastDiag.classification = { byCategory: {}, bySource: {} };
+  lastDiag.summary = {
+    calls: 0,
+    calls_per_headline: 0,
+    avg_batch_size: 0,
+    fallback_calls: 0,
+    total_headlines: 0,
+    batches: 0,
+  };
+  if (!opts.keepGallery) {
+    lastDiag.gallery = {
+      discovered: 0,
+      noImage: 0,
+      imageUnusable: 0,
+      hardNews: 0,
+      candidates: 0,
+      bySource: {},
+    };
+  }
+}
+
+function resetAiUsage() {
+  aiUsage.calls = 0;
+  aiUsage.itemsSummarized = 0;
+  aiUsage.itemsSkipped = 0;
+  aiUsage.batches = 0;
+  aiBatchMetrics = newBatchMetrics();
+}
+
+function syncSummaryDiag() {
+  lastDiag.summary = {
+    calls: aiUsage.calls,
+    calls_per_headline: Number(callsPerHeadline(aiBatchMetrics)),
+    avg_batch_size: Number(averageBatchSize(aiBatchMetrics)),
+    fallback_calls: aiBatchMetrics.fallbackCalls,
+    total_headlines: aiUsage.itemsSummarized,
+    batches: aiUsage.batches,
+  };
+}
+
+function recordClassified(source: string, category: string) {
+  lastDiag.classification.byCategory[category] =
+    (lastDiag.classification.byCategory[category] ?? 0) + 1;
+  const bySource = (lastDiag.classification.bySource[source] ??= {});
+  bySource[category] = (bySource[category] ?? 0) + 1;
+}
 
 function isGoogleNewsFeed(url: string): boolean {
   try {
