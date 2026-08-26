@@ -35,6 +35,11 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
         const lastDiagSnapshot = () => collectDiag;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        // pg_net gives the hook 120 s (now 240 s). Fetch ≤55 s, summaries ≤25 s more,
+        // publishing stops at 100 s; anything unpublished stays approved
+        // in the queue and goes out on the next slot.
+        const PUBLISH_CUTOFF_MS = 100_000;
+
         // { "mode": "images" } only repairs artwork for stories already published
         // without a picture — used to clear the historical backlog.
         if (body?.mode === "images") {
