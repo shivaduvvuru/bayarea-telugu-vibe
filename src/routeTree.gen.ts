@@ -81,6 +81,7 @@ import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/p
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicHooksDedupeSweepRouteImport } from './routes/api/public/hooks/dedupe-sweep'
 import { Route as ApiPublicHooksDirectoryIngestRouteImport } from './routes/api/public/hooks/directory-ingest'
+import { Route as ApiPublicHooksGlamourPocketRouteImport } from './routes/api/public/hooks/glamour-pocket'
 import { Route as ApiPublicHooksHealthAuditRouteImport } from './routes/api/public/hooks/health-audit'
 import { Route as ApiPublicHooksIndiaIngestRouteImport } from './routes/api/public/hooks/india-ingest'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
@@ -455,6 +456,12 @@ const ApiPublicHooksDirectoryIngestRoute =
     path: '/api/public/hooks/directory-ingest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksGlamourPocketRoute =
+  ApiPublicHooksGlamourPocketRouteImport.update({
+    id: '/api/public/hooks/glamour-pocket',
+    path: '/api/public/hooks/glamour-pocket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksHealthAuditRoute =
   ApiPublicHooksHealthAuditRouteImport.update({
     id: '/api/public/hooks/health-audit',
@@ -569,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/glamour-pocket': typeof ApiPublicHooksGlamourPocketRoute
   '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -645,6 +653,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/glamour-pocket': typeof ApiPublicHooksGlamourPocketRoute
   '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -727,6 +736,7 @@ export interface FileRoutesById {
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
+  '/api/public/hooks/glamour-pocket': typeof ApiPublicHooksGlamourPocketRoute
   '/api/public/hooks/health-audit': typeof ApiPublicHooksHealthAuditRoute
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
@@ -809,6 +819,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/glamour-pocket'
     | '/api/public/hooks/health-audit'
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
@@ -885,6 +896,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/glamour-pocket'
     | '/api/public/hooks/health-audit'
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
@@ -966,6 +978,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
+    | '/api/public/hooks/glamour-pocket'
     | '/api/public/hooks/health-audit'
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
@@ -1028,6 +1041,7 @@ export interface RootRouteChildren {
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicHooksDedupeSweepRoute: typeof ApiPublicHooksDedupeSweepRoute
   ApiPublicHooksDirectoryIngestRoute: typeof ApiPublicHooksDirectoryIngestRoute
+  ApiPublicHooksGlamourPocketRoute: typeof ApiPublicHooksGlamourPocketRoute
   ApiPublicHooksHealthAuditRoute: typeof ApiPublicHooksHealthAuditRoute
   ApiPublicHooksIndiaIngestRoute: typeof ApiPublicHooksIndiaIngestRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
@@ -1543,6 +1557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDirectoryIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/glamour-pocket': {
+      id: '/api/public/hooks/glamour-pocket'
+      path: '/api/public/hooks/glamour-pocket'
+      fullPath: '/api/public/hooks/glamour-pocket'
+      preLoaderRoute: typeof ApiPublicHooksGlamourPocketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/health-audit': {
       id: '/api/public/hooks/health-audit'
       path: '/api/public/hooks/health-audit'
@@ -1741,6 +1762,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicHooksDedupeSweepRoute: ApiPublicHooksDedupeSweepRoute,
   ApiPublicHooksDirectoryIngestRoute: ApiPublicHooksDirectoryIngestRoute,
+  ApiPublicHooksGlamourPocketRoute: ApiPublicHooksGlamourPocketRoute,
   ApiPublicHooksHealthAuditRoute: ApiPublicHooksHealthAuditRoute,
   ApiPublicHooksIndiaIngestRoute: ApiPublicHooksIndiaIngestRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
