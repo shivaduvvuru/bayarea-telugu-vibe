@@ -612,7 +612,9 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
       async () => {
         const response = await fetch(url, {
           headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
-          signal: AbortSignal.timeout(5000),
+          // Google search RSS is routinely 6-8s from this region; the circuit
+          // breaker caps how much a slow Google can cost a run.
+          signal: AbortSignal.timeout(google ? 10_000 : 5_000),
         });
         if (!response.ok) {
           const error = new Error(`HTTP ${response.status} ${new URL(url).host}`) as Error & {
