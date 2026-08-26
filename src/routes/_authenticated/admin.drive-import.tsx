@@ -58,12 +58,103 @@ function DriveImportPage() {
     mutationFn: (fileId: string) => preview({ data: { fileId } }),
   });
 
+  const autoMatch = useServerFn(autoMatchClaudeFile);
+  const [dismissedMatch, setDismissedMatch] = useState(false);
+  const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const match = useQuery({
+    queryKey: ["drive-auto-match"],
+    queryFn: () => autoMatch({}),
+    staleTime: 5 * 60_000,
+  });
+
+  const best = match.data?.best ?? null;
+  const alternates = (match.data?.candidates ?? []).filter((c) => c.id !== best?.id);
+  const showMatch = !dismissedMatch && (match.isPending || match.isError || best);
+
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8">
       <h1 className="text-2xl font-semibold tracking-tight">Google Drive import</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Browse folders or search by name, then open the file you want imported.
       </p>
+
+      {showMatch ? (
+        <section className="mt-6 rounded-lg border border-primary/40 bg-primary/5 p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-primary">
+            Best guess
+          </h2>
+          {match.isPending ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Scanning your Drive for the Claude download…
+            </p>
+          ) : match.isError ? (
+            <p className="mt-2 text-sm text-destructive">{(match.error as Error).message}</p>
+          ) : best ? (
+            <>
+              <p className="mt-2 text-base font-medium">{best.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatSize(best.size)} · {formatDate(best.modifiedTime)} · confidence score{" "}
+                {best.score}
+              </p>
+              {best.reasons.length ? (
+                <ul className="mt-2 list-inside list-disc text-xs text-muted-foreground">
+                  {best.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              ) : null}
+              <p className="mt-3 text-sm">Is this the file you want to import?</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setConfirmedId(best.id);
+                    load.mutate(best.id);
+                  }}
+                >
+                  Yes, import this file
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => setDismissedMatch(true)}>
+                  No, let me pick
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => match.refetch()}
+                  disabled={match.isFetching}
+                >
+                  Rescan
+                </Button>
+              </div>
+              {alternates.length ? (
+                <div className="mt-3 border-t pt-3">
+                  <p className="text-xs font-medium text-muted-foreground">Other close matches</p>
+                  <ul className="mt-1 space-y-1">
+                    {alternates.map((c) => (
+                      <li key={c.id} className="flex items-center gap-2 text-sm">
+                        <button
+                          type="button"
+                          className="truncate text-left underline-offset-2 hover:underline"
+                          onClick={() => {
+                            setConfirmedId(c.id);
+                            load.mutate(c.id);
+                          }}
+                        >
+                          {c.name}
+                        </button>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          score {c.score}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
 
       <form
         className="mt-6 flex gap-2"
