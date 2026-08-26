@@ -45,7 +45,8 @@ export function isMicroDrama(
   if (NOT_LIVE_ACTION.test(text)) return false;
   if (MICRO_TEXT.test(text)) return true;
   if (MICRO_ARTIST.test(text) && MICRO_ARTIST_CONTEXT.test(text)) return true;
-  return MICRO_HOSTS.test((sourceUrl ?? "").toLowerCase());
+  const url = (sourceUrl ?? "").toLowerCase();
+  return MICRO_HOSTS.test(url) && MICRO_TEXT.test(text);
 }
 
 

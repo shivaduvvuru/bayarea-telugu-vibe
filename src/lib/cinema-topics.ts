@@ -15,7 +15,7 @@ const CINEMA_TEXT =
 
 /** Dedicated film / OTT publishers whose whole feed can be treated as cinema. */
 const CINEMA_TRADE_HOSTS =
-  /123telugu|telugucinema\.com|idlebrain|filmibeat|bollywoodhungama|cinejosh|sacnilk|indiaglitz|movietalkies|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|tracktollywood|andhraboxoffice|aakashavaani|tollywood\.net|boxofficeindia|ottplay|binged\.com|whats-on-netflix|keralatv\.in|thecue\.in|moviecrow|sifymovies|peepingmoon|screendaily|indiewire|thewrap|collider\.com|screenrant|movieweb|slashfilm|cinemablend|denofgeek|empireonline|rottentomatoes|metacritic|rogerebert|soompi|koreanfilm\.or\.kr|hancinema|mydramalist|dramabeans|chinafilminsider|douban|maoyan|1905\.com|guduodata/i;
+  /123telugu|telugucinema\.com|telugu360|greatandhra|gulte|mirchi9|m9\.news|idlebrain|filmibeat|bollywoodhungama|cinejosh|sacnilk|indiaglitz|movietalkies|tupaki|telugustop|ragalahari|cinemaexpress|filmfare|koimoi|tracktollywood|andhraboxoffice|aakashavaani|tollywood\.net|boxofficeindia|ottplay|binged\.com|whats-on-netflix|keralatv\.in|thecue\.in|moviecrow|sifymovies|peepingmoon|variety\.com|deadline\.com|hollywoodreporter\.com|screendaily|indiewire|thewrap|collider\.com|screenrant|movieweb|slashfilm|cinemablend|denofgeek|empireonline|rottentomatoes|metacritic|rogerebert|soompi|koreanfilm\.or\.kr|hancinema|mydramalist|dramabeans|chinafilminsider|douban|maoyan|1905\.com|guduodata/i;
 
 /** Broad publishers only count when the URL itself is clearly entertainment. */
 const CINEMA_SECTION_URL =
