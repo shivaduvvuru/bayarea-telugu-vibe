@@ -24,7 +24,7 @@ import {
   type SummaryEntry,
 } from "./summary-batch";
 import { recordSummaryRun } from "./summary-metrics.server";
-import { withRetry } from "./retry";
+import { mapWithLimit, withRetry } from "./retry";
 
 export type CollectedItem = {
   dedupe_key: string;
@@ -70,6 +70,38 @@ function keyFor(citySlug: string, title: string) {
 }
 
 const DESK_PLACEHOLDER_IMAGE = "/cinema-card.webp";
+
+/**
+ * Stories the site already carries, for the run in progress. Set once at the
+ * start of collectAll / collectDesk and consulted by addImages so an article
+ * page is never fetched for a headline that will be discarded as a duplicate.
+ */
+let runKnown: Set<string> | null = null;
+/** Article pages fetched for artwork at once. Unbounded parallelism tripped publisher rate limits. */
+const IMAGE_FETCH_CONCURRENCY = 6;
+/** Feed descriptions at least this long stand in for a model summary. */
+const MIN_DESCRIPTION_CHARS = 60;
+const MAX_DESCRIPTION_CHARS = 280;
+
+/** RSS description trimmed to one clean sentence-ish block, or null when too thin to use. */
+function descriptionSummary(detail: string | undefined, title: string): string | null {
+  if (!detail) return null;
+  let text = detail.replace(/\s+/g, " ").trim();
+  if (text.length < MIN_DESCRIPTION_CHARS) return null;
+  // Many feeds repeat the headline as the first sentence.
+  const t = title.trim();
+  if (t && text.toLowerCase().startsWith(t.toLowerCase())) text = text.slice(t.length).replace(/^[\s:.\-–—]+/, "");
+  if (text.length < MIN_DESCRIPTION_CHARS) return null;
+  if (/read more|click here|continue reading|the post .* appeared first/i.test(text)) {
+    text = text.replace(/\s*(?:read more|click here|continue reading|the post .* appeared first).*$/i, "").trim();
+  }
+  if (text.length > MAX_DESCRIPTION_CHARS) {
+    const cut = text.slice(0, MAX_DESCRIPTION_CHARS);
+    const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+    text = end > MIN_DESCRIPTION_CHARS ? cut.slice(0, end + 1) : `${cut.trimEnd()}…`;
+  }
+  return text.length >= MIN_DESCRIPTION_CHARS ? text : null;
+}
 
 function storyUrlKey(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -652,38 +684,44 @@ async function fetchCity(city: City): Promise<RawItem[]> {
 
 }
 
-/** Feeds rarely carry artwork, so read the article page for og:image. */
+/**
+ * Feeds rarely carry artwork, so read the article page for og:image.
+ * Skipped for anything the site already knows (those rows are dropped as
+ * duplicates downstream) and run with bounded concurrency.
+ */
 async function addImages(items: RawItem[]): Promise<void> {
-  await Promise.all(
-    items.map(async (item) => {
-      // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
-      // and let the story render as a typographic card.
-      if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
-        item.image = null;
-        return;
-      }
-      if (item.link && isGoogleNewsUrl(item.link)) {
-        // Feed-level resolution can miss some wrappers; retry per item so the
-        // stored link (and its artwork) points at the publisher.
-        const real = await resolveGoogleNewsUrl(item.link);
-        if (real && real !== item.link) item.link = real;
-      }
-      if (!item.image && item.link && !isGoogleNewsUrl(item.link)) {
-        try {
-          const host = new URL(item.link).hostname;
-          item.image = /(?:^|\.)msn\.com$/.test(host)
-            ? ((await msnImage(item.link)) ?? (await ogImage(item.link)))
-            : await ogImage(item.link);
-        } catch {
-          /* unusable link */
-        }
-      }
+  const todo = items.filter((item) => {
+    if (runKnown && storyIdentityKeys(item.title, item.link).some((k) => runKnown!.has(k))) {
       item.image = usableImage(item.image);
-
-      if (item.image) lastDiag.images += 1;
-      else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
-    }),
-  );
+      return false;
+    }
+    return true;
+  });
+  await mapWithLimit(todo, IMAGE_FETCH_CONCURRENCY, async (item) => {
+    // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
+    // and let the story render as a typographic card.
+    if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
+      item.image = null;
+      return;
+    }
+    if (item.link && isGoogleNewsUrl(item.link)) {
+      const real = await resolveGoogleNewsUrl(item.link);
+      if (real && real !== item.link) item.link = real;
+    }
+    if (!item.image && item.link && !isGoogleNewsUrl(item.link)) {
+      try {
+        const host = new URL(item.link).hostname;
+        item.image = /(?:^|\.)msn\.com$/.test(host)
+          ? ((await msnImage(item.link)) ?? (await ogImage(item.link)))
+          : await ogImage(item.link);
+      } catch {
+        /* unusable link */
+      }
+    }
+    item.image = usableImage(item.image);
+    if (item.image) lastDiag.images += 1;
+    else if (lastDiag.notes.length < 8) lastDiag.notes.push(`no image: ${item.link.slice(0, 70)}`);
+  }, { label: "article images" });
 }
 
 /**
@@ -2186,6 +2224,13 @@ async function summarizeGroups(
         aiUsage.itemsSkipped += 1;
         return;
       }
+      // A usable publisher description costs nothing: no model call at all.
+      const fromFeed = descriptionSummary(item.detail, item.title);
+      if (fromFeed) {
+        result.get(g.key)![index] = fromFeed;
+        aiUsage.itemsSkipped += 1;
+        return;
+      }
       entries.push({
         id: `${g.key}#${index}`,
         group: { key: g.key, desk: g.city.en, index },
@@ -2236,35 +2281,21 @@ async function summarizeGroups(
 }
 
 /**
- * Dedupe keys already stored or already rejected. Used only to keep the summary
- * step off headlines that will be discarded anyway.
+ * Dedupe keys already stored or already rejected. Shared with the route via
+ * known-keys.server so the tables are read once per run (and cached briefly).
  */
 async function loadKnownKeys(): Promise<Set<string>> {
-  const keys = new Set<string>();
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [queued, rejected, live] = await Promise.all([
-      supabaseAdmin.from("digest_queue").select("title, source_url, dedupe_key").limit(20000),
-      supabaseAdmin.from("digest_rejects").select("title, item_id, dedupe_key").limit(20000),
-      supabaseAdmin.from("content_items").select("title, link_url, source_ref, dedupe_key").limit(20000),
-    ]);
-    for (const row of (queued.data ?? []) as { title: string | null; source_url: string | null; dedupe_key: string | null }[]) {
-      for (const key of storyIdentityKeys(row.title, row.source_url)) keys.add(key);
-      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
-    }
-    for (const row of (rejected.data ?? []) as { title: string | null; item_id: string | null; dedupe_key: string | null }[]) {
-      for (const key of storyIdentityKeys(row.title, null)) keys.add(key);
-      if (row.item_id) keys.add(`d:${row.item_id}`);
-      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
-    }
-    for (const row of (live.data ?? []) as { title: string | null; link_url: string | null; source_ref: string | null; dedupe_key: string | null }[]) {
-      for (const key of storyIdentityKeys(row.title, row.link_url ?? row.source_ref)) keys.add(key);
-      if (row.dedupe_key) keys.add(`d:${row.dedupe_key}`);
-    }
+    const { loadKnownKeys: load } = await import("./known-keys.server");
+    const known = await load(supabaseAdmin as never);
+    runKnown = known.keys;
+    return known.keys;
   } catch (e) {
     console.error("known-key preload failed", e);
+    runKnown = null;
+    return new Set();
   }
-  return keys;
 }
 /** Collect fresh items for every city. Returns rows ready for a dedupe-safe upsert. */
 /**
@@ -2325,10 +2356,9 @@ export async function collectAll(
       batch.map(async (city) => ({ key: `city:${city.slug}`, city, items: await fetchCity(city) })),
     );
     queueSummaries(fetched);
-  const citySummaries = new Map<string, string[]>();
     const collected = await Promise.all(
       fetched.map(async ({ key, city, items }) => {
-        const summaries = citySummaries.get(key) ?? [];
+        const summaries: string[] = [];
         return items.map((it, i) => {
           const kind = classify(it.title);
           const dedupe = itemDedupeKey(city.slug, it.title, it.link);
@@ -2386,10 +2416,9 @@ export async function collectAll(
       }),
     );
     queueSummaries(guideFetched);
-  const guideSummaries = new Map<string, string[]>();
     const guideRows = await Promise.all(
       guideFetched.map(async ({ key, items, g, slug }) => {
-        const summaries = guideSummaries.get(key) ?? [];
+        const summaries: string[] = [];
         return items.map((it, i) => {
           // The NRI pass only keeps community happenings, so those always file
           // as events (a temple festival still files as temple).
@@ -2436,10 +2465,9 @@ export async function collectAll(
     })),
   );
   queueSummaries(topicFetched);
-  const topicSummaries = new Map<string, string[]>();
   const topicRows = await Promise.all(
     topicFetched.map(async ({ key, items, group }) => {
-      const summaries = topicSummaries.get(key) ?? [];
+      const summaries: string[] = [];
       return items.map((it, i) => {
         const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
         return {
@@ -2492,10 +2520,9 @@ export async function collectAll(
     })),
   );
   queueSummaries(publisherFetched);
-  const publisherSummaries = new Map<string, string[]>();
   const publisherRows = await Promise.all(
     publisherFetched.map(async ({ key, items, feed }) => {
-      const summaries = publisherSummaries.get(key) ?? [];
+      const summaries: string[] = [];
       return items.map((it, i) => {
         const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
         const kind = feed.kind === "news" ? classify(it.title) : feed.kind;
