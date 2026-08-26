@@ -4,6 +4,7 @@ import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
 import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery } from "./cinema-topics";
 import { isMicroDrama } from "./microdrama-topics";
+import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
