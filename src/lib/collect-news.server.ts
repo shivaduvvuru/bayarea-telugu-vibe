@@ -534,6 +534,21 @@ function recordClassified(source: string, category: string) {
  */
 const GOOGLE_TRIP_AFTER = 3;
 let googleFailures = 0;
+/**
+ * Run clocks. The hook is called by pg_net with a hard 120 s limit and the
+ * run log is only written at the end, so a slow run must degrade — skip
+ * artwork, skip the model, leave publishing for the next slot — rather than
+ * overrun. Fetching and artwork stop at `fetchDeadline`; model summaries stop
+ * at `modelDeadline`; the route stops publishing at its own cut-off.
+ */
+let fetchDeadline = Number.POSITIVE_INFINITY;
+let modelDeadline = Number.POSITIVE_INFINITY;
+const pastFetch = () => Date.now() > fetchDeadline;
+const pastModel = () => Date.now() > modelDeadline;
+/** Extra time the summary phase gets after fetching stops. */
+const MODEL_PHASE_MS = 25_000;
+/** How long a Google URL-resolution batch may take before it trips the breaker. */
+const RESOLVE_TIMEOUT_MS = 12_000;
 function googleDown(): boolean {
   return googleFailures >= GOOGLE_TRIP_AFTER;
 }
@@ -744,7 +759,16 @@ async function addImages(items: RawItem[]): Promise<void> {
   // One batched resolution for the kept Google-wrapped links.
   const wrapped = todo.filter((i) => i.link && isGoogleNewsUrl(i.link)).map((i) => i.link);
   if (wrapped.length && !googleDown()) {
-    const map = await resolveGoogleNewsUrls(wrapped).catch(() => new Map<string, string>());
+    const map = await Promise.race([
+      resolveGoogleNewsUrls(wrapped),
+      new Promise<Map<string, string>>((resolve) =>
+        setTimeout(() => {
+          googleFailures = Math.max(googleFailures, GOOGLE_TRIP_AFTER);
+          lastDiag.notes.push("Google News: URL resolution timed out; circuit opened");
+          resolve(new Map());
+        }, RESOLVE_TIMEOUT_MS),
+      ),
+    ]).catch(() => new Map<string, string>());
     for (const item of todo) {
       const real = map.get(item.link);
       if (real && real !== item.link) item.link = real;
@@ -753,6 +777,11 @@ async function addImages(items: RawItem[]): Promise<void> {
     for (const item of todo) if (isKnown(item)) item.image = usableImage(item.image);
   }
   await mapWithLimit(todo.filter((i) => !isKnown(i)), IMAGE_FETCH_CONCURRENCY, async (item) => {
+    if (pastFetch()) {
+      // Out of time: the card renders typographically; backfill can add art later.
+      item.image = usableImage(item.image);
+      return;
+    }
     // Patch only ever exposes its own "Patch AM" logo, so skip artwork here
     // and let the story render as a typographic card.
     if (/patch/i.test(item.source) || /patch\.com/i.test(item.link)) {
@@ -2307,12 +2336,20 @@ async function summarizeGroups(
   );
   aiUsage.itemsSkipped += dropped;
 
+  if (pastModel()) {
+    lastDiag.notes.push(`summary: run budget exhausted before the model phase; ${queue.length} item(s) use feed/fallback text`);
+    return result;
+  }
   const gateway = createLovableAiGatewayProvider(apiKey);
   const { summaries, errors } = await runSummaryBatches<Group>(
     queue,
     async (prompt) => {
+      // "budget exhausted" is deliberately not a retryable message: the batch
+      // fails once, its items keep their fallback text, and the run moves on.
+      if (pastModel()) throw new Error("run budget exhausted");
       const { text } = await generateText({
         model: gateway("google/gemini-3.1-flash-lite"),
+        abortSignal: AbortSignal.timeout(Math.max(5_000, Math.min(25_000, modelDeadline - Date.now()))),
         prompt,
       });
       return text;
@@ -2372,6 +2409,8 @@ export async function collectAll(
   const total = Math.min(Math.max(opts?.deadlineMs ?? 45_000, 5_000), 120_000);
   const deadline = started + total;
   const inBudget = () => Date.now() < deadline;
+  fetchDeadline = deadline;
+  modelDeadline = deadline + MODEL_PHASE_MS;
   /**
    * Each pass gets a reserved share of the run. The Bay Area city pass used to
    * consume the whole budget, so the India and Cinema/OTT feeds (which live in
@@ -2773,8 +2812,10 @@ export async function collectDesk(
   const today = new Date().toISOString().slice(0, 10);
   resetRunDiagnostics();
   resetAiUsage();
-  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 90_000, 10_000), 120_000);
+  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 55_000, 10_000), 120_000);
   const inBudget = () => Date.now() < deadline;
+  fetchDeadline = deadline;
+  modelDeadline = deadline + MODEL_PHASE_MS;
   const knownKeys = await loadKnownKeys();
   const summaryPool: SummaryGroup[] = [];
   const rows: CollectedItem[] = [];
