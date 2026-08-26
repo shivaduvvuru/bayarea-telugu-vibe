@@ -69,7 +69,7 @@ function keyFor(citySlug: string, title: string) {
   return `${citySlug}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
 }
 
-const DESK_PLACEHOLDER_IMAGE = "/cinema-placeholder.webp";
+const DESK_PLACEHOLDER_IMAGE = "/cinema-card.webp";
 
 function storyUrlKey(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -2760,7 +2760,7 @@ export async function collectDesk(
           sourceUrl: it.link,
           image,
           category,
-          resolved_category: CINEMA_SLUG,
+          resolved_category: category,
           desk,
           collectedAt: today,
         },
