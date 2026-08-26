@@ -94,8 +94,26 @@ export function SummaryDiagnosticsPanel() {
             {data.baseline.avgBatchSize.toFixed(1)}.
           </p>
 
-          <ul className="mt-3 divide-y divide-border text-sm">
-            {data.runs.slice(0, 8).map((r) => (
+          <h3 className="mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">Last 30 ingest runs</h3>
+          <ul className="mt-2 divide-y divide-border text-sm">
+            {data.ingestRuns.slice(0, 30).map((r) => (
+              <li
+                key={`${r.finished_at}-${r.mode}`}
+                className="grid gap-1 py-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
+              >
+                <span className="truncate text-muted-foreground">
+                  {new Date(r.finished_at).toLocaleString()} · {r.mode} · {r.trigger}
+                </span>
+                <span className="text-xs font-semibold text-ink sm:text-right">
+                  GNews {r.google_news_requested}/{r.google_news_fetched}/{r.google_news_returned} · calls/headline {r.calls_per_headline.toFixed(2)} · avg {r.avg_batch_size.toFixed(1)} · fallback {r.fallback_calls} · headlines {r.total_headlines}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">Summary runs</h3>
+          <ul className="mt-2 divide-y divide-border text-sm">
+            {data.runs.slice(0, 30).map((r) => (
               <li
                 key={r.created_at}
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-1.5"

@@ -635,12 +635,14 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
                 .length,
               publishers: lastDiag.publishers,
               googleNews: lastDiag.googleNews,
+              classification: lastDiag.classification,
+              summary: lastDiag.summary,
               notes: lastDiag.notes,
             },
             ok: true,
             finished_at: finishedAt,
           } as never);
-          return Response.json({ ok: true, mode: runMode, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length, googleNews: lastDiag.googleNews }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
+          return Response.json({ ok: true, mode: runMode, collected: rows.length, published: publishedCount, held: marked.length - autoIds.length, duplicatesHidden: hidden, galleryRotation, soloSweep, wpRemoved, intakeHealth, buckets: { discovered: intakeRows.length, usable: discoveredPictures, pending: pendingPictureIds.size, safetyBlocked: blocked.length, duplicates: duplicatePictureIds.length }, funnel: { ...pictureFunnel, duplicatesRemoved: beforeDuplicateFilter - rows.length, googleNews: lastDiag.googleNews, classification: lastDiag.classification, summary: lastDiag.summary }, diag: { ...lastDiag }, aiError: lastAiError, at: finishedAt });
         } catch (e) {
           const { errorMessage } = await import("@/lib/error-message");
           const message = errorMessage(e);
