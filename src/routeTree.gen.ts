@@ -67,6 +67,7 @@ import { Route as TemplesIndexRouteImport } from './routes/temples.index'
 import { Route as TemplesCityRouteImport } from './routes/temples.$city'
 import { Route as TemplesCalendarRouteImport } from './routes/temples.calendar'
 import { Route as TemplesNewsRouteImport } from './routes/temples.news'
+import { Route as AuthenticatedAdminDriveImportRouteImport } from './routes/_authenticated/admin.drive-import'
 import { Route as AuthenticatedAdminDuplicatesRouteImport } from './routes/_authenticated/admin.duplicates'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
@@ -377,6 +378,12 @@ const TemplesNewsRoute = TemplesNewsRouteImport.update({
   path: '/news',
   getParentRoute: () => TemplesRoute,
 } as any)
+const AuthenticatedAdminDriveImportRoute =
+  AuthenticatedAdminDriveImportRouteImport.update({
+    id: '/drive-import',
+    path: '/drive-import',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminDuplicatesRoute =
   AuthenticatedAdminDuplicatesRouteImport.update({
     id: '/duplicates',
@@ -548,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -623,6 +631,7 @@ export interface FileRoutesByTo {
   '/forums': typeof ForumsIndexRoute
   '/property': typeof PropertyIndexRoute
   '/temples': typeof TemplesIndexRoute
+  '/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -704,6 +713,7 @@ export interface FileRoutesById {
   '/forums/': typeof ForumsIndexRoute
   '/property/': typeof PropertyIndexRoute
   '/temples/': typeof TemplesIndexRoute
+  '/_authenticated/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/_authenticated/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
@@ -785,6 +795,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/admin/drive-import'
     | '/admin/duplicates'
     | '/admin/health'
     | '/api/public/refresh-content'
@@ -860,6 +871,7 @@ export interface FileRouteTypes {
     | '/forums'
     | '/property'
     | '/temples'
+    | '/admin/drive-import'
     | '/admin/duplicates'
     | '/admin/health'
     | '/api/public/refresh-content'
@@ -940,6 +952,7 @@ export interface FileRouteTypes {
     | '/forums/'
     | '/property/'
     | '/temples/'
+    | '/_authenticated/admin/drive-import'
     | '/_authenticated/admin/duplicates'
     | '/_authenticated/admin/health'
     | '/api/public/refresh-content'
@@ -1432,6 +1445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplesNewsRouteImport
       parentRoute: typeof TemplesRoute
     }
+    '/_authenticated/admin/drive-import': {
+      id: '/_authenticated/admin/drive-import'
+      path: '/drive-import'
+      fullPath: '/admin/drive-import'
+      preLoaderRoute: typeof AuthenticatedAdminDriveImportRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/duplicates': {
       id: '/_authenticated/admin/duplicates'
       path: '/duplicates'
@@ -1576,11 +1596,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDriveImportRoute: typeof AuthenticatedAdminDriveImportRoute
   AuthenticatedAdminDuplicatesRoute: typeof AuthenticatedAdminDuplicatesRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDriveImportRoute: AuthenticatedAdminDriveImportRoute,
   AuthenticatedAdminDuplicatesRoute: AuthenticatedAdminDuplicatesRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
 }
