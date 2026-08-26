@@ -12,15 +12,16 @@ export type PhotoRejectReason =
   | "minor_or_age_uncertain"
   | "explicit_content"
   | "no_primary_woman"
-  | "image_corrupt";
+  | "image_corrupt"
+  | "screen_unavailable";
 
 export type PhotoVerification = {
-  /** Cleared for the review desk (includes fail-open, unchecked photos). */
+  /** Cleared for the review desk by an explicit model verdict. */
   accepted: Set<string>;
   /** Blocked with a definitive safety/subject reason. */
   rejected: Set<string>;
   reasons: Map<string, PhotoRejectReason>;
-  /** Photos the model could not judge — admitted for editorial review. */
+  /** Photos the model could not judge — blocked as screen_unavailable. */
   unchecked: Set<string>;
 };
 
@@ -55,8 +56,8 @@ function parseVerdicts(raw: string) {
  * one adult woman is the dominant subject; background passers-by, posters,
  * reflections, crops, orientation, styling and picture quality are irrelevant.
  * Only age doubt, explicit content, a missing female lead subject or an
- * unusable file block a photo. Model failures fail OPEN so the editor — not a
- * rate limit — makes the call.
+ * unusable file block a photo. Model failures fail CLOSED: an unavailable
+ * screen blocks the photo with "screen_unavailable" rather than admitting it.
  */
 export async function verifySoloWomanPhotos(
   candidates: PhotoCandidate[],
@@ -66,9 +67,12 @@ export async function verifySoloWomanPhotos(
   const rejected = new Set<string>();
   const reasons = new Map<string, PhotoRejectReason>();
   const unchecked = new Set(candidates.map((candidate) => candidate.id));
-  // No key: admit everything for human review rather than starving the desk.
+  // No key: the screen cannot run, so nothing is admitted.
   if (!apiKey) {
-    for (const candidate of candidates) accepted.add(candidate.id);
+    for (const candidate of candidates) {
+      rejected.add(candidate.id);
+      reasons.set(candidate.id, "screen_unavailable");
+    }
     return { accepted, rejected, reasons, unchecked };
   }
 
@@ -135,8 +139,11 @@ export async function verifySoloWomanPhotos(
   await Promise.all(
     Array.from({ length: Math.min(MAX_CONCURRENT_CHECKS, batches.length) }, () => worker()),
   );
-  // Fail open: anything the model never judged still goes to the editor.
-  for (const id of unchecked) accepted.add(id);
+  // Fail closed: anything the model never judged is blocked, not admitted.
+  for (const id of unchecked) {
+    rejected.add(id);
+    reasons.set(id, "screen_unavailable");
+  }
   return { accepted, rejected, reasons, unchecked };
 }
 
