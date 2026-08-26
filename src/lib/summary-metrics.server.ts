@@ -14,6 +14,23 @@ import {
   type BatchMetrics,
 } from "./summary-batch";
 
+export type IngestDiagnosticsRow = {
+  finished_at: string;
+  mode: string;
+  trigger: string;
+  ok: boolean;
+  collected: number;
+  published: number;
+  held: number;
+  google_news_requested: number;
+  google_news_fetched: number;
+  google_news_returned: number;
+  calls_per_headline: number;
+  avg_batch_size: number;
+  fallback_calls: number;
+  total_headlines: number;
+};
+
 export type SummaryRunRow = {
   created_at: string;
   trigger: string;
@@ -175,22 +192,64 @@ export async function recordSummaryRun(
 /** Recent runs plus the baseline, for the admin diagnostic panel. */
 export async function summaryDiagnostics(): Promise<{
   runs: SummaryRunRow[];
+  ingestRuns: IngestDiagnosticsRow[];
   baseline: Baseline;
   latest: SummaryRunRow | null;
   warnings: string[];
 }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("summary_runs")
-    .select(
-      "created_at,trigger,calls,batches,fallback_calls,items_summarized,items_skipped,malformed_batches,missing_entries,unknown_entries,unresolved,retries,throttled,avg_batch_size,truncation_rate,warnings",
-    )
-    .order("created_at", { ascending: false })
-    .limit(20);
-  const runs = (data ?? []) as SummaryRunRow[];
+  const [summary, ingest] = await Promise.all([
+    supabaseAdmin
+      .from("summary_runs")
+      .select(
+        "created_at,trigger,calls,batches,fallback_calls,items_summarized,items_skipped,malformed_batches,missing_entries,unknown_entries,unresolved,retries,throttled,avg_batch_size,truncation_rate,warnings",
+      )
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabaseAdmin
+      .from("collect_runs")
+      .select("finished_at,mode,trigger,ok,collected,published,held,funnel")
+      .order("finished_at", { ascending: false })
+      .limit(30),
+  ]);
+  const runs = (summary.data ?? []) as SummaryRunRow[];
+  const ingestRuns = ((ingest.data ?? []) as Array<{
+    finished_at: string;
+    mode: string;
+    trigger: string;
+    ok: boolean;
+    collected: number;
+    published: number;
+    held: number;
+    funnel?: {
+      googleNews?: { requested?: number; fetched?: number; returned?: number };
+      summary?: {
+        calls_per_headline?: number;
+        avg_batch_size?: number;
+        fallback_calls?: number;
+        total_headlines?: number;
+      };
+    };
+  }>).map((row) => ({
+    finished_at: row.finished_at,
+    mode: row.mode,
+    trigger: row.trigger,
+    ok: row.ok,
+    collected: row.collected,
+    published: row.published,
+    held: row.held,
+    google_news_requested: Number(row.funnel?.googleNews?.requested ?? 0),
+    google_news_fetched: Number(row.funnel?.googleNews?.fetched ?? 0),
+    google_news_returned: Number(row.funnel?.googleNews?.returned ?? 0),
+    calls_per_headline: Number(row.funnel?.summary?.calls_per_headline ?? 0),
+    avg_batch_size: Number(row.funnel?.summary?.avg_batch_size ?? 0),
+    fallback_calls: Number(row.funnel?.summary?.fallback_calls ?? 0),
+    total_headlines: Number(row.funnel?.summary?.total_headlines ?? 0),
+  }));
   const [latest, ...previous] = runs;
   return {
     runs,
+    ingestRuns,
     baseline: baselineOf(previous),
     latest: latest ?? null,
     warnings: latest?.warnings ?? [],

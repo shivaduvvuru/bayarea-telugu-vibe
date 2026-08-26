@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { PUBLIC_COLUMNS, type ContentItem } from "@/lib/cms";
-import { dedupeBy, dedupeKey } from "@/lib/dedupe";
+import { canonicalUrl, dedupeBy, dedupeKey, strictTitleKey } from "@/lib/dedupe";
 import { classifyForPublish } from "@/lib/classify-at-publish.server";
 
 /** Anonymous, RLS-respecting client for reading published items during SSR. */
@@ -59,6 +59,12 @@ export type IngestRow = {
   published_at?: string | null;
 };
 
+function canonicalStoryKey(row: { title?: string | null; link_url?: string | null; source_ref?: string | null }) {
+  const url = canonicalUrl(row.link_url ?? row.source_ref);
+  const title = strictTitleKey(row.title);
+  return url ? `u:${url}${title ? `|${title}` : ""}` : title ? `t:${title}` : "";
+}
+
 /**
  * Records automatically pulled items. New rows go live immediately
  * (auto-publish); rows an editor already removed stay removed, because we
@@ -84,18 +90,24 @@ export async function ingest(rows: IngestRow[]) {
   if (candidates.length === 0) return { inserted: 0, skipped: rows.length, duplicates: 0 };
 
   // Collapse repeats inside this batch first.
-  const { unique: fresh, duplicates: inBatch } = dedupeBy(candidates, (r) => r.title);
+  const { unique: fresh, duplicates: inBatch } = dedupeBy(candidates, canonicalStoryKey);
 
-  // Then check the surviving keys against what the site already carries.
-  const keys = fresh.map((r) => dedupeKey(r.title)).filter(Boolean);
+  // Then check surviving canonical URL + strict-title keys against what the site already carries.
+  const titleKeys = fresh.map((r) => strictTitleKey(r.title)).filter((key): key is string => !!key);
   const existing = new Map<string, string>();
-  for (let i = 0; i < keys.length; i += 200) {
+  for (let i = 0; i < titleKeys.length; i += 200) {
     const { data } = await db
       .from("content_items")
-      .select("id, dedupe_key")
+      .select("id, title, link_url, source_ref, norm_title, canonical_url")
       .neq("status", "duplicate")
-      .in("dedupe_key", keys.slice(i, i + 200));
-    for (const r of data ?? []) if (r.dedupe_key) existing.set(r.dedupe_key, r.id);
+      .in("norm_title", titleKeys.slice(i, i + 200));
+    for (const r of data ?? []) {
+      const key = canonicalStoryKey({
+        title: r.title ?? r.norm_title,
+        link_url: r.link_url ?? r.canonical_url ?? r.source_ref,
+      });
+      if (key) existing.set(key, r.id);
+    }
   }
 
   // Server-side duplicate guard: title / URL / body-similarity check against
