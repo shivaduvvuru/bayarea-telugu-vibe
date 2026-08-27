@@ -2655,9 +2655,15 @@ export async function collectAll(
     rows.push(...guideRows.flat());
   }
 
-  // Region-wide NRI, community-event and temple items.
+  // Region-wide NRI, community-event and temple items. Cinema and micro-drama
+  // are collected by their own job (see collect-cinema hook); set
+  // CINEMA_SEPARATE_JOB=false to fold them back into this run without a deploy.
   const topicFetched = await Promise.all(
-    (within(0.72) ? TOPIC_GROUPS.filter((group) => topicDesk(group) === "other") : []).map(async (group, gi) => ({
+    (within(0.72)
+      ? TOPIC_GROUPS.filter((group) => !cinemaSeparateJob() || topicDesk(group) === "other")
+      : []
+    ).map(async (group, gi) => ({
+
       key: `topic:${gi}`,
       city: BAY_AREA,
       items: await fetchTopics(group),
