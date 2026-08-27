@@ -2628,6 +2628,24 @@ export type Database = {
         }
         Relationships: []
       }
+      url_resolutions: {
+        Row: {
+          google_url: string
+          resolved_at: string
+          resolved_url: string | null
+        }
+        Insert: {
+          google_url: string
+          resolved_at?: string
+          resolved_url?: string | null
+        }
+        Update: {
+          google_url?: string
+          resolved_at?: string
+          resolved_url?: string | null
+        }
+        Relationships: []
+      }
       user_actions: {
         Row: {
           action: string

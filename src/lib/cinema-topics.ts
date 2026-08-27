@@ -7,6 +7,8 @@
  * also surface in Gallery.
  */
 
+import * as MICRO from "./microdrama-topics";
+
 export const CINEMA_SLUG = "cinema";
 
 const CINEMA_TEXT =
@@ -244,4 +246,104 @@ export function celebrityName(
   const guess = lead?.[1]?.trim();
   if (!guess || NOT_A_LEAD.test(guess)) return null;
   return guess;
+}
+
+/* ------------------------------------------------------------------------- *
+ * Desk classification
+ *
+ * A resolved publisher host is the strongest signal we have, so an explicit
+ * host -> desk map is checked before any keyword rule. Keyword rules only get
+ * a say when the host is unknown (or the link never resolved).
+ * ------------------------------------------------------------------------- */
+
+/** Publishers whose entire output belongs on the Cinema/OTT desk. */
+export const CINEMA_HOSTS: string[] = [
+  // Requested trade / film desks
+  "variety.com",
+  "deadline.com",
+  "hollywoodreporter.com",
+  "indiewire.com",
+  "screendaily.com",
+  "filmfare.com",
+  "bollywoodhungama.com",
+  "pinkvilla.com",
+  "koimoi.com",
+  "ottplay.com",
+  "binged.com",
+  // Hosts already present in the cinema publisher feed list
+  "123telugu.com",
+  "telugu360.com",
+  "telugucinema.com",
+  "greatandhra.com",
+  "gulte.com",
+  "mirchi9.com",
+  "m9.news",
+  "thewrap.com",
+  "soompi.com",
+  "whats-on-netflix.com",
+];
+
+export type DeskCategory = typeof CINEMA_SLUG | "micro-drama" | "news";
+export type ClassifyReason = "host-map" | "keyword" | "sweep-default" | "fallback";
+export type DeskClassification = { category: DeskCategory; reason: ClassifyReason };
+
+function hostOf(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/** Explicit host -> desk lookup. Returns null when the host is not mapped. */
+export function cinemaHostDesk(url: string | null | undefined): DeskCategory | null {
+  const host = hostOf(url);
+  if (!host) return null;
+  return CINEMA_HOSTS.some((h) => host === h || host.endsWith(`.${h}`)) ? CINEMA_SLUG : null;
+}
+
+/**
+ * Decide the desk for one collected item and report why.
+ *
+ * Order: host map, then micro-drama keywords (never a default for a trade
+ * host), then cinema keywords, then the sweep default. Items whose Google News
+ * link never resolved are classified on title + source name only — the wrapper
+ * host says nothing about the publisher.
+ */
+export function classifyDeskItem(input: {
+  title: string | null | undefined;
+  summary?: string | null | undefined;
+  url?: string | null | undefined;
+  sourceName?: string | null | undefined;
+  /** True when a Google News wrapper could not be resolved to a publisher. */
+  unresolved?: boolean | undefined;
+  /** Desk the sweep that produced this item belongs to. */
+  sweep?: DeskCategory | null | undefined;
+}): DeskClassification {
+  const { isMicroDrama, hasMicroDramaKeyword, MICRO_DRAMA_SLUG } = MICRO;
+  const text = `${input.title ?? ""} ${input.summary ?? ""}`;
+  const nameText = `${text} ${input.sourceName ?? ""}`;
+  const url = input.unresolved ? null : (input.url ?? null);
+
+  if (url) {
+    const mapped = cinemaHostDesk(url);
+    if (mapped) {
+      // A trade host still yields to an explicit micro-drama keyword.
+      return hasMicroDramaKeyword(text)
+        ? { category: MICRO_DRAMA_SLUG as DeskCategory, reason: "keyword" }
+        : { category: mapped, reason: "host-map" };
+    }
+  }
+
+  if (hasMicroDramaKeyword(text) && isMicroDrama(input.title, input.summary, url))
+    return { category: MICRO_DRAMA_SLUG as DeskCategory, reason: "keyword" };
+
+  if (isCinema(input.title, input.summary, url)) return { category: CINEMA_SLUG, reason: "keyword" };
+  if (!url && isCinema(input.title, `${input.summary ?? ""} ${input.sourceName ?? ""}`, null))
+    return { category: CINEMA_SLUG, reason: "keyword" };
+  void nameText;
+
+  if (input.sweep) return { category: input.sweep, reason: "sweep-default" };
+  return { category: "news", reason: "fallback" };
 }
