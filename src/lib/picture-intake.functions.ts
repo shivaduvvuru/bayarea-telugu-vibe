@@ -73,10 +73,11 @@ export const bulkApprovePictures = createServerFn({ method: "POST" })
       const { bulkApprovePictures: run } = await import("@/lib/picture-intake.server");
       return run(await admin(), data.itemIds);
     } catch (caught) {
+      const reason = caught instanceof Error ? caught.message : "Bulk approval failed";
       return {
         approved: 0,
-        failed: data.itemIds,
-        error: caught instanceof Error ? caught.message : "Bulk approval failed",
+        failed: data.itemIds.map((id) => ({ item_id: id, reason })),
+        error: reason,
       };
     }
   });
