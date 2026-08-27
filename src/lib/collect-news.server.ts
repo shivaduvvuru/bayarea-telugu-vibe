@@ -2911,30 +2911,30 @@ export async function collectAll(
 const DESK_PUBLISHERS_PER_RUN = 16;
 
 export async function collectDesk(
-  desk: "cinema",
+  desk: "cinema" | "micro-drama",
   apiKey: string | undefined,
   opts?: { deadlineMs?: number; slice?: number; sliceSize?: number },
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   resetRunDiagnostics();
   resetAiUsage();
-  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 55_000, 10_000), 120_000);
+  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 55_000, 10_000), 240_000);
   const inBudget = () => Date.now() < deadline;
   fetchDeadline = deadline;
   modelDeadline = deadline + MODEL_PHASE_MS;
   const knownKeys = await loadKnownKeys();
   const summaryPool: SummaryGroup[] = [];
   const rows: CollectedItem[] = [];
+  const caps = deskCap(desk);
+  const deskFallback = desk === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG;
 
   // Rotation: every run reads one topic group and one slice of the publisher
   // list, so a 30-minute cron covers every source within ~90 minutes while
   // each run stays well inside its budget. Direct RSS feeds go first — they
   // are fast and never throttled — and Google search feeds fill the tail.
   const slice = opts?.slice ?? Math.floor(Date.now() / (30 * 60 * 1000));
-  const allTopicGroups = TOPIC_GROUPS.filter((group) => {
-    const kind = topicDesk(group);
-    return kind === "cinema" || kind === "micro-drama";
-  });
+  const allTopicGroups = TOPIC_GROUPS.filter((group) => topicDesk(group) === desk);
+
   const topicGroups = allTopicGroups.length
     ? [allTopicGroups[slice % allTopicGroups.length]!]
     : [];
