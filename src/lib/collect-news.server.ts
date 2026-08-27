@@ -51,6 +51,8 @@ export type CollectedItem = {
   published_at: string | null;
   origin: "feed";
   payload: Record<string, unknown>;
+  /** "feed" | "og" | "placeholder" — provenance of the card artwork. */
+  image_source?: string;
 };
 
 const MAX_PER_CITY = 16;
