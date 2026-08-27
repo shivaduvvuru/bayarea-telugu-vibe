@@ -476,6 +476,13 @@ export const lastDiag = {
     byReason: {} as Record<string, number>,
     unresolvedLinks: 0,
   },
+  /** Where desk artwork came from this run. */
+  imageFallback: {
+    image_feed: 0,
+    image_og: 0,
+    image_placeholder: 0,
+    image_fetch_failed: 0,
+  },
   /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
   summary: {
     calls: 0,
