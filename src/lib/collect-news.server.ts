@@ -2,8 +2,19 @@ import { BAY_AREA, CITIES, cityBySlug, type City } from "./desk-cities";
 import { canonicalUrl, dedupeKey, strictTitleKey } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { usableImage } from "./story-image";
-import { celebrityName, industryLabel, eventLabel, isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
-import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
+import {
+  celebrityName,
+  industryLabel,
+  eventLabel,
+  isCinema,
+  isStarGallery,
+  classifyDeskItem,
+  CINEMA_SLUG,
+  type ClassifyReason,
+  type DeskCategory,
+} from "./cinema-topics";
+import { MICRO_DRAMA_SLUG } from "./microdrama-topics";
+import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from "./google-resolve.server";
 import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
@@ -160,6 +171,8 @@ type RawItem = {
   eventDates?: string;
   /** True when the item came from a city calendar rather than its newsroom. */
   calendar?: boolean;
+  /** True when a Google News wrapper could not be resolved to a publisher URL. */
+  unresolved?: boolean;
 };
 
 /** Pulls a usable image URL out of an RSS <item> block. */
@@ -457,6 +470,8 @@ export const lastDiag = {
   classification: {
     byCategory: {} as Record<string, number>,
     bySource: {} as Record<string, Record<string, number>>,
+    byReason: {} as Record<string, number>,
+    unresolvedLinks: 0,
   },
   /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
   summary: {
@@ -479,7 +494,7 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
   lastDiag.notes = [];
   lastDiag.publishers = { selected: [], bySource: {} };
   lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
-  lastDiag.classification = { byCategory: {}, bySource: {} };
+  lastDiag.classification = { byCategory: {}, bySource: {}, byReason: {}, unresolvedLinks: 0 };
   lastDiag.summary = {
     calls: 0,
     calls_per_headline: 0,
@@ -519,11 +534,35 @@ function syncSummaryDiag() {
   };
 }
 
-function recordClassified(source: string, category: string) {
+function recordClassified(source: string, category: string, reason?: ClassifyReason) {
   lastDiag.classification.byCategory[category] =
     (lastDiag.classification.byCategory[category] ?? 0) + 1;
   const bySource = (lastDiag.classification.bySource[source] ??= {});
   bySource[category] = (bySource[category] ?? 0) + 1;
+  if (reason)
+    lastDiag.classification.byReason[reason] =
+      (lastDiag.classification.byReason[reason] ?? 0) + 1;
+}
+
+/**
+ * Resolve Google News wrappers to publisher URLs before anything classifies on
+ * host. Cached in url_resolutions, concurrency 8; a failure leaves the wrapper
+ * in place and flags the item unresolved so the classifier ignores the host.
+ */
+async function resolveWrappedLinks(items: RawItem[]): Promise<void> {
+  const wrapped = items.filter((i) => i.link && isGoogleNewsLink(i.link));
+  if (!wrapped.length) return;
+  const map = await resolveGoogleNewsLinks(wrapped.map((i) => i.link));
+  for (const item of wrapped) {
+    const res = map.get(item.link);
+    if (res && !res.unresolved && res.url !== item.link) {
+      item.link = res.url;
+      item.unresolved = false;
+    } else {
+      item.unresolved = true;
+      lastDiag.classification.unresolvedLinks += 1;
+    }
+  }
 }
 
 /**
@@ -1950,10 +1989,24 @@ function isIndiaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
   );
 }
 
-function deskCategoryForItem(item: RawItem, fallback: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG): typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG {
-  if (isMicroDrama(item.title, item.detail, item.link)) return MICRO_DRAMA_SLUG;
-  if (isCinema(item.title, item.detail, item.link)) return CINEMA_SLUG;
-  return fallback;
+function deskCategoryForItem(
+  item: RawItem,
+  fallback: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG,
+): { category: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG; reason: ClassifyReason } {
+  const { category, reason } = classifyDeskItem({
+    title: item.title,
+    summary: item.detail,
+    url: item.link,
+    sourceName: item.source,
+    unresolved: item.unresolved,
+    sweep: fallback as DeskCategory,
+  });
+  return {
+    category: (category === "news" ? fallback : category) as
+      | typeof CINEMA_SLUG
+      | typeof MICRO_DRAMA_SLUG,
+    reason,
+  };
 }
 
 /**
@@ -2870,16 +2923,19 @@ export async function collectDesk(
     summaryPool.push(...fetched.map(({ key, city, items }) => ({ key, city, items })));
   }
 
+  // Resolution runs before classification so the host map sees real publishers.
+  await resolveWrappedLinks(summaryPool.flatMap((g) => g.items));
+
   const summaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
   const append = (key: string, items: RawItem[], sourceName?: string, fallbackCategory: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG = CINEMA_SLUG) => {
     const list = summaries.get(key) ?? [];
     items.forEach((it, i) => {
-      const category = deskCategoryForItem(it, fallbackCategory);
+      const { category, reason } = deskCategoryForItem(it, fallbackCategory);
       const summary = list[i] ?? fallbackSummary(it);
       const dedupe = itemDedupeKey(BAY_AREA.slug, it.title, it.link);
       const image = it.image ?? DESK_PLACEHOLDER_IMAGE;
       const source = it.source || sourceName || "Cinema/OTT";
-      recordClassified(source, category);
+      recordClassified(source, category, reason);
       rows.push({
         dedupe_key: dedupe,
         item_id: dedupe,
@@ -2917,6 +2973,9 @@ export async function collectDesk(
 
   syncSummaryDiag();
   lastDiag.notes.push(googleNewsSummaryNote());
+  lastDiag.notes.push(
+    `classification reasons: ${formatCountMap(lastDiag.classification.byReason) || "none"}; unresolved google links ${lastDiag.classification.unresolvedLinks}`,
+  );
   const perHeadline = callsPerHeadline(aiBatchMetrics);
   lastDiag.notes.push(
     `gemini summary calls: ${aiUsage.calls} (calls_per_headline ${perHeadline}, batches ${aiUsage.batches}, avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped})`,
