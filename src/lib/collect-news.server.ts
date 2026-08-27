@@ -3130,7 +3130,7 @@ export async function collectDesk(
 
   // Desk totals apply here — after classification and de-duplication — so a feed
   // that yields mostly Google News repeats never consumes another desk's cap.
-  const fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  // fetchedTotal was captured before the pre-summary prune.
   const deduped = dedupeCollected(rows);
   const capped: CollectedItem[] = [];
   const funnels: Record<string, DeskFunnel> = {};
