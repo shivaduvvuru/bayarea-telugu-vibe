@@ -44,41 +44,47 @@ export type Database = {
       collect_runs: {
         Row: {
           collected: number
+          desk: string | null
           duplicates_hidden: number
           error: string | null
-          finished_at: string
+          finished_at: string | null
           funnel: Json
           held: number
           id: string
           mode: string
           ok: boolean
           published: number
+          started_at: string
           trigger: string
         }
         Insert: {
           collected?: number
+          desk?: string | null
           duplicates_hidden?: number
           error?: string | null
-          finished_at?: string
+          finished_at?: string | null
           funnel?: Json
           held?: number
           id?: string
           mode: string
           ok?: boolean
           published?: number
+          started_at?: string
           trigger?: string
         }
         Update: {
           collected?: number
+          desk?: string | null
           duplicates_hidden?: number
           error?: string | null
-          finished_at?: string
+          finished_at?: string | null
           funnel?: Json
           held?: number
           id?: string
           mode?: string
           ok?: boolean
           published?: number
+          started_at?: string
           trigger?: string
         }
         Relationships: []
