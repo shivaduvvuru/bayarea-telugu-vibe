@@ -95,6 +95,16 @@ function keyFor(citySlug: string, title: string) {
 const DESK_PLACEHOLDER_IMAGE: string | null = "/cinema-placeholder.webp";
 
 /**
+ * Cinema/OTT and micro-drama run in their own scheduled job. Flip
+ * CINEMA_SEPARATE_JOB=false to fold them back into the monolithic collect-news
+ * run without a deploy.
+ */
+export function cinemaSeparateJob(): boolean {
+  return (process.env["CINEMA_SEPARATE_JOB"] ?? "true").toLowerCase() !== "false";
+}
+
+
+/**
  * Stories the site already carries, for the run in progress. Set once at the
  * start of collectAll / collectDesk and consulted by addImages so an article
  * page is never fetched for a headline that will be discarded as a duplicate.
@@ -2655,9 +2665,15 @@ export async function collectAll(
     rows.push(...guideRows.flat());
   }
 
-  // Region-wide NRI, community-event and temple items.
+  // Region-wide NRI, community-event and temple items. Cinema and micro-drama
+  // are collected by their own job (see collect-cinema hook); set
+  // CINEMA_SEPARATE_JOB=false to fold them back into this run without a deploy.
   const topicFetched = await Promise.all(
-    (within(0.72) ? TOPIC_GROUPS.filter((group) => topicDesk(group) === "other") : []).map(async (group, gi) => ({
+    (within(0.72)
+      ? TOPIC_GROUPS.filter((group) => !cinemaSeparateJob() || topicDesk(group) === "other")
+      : []
+    ).map(async (group, gi) => ({
+
       key: `topic:${gi}`,
       city: BAY_AREA,
       items: await fetchTopics(group),
@@ -2707,8 +2723,12 @@ export async function collectAll(
   // often spent its budget before reaching the newly added media desks, leaving
   // the public Cinema page populated by only older broad-source items.
   const publisherList = rotatedPublishers.filter(
-    (feed) => !isCinemaPublisher(feed) && !isGalleryPublisher(feed) && !isIndiaPublisher(feed),
+    (feed) =>
+      (!cinemaSeparateJob() || !isCinemaPublisher(feed)) &&
+      !isGalleryPublisher(feed) &&
+      !isIndiaPublisher(feed),
   );
+
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   lastDiag.publishers.selected.push(...publisherList.slice(b, b + 8).map((feed) => feed.name));
   const publisherFetched = await Promise.all(
@@ -2911,30 +2931,30 @@ export async function collectAll(
 const DESK_PUBLISHERS_PER_RUN = 16;
 
 export async function collectDesk(
-  desk: "cinema",
+  desk: "cinema" | "micro-drama",
   apiKey: string | undefined,
   opts?: { deadlineMs?: number; slice?: number; sliceSize?: number },
 ): Promise<CollectedItem[]> {
   const today = new Date().toISOString().slice(0, 10);
   resetRunDiagnostics();
   resetAiUsage();
-  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 55_000, 10_000), 120_000);
+  const deadline = Date.now() + Math.min(Math.max(opts?.deadlineMs ?? 55_000, 10_000), 240_000);
   const inBudget = () => Date.now() < deadline;
   fetchDeadline = deadline;
   modelDeadline = deadline + MODEL_PHASE_MS;
   const knownKeys = await loadKnownKeys();
   const summaryPool: SummaryGroup[] = [];
   const rows: CollectedItem[] = [];
+  const caps = deskCap(desk);
+  const deskFallback = desk === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG;
 
   // Rotation: every run reads one topic group and one slice of the publisher
   // list, so a 30-minute cron covers every source within ~90 minutes while
   // each run stays well inside its budget. Direct RSS feeds go first — they
   // are fast and never throttled — and Google search feeds fill the tail.
   const slice = opts?.slice ?? Math.floor(Date.now() / (30 * 60 * 1000));
-  const allTopicGroups = TOPIC_GROUPS.filter((group) => {
-    const kind = topicDesk(group);
-    return kind === "cinema" || kind === "micro-drama";
-  });
+  const allTopicGroups = TOPIC_GROUPS.filter((group) => topicDesk(group) === desk);
+
   const topicGroups = allTopicGroups.length
     ? [allTopicGroups[slice % allTopicGroups.length]!]
     : [];
@@ -2949,10 +2969,16 @@ export async function collectDesk(
   );
   summaryPool.push(...topicFetched.map(({ key, city, items }) => ({ key, city, items })));
 
-  const cinemaFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher).map((feed) => ({
-    ...feed,
-    limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
-  }));
+  const MICRO_FEED = /micro|vertical|reelshort|dramabox|duanju|short[- ]?drama|kalos|flick tv|fatafat/i;
+  const cinemaFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher)
+    .filter((feed) => {
+      const micro = MICRO_FEED.test(`${feed.name} ${feed.url}`);
+      return desk === "micro-drama" ? micro : !micro;
+    })
+    .map((feed) => ({
+      ...feed,
+      limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
+    }));
   const sliceSize = opts?.sliceSize ?? DESK_PUBLISHERS_PER_RUN;
   const start = (slice * sliceSize) % Math.max(1, cinemaFeeds.length);
   const rotated = [...cinemaFeeds.slice(start), ...cinemaFeeds.slice(0, start)].slice(0, sliceSize);
@@ -2973,10 +2999,9 @@ export async function collectDesk(
         city: BAY_AREA,
         // Publisher feeds get the per-feed cap; Google News sweeps the sweep cap.
         items: await fetchPublisher(feed, {
-          capPerFeed: isGoogleNewsFeed(feed.url)
-            ? DESK_CAPS.cinema.perSweepQuery
-            : DESK_CAPS.cinema.perFeed,
+          capPerFeed: isGoogleNewsFeed(feed.url) ? caps.perSweepQuery : caps.perFeed,
         }),
+
         feed,
       })),
     );
@@ -3039,7 +3064,7 @@ export async function collectDesk(
 
   for (const group of topicFetched) append(group.key, group.items, undefined, topicDesk(group.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
   for (const group of summaryPool.filter((g) => g.key.startsWith("cinema-pub:"))) {
-    append(group.key, group.items);
+    append(group.key, group.items, undefined, deskFallback);
   }
 
   syncSummaryDiag();
@@ -3074,7 +3099,7 @@ export async function collectDesk(
     const { kept, dropped } = capByRecency(unique, deskCap(name).total);
     capped.push(...kept);
     const funnel = emptyFunnel();
-    funnel.fetched = name === "cinema" ? fetchedTotal : 0;
+    funnel.fetched = name === desk ? fetchedTotal : 0;
     funnel.after_classify = classified.length;
     funnel.after_dedupe = unique.length;
     funnel.after_cap = kept.length;

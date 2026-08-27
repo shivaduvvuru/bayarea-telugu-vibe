@@ -78,6 +78,7 @@ import { Route as PropertyCampaignIndexRouteImport } from './routes/property.$ca
 import { Route as PropertyCampaignSlugRouteImport } from './routes/property.$campaign.$slug'
 import { Route as TemplesTempleSlugRouteImport } from './routes/temples.temple.$slug'
 import { Route as ApiPublicHooksBackfillImagesRouteImport } from './routes/api/public/hooks/backfill-images'
+import { Route as ApiPublicHooksCollectCinemaRouteImport } from './routes/api/public/hooks/collect-cinema'
 import { Route as ApiPublicHooksCollectNewsRouteImport } from './routes/api/public/hooks/collect-news'
 import { Route as ApiPublicHooksDedupeSweepRouteImport } from './routes/api/public/hooks/dedupe-sweep'
 import { Route as ApiPublicHooksDirectoryIngestRouteImport } from './routes/api/public/hooks/directory-ingest'
@@ -438,6 +439,12 @@ const ApiPublicHooksBackfillImagesRoute =
     path: '/api/public/hooks/backfill-images',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCollectCinemaRoute =
+  ApiPublicHooksCollectCinemaRouteImport.update({
+    id: '/api/public/hooks/collect-cinema',
+    path: '/api/public/hooks/collect-cinema',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCollectNewsRoute =
   ApiPublicHooksCollectNewsRouteImport.update({
     id: '/api/public/hooks/collect-news',
@@ -573,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
+  '/api/public/hooks/collect-cinema': typeof ApiPublicHooksCollectCinemaRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
@@ -650,6 +658,7 @@ export interface FileRoutesByTo {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/property/$campaign': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
+  '/api/public/hooks/collect-cinema': typeof ApiPublicHooksCollectCinemaRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
@@ -733,6 +742,7 @@ export interface FileRoutesById {
   '/temples/temple/$slug': typeof TemplesTempleSlugRoute
   '/property/$campaign/': typeof PropertyCampaignIndexRoute
   '/api/public/hooks/backfill-images': typeof ApiPublicHooksBackfillImagesRoute
+  '/api/public/hooks/collect-cinema': typeof ApiPublicHooksCollectCinemaRoute
   '/api/public/hooks/collect-news': typeof ApiPublicHooksCollectNewsRoute
   '/api/public/hooks/dedupe-sweep': typeof ApiPublicHooksDedupeSweepRoute
   '/api/public/hooks/directory-ingest': typeof ApiPublicHooksDirectoryIngestRoute
@@ -816,6 +826,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
+    | '/api/public/hooks/collect-cinema'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
@@ -893,6 +904,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/property/$campaign'
     | '/api/public/hooks/backfill-images'
+    | '/api/public/hooks/collect-cinema'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
@@ -975,6 +987,7 @@ export interface FileRouteTypes {
     | '/temples/temple/$slug'
     | '/property/$campaign/'
     | '/api/public/hooks/backfill-images'
+    | '/api/public/hooks/collect-cinema'
     | '/api/public/hooks/collect-news'
     | '/api/public/hooks/dedupe-sweep'
     | '/api/public/hooks/directory-ingest'
@@ -1038,6 +1051,7 @@ export interface RootRouteChildren {
   ApiPublicRefreshContentRoute: typeof ApiPublicRefreshContentRoute
   ForumsThreadThreadIdRoute: typeof ForumsThreadThreadIdRoute
   ApiPublicHooksBackfillImagesRoute: typeof ApiPublicHooksBackfillImagesRoute
+  ApiPublicHooksCollectCinemaRoute: typeof ApiPublicHooksCollectCinemaRoute
   ApiPublicHooksCollectNewsRoute: typeof ApiPublicHooksCollectNewsRoute
   ApiPublicHooksDedupeSweepRoute: typeof ApiPublicHooksDedupeSweepRoute
   ApiPublicHooksDirectoryIngestRoute: typeof ApiPublicHooksDirectoryIngestRoute
@@ -1536,6 +1550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksBackfillImagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/collect-cinema': {
+      id: '/api/public/hooks/collect-cinema'
+      path: '/api/public/hooks/collect-cinema'
+      fullPath: '/api/public/hooks/collect-cinema'
+      preLoaderRoute: typeof ApiPublicHooksCollectCinemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/collect-news': {
       id: '/api/public/hooks/collect-news'
       path: '/api/public/hooks/collect-news'
@@ -1759,6 +1780,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicRefreshContentRoute: ApiPublicRefreshContentRoute,
   ForumsThreadThreadIdRoute: ForumsThreadThreadIdRoute,
   ApiPublicHooksBackfillImagesRoute: ApiPublicHooksBackfillImagesRoute,
+  ApiPublicHooksCollectCinemaRoute: ApiPublicHooksCollectCinemaRoute,
   ApiPublicHooksCollectNewsRoute: ApiPublicHooksCollectNewsRoute,
   ApiPublicHooksDedupeSweepRoute: ApiPublicHooksDedupeSweepRoute,
   ApiPublicHooksDirectoryIngestRoute: ApiPublicHooksDirectoryIngestRoute,
