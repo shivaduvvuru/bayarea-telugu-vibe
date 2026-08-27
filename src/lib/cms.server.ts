@@ -75,7 +75,7 @@ function canonicalStoryKey(row: { title?: string | null; link_url?: string | nul
  * same pull — is stored with status "duplicate" and linked to the original, so
  * it never reaches readers but still shows up as an alert in the newsroom.
  */
-export async function ingest(rows: IngestRow[]) {
+export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = {}) {
   if (rows.length === 0) return { inserted: 0, skipped: 0, duplicates: 0 };
   const db = await admin();
   const refs = rows.map((r) => r.source_ref);
