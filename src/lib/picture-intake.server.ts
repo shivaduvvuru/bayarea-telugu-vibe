@@ -140,62 +140,116 @@ export async function movePictureIntake(
   return { updated: input.itemIds.length };
 }
 /**
- * Bulk approval. Set-based only: one intake read, one queue upsert, one publish
- * insert, one status update — no per-picture loop and no image fetching (artwork
- * is already stored at intake). Large selections therefore finish inside a
- * single request instead of running past the request limit.
+ * Bulk approval. Set-based: one intake read, one queue upsert that returns both
+ * inserted and pre-existing rows (so no second lookup is needed and an
+ * already-queued picture counts as a success), one publish call, and a status
+ * update restricted to the pictures that actually resolved to a queue row.
+ * Counts can therefore never shift while the response reports 0 approved.
  */
 export async function bulkApprovePictures(
   db: Db,
   itemIds: string[],
-): Promise<{ approved: number; failed: string[]; error: string | null }> {
+): Promise<{ approved: number; failed: Array<{ item_id: string; reason: string }>; error: string | null }> {
   if (!itemIds.length) return { approved: 0, failed: [], error: null };
   try {
-    await movePictureIntake(db, { itemIds, stage: "approved" });
-
-    const { data: intake } = await db
+    const { data: intakeRows, error: readError } = await db
       .from("picture_intake")
-      .select("item_id,queue_item_id")
+      .select("item_id,queue_item_id,dedupe_key,title,summary,source,source_url,city_slug,image_url,industry,star,event,metadata")
       .in("item_id", itemIds);
-    const queueIds = ((intake ?? []) as Array<{ item_id: string; queue_item_id: string | null }>).map(
-      (r) => r.queue_item_id ?? r.item_id,
-    );
-    if (!queueIds.length) return { approved: 0, failed: itemIds, error: null };
+    if (readError) throw new Error(readError.message);
+    const rows = (intakeRows ?? []) as unknown as Array<Record<string, unknown>>;
+    const found = new Set(rows.map((r) => String(r["item_id"])));
 
-    const { data: rows, error } = await db
-      .from("digest_queue")
-      .select("*")
-      .in("item_id", queueIds)
-      .eq("status", "approved");
-    if (error) throw new Error(error.message);
-    const allRows = (rows ?? []) as unknown as Array<Record<string, unknown>>;
-    // Rows already marked "sent" are live: they count as approved, not failed.
-    const alreadyLive = new Set(
-      allRows.filter((r) => r["upload_status"] === "sent").map((r) => String(r["item_id"])),
-    );
-    const queueRows = allRows.filter((r) => r["upload_status"] !== "sent");
+    const queueIdOf = (row: Record<string, unknown>) => String(row["queue_item_id"] ?? row["item_id"]);
+    const keyOf = (row: Record<string, unknown>) => String(row["dedupe_key"] ?? row["item_id"]);
 
-    if (queueRows.length) {
+    const payloads = rows.map((row) => ({
+      item_id: queueIdOf(row),
+      dedupe_key: keyOf(row),
+      digest_date: new Date().toISOString().slice(0, 10),
+      kind: "news",
+      city_slug: String(row["city_slug"] ?? "bay-area"),
+      title: String(row["title"] ?? "Glamour photo"),
+      summary: row["summary"],
+      source: row["source"],
+      source_url: row["source_url"],
+      status: "approved",
+      payload: {
+        ...((row["metadata"] ?? {}) as Record<string, unknown>),
+        image: row["image_url"],
+        review_type: "picture",
+        solo_verified: "editor-override",
+        industry: row["industry"],
+        star: row["star"],
+        event: row["event"],
+      },
+    }));
+
+    let queueRows: Array<Record<string, unknown>> = [];
+    if (payloads.length) {
+      const { data: upserted, error } = await db
+        .from("digest_queue")
+        .upsert(payloads as never, { onConflict: "dedupe_key" })
+        .select("*");
+      if (error) throw new Error(error.message);
+      queueRows = (upserted ?? []) as unknown as Array<Record<string, unknown>>;
+    }
+
+    // Resolve each picture to its queue row by dedupe_key, falling back to the
+    // queue item id for legacy rows that never carried a key.
+    const byKey = new Map(queueRows.map((r) => [String(r["dedupe_key"] ?? ""), r]));
+    const byId = new Map(queueRows.map((r) => [String(r["item_id"]), r]));
+
+    const resolvedPictureIds: string[] = [];
+    const resolvedQueue = new Map<string, Record<string, unknown>>();
+    const failed: Array<{ item_id: string; reason: string }> = [];
+
+    for (const id of itemIds) {
+      if (!found.has(id)) {
+        failed.push({ item_id: id, reason: "picture no longer in intake" });
+        continue;
+      }
+      const row = rows.find((r) => String(r["item_id"]) === id)!;
+      const queue = byKey.get(keyOf(row)) ?? byId.get(queueIdOf(row));
+      if (!queue) {
+        failed.push({ item_id: id, reason: "no review-queue row could be created" });
+        continue;
+      }
+      resolvedPictureIds.push(id);
+      resolvedQueue.set(String(queue["item_id"]), queue);
+    }
+
+    // Publish everything not already live. Rows already marked sent stay approved.
+    const toPublish = [...resolvedQueue.values()].filter((r) => r["upload_status"] !== "sent");
+    if (toPublish.length) {
       const { ingest } = await import("@/lib/cms.server");
       const { deskRowToIngest } = await import("@/lib/desk-publish.server");
-      await ingest(queueRows.map((r) => deskRowToIngest(r)), { skipGuard: true });
-
+      await ingest(toPublish.map((r) => deskRowToIngest(r)), { skipGuard: true });
       await db
         .from("digest_queue")
         .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
-        .in("item_id", queueRows.map((r) => String(r["item_id"])));
+        .in("item_id", toPublish.map((r) => String(r["item_id"])));
     }
 
-    const settled = new Set([...alreadyLive, ...queueRows.map((r) => String(r["item_id"]))]);
-    const failed = ((intake ?? []) as Array<{ item_id: string; queue_item_id: string | null }>)
-      .filter((r) => !settled.has(r.queue_item_id ?? r.item_id))
-      .map((r) => r.item_id);
-    return { approved: itemIds.length - failed.length, failed, error: null };
+    // Only pictures that reached a queue row change stage.
+    if (resolvedPictureIds.length) {
+      const { error } = await db
+        .from("picture_intake")
+        .update({ stage: "approved", reviewed_at: new Date().toISOString() } as never)
+        .in("item_id", resolvedPictureIds);
+      if (error) throw new Error(error.message);
+    }
+
+    return { approved: resolvedPictureIds.length, failed, error: null };
   } catch (caught) {
     return {
       approved: 0,
-      failed: itemIds,
+      failed: itemIds.map((id) => ({
+        item_id: id,
+        reason: caught instanceof Error ? caught.message : "bulk approval failed",
+      })),
       error: caught instanceof Error ? caught.message : `Bulk approval failed: ${JSON.stringify(caught)}`,
     };
   }
 }
+
