@@ -217,7 +217,8 @@ export async function bulkApprovePictures(
         continue;
       }
       const row = rows.find((r) => String(r["item_id"]) === id)!;
-      const queue = byKey.get(keyOf(row)) ?? byId.get(queueIdOf(row));
+      const queue = byId.get(queueIdOf(row)) ?? byKey.get(keyOf(row));
+
       if (!queue) {
         failed.push({ item_id: id, reason: "no review-queue row could be created" });
         continue;
