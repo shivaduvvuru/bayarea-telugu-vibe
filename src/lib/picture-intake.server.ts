@@ -244,12 +244,20 @@ export async function bulkApprovePictures(
   } catch (caught) {
     return {
       approved: 0,
-      failed: itemIds.map((id) => ({
-        item_id: id,
-        reason: caught instanceof Error ? caught.message : "bulk approval failed",
-      })),
-      error: caught instanceof Error ? caught.message : `Bulk approval failed: ${JSON.stringify(caught)}`,
+      failed: itemIds.map((id) => ({ item_id: id, reason: describe(caught) })),
+      error: describe(caught),
     };
+  }
+}
+
+/** Readable reason for anything thrown, including Response and plain objects. */
+function describe(caught: unknown): string {
+  if (caught instanceof Error) return caught.message;
+  if (caught instanceof Response) return `HTTP ${caught.status} ${caught.statusText}`;
+  try {
+    return `bulk approval failed: ${JSON.stringify(caught)}`;
+  } catch {
+    return "bulk approval failed";
   }
 }
 
