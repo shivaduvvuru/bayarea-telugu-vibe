@@ -209,11 +209,23 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
   const { error } = await db.from("content_items").insert(toInsert);
   if (error) {
     if (!opts.skipGuard || error.code !== "23505") throw error;
+    // Loud on purpose: this path costs one statement per row. If it shows up on
+    // most publish runs, the pre-filter is missing repeats and the index should
+    // be reworked (full unique index / generated column) instead.
+    let recovered = 0;
+    let dropped = 0;
     for (const row of toInsert) {
       const { error: rowError } = await db.from("content_items").insert([row]);
-      if (rowError && rowError.code !== "23505") throw rowError;
+      if (!rowError) recovered += 1;
+      else if (rowError.code === "23505") dropped += 1;
+      else throw rowError;
     }
+    console.warn(
+      `[ingest] per-row fallback fired: batch=${toInsert.length} inserted=${recovered} ` +
+        `dropped_as_repeat=${dropped} trigger=${error.message}`,
+    );
   }
+
   const duplicates = toInsert.filter((p) => p.status === "duplicate").length;
   return {
     inserted: toInsert.length - duplicates,
