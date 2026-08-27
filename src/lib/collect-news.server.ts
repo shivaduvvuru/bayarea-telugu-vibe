@@ -3004,6 +3004,9 @@ export async function collectDesk(
   lastDiag.notes.push(
     `classification reasons: ${formatCountMap(lastDiag.classification.byReason) || "none"}; unresolved google links ${lastDiag.classification.unresolvedLinks}`,
   );
+  lastDiag.notes.push(
+    `artwork: feed ${lastDiag.imageFallback.image_feed}, og ${lastDiag.imageFallback.image_og}, placeholder ${lastDiag.imageFallback.image_placeholder}, fetch failed ${lastDiag.imageFallback.image_fetch_failed}`,
+  );
   const perHeadline = callsPerHeadline(aiBatchMetrics);
   lastDiag.notes.push(
     `gemini summary calls: ${aiUsage.calls} (calls_per_headline ${perHeadline}, batches ${aiUsage.batches}, avg batch ${averageBatchSize(aiBatchMetrics)}, per-item failovers ${aiBatchMetrics.fallbackCalls}, items summarized ${aiUsage.itemsSummarized}, already-stored items skipped ${aiUsage.itemsSkipped})`,
