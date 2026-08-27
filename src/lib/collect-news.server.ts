@@ -2971,10 +2971,11 @@ export async function collectDesk(
       slice.map(async (feed, index) => ({
         key: `cinema-pub:${b}:${index}`,
         city: BAY_AREA,
+        // Publisher feeds get the per-feed cap; Google News sweeps the sweep cap.
         items: await fetchPublisher(feed, {
-          capPerFeed: deskCap(
-            isGoogleNewsFeed(feed.url) ? "cinema" : "cinema",
-          ).perFeed,
+          capPerFeed: isGoogleNewsFeed(feed.url)
+            ? DESK_CAPS.cinema.perSweepQuery
+            : DESK_CAPS.cinema.perFeed,
         }),
         feed,
       })),
