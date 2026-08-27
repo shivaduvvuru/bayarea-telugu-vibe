@@ -214,14 +214,13 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
       if (rowError && rowError.code !== "23505") throw rowError;
     }
   }
-  const payloadInserted = toInsert;
-
-  const duplicates = payload.filter((p) => p.status === "duplicate").length;
+  const duplicates = toInsert.filter((p) => p.status === "duplicate").length;
   return {
-    inserted: payload.length - duplicates,
-    skipped: rows.length - candidates.length,
+    inserted: toInsert.length - duplicates,
+    skipped: rows.length - candidates.length + (payload.length - toInsert.length),
     duplicates,
   };
+
 }
 
 /** Published items for the public site, newest first. */
