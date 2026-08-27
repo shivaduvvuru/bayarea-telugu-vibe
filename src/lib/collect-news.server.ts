@@ -80,8 +80,8 @@ function keyFor(citySlug: string, title: string) {
   return `${citySlug}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
 }
 
-/** No placeholder asset exists in the site; a null image renders the typographic card. */
-const DESK_PLACEHOLDER_IMAGE: string | null = null;
+/** Desk fallback artwork: a story is never hidden for lacking a picture. */
+const DESK_PLACEHOLDER_IMAGE: string | null = "/cinema-placeholder.webp";
 
 /**
  * Stories the site already carries, for the run in progress. Set once at the
