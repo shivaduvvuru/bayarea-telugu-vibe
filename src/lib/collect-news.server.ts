@@ -1971,7 +1971,7 @@ function recent(published: string | null): boolean {
 
 async function fetchPublisher(
   feed: (typeof PUBLISHER_FEEDS)[number],
-  opts?: { galleryMode?: boolean },
+  opts?: { galleryMode?: boolean; capPerFeed?: number },
 ): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
