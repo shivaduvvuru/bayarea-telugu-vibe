@@ -18,6 +18,14 @@ import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from ".
 import { backfillItemImages, type ImageSource } from "./og-image.server";
 import { classifyIndia } from "./india-topics";
 import {
+  DESK_CAPS,
+  capByRecency,
+  deskCap,
+  emptyFunnel,
+  takeUpTo,
+  type DeskFunnel,
+} from "./desk-caps";
+import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
   isGoogleNewsUrl,
@@ -485,6 +493,10 @@ export const lastDiag = {
     image_placeholder: 0,
     image_fetch_failed: 0,
   },
+  /** Per-desk cap funnel: fetched → classify → dedupe → cap. */
+  deskFunnel: {} as Record<string, DeskFunnel>,
+  /** Per-feed fetch counts and whether the feed/sweep cap was hit. */
+  feedCaps: {} as Record<string, { fetched: number; cap_hit: boolean }>,
   /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
   summary: {
     calls: 0,
@@ -513,6 +525,8 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
     image_placeholder: 0,
     image_fetch_failed: 0,
   };
+  lastDiag.deskFunnel = {};
+  lastDiag.feedCaps = {};
   lastDiag.summary = {
     calls: 0,
     calls_per_headline: 0,
@@ -531,6 +545,13 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
       bySource: {},
     };
   }
+}
+
+/** One line per feed / sweep query: how many items it yielded and whether its cap bit. */
+function recordFeedFetch(label: string, fetched: number, capHit: boolean) {
+  const row = (lastDiag.feedCaps[label] ??= { fetched: 0, cap_hit: false });
+  row.fetched += fetched;
+  row.cap_hit = row.cap_hit || capHit;
 }
 
 function resetAiUsage() {
@@ -948,11 +969,9 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
   },
 ];
 
-const TOPIC_MAX = 8;
-const DESK_TOPIC_MAX: Record<string, number> = {
-  cinema: 40,
-  "micro-drama": 20,
-};
+// Per-desk caps live in ./desk-caps. The desk total is applied after classify
+// and dedupe (see collectDesk); only feed / sweep caps apply at fetch time.
+
 
 function topicDesk(group: (typeof TOPIC_GROUPS)[number]): "cinema" | "micro-drama" | "other" {
   const text = `${group.queries.join(" ")} ${group.match.source}`;
@@ -966,6 +985,7 @@ async function fetchTopics(
   opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
+  const cap = deskCap(topicDesk(group));
   const results = await Promise.all(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
@@ -982,7 +1002,10 @@ async function fetchTopics(
       if (!parsed) return [];
       lastDiag.fetched += 1;
       lastDiag.raw += parsed.length;
-      return parsed;
+      // Fetch-time sweep cap: stop reading this query once its cap is hit.
+      const { items, capHit } = takeUpTo(parsed, cap.perSweepQuery);
+      recordFeedFetch(`sweep:${group.kind}:${q.slice(0, 40)}`, items.length, capHit);
+      return items;
     }),
   );
   const seen = new Set<string>();
@@ -993,12 +1016,16 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item.source ? item : { ...item, source: safeHost(item.link) });
-    if (merged.length >= (opts?.limit ?? DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX)) break;
+    // Desk totals for cinema / micro-drama are applied after classify + dedupe
+    // in collectDesk; other desks keep their previous fetch-time cap of 8.
+    const limit = opts?.limit ?? (topicDesk(group) === "other" ? cap.total : Number.MAX_SAFE_INTEGER);
+    if (merged.length >= limit) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
   return merged;
 }
+
 
 /**
  * Named publishers we read directly rather than through a news search:
@@ -1944,7 +1971,7 @@ function recent(published: string | null): boolean {
 
 async function fetchPublisher(
   feed: (typeof PUBLISHER_FEEDS)[number],
-  opts?: { galleryMode?: boolean },
+  opts?: { galleryMode?: boolean; capPerFeed?: number },
 ): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
@@ -1962,6 +1989,9 @@ async function fetchPublisher(
   const aggregated = /news\.google\.com|bing\.com/.test(feed.url);
   const seen = new Set<string>();
   const merged: RawItem[] = [];
+  // Fetch-time cap: the per-feed cap for this desk, or the feed's own limit.
+  const feedCap = Math.min(feed.limit ?? 4, opts?.capPerFeed ?? Number.MAX_SAFE_INTEGER);
+  let capHit = false;
   for (const item of parsed) {
     const k = normalize(item.title);
     const hay = normalize(`${item.title} ${item.source}`);
@@ -1969,9 +1999,14 @@ async function fetchPublisher(
     if (feed.match && !feed.match.test(hay)) continue;
     seen.add(k);
     merged.push({ ...item, source: aggregated ? item.source || feed.name : feed.name });
-    if (merged.length >= (feed.limit ?? 4)) break;
+    if (merged.length >= feedCap) {
+      capHit = true;
+      break;
+    }
   }
+  recordFeedFetch(feed.name, merged.length, capHit);
   await addImages(merged);
+
   stat.kept += merged.length;
   stat.withImage += merged.filter((item) => !!item.image).length;
   for (const item of merged) {
@@ -2907,9 +2942,8 @@ export async function collectDesk(
     topicGroups.map(async (group, index) => ({
       key: `cinema-topic:${index}`,
       city: BAY_AREA,
-      items: inBudget()
-        ? await fetchTopics(group, { limit: DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX })
-        : [],
+      // No fetch-time total here: the desk total is applied after classify + dedupe.
+      items: inBudget() ? await fetchTopics(group) : [],
       group,
     })),
   );
@@ -2927,19 +2961,28 @@ export async function collectDesk(
     ...rotated.filter((f) => /bing\.com/.test(f.url)),
     ...rotated.filter((f) => isGoogleNewsFeed(f.url)),
   ];
-  for (let b = 0; b < publisherFeeds.length && inBudget(); b += 8) {
+  // Cinema has its own job (step 4), so the run reads every rotated feed rather
+  // than stopping at a fraction of the shared budget. fetchDeadline still caps
+  // individual requests.
+  for (let b = 0; b < publisherFeeds.length; b += 8) {
     const slice = publisherFeeds.slice(b, b + 8);
     lastDiag.publishers.selected.push(...slice.map((feed) => feed.name));
     const fetched = await Promise.all(
       slice.map(async (feed, index) => ({
         key: `cinema-pub:${b}:${index}`,
         city: BAY_AREA,
-        items: await fetchPublisher(feed),
+        // Publisher feeds get the per-feed cap; Google News sweeps the sweep cap.
+        items: await fetchPublisher(feed, {
+          capPerFeed: isGoogleNewsFeed(feed.url)
+            ? DESK_CAPS.cinema.perSweepQuery
+            : DESK_CAPS.cinema.perFeed,
+        }),
         feed,
       })),
     );
     summaryPool.push(...fetched.map(({ key, city, items }) => ({ key, city, items })));
   }
+
 
   // Resolution runs before classification so the host map sees real publishers.
   await resolveWrappedLinks(summaryPool.flatMap((g) => g.items));
@@ -3013,7 +3056,42 @@ export async function collectDesk(
   );
   const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, `collect:${desk}`);
   for (const warning of warnings) lastDiag.notes.push(`summary warning: ${warning}`);
-  return dedupeCollected(rows);
+
+  // Desk totals apply here — after classification and de-duplication — so a feed
+  // that yields mostly Google News repeats never consumes another desk's cap.
+  const fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  const deduped = dedupeCollected(rows);
+  const capped: CollectedItem[] = [];
+  const funnels: Record<string, DeskFunnel> = {};
+  const deskOf = (row: CollectedItem) =>
+    ((row.payload as { resolved_category?: string }).resolved_category ?? CINEMA_SLUG) ===
+    MICRO_DRAMA_SLUG
+      ? "micro-drama"
+      : "cinema";
+  for (const name of ["cinema", "micro-drama"] as const) {
+    const classified = rows.filter((r) => deskOf(r) === name);
+    const unique = deduped.filter((r) => deskOf(r) === name);
+    const { kept, dropped } = capByRecency(unique, deskCap(name).total);
+    capped.push(...kept);
+    const funnel = emptyFunnel();
+    funnel.fetched = name === "cinema" ? fetchedTotal : 0;
+    funnel.after_classify = classified.length;
+    funnel.after_dedupe = unique.length;
+    funnel.after_cap = kept.length;
+    funnel.cap_dropped = dropped.length;
+    funnels[name] = funnel;
+    lastDiag.notes.push(
+      `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
+        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}`,
+    );
+  }
+  lastDiag.deskFunnel = funnels;
+  const capNote = Object.entries(lastDiag.feedCaps)
+    .map(([name, s]) => `${name} ${s.fetched}${s.cap_hit ? " (cap hit)" : ""}`)
+    .join("; ");
+  if (capNote) lastDiag.notes.push(`feeds: ${capNote}`);
+  console.log(`[collect:${desk}] caps ${JSON.stringify(funnels)}`);
+  return capped;
 }
 
 
