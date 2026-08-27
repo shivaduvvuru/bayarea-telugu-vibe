@@ -174,6 +174,8 @@ type RawItem = {
   calendar?: boolean;
   /** True when a Google News wrapper could not be resolved to a publisher URL. */
   unresolved?: boolean;
+  /** Where the artwork came from once the image fallback has run. */
+  imageSource?: ImageSource;
 };
 
 /** Pulls a usable image URL out of an RSS <item> block. */
