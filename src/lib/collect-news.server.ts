@@ -95,6 +95,16 @@ function keyFor(citySlug: string, title: string) {
 const DESK_PLACEHOLDER_IMAGE: string | null = "/cinema-placeholder.webp";
 
 /**
+ * Cinema/OTT and micro-drama run in their own scheduled job. Flip
+ * CINEMA_SEPARATE_JOB=false to fold them back into the monolithic collect-news
+ * run without a deploy.
+ */
+export function cinemaSeparateJob(): boolean {
+  return (process.env["CINEMA_SEPARATE_JOB"] ?? "true").toLowerCase() !== "false";
+}
+
+
+/**
  * Stories the site already carries, for the run in progress. Set once at the
  * start of collectAll / collectDesk and consulted by addImages so an article
  * page is never fetched for a headline that will be discarded as a duplicate.
