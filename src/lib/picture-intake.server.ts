@@ -187,18 +187,25 @@ export async function bulkApprovePictures(
 
     let queueRows: Array<Record<string, unknown>> = [];
     if (payloads.length) {
+      // The queue's only unique key is item_id (dedupe_key has no unique
+      // constraint, which is why the old dedupe_key upsert failed outright).
+      // Queue ids are derived from the picture, so a re-approval lands on the
+      // same row and the returned set contains both new and pre-existing rows.
       const { data: upserted, error } = await db
         .from("digest_queue")
-        .upsert(payloads as never, { onConflict: "dedupe_key" })
+        .upsert(payloads as never, { onConflict: "item_id" })
         .select("*");
       if (error) throw new Error(error.message);
       queueRows = (upserted ?? []) as unknown as Array<Record<string, unknown>>;
     }
 
-    // Resolve each picture to its queue row by dedupe_key, falling back to the
-    // queue item id for legacy rows that never carried a key.
-    const byKey = new Map(queueRows.map((r) => [String(r["dedupe_key"] ?? ""), r]));
+    // Resolve each picture to its queue row by queue id, falling back to the
+    // dedupe key for legacy rows queued under a different id.
+    const byKey = new Map(
+      queueRows.filter((r) => r["dedupe_key"]).map((r) => [String(r["dedupe_key"]), r]),
+    );
     const byId = new Map(queueRows.map((r) => [String(r["item_id"]), r]));
+
 
     const resolvedPictureIds: string[] = [];
     const resolvedQueue = new Map<string, Record<string, unknown>>();
