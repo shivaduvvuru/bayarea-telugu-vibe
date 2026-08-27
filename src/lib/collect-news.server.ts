@@ -1989,6 +1989,9 @@ async function fetchPublisher(
   const aggregated = /news\.google\.com|bing\.com/.test(feed.url);
   const seen = new Set<string>();
   const merged: RawItem[] = [];
+  // Fetch-time cap: the per-feed cap for this desk, or the feed's own limit.
+  const feedCap = Math.min(feed.limit ?? 4, opts?.capPerFeed ?? Number.MAX_SAFE_INTEGER);
+  let capHit = false;
   for (const item of parsed) {
     const k = normalize(item.title);
     const hay = normalize(`${item.title} ${item.source}`);
@@ -1996,9 +1999,14 @@ async function fetchPublisher(
     if (feed.match && !feed.match.test(hay)) continue;
     seen.add(k);
     merged.push({ ...item, source: aggregated ? item.source || feed.name : feed.name });
-    if (merged.length >= (feed.limit ?? 4)) break;
+    if (merged.length >= feedCap) {
+      capHit = true;
+      break;
+    }
   }
+  recordFeedFetch(feed.name, merged.length, capHit);
   await addImages(merged);
+
   stat.kept += merged.length;
   stat.withImage += merged.filter((item) => !!item.image).length;
   for (const item of merged) {
