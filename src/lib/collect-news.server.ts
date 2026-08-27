@@ -493,6 +493,10 @@ export const lastDiag = {
     image_placeholder: 0,
     image_fetch_failed: 0,
   },
+  /** Per-desk cap funnel: fetched → classify → dedupe → cap. */
+  deskFunnel: {} as Record<string, DeskFunnel>,
+  /** Per-feed fetch counts and whether the feed/sweep cap was hit. */
+  feedCaps: {} as Record<string, { fetched: number; cap_hit: boolean }>,
   /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
   summary: {
     calls: 0,
