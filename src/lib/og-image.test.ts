@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { backfillItemImages, extractOgImage } from "./og-image.server";
+import { backfillItemImages, extractOgImage, type ImageItem } from "./og-image.server";
 
 const PLACEHOLDER = "/cinema-placeholder.webp";
 const opts = (fetchHtml: (url: string) => Promise<string | null>) => ({
@@ -33,7 +33,7 @@ describe("extractOgImage", () => {
 
 describe("backfillItemImages", () => {
   it("uses og:image when present", async () => {
-    const items = [{ link: "https://variety.com/x", image: null }];
+    const items: ImageItem[] = [{ link: "https://variety.com/x", image: null }];
     const counts = await backfillItemImages(
       items,
       opts(async () => `<meta property="og:image" content="https://cdn.variety.com/a.jpg">`),
@@ -44,7 +44,7 @@ describe("backfillItemImages", () => {
   });
 
   it("uses the twitter card when og:image is missing", async () => {
-    const items = [{ link: "https://deadline.com/x", image: null }];
+    const items: ImageItem[] = [{ link: "https://deadline.com/x", image: null }];
     await backfillItemImages(
       items,
       opts(async () => `<meta name="twitter:image" content="https://cdn.deadline.com/b.jpg">`),
@@ -54,7 +54,7 @@ describe("backfillItemImages", () => {
   });
 
   it("rejects tracking pixels and falls back to the placeholder", async () => {
-    const items = [{ link: "https://variety.com/x", image: null }];
+    const items: ImageItem[] = [{ link: "https://variety.com/x", image: null }];
     const counts = await backfillItemImages(
       items,
       opts(async () => `<meta property="og:image" content="https://variety.com/1x1.png">`),
@@ -66,7 +66,7 @@ describe("backfillItemImages", () => {
 
   it("never fetches an unresolved Google News link", async () => {
     const fetchHtml = vi.fn(async () => "<meta property=\"og:image\" content=\"https://x/a.jpg\">");
-    const items = [
+    const items: ImageItem[] = [
       { link: "https://news.google.com/rss/articles/abc", image: null, unresolved: true },
     ];
     const counts = await backfillItemImages(items, opts(fetchHtml));
@@ -78,7 +78,7 @@ describe("backfillItemImages", () => {
 
   it("keeps a feed image untouched", async () => {
     const fetchHtml = vi.fn(async () => null);
-    const items = [{ link: "https://variety.com/x", image: "https://cdn.variety.com/feed.jpg" }];
+    const items: ImageItem[] = [{ link: "https://variety.com/x", image: "https://cdn.variety.com/feed.jpg" }];
     const counts = await backfillItemImages(items, opts(fetchHtml));
     expect(fetchHtml).not.toHaveBeenCalled();
     expect(counts.image_feed).toBe(1);
