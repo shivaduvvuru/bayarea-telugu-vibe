@@ -27,6 +27,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { publishApproved as publishApprovedFn } from "@/lib/desk-publish.functions";
 import {
+  bulkApprovePictures,
   getPictureBucketCounts,
   listPictureBucket,
   purgePictures,
