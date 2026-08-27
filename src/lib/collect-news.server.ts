@@ -948,11 +948,9 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
   },
 ];
 
-const TOPIC_MAX = 8;
-const DESK_TOPIC_MAX: Record<string, number> = {
-  cinema: 40,
-  "micro-drama": 20,
-};
+// Per-desk caps live in ./desk-caps. The desk total is applied after classify
+// and dedupe (see collectDesk); only feed / sweep caps apply at fetch time.
+
 
 function topicDesk(group: (typeof TOPIC_GROUPS)[number]): "cinema" | "micro-drama" | "other" {
   const text = `${group.queries.join(" ")} ${group.match.source}`;
