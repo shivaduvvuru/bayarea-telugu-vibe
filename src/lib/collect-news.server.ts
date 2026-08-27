@@ -2713,8 +2713,12 @@ export async function collectAll(
   // often spent its budget before reaching the newly added media desks, leaving
   // the public Cinema page populated by only older broad-source items.
   const publisherList = rotatedPublishers.filter(
-    (feed) => !isCinemaPublisher(feed) && !isGalleryPublisher(feed) && !isIndiaPublisher(feed),
+    (feed) =>
+      (!cinemaSeparateJob() || !isCinemaPublisher(feed)) &&
+      !isGalleryPublisher(feed) &&
+      !isIndiaPublisher(feed),
   );
+
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   lastDiag.publishers.selected.push(...publisherList.slice(b, b + 8).map((feed) => feed.name));
   const publisherFetched = await Promise.all(
