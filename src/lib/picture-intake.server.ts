@@ -166,27 +166,31 @@ export async function bulkApprovePictures(
       .from("digest_queue")
       .select("*")
       .in("item_id", queueIds)
-      .eq("status", "approved")
-      .neq("upload_status", "sent");
+      .eq("status", "approved");
     if (error) throw new Error(error.message);
-    const queueRows = (rows ?? []) as unknown as Array<Record<string, unknown>>;
-    if (!queueRows.length) return { approved: 0, failed: itemIds, error: null };
+    const allRows = (rows ?? []) as unknown as Array<Record<string, unknown>>;
+    // Rows already marked "sent" are live: they count as approved, not failed.
+    const alreadyLive = new Set(
+      allRows.filter((r) => r["upload_status"] === "sent").map((r) => String(r["item_id"])),
+    );
+    const queueRows = allRows.filter((r) => r["upload_status"] !== "sent");
 
-    const { ingest } = await import("@/lib/cms.server");
-    const { deskRowToIngest } = await import("@/lib/desk-publish.server");
-    await ingest(queueRows.map((r) => deskRowToIngest(r)), { skipGuard: true });
+    if (queueRows.length) {
+      const { ingest } = await import("@/lib/cms.server");
+      const { deskRowToIngest } = await import("@/lib/desk-publish.server");
+      await ingest(queueRows.map((r) => deskRowToIngest(r)), { skipGuard: true });
 
-    const sentIds = queueRows.map((r) => String(r["item_id"]));
-    await db
-      .from("digest_queue")
-      .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
-      .in("item_id", sentIds);
+      await db
+        .from("digest_queue")
+        .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
+        .in("item_id", queueRows.map((r) => String(r["item_id"])));
+    }
 
-    const publishedQueue = new Set(sentIds);
+    const settled = new Set([...alreadyLive, ...queueRows.map((r) => String(r["item_id"]))]);
     const failed = ((intake ?? []) as Array<{ item_id: string; queue_item_id: string | null }>)
-      .filter((r) => !publishedQueue.has(r.queue_item_id ?? r.item_id))
+      .filter((r) => !settled.has(r.queue_item_id ?? r.item_id))
       .map((r) => r.item_id);
-    return { approved: sentIds.length, failed, error: null };
+    return { approved: itemIds.length - failed.length, failed, error: null };
   } catch (caught) {
     return {
       approved: 0,
