@@ -15,6 +15,7 @@ import {
 } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from "./google-resolve.server";
+import { backfillItemImages, type ImageSource } from "./og-image.server";
 import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
