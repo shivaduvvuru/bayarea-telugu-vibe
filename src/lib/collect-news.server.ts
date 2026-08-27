@@ -3056,7 +3056,42 @@ export async function collectDesk(
   );
   const { warnings } = await recordSummaryRun(aiBatchMetrics, aiUsage.itemsSkipped, `collect:${desk}`);
   for (const warning of warnings) lastDiag.notes.push(`summary warning: ${warning}`);
-  return dedupeCollected(rows);
+
+  // Desk totals apply here — after classification and de-duplication — so a feed
+  // that yields mostly Google News repeats never consumes another desk's cap.
+  const fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  const deduped = dedupeCollected(rows);
+  const capped: CollectedItem[] = [];
+  const funnels: Record<string, DeskFunnel> = {};
+  const deskOf = (row: CollectedItem) =>
+    ((row.payload as { resolved_category?: string }).resolved_category ?? CINEMA_SLUG) ===
+    MICRO_DRAMA_SLUG
+      ? "micro-drama"
+      : "cinema";
+  for (const name of ["cinema", "micro-drama"] as const) {
+    const classified = rows.filter((r) => deskOf(r) === name);
+    const unique = deduped.filter((r) => deskOf(r) === name);
+    const { kept, dropped } = capByRecency(unique, deskCap(name).total);
+    capped.push(...kept);
+    const funnel = emptyFunnel();
+    funnel.fetched = name === "cinema" ? fetchedTotal : 0;
+    funnel.after_classify = classified.length;
+    funnel.after_dedupe = unique.length;
+    funnel.after_cap = kept.length;
+    funnel.cap_dropped = dropped.length;
+    funnels[name] = funnel;
+    lastDiag.notes.push(
+      `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
+        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}`,
+    );
+  }
+  lastDiag.deskFunnel = funnels;
+  const capNote = Object.entries(lastDiag.feedCaps)
+    .map(([name, s]) => `${name} ${s.fetched}${s.cap_hit ? " (cap hit)" : ""}`)
+    .join("; ");
+  if (capNote) lastDiag.notes.push(`feeds: ${capNote}`);
+  console.log(`[collect:${desk}] caps ${JSON.stringify(funnels)}`);
+  return capped;
 }
 
 
