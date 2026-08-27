@@ -175,7 +175,14 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
     ),
   ];
 
-  const { error } = await db.from("content_items").insert(payload);
+  // Picture approvals skip the per-row guard, so the database's own live
+  // uniqueness index is the last line of defence: a repeat is dropped silently
+  // instead of failing the whole batch.
+  const { error } = opts.skipGuard
+    ? await db
+        .from("content_items")
+        .upsert(payload, { onConflict: "source,norm_title", ignoreDuplicates: true })
+    : await db.from("content_items").insert(payload);
   if (error) throw error;
   const duplicates = payload.filter((p) => p.status === "duplicate").length;
   return {
