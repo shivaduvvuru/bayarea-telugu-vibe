@@ -505,6 +505,12 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
   lastDiag.publishers = { selected: [], bySource: {} };
   lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
   lastDiag.classification = { byCategory: {}, bySource: {}, byReason: {}, unresolvedLinks: 0 };
+  lastDiag.imageFallback = {
+    image_feed: 0,
+    image_og: 0,
+    image_placeholder: 0,
+    image_fetch_failed: 0,
+  };
   lastDiag.summary = {
     calls: 0,
     calls_per_headline: 0,
