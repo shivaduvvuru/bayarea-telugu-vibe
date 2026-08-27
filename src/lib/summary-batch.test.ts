@@ -49,8 +49,10 @@ function echoModel(opts: { drop?: string[]; extra?: boolean; garbage?: boolean }
 describe("chunkEntries", () => {
   it("caps items per call", () => {
     const many = Array.from({ length: 30 }, (_, i) => entry(`a#${i}`, "San Jose", `t${i}`));
-    expect(chunkEntries(many).map((c) => c.length)).toEqual([25, 5]);
+    // SUMMARY_ITEM_CAP is 12 headlines per Gemini call.
+    expect(chunkEntries(many).map((c) => c.length)).toEqual([12, 12, 6]);
   });
+
 
   it("never splits a call just because desks differ", () => {
     // The regression: one call per source group. Many desks now share one call.
