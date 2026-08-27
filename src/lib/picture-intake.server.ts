@@ -110,7 +110,9 @@ export async function movePictureIntake(
         event: row["event"],
       },
     }));
-    const { error } = await db.from("digest_queue").upsert(queueRows as never, { onConflict: "dedupe_key" });
+    // Conflict on item_id (the queue's primary key): dedupe_key can be null,
+    // in which case a dedupe_key upsert re-inserts and then trips the pkey.
+    const { error } = await db.from("digest_queue").upsert(queueRows as never, { onConflict: "item_id" });
     if (error) throw new Error(error.message);
   } else {
     const queueIds = rows.map((row) => String(row["queue_item_id"] ?? row["item_id"]));
