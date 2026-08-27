@@ -15,6 +15,7 @@ import {
 } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from "./google-resolve.server";
+import { backfillItemImages, type ImageSource } from "./og-image.server";
 import { classifyIndia } from "./india-topics";
 import {
   resolveGoogleNewsUrls,
@@ -50,6 +51,8 @@ export type CollectedItem = {
   published_at: string | null;
   origin: "feed";
   payload: Record<string, unknown>;
+  /** "feed" | "og" | "placeholder" — provenance of the card artwork. */
+  image_source?: string;
 };
 
 const MAX_PER_CITY = 16;
@@ -80,8 +83,8 @@ function keyFor(citySlug: string, title: string) {
   return `${citySlug}-${(h1 >>> 0).toString(36)}${(h2 >>> 0).toString(36)}`;
 }
 
-/** No placeholder asset exists in the site; a null image renders the typographic card. */
-const DESK_PLACEHOLDER_IMAGE: string | null = null;
+/** Desk fallback artwork: a story is never hidden for lacking a picture. */
+const DESK_PLACEHOLDER_IMAGE: string | null = "/cinema-placeholder.webp";
 
 /**
  * Stories the site already carries, for the run in progress. Set once at the
@@ -173,6 +176,8 @@ type RawItem = {
   calendar?: boolean;
   /** True when a Google News wrapper could not be resolved to a publisher URL. */
   unresolved?: boolean;
+  /** Where the artwork came from once the image fallback has run. */
+  imageSource?: ImageSource;
 };
 
 /** Pulls a usable image URL out of an RSS <item> block. */
@@ -473,6 +478,13 @@ export const lastDiag = {
     byReason: {} as Record<string, number>,
     unresolvedLinks: 0,
   },
+  /** Where desk artwork came from this run. */
+  imageFallback: {
+    image_feed: 0,
+    image_og: 0,
+    image_placeholder: 0,
+    image_fetch_failed: 0,
+  },
   /** Summary model metrics copied onto collect_runs for the last-30 dashboard. */
   summary: {
     calls: 0,
@@ -495,6 +507,12 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
   lastDiag.publishers = { selected: [], bySource: {} };
   lastDiag.googleNews = { requested: 0, fetched: 0, returned: 0, errors: {}, bySource: {} };
   lastDiag.classification = { byCategory: {}, bySource: {}, byReason: {}, unresolvedLinks: 0 };
+  lastDiag.imageFallback = {
+    image_feed: 0,
+    image_og: 0,
+    image_placeholder: 0,
+    image_fetch_failed: 0,
+  };
   lastDiag.summary = {
     calls: 0,
     calls_per_headline: 0,
@@ -2926,6 +2944,15 @@ export async function collectDesk(
   // Resolution runs before classification so the host map sees real publishers.
   await resolveWrappedLinks(summaryPool.flatMap((g) => g.items));
 
+  // Artwork fallback: fetch the publisher page's social card for items the feed
+  // left imageless, then fall back to the placeholder. Nothing is dropped.
+  {
+    const counts = await backfillItemImages(summaryPool.flatMap((g) => g.items), {
+      placeholder: DESK_PLACEHOLDER_IMAGE,
+    });
+    lastDiag.imageFallback = counts;
+  }
+
   const summaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
   const append = (key: string, items: RawItem[], sourceName?: string, fallbackCategory: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG = CINEMA_SLUG) => {
     const list = summaries.get(key) ?? [];
@@ -2939,6 +2966,7 @@ export async function collectDesk(
       rows.push({
         dedupe_key: dedupe,
         item_id: dedupe,
+        image_source: it.imageSource ?? (image ? "feed" : "placeholder"),
         digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
         kind: "news",
         city_slug: BAY_AREA.slug,
@@ -2975,6 +3003,9 @@ export async function collectDesk(
   lastDiag.notes.push(googleNewsSummaryNote());
   lastDiag.notes.push(
     `classification reasons: ${formatCountMap(lastDiag.classification.byReason) || "none"}; unresolved google links ${lastDiag.classification.unresolvedLinks}`,
+  );
+  lastDiag.notes.push(
+    `artwork: feed ${lastDiag.imageFallback.image_feed}, og ${lastDiag.imageFallback.image_og}, placeholder ${lastDiag.imageFallback.image_placeholder}, fetch failed ${lastDiag.imageFallback.image_fetch_failed}`,
   );
   const perHeadline = callsPerHeadline(aiBatchMetrics);
   lastDiag.notes.push(

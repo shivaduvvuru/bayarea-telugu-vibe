@@ -396,14 +396,14 @@ async function readPosts(
 
   const articles = dedupeArticles([...rows, ...legacyRows].map(toArticle));
   if (category === "cinema") {
-    // No picture, no cinema story — there is plenty of illustrated film news.
-    // Star photo features belong to Glamour only, so pre-backfill rows that
-    // read as picture-desk material are dropped here too.
+    // Artwork is no longer required: imageless cinema items carry the desk
+    // placeholder, so a story is never hidden for lacking a picture. A summary
+    // is what a card needs. Star photo features belong to Glamour only.
     return freshestFirst(
       articles.filter(
         (a) =>
           a.category === "cinema" &&
-          a.image &&
+          !!a.excerpt &&
           !isStarGallery(a.title, a.excerpt, a.sourceUrl ?? null),
       ),
       limit,
