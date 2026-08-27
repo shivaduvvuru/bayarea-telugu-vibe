@@ -2942,6 +2942,15 @@ export async function collectDesk(
   // Resolution runs before classification so the host map sees real publishers.
   await resolveWrappedLinks(summaryPool.flatMap((g) => g.items));
 
+  // Artwork fallback: fetch the publisher page's social card for items the feed
+  // left imageless, then fall back to the placeholder. Nothing is dropped.
+  {
+    const counts = await backfillItemImages(summaryPool.flatMap((g) => g.items), {
+      placeholder: DESK_PLACEHOLDER_IMAGE,
+    });
+    lastDiag.imageFallback = counts;
+  }
+
   const summaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
   const append = (key: string, items: RawItem[], sourceName?: string, fallbackCategory: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG = CINEMA_SLUG) => {
     const list = summaries.get(key) ?? [];
