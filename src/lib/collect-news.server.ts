@@ -13,7 +13,7 @@ import {
   type ClassifyReason,
   type DeskCategory,
 } from "./cinema-topics";
-import { MICRO_DRAMA_SLUG } from "./microdrama-topics";
+import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from "./google-resolve.server";
 import { classifyIndia } from "./india-topics";
 import {
@@ -1995,7 +1995,7 @@ function deskCategoryForItem(
 ): { category: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG; reason: ClassifyReason } {
   const { category, reason } = classifyDeskItem({
     title: item.title,
-    summary: item.detail,
+    summary: item.detail ?? null,
     url: item.link,
     sourceName: item.source,
     unresolved: item.unresolved,
