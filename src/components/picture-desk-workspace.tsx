@@ -293,7 +293,8 @@ export function PictureDeskWorkspace({
             const result = await approveBulk({ data: { itemIds: chunk, deskToken } });
             if (result.error) throw new Error(result.error);
             done += result.approved;
-            failedIds.push(...result.failed);
+            failedIds.push(...result.failed.map((f) => f.item_id));
+            if (result.failed[0]) lastError = result.failed[0].reason;
           } else {
             await moveItems({ data: { itemIds: chunk, stage, deskToken } });
             done += chunk.length;
