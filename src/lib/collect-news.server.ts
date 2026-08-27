@@ -2942,9 +2942,8 @@ export async function collectDesk(
     topicGroups.map(async (group, index) => ({
       key: `cinema-topic:${index}`,
       city: BAY_AREA,
-      items: inBudget()
-        ? await fetchTopics(group, { limit: DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX })
-        : [],
+      // No fetch-time total here: the desk total is applied after classify + dedupe.
+      items: inBudget() ? await fetchTopics(group) : [],
       group,
     })),
   );
@@ -2962,19 +2961,27 @@ export async function collectDesk(
     ...rotated.filter((f) => /bing\.com/.test(f.url)),
     ...rotated.filter((f) => isGoogleNewsFeed(f.url)),
   ];
-  for (let b = 0; b < publisherFeeds.length && inBudget(); b += 8) {
+  // Cinema has its own job (step 4), so the run reads every rotated feed rather
+  // than stopping at a fraction of the shared budget. fetchDeadline still caps
+  // individual requests.
+  for (let b = 0; b < publisherFeeds.length; b += 8) {
     const slice = publisherFeeds.slice(b, b + 8);
     lastDiag.publishers.selected.push(...slice.map((feed) => feed.name));
     const fetched = await Promise.all(
       slice.map(async (feed, index) => ({
         key: `cinema-pub:${b}:${index}`,
         city: BAY_AREA,
-        items: await fetchPublisher(feed),
+        items: await fetchPublisher(feed, {
+          capPerFeed: deskCap(
+            isGoogleNewsFeed(feed.url) ? "cinema" : "cinema",
+          ).perFeed,
+        }),
         feed,
       })),
     );
     summaryPool.push(...fetched.map(({ key, city, items }) => ({ key, city, items })));
   }
+
 
   // Resolution runs before classification so the host map sees real publishers.
   await resolveWrappedLinks(summaryPool.flatMap((g) => g.items));
