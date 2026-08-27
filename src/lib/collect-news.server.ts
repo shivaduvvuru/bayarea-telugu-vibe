@@ -3099,6 +3099,9 @@ export async function collectDesk(
           image,
           category,
           resolved_category: category,
+          // Kept on the queue row so the desk can see why an item landed on a
+          // given desk without re-running the classifier.
+          classify_reason: reason,
           desk,
           collectedAt: today,
         },
@@ -3106,9 +3109,8 @@ export async function collectDesk(
     });
   };
 
-  for (const group of topicFetched) append(group.key, group.items, undefined, topicDesk(group.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
-  for (const group of summaryPool.filter((g) => g.key.startsWith("cinema-pub:"))) {
-    append(group.key, group.items, undefined, deskFallback);
+  for (const group of summaryPool) {
+    append(group.key, group.items, undefined, fallbackOf.get(group.key) ?? deskFallback);
   }
 
   syncSummaryDiag();
