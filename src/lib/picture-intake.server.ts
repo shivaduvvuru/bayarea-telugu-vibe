@@ -139,3 +139,59 @@ export async function movePictureIntake(
   if (error) throw new Error(error.message);
   return { updated: input.itemIds.length };
 }
+/**
+ * Bulk approval. Set-based only: one intake read, one queue upsert, one publish
+ * insert, one status update — no per-picture loop and no image fetching (artwork
+ * is already stored at intake). Large selections therefore finish inside a
+ * single request instead of running past the request limit.
+ */
+export async function bulkApprovePictures(
+  db: Db,
+  itemIds: string[],
+): Promise<{ approved: number; failed: string[]; error: string | null }> {
+  if (!itemIds.length) return { approved: 0, failed: [], error: null };
+  try {
+    await movePictureIntake(db, { itemIds, stage: "approved" });
+
+    const { data: intake } = await db
+      .from("picture_intake")
+      .select("item_id,queue_item_id")
+      .in("item_id", itemIds);
+    const queueIds = ((intake ?? []) as Array<{ item_id: string; queue_item_id: string | null }>).map(
+      (r) => r.queue_item_id ?? r.item_id,
+    );
+    if (!queueIds.length) return { approved: 0, failed: itemIds, error: null };
+
+    const { data: rows, error } = await db
+      .from("digest_queue")
+      .select("*")
+      .in("item_id", queueIds)
+      .eq("status", "approved")
+      .neq("upload_status", "sent");
+    if (error) throw new Error(error.message);
+    const queueRows = (rows ?? []) as unknown as Array<Record<string, unknown>>;
+    if (!queueRows.length) return { approved: 0, failed: itemIds, error: null };
+
+    const { ingest } = await import("@/lib/cms.server");
+    const { deskRowToIngest } = await import("@/lib/desk-publish.server");
+    await ingest(queueRows.map((r) => deskRowToIngest(r)), { skipGuard: true });
+
+    const sentIds = queueRows.map((r) => String(r["item_id"]));
+    await db
+      .from("digest_queue")
+      .update({ upload_status: "sent", uploaded_at: new Date().toISOString(), error: null })
+      .in("item_id", sentIds);
+
+    const publishedQueue = new Set(sentIds);
+    const failed = ((intake ?? []) as Array<{ item_id: string; queue_item_id: string | null }>)
+      .filter((r) => !publishedQueue.has(r.queue_item_id ?? r.item_id))
+      .map((r) => r.item_id);
+    return { approved: sentIds.length, failed, error: null };
+  } catch (caught) {
+    return {
+      approved: 0,
+      failed: itemIds,
+      error: caught instanceof Error ? caught.message : "Bulk approval failed",
+    };
+  }
+}
