@@ -547,6 +547,13 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
   }
 }
 
+/** One line per feed / sweep query: how many items it yielded and whether its cap bit. */
+function recordFeedFetch(label: string, fetched: number, capHit: boolean) {
+  const row = (lastDiag.feedCaps[label] ??= { fetched: 0, cap_hit: false });
+  row.fetched += fetched;
+  row.cap_hit = row.cap_hit || capHit;
+}
+
 function resetAiUsage() {
   aiUsage.calls = 0;
   aiUsage.itemsSummarized = 0;
