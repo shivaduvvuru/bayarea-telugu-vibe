@@ -3044,7 +3044,7 @@ export async function collectDesk(
 
   for (const group of topicFetched) append(group.key, group.items, undefined, topicDesk(group.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
   for (const group of summaryPool.filter((g) => g.key.startsWith("cinema-pub:"))) {
-    append(group.key, group.items);
+    append(group.key, group.items, undefined, deskFallback);
   }
 
   syncSummaryDiag();
