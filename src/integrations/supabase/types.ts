@@ -360,6 +360,7 @@ export type Database = {
           dedupe_key: string | null
           digest_date: string
           error: string | null
+          image_source: string | null
           item_id: string
           kind: string
           origin: string
@@ -380,6 +381,7 @@ export type Database = {
           dedupe_key?: string | null
           digest_date: string
           error?: string | null
+          image_source?: string | null
           item_id: string
           kind?: string
           origin?: string
@@ -400,6 +402,7 @@ export type Database = {
           dedupe_key?: string | null
           digest_date?: string
           error?: string | null
+          image_source?: string | null
           item_id?: string
           kind?: string
           origin?: string
@@ -2631,16 +2634,19 @@ export type Database = {
       url_resolutions: {
         Row: {
           google_url: string
+          image_url: string | null
           resolved_at: string
           resolved_url: string | null
         }
         Insert: {
           google_url: string
+          image_url?: string | null
           resolved_at?: string
           resolved_url?: string | null
         }
         Update: {
           google_url?: string
+          image_url?: string | null
           resolved_at?: string
           resolved_url?: string | null
         }
