@@ -3021,6 +3021,50 @@ export async function collectDesk(
     lastDiag.imageFallback = counts;
   }
 
+  // Cost guard: the known-key drop, canonical de-duplication and the desk total
+  // are applied to the raw items BEFORE summarization, so a model call is never
+  // spent on a headline the queue would discard anyway.
+  const fallbackOf = new Map<string, typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG>();
+  for (const g of topicFetched) {
+    fallbackOf.set(g.key, topicDesk(g.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
+  }
+  let fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  {
+    const pending: { item: RawItem; desk: "cinema" | "micro-drama"; published?: string | null }[] = [];
+    const seen = new Set<string>();
+    for (const g of summaryPool) {
+      const fb = fallbackOf.get(g.key) ?? deskFallback;
+      for (const item of g.items) {
+        const { category } = deskCategoryForItem(item, fb);
+        const keys = [
+          itemDedupeKey(BAY_AREA.slug, item.title, item.link),
+          ...storyIdentityKeys(item.title, item.link),
+        ];
+        if (keys.some((k) => knownKeys.has(k) || seen.has(k))) continue;
+        for (const k of keys) seen.add(k);
+        pending.push({
+          item,
+          desk: category === MICRO_DRAMA_SLUG ? "micro-drama" : "cinema",
+          published: item.published,
+        });
+      }
+    }
+    const keep = new Set<RawItem>();
+    for (const name of ["cinema", "micro-drama"] as const) {
+      const { kept } = capByRecency(
+        pending.filter((p) => p.desk === name),
+        deskCap(name).total,
+      );
+      for (const p of kept) keep.add(p.item);
+    }
+    for (const g of summaryPool) g.items = g.items.filter((it) => keep.has(it));
+    const after = summaryPool.reduce((n, g) => n + g.items.length, 0);
+    lastDiag.notes.push(
+      `pre-summary prune: ${fetchedTotal} fetched, ${after} sent to summary ` +
+        `(${fetchedTotal - after} already known, duplicate or over cap)`,
+    );
+  }
+
   const summaries = await summarizeGroups(summaryPool, apiKey, knownKeys);
   const append = (key: string, items: RawItem[], sourceName?: string, fallbackCategory: typeof CINEMA_SLUG | typeof MICRO_DRAMA_SLUG = CINEMA_SLUG) => {
     const list = summaries.get(key) ?? [];
@@ -3055,6 +3099,9 @@ export async function collectDesk(
           image,
           category,
           resolved_category: category,
+          // Kept on the queue row so the desk can see why an item landed on a
+          // given desk without re-running the classifier.
+          classify_reason: reason,
           desk,
           collectedAt: today,
         },
@@ -3062,9 +3109,8 @@ export async function collectDesk(
     });
   };
 
-  for (const group of topicFetched) append(group.key, group.items, undefined, topicDesk(group.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
-  for (const group of summaryPool.filter((g) => g.key.startsWith("cinema-pub:"))) {
-    append(group.key, group.items, undefined, deskFallback);
+  for (const group of summaryPool) {
+    append(group.key, group.items, undefined, fallbackOf.get(group.key) ?? deskFallback);
   }
 
   syncSummaryDiag();
@@ -3084,7 +3130,7 @@ export async function collectDesk(
 
   // Desk totals apply here — after classification and de-duplication — so a feed
   // that yields mostly Google News repeats never consumes another desk's cap.
-  const fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  // fetchedTotal was captured before the pre-summary prune.
   const deduped = dedupeCollected(rows);
   const capped: CollectedItem[] = [];
   const funnels: Record<string, DeskFunnel> = {};
