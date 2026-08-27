@@ -2949,10 +2949,16 @@ export async function collectDesk(
   );
   summaryPool.push(...topicFetched.map(({ key, city, items }) => ({ key, city, items })));
 
-  const cinemaFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher).map((feed) => ({
-    ...feed,
-    limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
-  }));
+  const MICRO_FEED = /micro|vertical|reelshort|dramabox|duanju|short[- ]?drama|kalos|flick tv|fatafat/i;
+  const cinemaFeeds = PUBLISHER_FEEDS.filter(isCinemaPublisher)
+    .filter((feed) => {
+      const micro = MICRO_FEED.test(`${feed.name} ${feed.url}`);
+      return desk === "micro-drama" ? micro : !micro;
+    })
+    .map((feed) => ({
+      ...feed,
+      limit: Math.max(feed.limit ?? 6, isGoogleNewsFeed(feed.url) ? 10 : 12),
+    }));
   const sliceSize = opts?.sliceSize ?? DESK_PUBLISHERS_PER_RUN;
   const start = (slice * sliceSize) % Math.max(1, cinemaFeeds.length);
   const rotated = [...cinemaFeeds.slice(start), ...cinemaFeeds.slice(0, start)].slice(0, sliceSize);
@@ -2973,10 +2979,9 @@ export async function collectDesk(
         city: BAY_AREA,
         // Publisher feeds get the per-feed cap; Google News sweeps the sweep cap.
         items: await fetchPublisher(feed, {
-          capPerFeed: isGoogleNewsFeed(feed.url)
-            ? DESK_CAPS.cinema.perSweepQuery
-            : DESK_CAPS.cinema.perFeed,
+          capPerFeed: isGoogleNewsFeed(feed.url) ? caps.perSweepQuery : caps.perFeed,
         }),
+
         feed,
       })),
     );
