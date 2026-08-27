@@ -122,6 +122,7 @@ export function PictureDeskWorkspace({
   const readCounts = useServerFn(getPictureBucketCounts);
   const moveItems = useServerFn(setPictureBucket);
   const publishApproved = useServerFn(publishApprovedFn);
+  const approveBulk = useServerFn(bulkApprovePictures);
   const purgeItems = useServerFn(purgePictures);
   const [bucket, setBucket] = useState<Bucket>("pending");
   const [page, setPage] = useState(1);
