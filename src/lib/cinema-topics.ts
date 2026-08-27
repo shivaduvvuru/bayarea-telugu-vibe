@@ -313,13 +313,13 @@ export function cinemaHostDesk(url: string | null | undefined): DeskCategory | n
  */
 export function classifyDeskItem(input: {
   title: string | null | undefined;
-  summary?: string | null;
-  url?: string | null;
-  sourceName?: string | null;
+  summary?: string | null | undefined;
+  url?: string | null | undefined;
+  sourceName?: string | null | undefined;
   /** True when a Google News wrapper could not be resolved to a publisher. */
-  unresolved?: boolean;
+  unresolved?: boolean | undefined;
   /** Desk the sweep that produced this item belongs to. */
-  sweep?: DeskCategory | null;
+  sweep?: DeskCategory | null | undefined;
 }): DeskClassification {
   const { isMicroDrama, hasMicroDramaKeyword, MICRO_DRAMA_SLUG } = MICRO;
   const text = `${input.title ?? ""} ${input.summary ?? ""}`;
