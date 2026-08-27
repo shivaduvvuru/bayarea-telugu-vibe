@@ -120,7 +120,9 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
   // The guard is one or more DB round trips per row; running them strictly
   // one after another made a 25-row publish chunk take seconds. Bounded
   // parallelism keeps the DB load flat while cutting wall time ~4x.
-  await mapWithLimit(fresh, 4, async (r) => {
+  // Picture-desk approvals pass skipGuard: those photos were already screened
+  // and de-duplicated at intake, so no per-item work runs at approval time.
+  await mapWithLimit(opts.skipGuard ? [] : fresh, 4, async (r) => {
     const guard = await guardArticle(db as never, {
       title: r.title,
       link_url: r.link_url ?? null,
