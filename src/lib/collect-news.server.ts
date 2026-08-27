@@ -2966,6 +2966,7 @@ export async function collectDesk(
       rows.push({
         dedupe_key: dedupe,
         item_id: dedupe,
+        image_source: it.imageSource ?? (image ? "feed" : "placeholder"),
         digest_date: (it.published ?? `${today}T00:00:00Z`).slice(0, 10),
         kind: "news",
         city_slug: BAY_AREA.slug,
