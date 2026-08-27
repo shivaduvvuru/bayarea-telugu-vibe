@@ -191,7 +191,7 @@ export async function bulkApprovePictures(
     return {
       approved: 0,
       failed: itemIds,
-      error: caught instanceof Error ? caught.message : "Bulk approval failed",
+      error: caught instanceof Error ? caught.message : `Bulk approval failed: ${JSON.stringify(caught)}`,
     };
   }
 }
