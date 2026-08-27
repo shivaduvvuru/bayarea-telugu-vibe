@@ -58,3 +58,25 @@ export const purgePictures = createServerFn({ method: "POST" })
     const { purgePictureItems } = await import("@/lib/purge.server");
     return purgePictureItems(data.itemIds);
   });
+
+/** Bulk approve + publish pictures in set-based statements. Always returns JSON. */
+export const bulkApprovePictures = createServerFn({ method: "POST" })
+  .inputValidator((data: { itemIds?: string[]; deskToken?: string }) => ({
+    itemIds: Array.isArray(data?.itemIds) ? data.itemIds.slice(0, 200).map(String) : [],
+    deskToken: typeof data?.deskToken === "string" ? data.deskToken : undefined,
+  }))
+  .handler(async ({ data }) => {
+    try {
+      const { assertDesk } = await import("@/lib/desk-session.server");
+      await assertDesk(data.deskToken);
+      const { admin } = await import("@/lib/cms.server");
+      const { bulkApprovePictures: run } = await import("@/lib/picture-intake.server");
+      return run(await admin(), data.itemIds);
+    } catch (caught) {
+      return {
+        approved: 0,
+        failed: data.itemIds,
+        error: caught instanceof Error ? caught.message : "Bulk approval failed",
+      };
+    }
+  });

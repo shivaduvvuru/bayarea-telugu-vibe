@@ -75,7 +75,7 @@ function canonicalStoryKey(row: { title?: string | null; link_url?: string | nul
  * same pull — is stored with status "duplicate" and linked to the original, so
  * it never reaches readers but still shows up as an alert in the newsroom.
  */
-export async function ingest(rows: IngestRow[]) {
+export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = {}) {
   if (rows.length === 0) return { inserted: 0, skipped: 0, duplicates: 0 };
   const db = await admin();
   const refs = rows.map((r) => r.source_ref);
@@ -120,7 +120,9 @@ export async function ingest(rows: IngestRow[]) {
   // The guard is one or more DB round trips per row; running them strictly
   // one after another made a 25-row publish chunk take seconds. Bounded
   // parallelism keeps the DB load flat while cutting wall time ~4x.
-  await mapWithLimit(fresh, 4, async (r) => {
+  // Picture-desk approvals pass skipGuard: those photos were already screened
+  // and de-duplicated at intake, so no per-item work runs at approval time.
+  await mapWithLimit(opts.skipGuard ? [] : fresh, 4, async (r) => {
     const guard = await guardArticle(db as never, {
       title: r.title,
       link_url: r.link_url ?? null,
@@ -173,7 +175,14 @@ export async function ingest(rows: IngestRow[]) {
     ),
   ];
 
-  const { error } = await db.from("content_items").insert(payload);
+  // Picture approvals skip the per-row guard, so the database's own live
+  // uniqueness index is the last line of defence: a repeat is dropped silently
+  // instead of failing the whole batch.
+  const { error } = opts.skipGuard
+    ? await db
+        .from("content_items")
+        .upsert(payload, { onConflict: "source,norm_title", ignoreDuplicates: true })
+    : await db.from("content_items").insert(payload);
   if (error) throw error;
   const duplicates = payload.filter((p) => p.status === "duplicate").length;
   return {
