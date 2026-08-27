@@ -18,6 +18,14 @@ import { resolveGoogleNewsLinks, isGoogleNewsLink, RESOLVE_CONCURRENCY } from ".
 import { backfillItemImages, type ImageSource } from "./og-image.server";
 import { classifyIndia } from "./india-topics";
 import {
+  DESK_CAPS,
+  capByRecency,
+  deskCap,
+  emptyFunnel,
+  takeUpTo,
+  type DeskFunnel,
+} from "./desk-caps";
+import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
   isGoogleNewsUrl,
