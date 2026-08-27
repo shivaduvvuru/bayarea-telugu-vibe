@@ -995,7 +995,10 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item.source ? item : { ...item, source: safeHost(item.link) });
-    if (opts?.limit && merged.length >= opts.limit) break;
+    // Desk totals for cinema / micro-drama are applied after classify + dedupe
+    // in collectDesk; other desks keep their previous fetch-time cap of 8.
+    const limit = opts?.limit ?? (topicDesk(group) === "other" ? cap.total : Number.MAX_SAFE_INTEGER);
+    if (merged.length >= limit) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
