@@ -242,6 +242,7 @@ export async function bulkApprovePictures(
 
     return { approved: resolvedPictureIds.length, failed, error: null };
   } catch (caught) {
+    console.error("[bulkApprovePictures] failed", caught);
     return {
       approved: 0,
       failed: itemIds.map((id) => ({ item_id: id, reason: describe(caught) })),
