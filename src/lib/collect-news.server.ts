@@ -964,6 +964,7 @@ async function fetchTopics(
   opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
+  const cap = deskCap(topicDesk(group));
   const results = await Promise.all(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
@@ -980,7 +981,10 @@ async function fetchTopics(
       if (!parsed) return [];
       lastDiag.fetched += 1;
       lastDiag.raw += parsed.length;
-      return parsed;
+      // Fetch-time sweep cap: stop reading this query once its cap is hit.
+      const { items, capHit } = takeUpTo(parsed, cap.perSweepQuery);
+      recordFeedFetch(`sweep:${group.kind}:${q.slice(0, 40)}`, items.length, capHit);
+      return items;
     }),
   );
   const seen = new Set<string>();
@@ -991,12 +995,13 @@ async function fetchTopics(
     if (!k || seen.has(k) || JUNK.test(hay) || !group.match.test(hay)) continue;
     seen.add(k);
     merged.push(item.source ? item : { ...item, source: safeHost(item.link) });
-    if (merged.length >= (opts?.limit ?? DESK_TOPIC_MAX[topicDesk(group)] ?? TOPIC_MAX)) break;
+    if (opts?.limit && merged.length >= opts.limit) break;
   }
   await addImages(merged);
   lastDiag.kept += merged.length;
   return merged;
 }
+
 
 /**
  * Named publishers we read directly rather than through a news search:
