@@ -175,15 +175,47 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
     ),
   ];
 
-  // Picture approvals skip the per-row guard, so the database's own live
-  // uniqueness index is the last line of defence: a repeat is dropped silently
-  // instead of failing the whole batch.
-  const { error } = opts.skipGuard
-    ? await db
+  // Picture approvals skip the per-row guard, so the live uniqueness index is
+  // the last line of defence. That index is partial, so Postgres cannot infer
+  // it for an ON CONFLICT clause (error 42P10) — filter known repeats in code
+  // and, if the index still fires, insert row by row so one repeat cannot fail
+  // the whole batch.
+  let toInsert = payload;
+  if (opts.skipGuard) {
+    const keys = payload
+      .map((p) => strictTitleKey(p.title))
+      .filter((key): key is string => !!key);
+    const live = new Set<string>();
+    for (let i = 0; i < keys.length; i += 200) {
+      const { data } = await db
         .from("content_items")
-        .upsert(payload, { onConflict: "source,norm_title", ignoreDuplicates: true })
-    : await db.from("content_items").insert(payload);
-  if (error) throw error;
+        .select("source, norm_title")
+        .neq("status", "duplicate")
+        .in("norm_title", keys.slice(i, i + 200));
+      for (const r of data ?? []) live.add(`${r.source}|${r.norm_title}`);
+    }
+    const seen = new Set<string>();
+    toInsert = payload.filter((p) => {
+      const key = strictTitleKey(p.title);
+      if (!key) return true;
+      const composite = `${p.source}|${key}`;
+      if (live.has(composite) || seen.has(composite)) return false;
+      seen.add(composite);
+      return true;
+    });
+  }
+  if (!toInsert.length) return { inserted: 0, skipped: rows.length, duplicates: 0 };
+
+  const { error } = await db.from("content_items").insert(toInsert);
+  if (error) {
+    if (!opts.skipGuard || error.code !== "23505") throw error;
+    for (const row of toInsert) {
+      const { error: rowError } = await db.from("content_items").insert([row]);
+      if (rowError && rowError.code !== "23505") throw rowError;
+    }
+  }
+  const payloadInserted = toInsert;
+
   const duplicates = payload.filter((p) => p.status === "duplicate").length;
   return {
     inserted: payload.length - duplicates,
