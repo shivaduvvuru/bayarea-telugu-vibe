@@ -50,3 +50,14 @@ export function isMicroDrama(
 }
 
 
+
+/**
+ * Positive keyword gate. Micro-drama must never be a host-based default, so the
+ * classifier requires one of the format words / named apps to appear in the copy.
+ */
+export function hasMicroDramaKeyword(text: string | null | undefined): boolean {
+  const t = text ?? "";
+  if (NOT_LIVE_ACTION.test(t)) return false;
+  if (MICRO_TEXT.test(t)) return true;
+  return MICRO_ARTIST.test(t) && MICRO_ARTIST_CONTEXT.test(t);
+}
