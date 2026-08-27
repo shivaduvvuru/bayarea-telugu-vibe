@@ -525,6 +525,8 @@ function resetRunDiagnostics(opts: { keepGallery?: boolean } = {}) {
     image_placeholder: 0,
     image_fetch_failed: 0,
   };
+  lastDiag.deskFunnel = {};
+  lastDiag.feedCaps = {};
   lastDiag.summary = {
     calls: 0,
     calls_per_headline: 0,
