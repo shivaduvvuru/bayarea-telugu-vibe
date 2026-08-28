@@ -77,6 +77,18 @@ export function strictTitleKey(title: string | null | undefined): string | null 
   return t || null;
 }
 
+/**
+ * True for our own fallback artwork (site-relative images such as
+ * "/cinema-placeholder.webp"). Many unrelated stories share it, so it must
+ * never be used as a duplicate signal.
+ */
+export function isSharedPlaceholderImage(url: string | null | undefined): boolean {
+  const raw = (url ?? "").trim().toLowerCase();
+  if (!raw) return false;
+  if (raw.startsWith("/") || raw.startsWith("./")) return true;
+  return /placeholder/.test(raw);
+}
+
 export type Duplicate<T> = { kept: T; dropped: T[]; key: string };
 
 /**
