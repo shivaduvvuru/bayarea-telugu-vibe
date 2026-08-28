@@ -7,7 +7,7 @@
  * so duplicates never linger on the site: the oldest published row wins and the
  * rest are marked hidden (kept for audit, not shown anywhere).
  */
-import { dedupeKey } from "./dedupe";
+import { dedupeKey, isSharedPlaceholderImage } from "./dedupe";
 import { urlKey } from "./collect-news.server";
 
 type Row = {
