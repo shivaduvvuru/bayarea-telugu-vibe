@@ -3151,7 +3151,7 @@ export async function collectDesk(
   for (const name of ["cinema", "micro-drama"] as const) {
     const classified = rows.filter((r) => deskOf(r) === name);
     const unique = deduped.filter((r) => deskOf(r) === name);
-    const { kept, dropped } = capByRecency(unique, deskCap(name).total);
+    const { kept, dropped, galleries, sourceCapDropped } = selectDeskItems(unique, deskCap(name));
     capped.push(...kept);
     const funnel = emptyFunnel();
     funnel.fetched = name === desk ? fetchedTotal : 0;
@@ -3162,9 +3162,11 @@ export async function collectDesk(
     funnels[name] = funnel;
     lastDiag.notes.push(
       `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
-        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}`,
+        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}, ` +
+        `galleries ${galleries}, source_cap_dropped ${sourceCapDropped}`,
     );
   }
+
   lastDiag.deskFunnel = funnels;
   const capNote = Object.entries(lastDiag.feedCaps)
     .map(([name, s]) => `${name} ${s.fetched}${s.cap_hit ? " (cap hit)" : ""}`)
