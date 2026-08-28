@@ -3117,6 +3117,8 @@ export async function collectDesk(
           // Photo-gallery listicles are flagged so the desk cap can downrank them.
           gallery: isGalleryTitle(it.title),
           desk,
+          collectedAt: today,
+
 
         },
       });
