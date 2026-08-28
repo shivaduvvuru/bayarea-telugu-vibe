@@ -22,9 +22,12 @@ import {
   capByRecency,
   deskCap,
   emptyFunnel,
+  isGalleryTitle,
+  selectDeskItems,
   takeUpTo,
   type DeskFunnel,
 } from "./desk-caps";
+
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
