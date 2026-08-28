@@ -77,6 +77,18 @@ export function strictTitleKey(title: string | null | undefined): string | null 
   return t || null;
 }
 
+/**
+ * True for our own fallback artwork (site-relative images such as
+ * "/cinema-placeholder.webp"). Many unrelated stories share it, so it must
+ * never be used as a duplicate signal.
+ */
+export function isSharedPlaceholderImage(url: string | null | undefined): boolean {
+  const raw = (url ?? "").trim().toLowerCase();
+  if (!raw) return false;
+  if (raw.startsWith("/") || raw.startsWith("./")) return true;
+  return /placeholder/.test(raw);
+}
+
 export type Duplicate<T> = { kept: T; dropped: T[]; key: string };
 
 /**
@@ -122,7 +134,9 @@ export function contentDedupeKeys(item: {
   // Feeds and CMS rows name these fields differently; accept every spelling so
   // one story cannot slip through under an alternate key.
   const url = item.sourceUrl ?? item.link_url ?? item.url;
-  const image = usableImage(item.image ?? item.image_url);
+  const rawImage = item.image ?? item.image_url;
+  // Shared house placeholders identify nothing; ignore them as a key.
+  const image = isSharedPlaceholderImage(rawImage) ? null : usableImage(rawImage);
   return [
     title ? `t:${title}` : "",
     // Near-duplicate headlines (same story, different tail) collapse too.
