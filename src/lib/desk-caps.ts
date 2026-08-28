@@ -74,6 +74,62 @@ export function capByRecency<T extends { published_at?: string | null; published
   return { kept: ordered.slice(0, Math.max(0, total)), dropped: ordered.slice(Math.max(0, total)) };
 }
 
+export type DeskSelectable = {
+  published_at?: string | null;
+  published?: string | null;
+  title?: string | null;
+  source?: string | null;
+};
+
+/**
+ * Desk selection: newest-first, but with two fairness rules layered on the
+ * total cap —
+ *  - no single source may take more than `perSource` slots, and
+ *  - photo-gallery listicles only fill slots left over by real reporting, up to
+ *    `galleryMax`.
+ */
+export function selectDeskItems<T extends DeskSelectable>(
+  items: T[],
+  cap: DeskCap,
+): { kept: T[]; dropped: T[]; galleries: number; sourceCapDropped: number } {
+  const ordered = [...items].sort(
+    (a, b) =>
+      publishedMs(b.published_at ?? b.published) - publishedMs(a.published_at ?? a.published),
+  );
+  const total = Math.max(0, cap.total);
+  const kept: T[] = [];
+  const keptSet = new Set<T>();
+  const perSource = new Map<string, number>();
+  let galleries = 0;
+  let sourceCapDropped = 0;
+
+  const consider = (item: T, gallery: boolean): void => {
+    if (kept.length >= total) return;
+    if (gallery && galleries >= Math.max(0, cap.galleryMax)) return;
+    const source = (item.source ?? "").trim().toLowerCase() || "unknown";
+    const used = perSource.get(source) ?? 0;
+    if (used >= Math.max(1, cap.perSource)) {
+      sourceCapDropped += 1;
+      return;
+    }
+    perSource.set(source, used + 1);
+    kept.push(item);
+    keptSet.add(item);
+    if (gallery) galleries += 1;
+  };
+
+  for (const item of ordered) if (!isGalleryTitle(item.title)) consider(item, false);
+  for (const item of ordered) if (isGalleryTitle(item.title)) consider(item, true);
+
+  return {
+    kept,
+    dropped: ordered.filter((i) => !keptSet.has(i)),
+    galleries,
+    sourceCapDropped,
+  };
+}
+
+
 export type DeskFunnel = {
   fetched: number;
   after_classify: number;
