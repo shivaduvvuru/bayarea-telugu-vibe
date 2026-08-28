@@ -3114,8 +3114,10 @@ export async function collectDesk(
           // Kept on the queue row so the desk can see why an item landed on a
           // given desk without re-running the classifier.
           classify_reason: reason,
+          // Photo-gallery listicles are flagged so the desk cap can downrank them.
+          gallery: isGalleryTitle(it.title),
           desk,
-          collectedAt: today,
+
         },
       });
     });
