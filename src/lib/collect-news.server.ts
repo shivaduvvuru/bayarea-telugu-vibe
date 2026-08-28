@@ -1808,6 +1808,35 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
 
+  // Platform press rooms (streaming/OTT first-party announcements)
+  {
+    name: "Prime Video India OTT press",
+    url: "https://www.aboutamazon.in/rss/feed.rss",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "JioHotstar OTT newsroom",
+    url: "https://www.jiostar.com/feed",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Disney+ streaming newsroom",
+    url: "https://thewaltdisneycompany.com/feed/",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    // Netflix's press room offers no RSS, so its announcements come via a
+    // Google News sweep of the official newsroom domain.
+    name: "Netflix India OTT press (sweep)",
+    url: "https://news.google.com/rss/search?q=site:about.netflix.com+india+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+
   // Mollywood — Malayalam cinema
   {
     name: "Onmanorama entertainment",
