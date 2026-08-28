@@ -137,7 +137,9 @@ export async function findHardDuplicate(
     );
     if (same) return { id: same.id, score: 1, reason: "title-source" };
   }
-  if (image) {
+  // House placeholders (local /*.webp fallbacks) are shared by every photo-less
+  // story, so they say nothing about identity — never match on them.
+  if (image && !isSharedPlaceholderImage(candidate.image_url)) {
     const hit = (await rows("canonical_image", image))[0];
     if (hit) return { id: hit.id, score: 1, reason: "image-canonical" };
   }
