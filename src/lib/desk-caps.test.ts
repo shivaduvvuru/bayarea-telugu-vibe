@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DESK_CAPS, capByRecency, deskCap, takeUpTo } from "./desk-caps";
+import { DESK_CAPS, capByRecency, deskCap, isGalleryTitle, selectDeskItems, takeUpTo } from "./desk-caps";
 
 type Item = { id: string; published_at: string | null };
 
@@ -60,5 +60,68 @@ describe("per-desk caps", () => {
     expect(deskCap("news").total).toBe(8);
     expect(deskCap("events").total).toBe(8);
     expect(deskCap(undefined)).toEqual(DESK_CAPS.default);
+  });
+});
+
+describe("gallery downrank and source diversity", () => {
+  const item = (id: string, title: string, source: string, minutes: number) => ({
+    id,
+    title,
+    source,
+    published_at: new Date(Date.UTC(2026, 7, 28) - minutes * 60_000).toISOString(),
+  });
+
+  it("flags gallery titles", () => {
+    for (const t of [
+      "Latest Photos of the star",
+      "New Photos from the sets",
+      "Photo Gallery: red carpet",
+      "Pics: premiere night",
+      "In Pics, the film's first look",
+    ]) {
+      expect(isGalleryTitle(t)).toBe(true);
+    }
+    expect(isGalleryTitle("Box office report for the weekend")).toBe(false);
+    expect(isGalleryTitle(null)).toBe(false);
+  });
+
+  it("caps galleries at 3 and fills them only after real reporting", () => {
+    // Galleries are the newest items, so recency alone would keep all 10.
+    const galleries = Array.from({ length: 10 }, (_, i) =>
+      item(`g${i}`, `Latest Photos ${i}`, `Gallery Site ${i}`, i),
+    );
+    const stories = Array.from({ length: 30 }, (_, i) =>
+      item(`s${i}`, `Cinema story ${i}`, `Trade Site ${i}`, 100 + i),
+    );
+    const { kept, galleries: galleryCount } = selectDeskItems(
+      [...galleries, ...stories],
+      deskCap("cinema"),
+    );
+    expect(galleryCount).toBe(3);
+    expect(kept.filter((k) => isGalleryTitle(k.title))).toHaveLength(3);
+    // Non-gallery items are placed first, galleries take the tail slots.
+    expect(kept.slice(0, 30).every((k) => !isGalleryTitle(k.title))).toBe(true);
+    expect(kept).toHaveLength(33);
+  });
+
+  it("caps any single source at 8 of the 40 cinema slots", () => {
+    const prolific = Array.from({ length: 25 }, (_, i) =>
+      item(`p${i}`, `Prolific story ${i}`, "Prolific Feed", i),
+    );
+    const others = Array.from({ length: 25 }, (_, i) =>
+      item(`o${i}`, `Other story ${i}`, `Other Feed ${i}`, 50 + i),
+    );
+    const { kept, sourceCapDropped } = selectDeskItems([...prolific, ...others], deskCap("cinema"));
+    expect(kept).toHaveLength(33);
+    expect(kept.filter((k) => k.source === "Prolific Feed")).toHaveLength(8);
+    expect(sourceCapDropped).toBe(17);
+  });
+
+  it("treats micro-drama with its own 20 total and the same source cap", () => {
+    const items = Array.from({ length: 40 }, (_, i) =>
+      item(`m${i}`, `Vertical drama ${i}`, i % 2 === 0 ? "Feed A" : "Feed B", i),
+    );
+    const { kept } = selectDeskItems(items, deskCap("micro-drama"));
+    expect(kept).toHaveLength(16);
   });
 });
