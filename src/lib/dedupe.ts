@@ -134,7 +134,9 @@ export function contentDedupeKeys(item: {
   // Feeds and CMS rows name these fields differently; accept every spelling so
   // one story cannot slip through under an alternate key.
   const url = item.sourceUrl ?? item.link_url ?? item.url;
-  const image = usableImage(item.image ?? item.image_url);
+  const rawImage = item.image ?? item.image_url;
+  // Shared house placeholders identify nothing; ignore them as a key.
+  const image = isSharedPlaceholderImage(rawImage) ? null : usableImage(rawImage);
   return [
     title ? `t:${title}` : "",
     // Near-duplicate headlines (same story, different tail) collapse too.
