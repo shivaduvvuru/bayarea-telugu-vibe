@@ -17,13 +17,17 @@ export type DeskCap = {
   perFeed: number;
   /** Items read from one Google News / search sweep query. */
   perSweepQuery: number;
+  /** Photo-gallery listicles kept per run; they only fill leftover slots. */
+  galleryMax: number;
+  /** Items one source may occupy of this desk's total, for diversity. */
+  perSource: number;
 };
 
 export const DESK_CAPS: Record<"cinema" | "micro-drama" | "default", DeskCap> = {
-  cinema: { total: 40, perFeed: 12, perSweepQuery: 8 },
-  "micro-drama": { total: 20, perFeed: 8, perSweepQuery: 8 },
+  cinema: { total: 40, perFeed: 12, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
+  "micro-drama": { total: 20, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
   // news and every other desk keep the previous behaviour.
-  default: { total: 8, perFeed: 8, perSweepQuery: 8 },
+  default: { total: 8, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
 };
 
 export function deskCap(desk: string | null | undefined): DeskCap {
@@ -31,6 +35,17 @@ export function deskCap(desk: string | null | undefined): DeskCap {
   if (desk === "micro-drama") return DESK_CAPS["micro-drama"];
   return DESK_CAPS.default;
 }
+
+/**
+ * Photo-gallery listicles ("Latest Photos", "In Pics") are legitimate cinema
+ * traffic but crowd out reporting, so they are flagged and downranked.
+ */
+const GALLERY_TITLE = /latest photos|new photos|photo gallery|pics\s*:|in pics/i;
+
+export function isGalleryTitle(title: string | null | undefined): boolean {
+  return GALLERY_TITLE.test(title ?? "");
+}
+
 
 /** Fetch-time cap: stop reading a feed once its cap is hit. */
 export function takeUpTo<T>(items: T[], cap: number): { items: T[]; capHit: boolean } {
