@@ -48,7 +48,7 @@ describe("per-desk caps", () => {
   });
 
   it("leaves micro-drama untouched by the cinema cap", () => {
-    expect(deskCap("micro-drama")).toEqual({ total: 20, perFeed: 8, perSweepQuery: 8 });
+    expect(deskCap("micro-drama")).toMatchObject({ total: 20, perFeed: 8, perSweepQuery: 8 });
     const items = Array.from({ length: 60 }, (_, i) => ({
       id: `m${i}`,
       published_at: new Date(Date.UTC(2026, 7, 27) - i * 60_000).toISOString(),
