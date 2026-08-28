@@ -25,7 +25,12 @@
  * (they still must not repeat a title or URL).
  */
 
-import { canonicalUrl, canonicalImage, strictTitleKey } from "./dedupe";
+import {
+  canonicalUrl,
+  canonicalImage,
+  strictTitleKey,
+  isSharedPlaceholderImage,
+} from "./dedupe";
 
 export const BODY_SIMILARITY_THRESHOLD = 0.85;
 /** Loose headline threshold for cross-publisher repeats. */
