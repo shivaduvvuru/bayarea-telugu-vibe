@@ -3030,7 +3030,13 @@ export async function collectDesk(
   }
   let fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
   {
-    const pending: { item: RawItem; desk: "cinema" | "micro-drama"; published?: string | null }[] = [];
+    const pending: {
+      item: RawItem;
+      desk: "cinema" | "micro-drama";
+      published?: string | null;
+      title?: string | null;
+      source?: string | null;
+    }[] = [];
     const seen = new Set<string>();
     for (const g of summaryPool) {
       const fb = fallbackOf.get(g.key) ?? deskFallback;
@@ -3046,17 +3052,20 @@ export async function collectDesk(
           item,
           desk: category === MICRO_DRAMA_SLUG ? "micro-drama" : "cinema",
           published: item.published,
+          title: item.title,
+          source: item.source ?? g.key,
         });
       }
     }
     const keep = new Set<RawItem>();
     for (const name of ["cinema", "micro-drama"] as const) {
-      const { kept } = capByRecency(
+      const { kept } = selectDeskItems(
         pending.filter((p) => p.desk === name),
-        deskCap(name).total,
+        deskCap(name),
       );
       for (const p of kept) keep.add(p.item);
     }
+
     for (const g of summaryPool) g.items = g.items.filter((it) => keep.has(it));
     const after = summaryPool.reduce((n, g) => n + g.items.length, 0);
     lastDiag.notes.push(
