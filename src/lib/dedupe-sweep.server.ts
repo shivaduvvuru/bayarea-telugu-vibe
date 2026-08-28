@@ -37,7 +37,8 @@ export function duplicateIds(rows: Row[]): string[] {
       // Same story re-worded by another desk: match on the headline's lead.
       title.length > 28 ? `p:${title.slice(0, 28)}` : "",
       r.link_url ? `u:${urlKey(r.link_url)}` : "",
-      r.image_url ? `i:${urlKey(r.image_url)}` : "",
+      // House placeholder artwork is shared by every photo-less story.
+      r.image_url && !isSharedPlaceholderImage(r.image_url) ? `i:${urlKey(r.image_url)}` : "",
     ].filter(Boolean);
     if (keys.some((k) => seen.has(k))) {
       drop.push(r.id);
