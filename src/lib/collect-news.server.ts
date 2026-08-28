@@ -22,9 +22,12 @@ import {
   capByRecency,
   deskCap,
   emptyFunnel,
+  isGalleryTitle,
+  selectDeskItems,
   takeUpTo,
   type DeskFunnel,
 } from "./desk-caps";
+
 import {
   resolveGoogleNewsUrls,
   resolveGoogleNewsUrl,
@@ -1805,6 +1808,35 @@ const PUBLISHER_FEEDS: {
     limit: 6,
   },
 
+  // Platform press rooms (streaming/OTT first-party announcements)
+  {
+    name: "Prime Video India OTT press",
+    url: "https://www.aboutamazon.in/rss/feed.rss",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "JioHotstar OTT newsroom",
+    url: "https://www.jiostar.com/feed",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Disney+ streaming newsroom",
+    url: "https://thewaltdisneycompany.com/feed/",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    // Netflix's press room offers no RSS, so its announcements come via a
+    // Google News sweep of the official newsroom domain.
+    name: "Netflix India OTT press (sweep)",
+    url: "https://news.google.com/rss/search?q=site:about.netflix.com+india+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+
+
   // Mollywood — Malayalam cinema
   {
     name: "Onmanorama entertainment",
@@ -3030,7 +3062,13 @@ export async function collectDesk(
   }
   let fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
   {
-    const pending: { item: RawItem; desk: "cinema" | "micro-drama"; published?: string | null }[] = [];
+    const pending: {
+      item: RawItem;
+      desk: "cinema" | "micro-drama";
+      published?: string | null;
+      title?: string | null;
+      source?: string | null;
+    }[] = [];
     const seen = new Set<string>();
     for (const g of summaryPool) {
       const fb = fallbackOf.get(g.key) ?? deskFallback;
@@ -3046,17 +3084,20 @@ export async function collectDesk(
           item,
           desk: category === MICRO_DRAMA_SLUG ? "micro-drama" : "cinema",
           published: item.published,
+          title: item.title,
+          source: item.source ?? g.key,
         });
       }
     }
     const keep = new Set<RawItem>();
     for (const name of ["cinema", "micro-drama"] as const) {
-      const { kept } = capByRecency(
+      const { kept } = selectDeskItems(
         pending.filter((p) => p.desk === name),
-        deskCap(name).total,
+        deskCap(name),
       );
       for (const p of kept) keep.add(p.item);
     }
+
     for (const g of summaryPool) g.items = g.items.filter((it) => keep.has(it));
     const after = summaryPool.reduce((n, g) => n + g.items.length, 0);
     lastDiag.notes.push(
@@ -3102,8 +3143,12 @@ export async function collectDesk(
           // Kept on the queue row so the desk can see why an item landed on a
           // given desk without re-running the classifier.
           classify_reason: reason,
+          // Photo-gallery listicles are flagged so the desk cap can downrank them.
+          gallery: isGalleryTitle(it.title),
           desk,
           collectedAt: today,
+
+
         },
       });
     });
@@ -3142,7 +3187,7 @@ export async function collectDesk(
   for (const name of ["cinema", "micro-drama"] as const) {
     const classified = rows.filter((r) => deskOf(r) === name);
     const unique = deduped.filter((r) => deskOf(r) === name);
-    const { kept, dropped } = capByRecency(unique, deskCap(name).total);
+    const { kept, dropped, galleries, sourceCapDropped } = selectDeskItems(unique, deskCap(name));
     capped.push(...kept);
     const funnel = emptyFunnel();
     funnel.fetched = name === desk ? fetchedTotal : 0;
@@ -3153,9 +3198,11 @@ export async function collectDesk(
     funnels[name] = funnel;
     lastDiag.notes.push(
       `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
-        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}`,
+        `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}, ` +
+        `galleries ${galleries}, source_cap_dropped ${sourceCapDropped}`,
     );
   }
+
   lastDiag.deskFunnel = funnels;
   const capNote = Object.entries(lastDiag.feedCaps)
     .map(([name, s]) => `${name} ${s.fetched}${s.cap_hit ? " (cap hit)" : ""}`)
