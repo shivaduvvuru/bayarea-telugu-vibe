@@ -3143,6 +3143,13 @@ export async function collectDesk(
       const fb = fallbackOf.get(g.key) ?? deskFallback;
       for (const item of g.items) {
         const { category } = deskCategoryForItem(item, fb);
+        const itemDesk = category === MICRO_DRAMA_SLUG ? "micro-drama" : "cinema";
+        // English-only gate, before summarization: a majority non-Latin headline
+        // is never published, so it must not cost a model call either.
+        if (!isEnglishTitle(item.title)) {
+          droppedLanguage[itemDesk] += 1;
+          continue;
+        }
         const keys = [
           itemDedupeKey(BAY_AREA.slug, item.title, item.link),
           ...storyIdentityKeys(item.title, item.link),
