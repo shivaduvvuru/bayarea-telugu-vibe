@@ -132,6 +132,8 @@ export function selectDeskItems<T extends DeskSelectable>(
 
 export type DeskFunnel = {
   fetched: number;
+  /** Non-English (majority non-Latin script) headlines dropped pre-summary. */
+  dropped_language: number;
   after_classify: number;
   after_dedupe: number;
   after_cap: number;
@@ -139,5 +141,12 @@ export type DeskFunnel = {
 };
 
 export function emptyFunnel(): DeskFunnel {
-  return { fetched: 0, after_classify: 0, after_dedupe: 0, after_cap: 0, cap_dropped: 0 };
+  return {
+    fetched: 0,
+    dropped_language: 0,
+    after_classify: 0,
+    after_dedupe: 0,
+    after_cap: 0,
+    cap_dropped: 0,
+  };
 }
