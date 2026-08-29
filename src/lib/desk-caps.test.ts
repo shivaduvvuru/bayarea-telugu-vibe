@@ -19,12 +19,12 @@ function cinemaItems(): Item[] {
 }
 
 describe("per-desk caps", () => {
-  it("caps cinema at 40 and drops the oldest 20", () => {
+  it("caps cinema at 50 and drops the oldest 10", () => {
     const items = cinemaItems();
     expect(items).toHaveLength(60);
     const { kept, dropped } = capByRecency(items, deskCap("cinema").total);
-    expect(kept).toHaveLength(40);
-    expect(dropped).toHaveLength(20);
+    expect(kept).toHaveLength(50);
+    expect(dropped).toHaveLength(10);
     const keptOldest = Math.min(...kept.map((i) => Date.parse(i.published_at!)));
     const droppedNewest = Math.max(...dropped.map((i) => Date.parse(i.published_at!)));
     expect(keptOldest).toBeGreaterThan(droppedNewest);
@@ -48,12 +48,12 @@ describe("per-desk caps", () => {
   });
 
   it("leaves micro-drama untouched by the cinema cap", () => {
-    expect(deskCap("micro-drama")).toMatchObject({ total: 20, perFeed: 8, perSweepQuery: 8 });
+    expect(deskCap("micro-drama")).toMatchObject({ total: 30, perFeed: 8, perSweepQuery: 8 });
     const items = Array.from({ length: 60 }, (_, i) => ({
       id: `m${i}`,
       published_at: new Date(Date.UTC(2026, 7, 27) - i * 60_000).toISOString(),
     }));
-    expect(capByRecency(items, deskCap("micro-drama").total).kept).toHaveLength(20);
+    expect(capByRecency(items, deskCap("micro-drama").total).kept).toHaveLength(30);
   });
 
   it("keeps news and unknown desks on the previous behaviour", () => {
@@ -104,7 +104,7 @@ describe("gallery downrank and source diversity", () => {
     expect(kept).toHaveLength(33);
   });
 
-  it("caps any single source at 8 of the 40 cinema slots", () => {
+  it("caps any single source at 8 of the 50 cinema slots", () => {
     const prolific = Array.from({ length: 25 }, (_, i) =>
       item(`p${i}`, `Prolific story ${i}`, "Prolific Feed", i),
     );
