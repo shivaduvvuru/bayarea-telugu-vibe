@@ -3269,6 +3269,7 @@ export async function collectDesk(
     capped.push(...kept);
     const funnel = emptyFunnel();
     funnel.fetched = name === desk ? fetchedTotal : 0;
+    funnel.dropped_language = droppedLanguage[name];
     funnel.after_classify = classified.length;
     funnel.after_dedupe = unique.length;
     funnel.after_cap = kept.length;
