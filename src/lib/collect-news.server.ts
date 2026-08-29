@@ -27,6 +27,8 @@ import {
   takeUpTo,
   type DeskFunnel,
 } from "./desk-caps";
+import { isEnglishTitle } from "./language-gate";
+
 
 import {
   resolveGoogleNewsUrls,
@@ -943,6 +945,9 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Bollywood Hindi movie news release review box office",
       "Telugu OR Hindi movie US premiere theatres Bay Area California",
       "Tollywood OR Bollywood actor film shooting update",
+      "Tollywood OTT release",
+      "Telugu movie review",
+      "Telugu cinema box office",
     ],
     match:
       /tollywood|bollywood|telugu (?:film|movie|cinema)|hindi (?:film|movie|cinema)|box office|teaser|trailer|first look|premiere|movie review|actor|actress|director|ott release/,
@@ -956,6 +961,8 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Indian web series OTT premiere review streaming",
       "Netflix OR Prime Video OR JioHotstar India new series announcement",
       "Telugu movie OTT streaming date digital rights",
+      "India OTT release this week",
+      "Netflix India OR Prime Video India new release",
     ],
     match:
       /ott|streaming|web series|netflix|prime video|amazon prime|hotstar|jiohotstar|\baha\b|zee5|sony ?liv|apple tv|disney\+|episode|season|series/,
@@ -976,6 +983,12 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "ReelShort OR DramaBox short drama actress photos glamour",
       "China duanju short drama actress star photos",
       "India micro drama heroine actress vertical series photos",
+      // India-focused sweeps: no established RSS exists for vertical drama here.
+      "\"micro drama\" India",
+      "\"vertical drama\" India OR Telugu OR Hindi",
+      "ReelShort India",
+      "DramaBox India",
+      "Kuku TV OR Pocket FM drama",
     ],
     match:
       /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|flickreels|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
@@ -998,7 +1011,12 @@ async function fetchTopics(
   opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
-  const cap = deskCap(topicDesk(group));
+  const desk = topicDesk(group);
+  const cap = deskCap(desk);
+  // Cinema and micro-drama sweeps read the Indian edition but stay locked to
+  // English, so Telugu-script results never enter the funnel.
+  const locale =
+    desk === "other" ? "hl=en-US&gl=US&ceid=US:en" : "hl=en-IN&gl=IN&ceid=IN:en";
   const results = await Promise.all(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
@@ -1008,7 +1026,7 @@ async function fetchTopics(
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
-            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&${locale}`,
             { label: `topic:${group.kind}:google` },
           )) ?? parsed;
       }
@@ -1745,6 +1763,57 @@ const PUBLISHER_FEEDS: {
 
   // Tollywood — Telugu cinema, OTT and box office
   { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 15 },
+  // Pan-India cinema / OTT in English. Direct RSS only where the publisher's
+  // feed was verified to return items; the rest are Google News site: sweeps
+  // locked to English (hl=en-IN&gl=IN&ceid=IN:en).
+  {
+    name: "India Today Movies",
+    url: "https://www.indiatoday.in/rss/1206614",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Hindustan Times Entertainment",
+    url: "https://www.hindustantimes.com/feeds/rss/entertainment/rssfeed.xml",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Tupaki English (search)",
+    url: "https://news.google.com/rss/search?q=site:tupaki.com+(movie+OR+cinema+OR+OTT+OR+review)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Sakshi Post entertainment (search)",
+    url: "https://news.google.com/rss/search?q=site:sakshipost.com+(entertainment+OR+movie+OR+cinema+OR+OTT)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Hans India cinema (search)",
+    url: "https://news.google.com/rss/search?q=site:thehansindia.com+(cinema+OR+movie+OR+OTT+OR+entertainment)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Film Companion (search)",
+    url: "https://news.google.com/rss/search?q=site:filmcompanion.in+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "News18 Movies (search)",
+    url: "https://news.google.com/rss/search?q=site:news18.com+(movies+OR+%22web+series%22+OR+OTT)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Scroll Reel (search)",
+    url: "https://news.google.com/rss/search?q=site:scroll.in%2Freel+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
   {
     name: "CineJosh & Tollywood.net",
     url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
@@ -1771,7 +1840,8 @@ const PUBLISHER_FEEDS: {
   },
   {
     name: "Sakshi & Eenadu cinema",
-    url: "https://news.google.com/rss/search?q=(site:sakshi.com+OR+site:eenadu.net)+(cinema+OR+%E0%B0%B8%E0%B0%BF%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BE)+when:3d&hl=te&gl=IN&ceid=IN:te",
+    // English locale only — Telugu-script headlines are dropped by the language gate.
+    url: "https://news.google.com/rss/search?q=(site:sakshi.com+OR+site:eenadu.net)+cinema+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
     kind: "news",
     limit: 6,
   },
@@ -3061,6 +3131,7 @@ export async function collectDesk(
     fallbackOf.set(g.key, topicDesk(g.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
   }
   let fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  const droppedLanguage: Record<"cinema" | "micro-drama", number> = { cinema: 0, "micro-drama": 0 };
   {
     const pending: {
       item: RawItem;
@@ -3074,6 +3145,13 @@ export async function collectDesk(
       const fb = fallbackOf.get(g.key) ?? deskFallback;
       for (const item of g.items) {
         const { category } = deskCategoryForItem(item, fb);
+        const itemDesk = category === MICRO_DRAMA_SLUG ? "micro-drama" : "cinema";
+        // English-only gate, before summarization: a majority non-Latin headline
+        // is never published, so it must not cost a model call either.
+        if (!isEnglishTitle(item.title)) {
+          droppedLanguage[itemDesk] += 1;
+          continue;
+        }
         const keys = [
           itemDedupeKey(BAY_AREA.slug, item.title, item.link),
           ...storyIdentityKeys(item.title, item.link),
@@ -3102,7 +3180,8 @@ export async function collectDesk(
     const after = summaryPool.reduce((n, g) => n + g.items.length, 0);
     lastDiag.notes.push(
       `pre-summary prune: ${fetchedTotal} fetched, ${after} sent to summary ` +
-        `(${fetchedTotal - after} already known, duplicate or over cap)`,
+        `(${fetchedTotal - after} already known, duplicate, non-English or over cap; ` +
+        `dropped_language cinema ${droppedLanguage.cinema}, micro-drama ${droppedLanguage["micro-drama"]})`,
     );
   }
 
@@ -3191,13 +3270,15 @@ export async function collectDesk(
     capped.push(...kept);
     const funnel = emptyFunnel();
     funnel.fetched = name === desk ? fetchedTotal : 0;
+    funnel.dropped_language = droppedLanguage[name];
     funnel.after_classify = classified.length;
     funnel.after_dedupe = unique.length;
     funnel.after_cap = kept.length;
     funnel.cap_dropped = dropped.length;
     funnels[name] = funnel;
     lastDiag.notes.push(
-      `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
+      `desk ${name}: fetched ${funnel.fetched}, dropped_language ${funnel.dropped_language}, ` +
+        `after_classify ${funnel.after_classify}, ` +
         `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}, ` +
         `galleries ${galleries}, source_cap_dropped ${sourceCapDropped}`,
     );

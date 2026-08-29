@@ -24,8 +24,8 @@ export type DeskCap = {
 };
 
 export const DESK_CAPS: Record<"cinema" | "micro-drama" | "default", DeskCap> = {
-  cinema: { total: 40, perFeed: 12, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
-  "micro-drama": { total: 20, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
+  cinema: { total: 50, perFeed: 12, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
+  "micro-drama": { total: 30, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
   // news and every other desk keep the previous behaviour.
   default: { total: 8, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
 };
@@ -132,6 +132,8 @@ export function selectDeskItems<T extends DeskSelectable>(
 
 export type DeskFunnel = {
   fetched: number;
+  /** Non-English (majority non-Latin script) headlines dropped pre-summary. */
+  dropped_language: number;
   after_classify: number;
   after_dedupe: number;
   after_cap: number;
@@ -139,5 +141,12 @@ export type DeskFunnel = {
 };
 
 export function emptyFunnel(): DeskFunnel {
-  return { fetched: 0, after_classify: 0, after_dedupe: 0, after_cap: 0, cap_dropped: 0 };
+  return {
+    fetched: 0,
+    dropped_language: 0,
+    after_classify: 0,
+    after_dedupe: 0,
+    after_cap: 0,
+    cap_dropped: 0,
+  };
 }
