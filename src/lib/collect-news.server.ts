@@ -1024,7 +1024,7 @@ async function fetchTopics(
       if (!parsed?.length) {
         parsed =
           (await fetchFeed(
-            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&hl=en-US&gl=US&ceid=US:en`,
+            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}+when:7d&${locale}`,
             { label: `topic:${group.kind}:google` },
           )) ?? parsed;
       }
