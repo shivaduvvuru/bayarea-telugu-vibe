@@ -1822,7 +1822,8 @@ const PUBLISHER_FEEDS: {
   },
   {
     name: "Sakshi & Eenadu cinema",
-    url: "https://news.google.com/rss/search?q=(site:sakshi.com+OR+site:eenadu.net)+(cinema+OR+%E0%B0%B8%E0%B0%BF%E0%B0%A8%E0%B0%BF%E0%B0%AE%E0%B0%BE)+when:3d&hl=te&gl=IN&ceid=IN:te",
+    // English locale only — Telugu-script headlines are dropped by the language gate.
+    url: "https://news.google.com/rss/search?q=(site:sakshi.com+OR+site:eenadu.net)+cinema+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
     kind: "news",
     limit: 6,
   },
