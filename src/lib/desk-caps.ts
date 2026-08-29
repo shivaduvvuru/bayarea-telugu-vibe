@@ -24,8 +24,8 @@ export type DeskCap = {
 };
 
 export const DESK_CAPS: Record<"cinema" | "micro-drama" | "default", DeskCap> = {
-  cinema: { total: 40, perFeed: 12, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
-  "micro-drama": { total: 20, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
+  cinema: { total: 50, perFeed: 12, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
+  "micro-drama": { total: 30, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
   // news and every other desk keep the previous behaviour.
   default: { total: 8, perFeed: 8, perSweepQuery: 8, galleryMax: 3, perSource: 8 },
 };
