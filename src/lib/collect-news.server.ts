@@ -1745,6 +1745,57 @@ const PUBLISHER_FEEDS: {
 
   // Tollywood — Telugu cinema, OTT and box office
   { name: "TeluguCinema.com", url: "https://www.telugucinema.com/feed", kind: "news", limit: 15 },
+  // Pan-India cinema / OTT in English. Direct RSS only where the publisher's
+  // feed was verified to return items; the rest are Google News site: sweeps
+  // locked to English (hl=en-IN&gl=IN&ceid=IN:en).
+  {
+    name: "India Today Movies",
+    url: "https://www.indiatoday.in/rss/1206614",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Hindustan Times Entertainment",
+    url: "https://www.hindustantimes.com/feeds/rss/entertainment/rssfeed.xml",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "Tupaki English (search)",
+    url: "https://news.google.com/rss/search?q=site:tupaki.com+(movie+OR+cinema+OR+OTT+OR+review)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Sakshi Post entertainment (search)",
+    url: "https://news.google.com/rss/search?q=site:sakshipost.com+(entertainment+OR+movie+OR+cinema+OR+OTT)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Hans India cinema (search)",
+    url: "https://news.google.com/rss/search?q=site:thehansindia.com+(cinema+OR+movie+OR+OTT+OR+entertainment)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Film Companion (search)",
+    url: "https://news.google.com/rss/search?q=site:filmcompanion.in+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "News18 Movies (search)",
+    url: "https://news.google.com/rss/search?q=site:news18.com+(movies+OR+%22web+series%22+OR+OTT)+when:3d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Scroll Reel (search)",
+    url: "https://news.google.com/rss/search?q=site:scroll.in%2Freel+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
+    kind: "news",
+    limit: 6,
+  },
   {
     name: "CineJosh & Tollywood.net",
     url: "https://news.google.com/rss/search?q=(site:cinejosh.com+OR+site:tollywood.net+OR+site:aakashavaani.com)+when:7d&hl=en-IN&gl=IN&ceid=IN:en",
