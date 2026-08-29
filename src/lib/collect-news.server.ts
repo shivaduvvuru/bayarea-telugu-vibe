@@ -3180,7 +3180,8 @@ export async function collectDesk(
     const after = summaryPool.reduce((n, g) => n + g.items.length, 0);
     lastDiag.notes.push(
       `pre-summary prune: ${fetchedTotal} fetched, ${after} sent to summary ` +
-        `(${fetchedTotal - after} already known, duplicate or over cap)`,
+        `(${fetchedTotal - after} already known, duplicate, non-English or over cap; ` +
+        `dropped_language cinema ${droppedLanguage.cinema}, micro-drama ${droppedLanguage["micro-drama"]})`,
     );
   }
 
