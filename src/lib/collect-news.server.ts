@@ -3276,7 +3276,8 @@ export async function collectDesk(
     funnel.cap_dropped = dropped.length;
     funnels[name] = funnel;
     lastDiag.notes.push(
-      `desk ${name}: fetched ${funnel.fetched}, after_classify ${funnel.after_classify}, ` +
+      `desk ${name}: fetched ${funnel.fetched}, dropped_language ${funnel.dropped_language}, ` +
+        `after_classify ${funnel.after_classify}, ` +
         `after_dedupe ${funnel.after_dedupe}, after_cap ${funnel.after_cap}, cap_dropped ${funnel.cap_dropped}, ` +
         `galleries ${galleries}, source_cap_dropped ${sourceCapDropped}`,
     );
