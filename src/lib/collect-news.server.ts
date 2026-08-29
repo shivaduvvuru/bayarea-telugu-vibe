@@ -27,6 +27,8 @@ import {
   takeUpTo,
   type DeskFunnel,
 } from "./desk-caps";
+import { isEnglishTitle } from "./language-gate";
+
 
 import {
   resolveGoogleNewsUrls,
