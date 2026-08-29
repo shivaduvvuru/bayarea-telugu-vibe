@@ -981,6 +981,12 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "ReelShort OR DramaBox short drama actress photos glamour",
       "China duanju short drama actress star photos",
       "India micro drama heroine actress vertical series photos",
+      // India-focused sweeps: no established RSS exists for vertical drama here.
+      "\"micro drama\" India",
+      "\"vertical drama\" India OR Telugu OR Hindi",
+      "ReelShort India",
+      "DramaBox India",
+      "Kuku TV OR Pocket FM drama",
     ],
     match:
       /micro[- ]?drama|short[- ]?drama|vertical (?:drama|series|video)|reelshort|dramabox|flickreels|dramawave|goodshort|shortmax|holywater|flick ?tv|pocket ?fm|kuku ?fm|duanju|micro ?series/,
