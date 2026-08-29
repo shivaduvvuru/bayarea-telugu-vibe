@@ -943,6 +943,9 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Bollywood Hindi movie news release review box office",
       "Telugu OR Hindi movie US premiere theatres Bay Area California",
       "Tollywood OR Bollywood actor film shooting update",
+      "Tollywood OTT release",
+      "Telugu movie review",
+      "Telugu cinema box office",
     ],
     match:
       /tollywood|bollywood|telugu (?:film|movie|cinema)|hindi (?:film|movie|cinema)|box office|teaser|trailer|first look|premiere|movie review|actor|actress|director|ott release/,
