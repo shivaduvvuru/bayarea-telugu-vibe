@@ -1009,7 +1009,12 @@ async function fetchTopics(
   opts?: { limit?: number },
 ): Promise<RawItem[]> {
   const JUNK = /obituary|obituaries|death notice|horoscope|lottery|box score/;
-  const cap = deskCap(topicDesk(group));
+  const desk = topicDesk(group);
+  const cap = deskCap(desk);
+  // Cinema and micro-drama sweeps read the Indian edition but stay locked to
+  // English, so Telugu-script results never enter the funnel.
+  const locale =
+    desk === "other" ? "hl=en-US&gl=US&ceid=US:en" : "hl=en-IN&gl=IN&ceid=IN:en";
   const results = await Promise.all(
     group.queries.map(async (q) => {
       let parsed = await fetchFeed(
