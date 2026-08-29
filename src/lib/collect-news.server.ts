@@ -3129,6 +3129,7 @@ export async function collectDesk(
     fallbackOf.set(g.key, topicDesk(g.group) === "micro-drama" ? MICRO_DRAMA_SLUG : CINEMA_SLUG);
   }
   let fetchedTotal = summaryPool.reduce((n, g) => n + g.items.length, 0);
+  const droppedLanguage: Record<"cinema" | "micro-drama", number> = { cinema: 0, "micro-drama": 0 };
   {
     const pending: {
       item: RawItem;
