@@ -959,6 +959,8 @@ const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: Reg
       "Indian web series OTT premiere review streaming",
       "Netflix OR Prime Video OR JioHotstar India new series announcement",
       "Telugu movie OTT streaming date digital rights",
+      "India OTT release this week",
+      "Netflix India OR Prime Video India new release",
     ],
     match:
       /ott|streaming|web series|netflix|prime video|amazon prime|hotstar|jiohotstar|\baha\b|zee5|sony ?liv|apple tv|disney\+|episode|season|series/,
