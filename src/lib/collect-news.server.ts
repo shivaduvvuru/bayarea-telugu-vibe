@@ -2880,16 +2880,17 @@ export async function collectAll(
   rows.push(...publisherBatches.flat());
 
 
-  // First-party newsroom: our own WordPress site (bayarea.telugutimes.net).
+  // First-party newsrooms: both the Bay Area edition and the English national edition.
+  // These rows use the same identity keys and downstream duplicate guard as all feeds.
   try {
-    const { fetchWordPressPosts, WP_SOURCE_NAME } = await import("./wp-source.server");
-    const posts = await fetchWordPressPosts(300);
-    lastDiag.notes.push(`wordpress: ${posts.length} posts`);
+    const { fetchAllWordPressPosts } = await import("./wp-source.server");
+    const posts = await fetchAllWordPressPosts(300);
+    lastDiag.notes.push(`wordpress: ${posts.length} posts across both editions`);
     for (const p of posts) {
       const kind =
-        p.categorySlug === "events"
+        p.categorySlug === "events" || p.categorySlug === "event"
           ? ("event" as const)
-          : p.categorySlug === "temples"
+          : p.categorySlug === "temples" || p.categorySlug === "temple"
             ? ("temple" as const)
             : classify(p.title);
       const dedupe = itemDedupeKey(BAY_AREA.slug, p.title, p.link);
@@ -2901,7 +2902,7 @@ export async function collectAll(
         city_slug: BAY_AREA.slug,
         title: p.title,
         summary: p.summary,
-        source: WP_SOURCE_NAME,
+        source: p.sourceName,
         source_url: p.link,
         published_at: p.published,
         origin: "feed" as const,
@@ -2911,7 +2912,7 @@ export async function collectAll(
           citySlug: BAY_AREA.slug,
           title: p.title,
           summary: p.summary,
-          source: WP_SOURCE_NAME,
+          source: p.sourceName,
           sourceUrl: p.link,
           image: p.image,
           category: p.categorySlug,
@@ -2922,6 +2923,7 @@ export async function collectAll(
   } catch (e) {
     lastDiag.notes.push(`wordpress pull failed: ${e instanceof Error ? e.message : String(e)}`);
   }
+
 
   // Temple announcements come from each temple's own website, not news search —
   // news feeds almost never carry seva / utsavam notices.
