@@ -36,6 +36,7 @@ import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
+import { BrigadePromo } from "@/components/brigade-promo";
 import { PropertyHero } from "@/components/property-hero";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 
@@ -830,6 +831,10 @@ function Home() {
         {/* Compact editorial hero: a curated 4–5 story slider (6s cross-fade),
             sized so the next section is visible without a full-screen scroll. */}
         <StoryHeroSlider articles={heroSliderPool} />
+
+        {/* Brigade Barcelona showcase: sits between the city-news slider and
+            the CREDAI sponsor carousel. */}
+        <BrigadePromo className="mt-4" />
 
         {/* Sponsor carousel: CREDAI banner first, then the vertical anniversary
             edition features. */}
