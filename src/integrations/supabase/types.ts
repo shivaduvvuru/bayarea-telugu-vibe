@@ -1156,6 +1156,48 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          campaign: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          preferred_city: string | null
+          preferred_dates: string | null
+          source_page: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign?: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          preferred_city?: string | null
+          preferred_dates?: string | null
+          source_page?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          preferred_city?: string | null
+          preferred_dates?: string | null
+          source_page?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           day: string
