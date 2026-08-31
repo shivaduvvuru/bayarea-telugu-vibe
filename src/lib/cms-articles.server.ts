@@ -15,6 +15,7 @@ import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { uniqueByContent } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { glamourRotation } from "./glamour-rotation";
+import { ownSiteSectionOf } from "./own-site";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
