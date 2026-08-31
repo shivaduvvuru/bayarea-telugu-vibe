@@ -99,20 +99,8 @@ function cityNameOf(slug: string): string | undefined {
   return CITY_CATEGORIES.find((c) => c.slug === slug)?.en;
 }
 
-/**
- * First-party newsroom posts carry their section in the permalink path. Both
- * editions count as our own newsroom: bayarea.telugutimes.net and the English
- * national edition on www.telugutimes.net.
- */
-function ownSiteSection(link: string | null): string | null {
-  if (!link || !/(^|\.)telugutimes\.net/i.test(safeHost(link))) return null;
-  try {
-    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
-    return seg ?? null;
-  } catch {
-    return null;
-  }
-}
+/** First-party newsroom posts carry their section in the permalink path. */
+const ownSiteSection = (link: string | null): string | null => ownSiteSectionOf(link);
 
 function toArticle(row: Row): Article {
   // Rows published before the India sections existed carry a plain "news"
