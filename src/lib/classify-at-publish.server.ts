@@ -15,6 +15,7 @@ import { isBayArea, isBayAreaSource } from "./bay-area";
 import { classifyIndia, INDIA_SLUGS } from "./india-topics";
 import { isCinema, isStarGallery, CINEMA_SLUG } from "./cinema-topics";
 import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
+import { ownSiteSectionOf } from "./own-site";
 
 export type ClassifiableRow = {
   title: string | null;
@@ -26,13 +27,7 @@ export type ClassifiableRow = {
 
 /** First-party newsroom posts carry their section in the permalink path. */
 export function ownSiteSection(link: string | null | undefined): string | null {
-  if (!link || !link.includes("bayarea.telugutimes.net")) return null;
-  try {
-    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
-    return seg ?? null;
-  } catch {
-    return null;
-  }
+  return ownSiteSectionOf(link);
 }
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
@@ -101,8 +96,11 @@ export function resolveIsLocal(
   if (isMicroDrama(title, summary, linkUrl)) return false;
   const own = ownSiteSection(linkUrl);
   if (own !== null) {
+    // Our own newsrooms (both editions) are the paper's own reporting: their
+    // stories belong in City News unless they are film or picture-desk items.
     if (own === "cinema" || own === "gallery") return false;
-    return isBayArea(title) || isBayAreaSource(linkUrl);
+    if (isStarGallery(title, summary, linkUrl)) return false;
+    return true;
   }
   if (INDIA_SLUGS.includes(category as (typeof INDIA_SLUGS)[number])) return false;
   if (classifyIndia(title, summary, linkUrl) !== null) return false;

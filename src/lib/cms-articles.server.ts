@@ -15,6 +15,7 @@ import { isMicroDrama, MICRO_DRAMA_SLUG } from "./microdrama-topics";
 import { uniqueByContent } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { glamourRotation } from "./glamour-rotation";
+import { ownSiteSectionOf } from "./own-site";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
@@ -100,15 +101,7 @@ function cityNameOf(slug: string): string | undefined {
 }
 
 /** First-party newsroom posts carry their section in the permalink path. */
-function ownSiteSection(link: string | null): string | null {
-  if (!link || !link.includes("bayarea.telugutimes.net")) return null;
-  try {
-    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
-    return seg ?? null;
-  } catch {
-    return null;
-  }
-}
+const ownSiteSection = (link: string | null): string | null => ownSiteSectionOf(link);
 
 function toArticle(row: Row): Article {
   // Rows published before the India sections existed carry a plain "news"
