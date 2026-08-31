@@ -621,12 +621,12 @@ export const Route = createFileRoute("/api/public/hooks/collect-news")({
           let wpRemoved = 0;
           if (!galleryOnly && !cinemaOnly) {
             try {
-              const { fetchWordPressPosts, syncWordPressRemovals } = await import(
+              const { fetchAllWordPressPosts, syncWordPressRemovals } = await import(
                 "@/lib/wp-source.server"
               );
               wpRemoved = await syncWordPressRemovals(
                 supabaseAdmin as never,
-                await fetchWordPressPosts(300),
+                await fetchAllWordPressPosts(300),
               );
             } catch (e) {
               console.error("wordpress removal sync failed", e);
