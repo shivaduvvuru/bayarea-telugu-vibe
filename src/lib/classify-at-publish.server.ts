@@ -26,13 +26,7 @@ export type ClassifiableRow = {
 
 /** First-party newsroom posts carry their section in the permalink path. */
 export function ownSiteSection(link: string | null | undefined): string | null {
-  if (!link || !link.includes("bayarea.telugutimes.net")) return null;
-  try {
-    const seg = new URL(link).pathname.split("/").filter(Boolean)[0]?.toLowerCase();
-    return seg ?? null;
-  } catch {
-    return null;
-  }
+  return ownSiteSectionOf(link);
 }
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
