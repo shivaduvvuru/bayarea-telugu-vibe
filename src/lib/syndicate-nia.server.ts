@@ -248,6 +248,7 @@ export async function syndicateNewIndiaAbroad(
         image_url: meta.image ?? known?.image_url ?? null,
         published_at: entry.publishedAt,
         fetched_at: new Date().toISOString(),
+        status: "published",
       });
       if (!known) inserted += 1;
       else updated += 1;
