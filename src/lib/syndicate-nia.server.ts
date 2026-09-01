@@ -46,6 +46,7 @@ export type SyndicatedRow = {
   image_url: string | null;
   published_at: string | null;
   fetched_at: string;
+  status: "published";
 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
