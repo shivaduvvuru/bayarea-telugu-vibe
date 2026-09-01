@@ -7,23 +7,24 @@ import { SmartImage } from "@/components/smart-image";
 export function SyndicatedNewsBlock({ stories }: { stories: SyndicatedStory[] }) {
   if (!stories.length) return null;
   return (
-    <section aria-labelledby="new-india-abroad-heading" className="mt-8 border-y border-border py-6">
+    <section aria-labelledby="wire-desk-heading" className="mt-8 border-y border-border py-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">
-            <Newspaper className="h-4 w-4" aria-hidden /> International desk
+            <Newspaper className="h-4 w-4" aria-hidden /> Wire desk
           </p>
-          <h2 id="new-india-abroad-heading" className="mt-1 text-xl font-bold text-ink sm:text-2xl">
-            From New India Abroad
+          <h2 id="wire-desk-heading" className="mt-1 text-xl font-bold text-ink sm:text-2xl">
+            More Indian-American Headlines
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Latest reporting from the New India Abroad newsroom.
+            Diaspora and India coverage from partner newsrooms, credited and linked to the source.
           </p>
         </div>
         <Link to="/category/$category" params={{ category: "city-news" }} className="text-sm font-semibold text-primary">
           All City News
         </Link>
       </div>
+
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {stories.map((story) => (
           <article key={story.id} className="min-w-0">
