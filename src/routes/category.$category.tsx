@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { canonical } from "@/lib/site";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { categoryBySlug } from "@/lib/content";
 import { SectionHeading, StoryCard, ListRow } from "@/components/news";
 import { DigestNote } from "@/components/source-credit";
@@ -13,9 +13,19 @@ import { GalleryTile, CityNewsGlamourSlide } from "@/components/category-tiles";
 import { useHiddenPhotos } from "@/lib/photo-favorites";
 import { NewsFreshness, PullToRefresh } from "@/components/refresh-news";
 import { CityHeadlineBlock, cityHeadlineQuery } from "@/components/city-headline-hero";
+import { SyndicatedNewsBlock } from "@/components/syndicated-news-block";
+import { listSyndicatedStories } from "@/lib/syndicated.functions";
 import { LIVE_DESKS, mixInto, postsQuery, isTempleArticle } from "@/lib/category-query";
 import { TempleWeekStrip } from "@/components/temple-week-strip";
 import { useGlamourShown } from "@/lib/use-glamour-shown";
+
+const syndicatedStoriesQuery = queryOptions({
+  queryKey: ["syndicated-stories", "new-india-abroad"],
+  queryFn: () => listSyndicatedStories(),
+  staleTime: 10 * 60 * 1000,
+});
+
+
 
 
 export const Route = createFileRoute("/category/$category")({
@@ -40,12 +50,14 @@ export const Route = createFileRoute("/category/$category")({
   loader: async ({ params, context }) => {
     const cat = categoryBySlug(params.category);
     if (!cat) throw notFound();
-    // Both reads are independent: awaiting them together keeps the first HTML
-    // response off a second round trip.
+    // Independent reads start together so City News does not pay a second round trip.
     const [, headline] = await Promise.all([
       context.queryClient.ensureQueryData(postsQuery(cat.slug)),
       cat.slug === "city-news"
         ? context.queryClient.ensureQueryData(cityHeadlineQuery)
+        : Promise.resolve(null),
+      cat.slug === "city-news"
+        ? context.queryClient.ensureQueryData(syndicatedStoriesQuery)
         : Promise.resolve(null),
     ]);
     return { cat, headline: headline ?? null };
@@ -91,6 +103,7 @@ export const Route = createFileRoute("/category/$category")({
 function CategoryPage() {
   const { cat, headline } = Route.useLoaderData();
   const { data: allArticles, dataUpdatedAt } = useSuspenseQuery(postsQuery(cat.slug));
+  const { data: syndicatedStories } = useQuery({ ...syndicatedStoriesQuery, enabled: cat.slug === "city-news" });
   const { hidden, hiddenImages } = useHiddenPhotos();
   const isCity = cat.slug === "city-news";
   const { data: cinemaMix = [] } = useQuery({ ...postsQuery("cinema"), enabled: isCity });
@@ -170,6 +183,7 @@ function CategoryPage() {
       ) : null}
       <div className="mt-6">
         {cat.slug === "city-news" ? <CityHeadlineBlock trending={articles} initial={headline} /> : null}
+        {cat.slug === "city-news" ? <SyndicatedNewsBlock stories={syndicatedStories ?? []} /> : null}
         {cat.slug === "city-news" ? <TempleWeekStrip /> : null}
         {cat.slug === "gallery" && articles.length > 0 ? (
           <GalleryDualHero items={articles} onOpen={(i) => setViewerIndex(i)} />

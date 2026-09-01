@@ -72,6 +72,7 @@ import { Route as TemplesNewsRouteImport } from './routes/temples.news'
 import { Route as AuthenticatedAdminDriveImportRouteImport } from './routes/_authenticated/admin.drive-import'
 import { Route as AuthenticatedAdminDuplicatesRouteImport } from './routes/_authenticated/admin.duplicates'
 import { Route as AuthenticatedAdminHealthRouteImport } from './routes/_authenticated/admin.health'
+import { Route as AuthenticatedAdminSyndicationRouteImport } from './routes/_authenticated/admin/syndication'
 import { Route as ApiPublicRefreshContentRouteImport } from './routes/api/public/refresh-content'
 import { Route as FoodCollectionSlugRouteImport } from './routes/food.collection.$slug'
 import { Route as FoodRestaurantSlugRouteImport } from './routes/food.restaurant.$slug'
@@ -89,6 +90,7 @@ import { Route as ApiPublicHooksHealthAuditRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksIndiaIngestRouteImport } from './routes/api/public/hooks/india-ingest'
 import { Route as ApiPublicHooksIngestSourcesRouteImport } from './routes/api/public/hooks/ingest-sources'
 import { Route as ApiPublicHooksPublishNewsRouteImport } from './routes/api/public/hooks/publish-news'
+import { Route as ApiPublicHooksSyndicateRouteImport } from './routes/api/public/hooks/syndicate'
 import { Route as ApiPublicHooksTempleCalendarRouteImport } from './routes/api/public/hooks/temple-calendar'
 import { Route as ApiPublicHooksYelpRestaurantsRouteImport } from './routes/api/public/hooks/yelp-restaurants'
 import { Route as ApiPublicMediaSplatRouteImport } from './routes/api/public/media/$'
@@ -410,6 +412,12 @@ const AuthenticatedAdminHealthRoute =
     path: '/health',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSyndicationRoute =
+  AuthenticatedAdminSyndicationRouteImport.update({
+    id: '/syndication',
+    path: '/syndication',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicRefreshContentRoute = ApiPublicRefreshContentRouteImport.update({
   id: '/api/public/refresh-content',
   path: '/api/public/refresh-content',
@@ -505,6 +513,11 @@ const ApiPublicHooksPublishNewsRoute =
     path: '/api/public/hooks/publish-news',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksSyndicateRoute = ApiPublicHooksSyndicateRouteImport.update({
+  id: '/api/public/hooks/syndicate',
+  path: '/api/public/hooks/syndicate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksTempleCalendarRoute =
   ApiPublicHooksTempleCalendarRouteImport.update({
     id: '/api/public/hooks/temple-calendar',
@@ -586,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
+  '/admin/syndication': typeof AuthenticatedAdminSyndicationRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -603,6 +617,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
+  '/api/public/hooks/syndicate': typeof ApiPublicHooksSyndicateRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
@@ -666,6 +681,7 @@ export interface FileRoutesByTo {
   '/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/admin/health': typeof AuthenticatedAdminHealthRoute
+  '/admin/syndication': typeof AuthenticatedAdminSyndicationRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -683,6 +699,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
+  '/api/public/hooks/syndicate': typeof ApiPublicHooksSyndicateRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
@@ -752,6 +769,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/drive-import': typeof AuthenticatedAdminDriveImportRoute
   '/_authenticated/admin/duplicates': typeof AuthenticatedAdminDuplicatesRoute
   '/_authenticated/admin/health': typeof AuthenticatedAdminHealthRoute
+  '/_authenticated/admin/syndication': typeof AuthenticatedAdminSyndicationRoute
   '/api/public/refresh-content': typeof ApiPublicRefreshContentRoute
   '/food/collection/$slug': typeof FoodCollectionSlugRoute
   '/food/restaurant/$slug': typeof FoodRestaurantSlugRoute
@@ -769,6 +787,7 @@ export interface FileRoutesById {
   '/api/public/hooks/india-ingest': typeof ApiPublicHooksIndiaIngestRoute
   '/api/public/hooks/ingest-sources': typeof ApiPublicHooksIngestSourcesRoute
   '/api/public/hooks/publish-news': typeof ApiPublicHooksPublishNewsRoute
+  '/api/public/hooks/syndicate': typeof ApiPublicHooksSyndicateRoute
   '/api/public/hooks/temple-calendar': typeof ApiPublicHooksTempleCalendarRoute
   '/api/public/hooks/yelp-restaurants': typeof ApiPublicHooksYelpRestaurantsRoute
   '/api/public/media/$': typeof ApiPublicMediaSplatRoute
@@ -838,6 +857,7 @@ export interface FileRouteTypes {
     | '/admin/drive-import'
     | '/admin/duplicates'
     | '/admin/health'
+    | '/admin/syndication'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -855,6 +875,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
+    | '/api/public/hooks/syndicate'
     | '/api/public/hooks/temple-calendar'
     | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
@@ -918,6 +939,7 @@ export interface FileRouteTypes {
     | '/admin/drive-import'
     | '/admin/duplicates'
     | '/admin/health'
+    | '/admin/syndication'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -935,6 +957,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
+    | '/api/public/hooks/syndicate'
     | '/api/public/hooks/temple-calendar'
     | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
@@ -1003,6 +1026,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/drive-import'
     | '/_authenticated/admin/duplicates'
     | '/_authenticated/admin/health'
+    | '/_authenticated/admin/syndication'
     | '/api/public/refresh-content'
     | '/food/collection/$slug'
     | '/food/restaurant/$slug'
@@ -1020,6 +1044,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/india-ingest'
     | '/api/public/hooks/ingest-sources'
     | '/api/public/hooks/publish-news'
+    | '/api/public/hooks/syndicate'
     | '/api/public/hooks/temple-calendar'
     | '/api/public/hooks/yelp-restaurants'
     | '/api/public/media/$'
@@ -1086,6 +1111,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIndiaIngestRoute: typeof ApiPublicHooksIndiaIngestRoute
   ApiPublicHooksIngestSourcesRoute: typeof ApiPublicHooksIngestSourcesRoute
   ApiPublicHooksPublishNewsRoute: typeof ApiPublicHooksPublishNewsRoute
+  ApiPublicHooksSyndicateRoute: typeof ApiPublicHooksSyndicateRoute
   ApiPublicHooksTempleCalendarRoute: typeof ApiPublicHooksTempleCalendarRoute
   ApiPublicHooksYelpRestaurantsRoute: typeof ApiPublicHooksYelpRestaurantsRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
@@ -1534,6 +1560,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHealthRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/syndication': {
+      id: '/_authenticated/admin/syndication'
+      path: '/syndication'
+      fullPath: '/admin/syndication'
+      preLoaderRoute: typeof AuthenticatedAdminSyndicationRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/refresh-content': {
       id: '/api/public/refresh-content'
       path: '/api/public/refresh-content'
@@ -1653,6 +1686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPublishNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/syndicate': {
+      id: '/api/public/hooks/syndicate'
+      path: '/api/public/hooks/syndicate'
+      fullPath: '/api/public/hooks/syndicate'
+      preLoaderRoute: typeof ApiPublicHooksSyndicateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/temple-calendar': {
       id: '/api/public/hooks/temple-calendar'
       path: '/api/public/hooks/temple-calendar'
@@ -1681,12 +1721,14 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDriveImportRoute: typeof AuthenticatedAdminDriveImportRoute
   AuthenticatedAdminDuplicatesRoute: typeof AuthenticatedAdminDuplicatesRoute
   AuthenticatedAdminHealthRoute: typeof AuthenticatedAdminHealthRoute
+  AuthenticatedAdminSyndicationRoute: typeof AuthenticatedAdminSyndicationRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDriveImportRoute: AuthenticatedAdminDriveImportRoute,
   AuthenticatedAdminDuplicatesRoute: AuthenticatedAdminDuplicatesRoute,
   AuthenticatedAdminHealthRoute: AuthenticatedAdminHealthRoute,
+  AuthenticatedAdminSyndicationRoute: AuthenticatedAdminSyndicationRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -1831,6 +1873,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIndiaIngestRoute: ApiPublicHooksIndiaIngestRoute,
   ApiPublicHooksIngestSourcesRoute: ApiPublicHooksIngestSourcesRoute,
   ApiPublicHooksPublishNewsRoute: ApiPublicHooksPublishNewsRoute,
+  ApiPublicHooksSyndicateRoute: ApiPublicHooksSyndicateRoute,
   ApiPublicHooksTempleCalendarRoute: ApiPublicHooksTempleCalendarRoute,
   ApiPublicHooksYelpRestaurantsRoute: ApiPublicHooksYelpRestaurantsRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,
