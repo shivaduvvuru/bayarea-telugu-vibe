@@ -2449,6 +2449,87 @@ export type Database = {
         }
         Relationships: []
       }
+      syndicated_stories: {
+        Row: {
+          canonical_url: string
+          created_at: string
+          excerpt: string | null
+          fetched_at: string
+          id: string
+          image_url: string | null
+          published_at: string | null
+          source_category: string | null
+          source_name: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_url: string
+          created_at?: string
+          excerpt?: string | null
+          fetched_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          source_category?: string | null
+          source_name?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string
+          created_at?: string
+          excerpt?: string | null
+          fetched_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          source_category?: string | null
+          source_name?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      syndication_runs: {
+        Row: {
+          elapsed_ms: number | null
+          error: string | null
+          fetched_count: number
+          finished_at: string
+          id: string
+          new_count: number
+          source_name: string
+          started_at: string
+          trigger: string
+        }
+        Insert: {
+          elapsed_ms?: number | null
+          error?: string | null
+          fetched_count?: number
+          finished_at?: string
+          id?: string
+          new_count?: number
+          source_name?: string
+          started_at?: string
+          trigger?: string
+        }
+        Update: {
+          elapsed_ms?: number | null
+          error?: string | null
+          fetched_count?: number
+          finished_at?: string
+          id?: string
+          new_count?: number
+          source_name?: string
+          started_at?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
       temple_events: {
         Row: {
           all_day: boolean
