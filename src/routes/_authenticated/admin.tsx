@@ -148,6 +148,9 @@ function AdminPage() {
           <Button variant="outline" size="sm" asChild>
             <Link to="/health">Source health</Link>
           </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/admin/syndication">New India Abroad</Link>
+          </Button>
 
           <Button variant="outline" size="sm" onClick={signOut}>
             Sign out
