@@ -32,6 +32,7 @@ import { Route as FoodIngestRouteImport } from './routes/food-ingest'
 import { Route as FoodMergeRouteImport } from './routes/food-merge'
 import { Route as FoundationIconsRouteImport } from './routes/foundation-icons'
 import { Route as GlamourDashboardRouteImport } from './routes/glamour-dashboard'
+import { Route as GlamourStudioRouteImport } from './routes/glamour-studio'
 import { Route as LiteRouteImport } from './routes/lite'
 import { Route as LocalDirectoryRouteImport } from './routes/local-directory'
 import { Route as LuxedeskRouteImport } from './routes/luxedesk'
@@ -204,6 +205,11 @@ const FoundationIconsRoute = FoundationIconsRouteImport.update({
 const GlamourDashboardRoute = GlamourDashboardRouteImport.update({
   id: '/glamour-dashboard',
   path: '/glamour-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlamourStudioRoute = GlamourStudioRouteImport.update({
+  id: '/glamour-studio',
+  path: '/glamour-studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LiteRoute = LiteRouteImport.update({
@@ -540,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
+  '/glamour-studio': typeof GlamourStudioRoute
   '/lite': typeof LiteRoute
   '/local-directory': typeof LocalDirectoryRoute
   '/luxedesk': typeof LuxedeskRoute
@@ -621,6 +628,7 @@ export interface FileRoutesByTo {
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
+  '/glamour-studio': typeof GlamourStudioRoute
   '/lite': typeof LiteRoute
   '/local-directory': typeof LocalDirectoryRoute
   '/luxedesk': typeof LuxedeskRoute
@@ -704,6 +712,7 @@ export interface FileRoutesById {
   '/food-merge': typeof FoodMergeRoute
   '/foundation-icons': typeof FoundationIconsRoute
   '/glamour-dashboard': typeof GlamourDashboardRoute
+  '/glamour-studio': typeof GlamourStudioRoute
   '/lite': typeof LiteRoute
   '/local-directory': typeof LocalDirectoryRoute
   '/luxedesk': typeof LuxedeskRoute
@@ -789,6 +798,7 @@ export interface FileRouteTypes {
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
+    | '/glamour-studio'
     | '/lite'
     | '/local-directory'
     | '/luxedesk'
@@ -870,6 +880,7 @@ export interface FileRouteTypes {
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
+    | '/glamour-studio'
     | '/lite'
     | '/local-directory'
     | '/luxedesk'
@@ -952,6 +963,7 @@ export interface FileRouteTypes {
     | '/food-merge'
     | '/foundation-icons'
     | '/glamour-dashboard'
+    | '/glamour-studio'
     | '/lite'
     | '/local-directory'
     | '/luxedesk'
@@ -1037,6 +1049,7 @@ export interface RootRouteChildren {
   FoodMergeRoute: typeof FoodMergeRoute
   FoundationIconsRoute: typeof FoundationIconsRoute
   GlamourDashboardRoute: typeof GlamourDashboardRoute
+  GlamourStudioRoute: typeof GlamourStudioRoute
   LiteRoute: typeof LiteRoute
   LocalDirectoryRoute: typeof LocalDirectoryRoute
   LuxedeskRoute: typeof LuxedeskRoute
@@ -1239,6 +1252,13 @@ declare module '@tanstack/react-router' {
       path: '/glamour-dashboard'
       fullPath: '/glamour-dashboard'
       preLoaderRoute: typeof GlamourDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glamour-studio': {
+      id: '/glamour-studio'
+      path: '/glamour-studio'
+      fullPath: '/glamour-studio'
+      preLoaderRoute: typeof GlamourStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lite': {
@@ -1774,6 +1794,7 @@ const rootRouteChildren: RootRouteChildren = {
   FoodMergeRoute: FoodMergeRoute,
   FoundationIconsRoute: FoundationIconsRoute,
   GlamourDashboardRoute: GlamourDashboardRoute,
+  GlamourStudioRoute: GlamourStudioRoute,
   LiteRoute: LiteRoute,
   LocalDirectoryRoute: LocalDirectoryRoute,
   LuxedeskRoute: LuxedeskRoute,
