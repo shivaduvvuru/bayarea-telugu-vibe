@@ -19,17 +19,9 @@ const SITEMAP_URL = "https://www.newindiaabroad.com/english/news/sitemap.xml.gz"
 const USER_AGENT =
   "TimesBayAreaBot/1.0 (+https://www.timesbayarea.com; news digest, contact: editor@timesbayarea.com)";
 
-/** English sections we syndicate. Anything else (hindi/gujarati/…) is skipped. */
-const SECTIONS = [
-  "news",
-  "immigration",
-  "technology",
-  "diplomacy",
-  "business",
-  "features",
-  "entertainment",
-  "indian-diaspora-community",
-];
+/** Sections we never syndicate; everything else under /english/ is fair game. */
+const BLOCKED_SECTIONS = ["sponsored", "advertorial", "press-release", "opinion"];
+
 
 const MAX_AGE_MS = 3 * 24 * 3600 * 1000;
 const MAX_ITEMS = 40;
