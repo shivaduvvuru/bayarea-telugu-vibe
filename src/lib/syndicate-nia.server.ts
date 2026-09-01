@@ -105,7 +105,7 @@ async function fetchSitemapHead(bytes = 600_000): Promise<string> {
   // .gz body needs decompressing ourselves.
   if (!enc.includes("gzip") && typeof DecompressionStream !== "undefined") {
     try {
-      stream = stream.pipeThrough(new DecompressionStream("gzip"));
+      stream = stream.pipeThrough(new DecompressionStream("gzip") as unknown as ReadableWritablePair<Uint8Array, Uint8Array>);
     } catch {
       /* already plain XML */
     }
@@ -219,7 +219,7 @@ export async function syndicateNewIndiaAbroad(
       .slice(0, MAX_ITEMS);
     candidates = fresh.length;
 
-    const urls = fresh.map((e) => e.canonical_url ?? e.url);
+    const urls = fresh.map((e) => e.url);
     const { data: existingRows } = await db
       .from("syndicated_stories")
       .select("canonical_url,image_url,excerpt")
