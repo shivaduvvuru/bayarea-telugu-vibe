@@ -128,7 +128,7 @@ export function parseSitemapEntries(xml: string): SitemapEntry[] {
     if (!loc) continue;
     const url = canonicalStoryUrl(loc);
     const section = sectionOf(loc) ?? "";
-    if (!SECTIONS.includes(section)) continue;
+    if (!section || BLOCKED_SECTIONS.includes(section)) continue;
     const title = decodeEntities(/<news:title>([\s\S]*?)<\/news:title>/.exec(block)?.[1] ?? "");
     const date = /<news:publication_date>\s*([^<]+?)\s*<\/news:publication_date>/.exec(block)?.[1];
     if (!title) continue;
