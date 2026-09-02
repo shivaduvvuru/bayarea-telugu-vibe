@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, X, Youtube } from "lucide-react";
+import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, Sparkles, X, Youtube } from "lucide-react";
 import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { useSignedIn, signOutSession } from "@/lib/session-state";
@@ -293,6 +293,14 @@ export function LiteHeader() {
           </a>
 
           <SocialIcons />
+          <Link
+            to="/"
+            hash="daily-smart-digest"
+            className="press hidden items-center gap-1 rounded-full border border-primary px-2.5 py-1 text-[11px] font-semibold text-primary sm:inline-flex"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Smart Digest
+          </Link>
           <Link
             to="/search"
             search={{ q: "" }}

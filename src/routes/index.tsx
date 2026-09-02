@@ -12,6 +12,7 @@ import { usableImage } from "@/lib/story-image";
 import { contentDedupeKeys } from "@/lib/dedupe";
 import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
+import { SmartDigest } from "@/components/smart-digest";
 import {
   isPrimeBannerFresh,
   pickPrimeStory,
@@ -1008,6 +1009,14 @@ function Home() {
             ))}
           </section>
         )}
+
+        {/* Pre-classified digest, read straight from the articles table. */}
+        <section id="daily-smart-digest" className="mt-5 scroll-mt-24">
+          <Head more={<MoreTo to="/digest" label="Open digest" />}>Daily Smart Digest</Head>
+          <div className="mt-3">
+            <SmartDigest embedded />
+          </div>
+        </section>
 
         {uniquePolitics.length > 0 && (
           <section className="mt-5">
