@@ -296,7 +296,7 @@ export function LiteHeader() {
           <Link
             to="/"
             hash="daily-smart-digest"
-            className="press hidden items-center gap-1 rounded-full border border-primary px-2.5 py-1 text-[11px] font-semibold text-primary sm:inline-flex"
+            className="press inline-flex items-center gap-1 rounded-full border border-primary px-2.5 py-1 text-[11px] font-semibold text-primary"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Smart Digest
