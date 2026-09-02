@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.match_articles(vector(768), double precision, integer) FROM authenticated;
