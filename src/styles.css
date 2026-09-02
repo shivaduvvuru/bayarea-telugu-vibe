@@ -172,6 +172,14 @@
     border-color: var(--color-border);
   }
 
+  /* In-page shortcuts (e.g. the Smart Digest chip) glide instead of jumping. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
