@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          city: string | null
+          content_item_id: string | null
+          created_at: string
+          desk: string
+          id: string
+          image_url: string | null
+          importance_score: number
+          published_at: string
+          source_name: string | null
+          source_url: string | null
+          status: string
+          summary: string | null
+          summary_bullets: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          desk: string
+          id?: string
+          image_url?: string | null
+          importance_score?: number
+          published_at?: string
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          summary?: string | null
+          summary_bullets?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          content_item_id?: string | null
+          created_at?: string
+          desk?: string
+          id?: string
+          image_url?: string | null
+          importance_score?: number
+          published_at?: string
+          source_name?: string | null
+          source_url?: string | null
+          status?: string
+          summary?: string | null
+          summary_bullets?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           active: boolean
