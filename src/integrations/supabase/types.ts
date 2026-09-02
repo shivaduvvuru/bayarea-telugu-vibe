@@ -20,6 +20,7 @@ export type Database = {
           content_item_id: string | null
           created_at: string
           desk: string
+          embedding: string | null
           id: string
           image_url: string | null
           importance_score: number
@@ -37,6 +38,7 @@ export type Database = {
           content_item_id?: string | null
           created_at?: string
           desk: string
+          embedding?: string | null
           id?: string
           image_url?: string | null
           importance_score?: number
@@ -54,6 +56,7 @@ export type Database = {
           content_item_id?: string | null
           created_at?: string
           desk?: string
+          embedding?: string | null
           id?: string
           image_url?: string | null
           importance_score?: number
@@ -2976,6 +2979,18 @@ export type Database = {
         Returns: undefined
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      match_articles: {
+        Args: {
+          match_count: number
+          match_threshold: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          similarity: number
+          title: string
+        }[]
+      }
       norm_title_strict: { Args: { _title: string }; Returns: string }
     }
     Enums: {

@@ -206,8 +206,15 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
   }
   if (!toInsert.length) return { inserted: 0, skipped: rows.length, duplicates: 0 };
 
-  const { error } = await db.from("content_items").insert(toInsert);
-  if (error) {
+  // Inserted rows are read back so the digest mirror can file them by desk.
+  const stored: Record<string, unknown>[] = [];
+  const { data: insertedRows, error } = await db
+    .from("content_items")
+    .insert(toInsert)
+    .select("*");
+  if (!error) {
+    stored.push(...((insertedRows ?? []) as Record<string, unknown>[]));
+  } else {
     if (!opts.skipGuard || error.code !== "23505") throw error;
     // Loud on purpose: this path costs one statement per row. If it shows up on
     // most publish runs, the pre-filter is missing repeats and the index should
@@ -215,15 +222,29 @@ export async function ingest(rows: IngestRow[], opts: { skipGuard?: boolean } = 
     let recovered = 0;
     let dropped = 0;
     for (const row of toInsert) {
-      const { error: rowError } = await db.from("content_items").insert([row]);
-      if (!rowError) recovered += 1;
-      else if (rowError.code === "23505") dropped += 1;
+      const { data: one, error: rowError } = await db
+        .from("content_items")
+        .insert([row])
+        .select("*");
+      if (!rowError) {
+        recovered += 1;
+        stored.push(...((one ?? []) as Record<string, unknown>[]));
+      } else if (rowError.code === "23505") dropped += 1;
       else throw rowError;
     }
     console.warn(
       `[ingest] per-row fallback fired: batch=${toInsert.length} inserted=${recovered} ` +
         `dropped_as_repeat=${dropped} trigger=${error.message}`,
     );
+  }
+
+  // Mirror into the digest's read table. Best effort: a mirror problem must
+  // never fail a publish run that already stored the newsroom rows.
+  try {
+    const { mirrorToArticles } = await import("@/lib/articles-mirror.server");
+    await mirrorToArticles(db as never, stored as never);
+  } catch (e) {
+    console.warn(`[digest] mirror failed: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   const duplicates = toInsert.filter((p) => p.status === "duplicate").length;
