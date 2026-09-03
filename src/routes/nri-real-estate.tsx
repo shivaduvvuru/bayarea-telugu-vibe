@@ -431,6 +431,10 @@ function NriRealEstatePage() {
             Amaravati — curated for Bay Area investors with RERA-clear titles, verified builders and
             end-to-end concierge support.
           </p>
+          <p className="mt-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+            All prices, yields and possession dates are developer estimates. Confirm RERA
+            registration, title and terms directly with the builder before purchase.
+          </p>
         </header>
 
         <HeroCarousel onEnquire={() => setModal(true)} />

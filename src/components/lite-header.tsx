@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ClipboardCheck, LogIn, LogOut, Search, Sparkles, X } from "lucide-react";
 import { useSignedIn, signOutSession } from "@/lib/session-state";
+import logoUrl from "@/assets/times-bay-area-logo-placeholder.png";
 
 
 /**
@@ -9,24 +10,25 @@ import { useSignedIn, signOutSession } from "@/lib/session-state";
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
 /** Focused top rail — the most-used destinations stay visible; the rest live in More. */
-const RAIL = [
+const RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
+  { to: "/directory", label: "Directory" },
   { to: "/events", label: "Events" },
   { to: "/food", label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-] as const;
+];
 
 /** Mobile top rail — concise discovery destinations; utilities live in the bottom bars. */
-const MOBILE_RAIL = [
+const MOBILE_RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-] as const;
+  { to: "/directory", label: "Directory" },
+];
 
 
 type MoreItem = { to: string; params?: { category: string }; label: string };
@@ -34,13 +36,21 @@ type MoreItem = { to: string; params?: { category: string }; label: string };
 /** Everything not already on a rail, grouped so the panel scans fast. */
 const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreItem> }> = [
   {
+    heading: "Community",
+    items: [
+      { to: "/submit", label: "Submit a Story" },
+      { to: "/directory", label: "Directory" },
+      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
+      { to: "/temples", label: "Temples" },
+    ],
+  },
+  {
     heading: "India",
     items: [
       { to: "/category/$category", params: { category: "india-immigration" }, label: "Immigration & Visa" },
       { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
       { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
-      
     ],
   },
   {
@@ -64,12 +74,9 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   {
     heading: "More from us",
     items: [
-      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
       { to: "/desk", label: "Review desk" },
-
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
-      { to: "/submit", label: "Submit a Story" },
       { to: "/about", label: "About Us" },
       { to: "/contact", label: "Advertise / Contact" },
     ],
@@ -188,12 +195,21 @@ export function LiteHeader() {
 
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
         <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
-          <span className="flex min-w-0 flex-col leading-none">
-            <span className="font-serif-display text-[22px] font-bold tracking-tight text-ink sm:text-[25px]">
-              Times Bay Area
-            </span>
-            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              For Indian Community — What Matters Around You
+          <span className="flex min-w-0 items-center gap-2 leading-none">
+            <img
+              src={logoUrl}
+              alt="Times Bay Area"
+              width={40}
+              height={40}
+              className="h-9 w-9 shrink-0 object-contain"
+            />
+            <span className="flex min-w-0 flex-col leading-none">
+              <span className="font-serif-display text-[22px] font-bold tracking-tight text-ink sm:text-[25px]">
+                Times Bay Area
+              </span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                For Indian Community — What Matters Around You
+              </span>
             </span>
           </span>
         </Link>
@@ -262,8 +278,7 @@ export function LiteHeader() {
             <Link
               key={i}
               to={item.to}
-              // @ts-expect-error — params only present on dynamic entries
-              params={item.params}
+              {...(item.params ? { params: item.params } : {})}
               activeProps={{ className: "underline" }}
               className="whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
             >
@@ -285,7 +300,7 @@ export function LiteHeader() {
             <Link
               key={i}
               to={item.to}
-              params={item.params}
+              {...(item.params ? { params: item.params } : {})}
               activeProps={{ className: "underline" }}
               className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
             >
