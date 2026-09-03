@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { RelativeDate } from "@/components/news";
+import { publicBullets, publicText } from "@/lib/public-text";
 
 /**
  * Presentation-only digest. Reads the pre-classified `articles` table directly —
@@ -63,12 +64,8 @@ const deskQuery = (desk: string, limit: number) =>
   });
 
 function bulletsOf(article: Article): string[] {
-  const raw = article.summary_bullets;
-  const list = Array.isArray(raw) ? raw : [];
-  return list
-    .map((b) => (typeof b === "string" ? b.trim() : ""))
-    .filter(Boolean)
-    .slice(0, 3);
+  // Internal editorial notes are dropped, never rendered.
+  return publicBullets(article.summary_bullets).slice(0, 3);
 }
 
 function SourceLink({ url }: { url: string | null }) {
@@ -178,8 +175,10 @@ function LeadHero({ headingLevel = "h1" }: { headingLevel?: "h1" | "h3" }) {
           </Heading>
           <SourceLink url={lead.source_url} />
         </div>
-        {lead.summary ? (
-          <p className="mt-2 text-sm text-muted-foreground sm:text-base">{lead.summary}</p>
+        {publicText(lead.summary) ? (
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+            {publicText(lead.summary)}
+          </p>
         ) : null}
         <MetaRow article={lead} />
         <Takeaways article={lead} />
