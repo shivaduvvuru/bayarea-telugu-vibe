@@ -1,9 +1,10 @@
+import { brandKey } from "@/lib/local-key";
 import { useCallback, useEffect, useState } from "react";
 import { track } from "@/lib/analytics";
 import type { Article } from "@/lib/content";
 
-const KEY = "batt-photo-favorites";
-const EVENT = "batt-photo-favorites-change";
+const KEY = brandKey("photo-favorites");
+const EVENT = "tba-photo-favorites-change";
 
 /** Minimal photo snapshot kept locally so favorites survive feed rotation. */
 export type FavoritePhoto = {
@@ -111,9 +112,9 @@ export function useFavoritePhoto(article: Article | FavoritePhoto) {
 
 /* ------------------------------ disliked photos ----------------------------- */
 
-const HIDDEN_KEY = "batt-photo-hidden";
-const HIDDEN_IMAGES_KEY = "batt-photo-hidden-images";
-const HIDDEN_EVENT = "batt-photo-hidden-change";
+const HIDDEN_KEY = brandKey("photo-hidden");
+const HIDDEN_IMAGES_KEY = brandKey("photo-hidden-images");
+const HIDDEN_EVENT = "tba-photo-hidden-change";
 
 function readList(key: string): string[] {
   if (typeof window === "undefined") return [];

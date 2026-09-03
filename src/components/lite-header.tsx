@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ClipboardCheck, LogIn, LogOut, Search, Sparkles, X } from "lucide-react";
 import { useSignedIn, signOutSession } from "@/lib/session-state";
-import logoUrl from "@/assets/times-bay-area-logo-placeholder.png";
+import logoUrl from "@/assets/times-bay-area-mark.png";
 
 
 /**

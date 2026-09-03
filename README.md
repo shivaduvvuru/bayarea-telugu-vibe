@@ -1,28 +1,8 @@
-# TBA
+# Times Bay Area
 
-check site being developed for bayraea at. https://bayarea.telugutimes.net/wp-admin/.  Admin User Name: admin
+Independent news site for the Indian community across the San Francisco Bay Area:
+local news, India coverage, cinema and entertainment, events, temples, food and a
+community directory.
 
-Admin Password: psBg12mWbaFU7EmBbhn7.    #purpose to develop using loveable desktop and mobile versions of what is intended in that site #
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://bayarea-telugu-vibe.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/21d2eeed-01e3-4e0e-a028-88e01859acea).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+Built with TanStack Start (React 19, Vite) and Lovable Cloud for data, auth and
+scheduled content ingestion.

@@ -1,7 +1,8 @@
+import { brandKey } from "@/lib/local-key";
 import { useCallback, useEffect, useState } from "react";
 import { track } from "@/lib/analytics";
 
-const KEY = "batt-saved";
+const KEY = brandKey("saved");
 
 function read(): string[] {
   if (typeof window === "undefined") return [];
