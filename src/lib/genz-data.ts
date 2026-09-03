@@ -116,7 +116,7 @@ export const SWIPE_STORIES: SwipeStory[] = [
   {
     id: "ss-weekend",
     kicker: "What's the Vibe?",
-    title: "A Telugu weekend in the Bay, from Friday night to Sunday lunch",
+    title: "An Indian weekend in the Bay, from Friday night to Sunday lunch",
     sample: true,
     cards: [
       {
