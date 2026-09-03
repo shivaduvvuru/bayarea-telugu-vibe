@@ -12,18 +12,19 @@ import logoUrl from "@/assets/times-bay-area-mark.png";
 /** Focused top rail — the most-used destinations stay visible; the rest live in More. */
 const RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/business", label: "Business News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
   { to: "/directory", label: "Directory" },
   { to: "/events", label: "Events" },
-  { to: "/food", label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
 ];
 
 /** Mobile top rail — concise discovery destinations; utilities live in the bottom bars. */
 const MOBILE_RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
+  { to: "/business", label: "Business News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
@@ -54,8 +55,9 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     ],
   },
   {
-    heading: "Food",
+    heading: "Business & Food",
     items: [
+      { to: "/business", label: "Business News" },
       { to: "/food", label: "Food home" },
       { to: "/food/restaurants", label: "All restaurants" },
       { to: "/food/deals", label: "Deals & coupons" },
