@@ -1,28 +1,15 @@
-import { TT_LINKS } from "@/lib/network-links";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Menu,
   X,
-  Youtube,
   Newspaper,
   Search,
-  Globe,
-  Instagram,
-  Facebook,
   ChevronDown,
 } from "lucide-react";
 import { CATEGORIES, CITY_REGIONS } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { onOpenMobileMenu } from "@/lib/ui-menu";
-
-
-/** Times Bay Area social profiles, shown as a row under the utility links. */
-const SOCIAL = [
-  { href: TT_LINKS.youtube, label: "YouTube", icon: Youtube },
-  { href: TT_LINKS.instagram, label: "Instagram", icon: Instagram },
-  { href: TT_LINKS.facebook, label: "Facebook", icon: Facebook },
-] as const;
 
 function SocialRow({ className = "" }: { className?: string }) {
   return (
