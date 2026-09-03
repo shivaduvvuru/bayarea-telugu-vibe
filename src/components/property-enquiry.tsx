@@ -5,9 +5,9 @@ import { BUDGET_BANDS, type Property } from "@/lib/property";
 import { cn } from "@/lib/utils";
 
 /**
- * One enquiry form for one or many shortlisted projects. Leads are stored
- * server-side with campaign attribution so Telugu Times can report interest
- * back to CREDAI and to each developer.
+  * One enquiry form for one or many shortlisted projects. Leads are stored
+  * server-side with campaign attribution so Times Bay Area can report interest
+  * back to CREDAI and to each developer.
  */
 export function PropertyEnquiry({
   campaignSlug,
@@ -72,7 +72,7 @@ export function PropertyEnquiry({
     >
       <h2 className="text-lg font-bold text-ink">Request project details</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Your enquiry goes to Telugu Times, which passes it to the developer. Nothing is shared
+        Your enquiry goes to Times Bay Area, which passes it to the developer. Nothing is shared
         beyond the projects you select.
       </p>
 
@@ -89,7 +89,7 @@ export function PropertyEnquiry({
 
       {state === "done" ? (
         <p className="mt-4 rounded-md border border-primary/40 bg-primary/10 p-3 text-sm font-semibold text-ink">
-          Thank you — your enquiry is recorded. The Telugu Times property desk will follow up.
+          Thank you — your enquiry is recorded. The Times Bay Area property desk will follow up.
         </p>
       ) : null}
 
@@ -159,7 +159,7 @@ export function PropertyEnquiry({
             </p>
           ) : null}
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Telugu Times is a media partner, not a broker or agent. Verify all project details,
+            Times Bay Area is a media partner, not a broker or agent. Verify all project details,
             approvals and pricing directly with the developer before making any payment.
           </p>
         </div>

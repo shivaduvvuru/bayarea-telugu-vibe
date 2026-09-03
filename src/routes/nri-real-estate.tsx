@@ -421,7 +421,7 @@ function NriRealEstatePage() {
       <div className="mx-auto max-w-6xl px-4 py-6 md:py-8">
         <header>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
-            Telugu Times × TimesBayArea × CREDAI
+            Times Bay Area × CREDAI
           </p>
           <h1 className="mt-2 text-3xl font-bold leading-tight text-foreground sm:text-4xl">
             CREDAI Elite NRI Real Estate Showcase

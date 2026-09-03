@@ -238,7 +238,7 @@ function PropertyDetail() {
               >
                 {p.source_name ?? "the source"}
               </a>
-              . Telugu Times is a media partner, not a broker. Verify all details with the
+              . Times Bay Area is a media partner, not a broker. Verify all details with the
               developer.
             </p>
           ) : null}

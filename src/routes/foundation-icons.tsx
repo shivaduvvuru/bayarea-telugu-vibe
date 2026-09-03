@@ -88,8 +88,8 @@ function FoundationIconsPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           If you or a family elder reached the Bay Area in the 70s, 80s or 90s and helped build
           the Indian community here, write to us at{" "}
-          <a href="mailto:bayarea@telugutimes.net" className="font-semibold text-primary">
-            bayarea@telugutimes.net
+          <a href="mailto:contact@timesbayarea.com" className="font-semibold text-primary">
+            contact@timesbayarea.com
           </a>{" "}
           and we will add their story to this page.
         </p>
