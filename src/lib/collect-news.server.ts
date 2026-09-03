@@ -464,17 +464,19 @@ export const lastDiag = {
     selected: [] as string[],
     bySource: {} as Record<
       string,
-      {
-        requests: number;
-        returned: number;
-        kept: number;
-        withImage: number;
-        cinema: number;
-        microDrama: number;
-        gallery: number;
-        other: number;
-        error?: string;
-      }
+       {
+         requests: number;
+         returned: number;
+         kept: number;
+         withImage: number;
+         cinema: number;
+         microDrama: number;
+         gallery: number;
+         other: number;
+         lastFetchAt?: string;
+         itemsFetched?: number;
+         error?: string;
+       }
     >,
   },
   /** Google News health for this run: source sweeps requested vs items returned. */
@@ -722,7 +724,7 @@ async function fetchFeed(url: string, opts: { label?: string } = {}): Promise<Ra
           headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
           // Google search RSS is routinely 6-8s from this region; the circuit
           // breaker caps how much a slow Google can cost a run.
-          signal: AbortSignal.timeout(google ? 10_000 : 5_000),
+          signal: AbortSignal.timeout(google ? 10_000 : 8_000),
         });
         if (!response.ok) {
           const error = new Error(`HTTP ${response.status} ${new URL(url).host}`) as Error & {
@@ -1067,13 +1069,41 @@ async function fetchTopics(
 const PUBLISHER_FEEDS: {
   name: string;
   url: string;
+  /** RSS fallback for publishers whose primary endpoint blocks server fetches. */
+  fallbackUrl?: string;
   kind: CollectedItem["kind"];
   limit?: number;
   match?: RegExp;
 }[] = [
+  // Bay Area general news — direct feeds keep the local digest healthy even
+  // when Google News is slow. Each known-blocked endpoint has an RSS fallback
+  // that still credits the named publisher and keeps the source visible.
+  { name: "NBC Bay Area", url: "https://www.nbcbayarea.com/feed/", kind: "news", limit: 12 },
+  {
+    name: "KQED",
+    url: "https://www.kqed.org/feed",
+    fallbackUrl: "https://news.google.com/rss/search?q=site%3Akqed.org+when%3A3d&hl=en-US&gl=US&ceid=US%3Aen",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "SFGATE",
+    url: "https://www.sfgate.com/rss/feed/News.xml",
+    fallbackUrl: "https://news.google.com/rss/search?q=site%3Asfgate.com+when%3A3d&hl=en-US&gl=US&ceid=US%3Aen",
+    kind: "news",
+    limit: 12,
+  },
+  {
+    name: "The Mercury News",
+    url: "https://www.mercurynews.com/feed/",
+    fallbackUrl: "https://news.google.com/rss/search?q=site%3Amercurynews.com+when%3A3d&hl=en-US&gl=US&ceid=US%3Aen",
+    kind: "news",
+    limit: 12,
+  },
+  { name: "SFist", url: "https://sfist.com/feed/", kind: "news", limit: 12 },
   // Indian-American press
-  { name: "New India Abroad", url: "https://news.google.com/rss/search?q=site:newindiaabroad.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
-  { name: "India West", url: "https://news.google.com/rss/search?q=site:indiawest.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
+  { name: "New India Abroad", url: "https://news.google.com/rss/search?q=site:newindiaabroad.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 12 },
+  { name: "India West", url: "https://news.google.com/rss/search?q=site:indiawest.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 12 },
   { name: "The American Bazaar", url: "https://americanbazaaronline.com/feed/", kind: "news", limit: 5 },
   // Bay Area / Silicon Valley Indian community sources
   {
@@ -1108,8 +1138,8 @@ const PUBLISHER_FEEDS: {
   },
   // Indian national dailies and magazines
   { name: "The Times of India (NRI)", url: "https://timesofindia.indiatimes.com/rssfeeds/7098551.cms", kind: "news", limit: 5 },
-  { name: "NDTV India", url: "https://feeds.feedburner.com/ndtvnews-india-news", kind: "news", limit: 4 },
-  { name: "The Hindu", url: "https://www.thehindu.com/news/national/feeder/default.rss", kind: "news", limit: 4 },
+  { name: "NDTV India", url: "https://feeds.feedburner.com/ndtvnews-india-news", kind: "news", limit: 12 },
+  { name: "The Hindu", url: "https://www.thehindu.com/news/national/feeder/default.rss", kind: "news", limit: 12 },
   {
     name: "Indian magazines",
     url: "https://news.google.com/rss/search?q=(site:frontline.thehindu.com+OR+site:indiatoday.in+OR+site:outlookindia.com+OR+site:theweek.in)+India+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -1166,6 +1196,7 @@ const PUBLISHER_FEEDS: {
   },
 
   // Immigration and consular
+  { name: "Economic Times NRI", url: "https://economictimes.indiatimes.com/rssfeeds/1715247.cms", kind: "news", limit: 12 },
   {
     name: "USCIS",
     url: "https://www.uscis.gov/news/rss-feed/59144",
@@ -1175,12 +1206,18 @@ const PUBLISHER_FEEDS: {
   },
   { name: "Murthy Law Firm", url: "https://www.murthy.com/feed/", kind: "news", limit: 5 },
   { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
-  // NOTE: TeluguTimes.net cinema feed was removed from active ingestion on
+  // NOTE: the legacy partner cinema feed was removed from active ingestion on
   // 2026-09-03. Cinema/OTT stories continue from 123Telugu, Gulte, GreatAndhra,
   // Google News sweeps and the dedicated cinema hook.
   { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 12 },
   { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 12 },
-  { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 12 },
+  {
+    name: "GreatAndhra",
+    url: "https://www.greatandhra.com/rss/rssfeed.php",
+    fallbackUrl: "https://news.google.com/rss/search?q=site%3Agreatandhra.com+when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+    kind: "news",
+    limit: 12,
+  },
   {
     name: "Telugu cinema",
     url: "https://news.google.com/rss/search?q=Telugu+cinema+OR+Tollywood+movie+news+when:7d&hl=en-US&gl=US&ceid=US:en",
@@ -2113,13 +2150,16 @@ async function fetchPublisher(
 ): Promise<RawItem[]> {
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
+  stat.lastFetchAt = new Date().toISOString();
   const parsed = await fetchFeed(feed.url, { label: feed.name });
   if (!parsed?.length) {
     const errors = formatCountMap(lastDiag.googleNews.bySource[feed.name]?.errors ?? {});
-    if (errors) stat.error = errors;
+    stat.error = errors || "feed returned no items";
+    stat.itemsFetched = 0;
     return [];
   }
   stat.returned += parsed.length;
+  stat.itemsFetched = parsed.length;
   lastDiag.fetched += 1;
   lastDiag.raw += parsed.length;
   // A publisher's own feed carries no <source> tag, so parseRss falls back to the
@@ -2128,7 +2168,10 @@ async function fetchPublisher(
   const seen = new Set<string>();
   const merged: RawItem[] = [];
   // Fetch-time cap: the per-feed cap for this desk, or the feed's own limit.
-  const feedCap = Math.min(feed.limit ?? 4, opts?.capPerFeed ?? Number.MAX_SAFE_INTEGER);
+  // General feeds contribute 10–15 items when available; dedicated desk
+  // callers can still pass their own cap.
+  const configuredLimit = Math.max(feed.limit ?? 12, 12);
+  const feedCap = Math.min(configuredLimit, opts?.capPerFeed ?? Number.MAX_SAFE_INTEGER);
   let capHit = false;
   for (const item of parsed) {
     const k = normalize(item.title);
@@ -2175,7 +2218,7 @@ function isCinemaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
 function isIndiaPublisher(feed: (typeof PUBLISHER_FEEDS)[number]): boolean {
   if (isCinemaPublisher(feed) || isGalleryPublisher(feed)) return false;
   const hay = `${feed.name} ${feed.url}`;
-  return /new india abroad|india west|american bazaar|times of india|ndtv india|the hindu|deccan chronicle|new indian express|telangana|andhra|amaravati|uscis|murthy|immigration|consulate|telugu times/i.test(
+  return /new india abroad|india west|american bazaar|times of india|ndtv india|the hindu|deccan chronicle|new indian express|telangana|andhra|amaravati|uscis|murthy|immigration|consulate/i.test(
     hay,
   );
 }
@@ -2855,12 +2898,16 @@ export async function collectAll(
   // Cinema / OTT / micro-drama sources run first. The prior all-source rotation
   // often spent its budget before reaching the newly added media desks, leaving
   // the public Cinema page populated by only older broad-source items.
-  const publisherList = rotatedPublishers.filter(
-    (feed) =>
-      (!cinemaSeparateJob() || !isCinemaPublisher(feed)) &&
-      !isGalleryPublisher(feed) &&
-      !isIndiaPublisher(feed),
-  );
+  const publisherList = rotatedPublishers
+    .filter(
+      (feed) =>
+        (!cinemaSeparateJob() || !isCinemaPublisher(feed)) &&
+        !isGalleryPublisher(feed) &&
+        !isIndiaPublisher(feed),
+    )
+    // Direct publisher feeds are cheap and deterministic. Read them before
+    // Google News so a circuit-open search service cannot starve named sources.
+    .sort((a, b) => Number(isGoogleNewsFeed(a.url)) - Number(isGoogleNewsFeed(b.url)));
 
   for (let b = 0; b < publisherList.length && within(0.92); b += 8) {
   lastDiag.publishers.selected.push(...publisherList.slice(b, b + 8).map((feed) => feed.name));

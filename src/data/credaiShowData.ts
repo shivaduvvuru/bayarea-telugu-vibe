@@ -1,6 +1,6 @@
 /**
  * CREDAI Hyderabad Property Show 2026 (Aug 28–30, HITEX) expo hub data.
- * Project artwork reuses the anniversary special pages.
+ * Project artwork uses a neutral in-app placeholder.
  */
 export interface CredaiProject {
   id: string;
@@ -17,7 +17,7 @@ export interface CredaiProject {
   highlights: string[];
 }
 
-const EPAPER = "https://www.telugutimes.net/wp-content/uploads/2026/03";
+import showcasePlaceholder from "@/assets/article-fallback-community.jpg";
 
 /** Show start, in India time. */
 export const SHOW_START_ISO = "2026-08-28T09:00:00+05:30";
@@ -85,7 +85,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     location: "Financial District, Hyderabad",
     yieldNote: "Projected 10.6% annualized yield · 4, 7 & 11 BHK sky homes",
     possession: "Jun 2029",
-    imageUrl: `${EPAPER}/3-1.jpg`,
+    imageUrl: showcasePlaceholder,
     site: "https://dsrbuilders.in",
   },
   {
@@ -95,7 +95,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     location: "Neopolis, Kokapet",
     yieldNote: "Projected 11.4% annualized yield · lake-facing towers",
     possession: "Dec 2028",
-    imageUrl: `${EPAPER}/26.jpg`,
+    imageUrl: showcasePlaceholder,
     site: "https://sattvalakeridgeneopolis.com",
   },
   {
@@ -105,7 +105,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     location: "Kokapet Golden Mile, Hyderabad",
     yieldNote: "From ₹3.43 Cr · 2,888–5,777 sq.ft. · 9.8% projected yield",
     possession: "Sep 2028",
-    imageUrl: `${EPAPER}/18-1.jpg`,
+    imageUrl: showcasePlaceholder,
     site: "https://www.thetriilight.com",
   },
 ];
@@ -122,7 +122,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/26.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["100% Vastu compliant", "50,000 sq.ft clubhouse", "10 min to Financial District"],
   },
   {
@@ -136,7 +136,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/23.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["Private plunge pools", "4 & 5 BHK layouts", "Gated eco-community"],
   },
   {
@@ -150,7 +150,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/3-1.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["4, 7 & 11 BHK", "Sky lounges on every 10th floor", "Metro-linked corridor"],
   },
   {
@@ -164,7 +164,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/22.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["Triple-height living", "Managed rentals", "Near ORR exit 13"],
   },
   {
@@ -178,7 +178,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/27.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["Pre-leased options", "8.5% rental yield", "Zero-hassle property management"],
   },
   {
@@ -192,7 +192,7 @@ export const credaiShowProjects: CredaiProject[] = [
     priceUSD: "Contact developer",
     possession: "Verify with builder",
     reraNumber: "Verify with builder",
-    imageUrl: `${EPAPER}/25.jpg`,
+    imageUrl: showcasePlaceholder,
     highlights: ["HMDA approved layout", "14% projected appreciation", "NRI POA registration"],
   },
 ];

@@ -4,18 +4,25 @@ import { cdnImage, cdnSrcSet } from "../lib/img";
 
 type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet"> & {
   src: string;
+  /** Local or remote image used after the optimized/original image fails. */
+  fallbackSrc?: string;
   /** Rendered width hint used for the default (fallback) variant. */
   optimizedWidth?: number;
   quality?: number;
 };
 
 /**
- * Serves resized WebP variants of remote photos and silently falls back to the
- * original URL if the optimiser cannot fetch it.
+ * Serves resized WebP variants of remote photos and falls back to a supplied
+ * editorial image when the remote artwork cannot be loaded.
  */
-export function SmartImage({ src, optimizedWidth = 960, quality = 72, ...rest }: Props) {
+export function SmartImage({
+  src,
+  fallbackSrc = "/cinema-placeholder.webp",
+  optimizedWidth = 960,
+  quality = 72,
+  ...rest
+}: Props) {
   const [failed, setFailed] = useState(false);
-  const fallbackSrc = "/cinema-placeholder.webp";
 
   useEffect(() => {
     setFailed(false);

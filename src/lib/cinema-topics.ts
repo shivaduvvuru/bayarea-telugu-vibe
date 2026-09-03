@@ -101,7 +101,7 @@ export function isStarGallery(
   if (NEWSY.test(text)) return false;
   // Our connected newsroom is a trusted first-party desk:
   // its photo galleries and event picture posts belong in Glamour too.
-  const ownSite = /telugutimes\.net/i.test(url);
+  const ownSite = /(^|\.)timesbayarea\.com/i.test(url);
   const photoDesk =
     (PHOTO_DESK_URL.test(url) && (urlLooksCinema(url) || ENTERTAINMENT_URL.test(url))) ||
     (ownSite && (PHOTO_DESK_URL.test(url) || PHOTO_LED.test(text)));

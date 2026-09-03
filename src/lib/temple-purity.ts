@@ -32,8 +32,6 @@ const TEMPLE_HOSTS = new Set(
 
 /** Reliable outlets whose temple/community reporting we accept. */
 const RELIABLE_HOSTS = [
-  "bayarea.telugutimes.net",
-  "telugutimes.net",
   "timesbayarea.com",
   "indiawest.com",
   "newsindiatimes.com",
