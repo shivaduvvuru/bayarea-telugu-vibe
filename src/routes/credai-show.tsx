@@ -483,6 +483,10 @@ function CredaiShowPage() {
             300+ RERA-approved projects and 70+ Grade-A builders at HITEX, August 28–30, 2026 —
             covered for NRIs by Times Bay Area with a dedicated buying desk.
           </p>
+          <p className="mt-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
+            Prices, yields and possession dates are developer estimates. Confirm RERA registration
+            and all terms directly with the builder before purchase.
+          </p>
         </header>
 
         <HeroCarousel onRegister={() => setModal(true)} />
