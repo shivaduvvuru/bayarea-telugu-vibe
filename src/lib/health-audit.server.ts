@@ -52,12 +52,27 @@ export type SourceHealth = {
   flagged: boolean;
 };
 
+/** Latest per-publisher fetch outcome, read from the newest collect run funnels. */
+export type FeedHealth = {
+  source: string;
+  lastFetchAt: string | null;
+  fetched: number;
+  kept: number;
+  withImage: number;
+  zeroItems: boolean;
+  usedFallback: boolean;
+  error: string | null;
+  runMode: string | null;
+  runFinishedAt: string | null;
+};
+
 export type IngestHealthReport = {
   checkedAt: string;
   categories: CategoryHealth[];
   sources: SourceHealth[];
+  feeds: FeedHealth[];
   jobs: { mode: string; lastRun: string | null; firedInLast24h: boolean }[];
-  issues: { kind: "category" | "source" | "job" | "alerts"; text: string; priority: 0 | 1 }[];
+  issues: { kind: "category" | "source" | "job" | "alerts" | "feed"; text: string; priority: 0 | 1 }[];
 };
 
 async function db() {
@@ -147,6 +162,66 @@ async function sourceHealth(): Promise<SourceHealth[]> {
   }
 
   return out.sort((a, b) => a.items7d - b.items7d);
+}
+
+/**
+ * Latest fetch result per publisher feed. The collector already records
+ * requests / returned / kept / errors per source in `collect_runs.funnel`, so
+ * the desk reads the newest run that mentions each feed rather than guessing
+ * from insert counts (a source can fetch fine and still insert nothing).
+ */
+async function feedHealth(): Promise<FeedHealth[]> {
+  const client = await db();
+  const { data } = await client
+    .from("collect_runs")
+    .select("mode, finished_at, started_at, funnel")
+    .order("started_at", { ascending: false })
+    .limit(40);
+
+  type PublisherStat = {
+    requests?: number;
+    returned?: number;
+    kept?: number;
+    withImage?: number;
+    itemsFetched?: number;
+    lastFetchAt?: string;
+    error?: string;
+    usedFallback?: boolean;
+  };
+
+  const byFeed = new Map<string, FeedHealth>();
+  for (const run of (data ?? []) as {
+    mode: string | null;
+    finished_at: string | null;
+    started_at: string | null;
+    funnel: unknown;
+  }[]) {
+    const publishers = (run.funnel as { publishers?: { bySource?: Record<string, PublisherStat> } } | null)
+      ?.publishers?.bySource;
+    if (!publishers) continue;
+    for (const [source, stat] of Object.entries(publishers)) {
+      // Runs are newest-first, so the first sighting of a feed is its latest.
+      if (byFeed.has(source)) continue;
+      const fetched = stat.itemsFetched ?? stat.returned ?? 0;
+      byFeed.set(source, {
+        source,
+        lastFetchAt: stat.lastFetchAt ?? run.finished_at ?? run.started_at ?? null,
+        fetched,
+        kept: stat.kept ?? 0,
+        withImage: stat.withImage ?? 0,
+        zeroItems: fetched === 0,
+        usedFallback: !!stat.usedFallback,
+        error: stat.error ?? null,
+        runMode: run.mode ?? null,
+        runFinishedAt: run.finished_at ?? null,
+      });
+    }
+  }
+
+  // Zero-item feeds first: that is the list the editor needs to act on.
+  return [...byFeed.values()].sort(
+    (a, b) => Number(b.zeroItems) - Number(a.zeroItems) || a.fetched - b.fetched,
+  );
 }
 
 /** Did each scheduled job fire in the last 24 hours? */
