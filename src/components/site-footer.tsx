@@ -19,7 +19,7 @@ const ABOUT = [
 export function SiteFooter() {
   const { lang } = useLang();
   return (
-    <footer className="mt-12 border-t-4 border-primary bg-ink text-background">
+    <footer className="mt-12 border-t-4 border-nav bg-ink text-background">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 md:grid-cols-4">
         <div>
           <h3 className="text-lg text-background">Times Bay Area</h3>
