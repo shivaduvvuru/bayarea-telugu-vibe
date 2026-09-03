@@ -26,7 +26,7 @@ export function SiteFooter() {
         <div>
           <h3 className="text-lg text-background">Times Bay Area</h3>
           <p className="mt-2 text-xs text-background/70">
-            News, culture and community coverage for Telugu families across the Bay Area.
+            News, culture and community coverage for Indian families across the Bay Area.
           </p>
           <p className="mt-2 text-xs text-background/70">news@bayarea.telugutimes.net</p>
         </div>

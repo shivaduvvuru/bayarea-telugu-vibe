@@ -55,7 +55,7 @@ function ConnectPage() {
       <h1 className="text-3xl font-bold text-ink">{t("Connect", "కనెక్ట్")}</h1>
       <p className="mt-2 text-base text-muted-foreground">
         {t(
-          "The people, organisations and services that make up the Bay Area Telugu community.",
+          "The people, organisations and services that make up the Bay Area Indian community.",
           "బే ఏరియా తెలుగు కమ్యూనిటీలోని వ్యక్తులు, సంస్థలు, సేవలు.",
         )}
       </p>

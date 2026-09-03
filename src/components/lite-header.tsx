@@ -91,7 +91,7 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
 };
 
 
-/** Wider Telugu community network: site, e-paper and social profiles. */
+/** Wider Indian community network: site, e-paper and social profiles. */
 const NETWORK = [
   { href: TT_LINKS.site, label: "TeluguTimes.net", icon: Globe },
   { href: TT_LINKS.bayarea, label: "Bay Area edition", icon: Globe },
@@ -249,7 +249,7 @@ export function LiteHeader() {
               Times Bay Area
             </span>
             <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Telugu community news · What matters around you.
+              Indian community news · What matters around you.
             </span>
           </span>
         </Link>

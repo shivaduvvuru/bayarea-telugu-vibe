@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const TITLE = "Submit news, events & photos — Times Bay Area";
 const DESC =
-  "Share Bay Area Telugu community news, events, temple announcements, classifieds and photos. Our editors review every submission before it goes live.";
+  "Share Bay Area Indian community news, events, temple announcements, classifieds and photos. Our editors review every submission before it goes live.";
 
 export const Route = createFileRoute("/submit")({
   head: () => ({

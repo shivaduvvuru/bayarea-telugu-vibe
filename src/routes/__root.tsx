@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.",
+          "Local news, events, culture, food and community connections for Indian community members across the San Francisco Bay Area.",
       },
       { name: "author", content: "Times Bay Area" },
       { property: "og:site_name", content: "Times Bay Area" },
@@ -112,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.",
+          "Local news, events, culture, food and community connections for Indian community members across the San Francisco Bay Area.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

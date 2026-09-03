@@ -62,7 +62,7 @@ function FoundationIconsPage() {
         </p>
         <p>
           Times Bay Area, with the heritage of Telugu Times since 2003 in the Bay Area, has seen
-          the growth of the Telugu community here and its activity from 2004 onwards. We identify
+          the growth of the Indian community here and its activity from 2004 onwards. We identify
           and place Telugus who reached the Bay Area in the 80s and 90s and recognise them as
           <strong>Bay Area Foundation Icons</strong>. We keep adding them as we reach them or they
           reach us.
@@ -88,7 +88,7 @@ function FoundationIconsPage() {
         <h3 className="text-lg font-bold text-ink">Know an icon we should honour?</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           If you or a family elder reached the Bay Area in the 70s, 80s or 90s and helped build
-          the Telugu community here, write to us at{" "}
+          the Indian community here, write to us at{" "}
           <a href="mailto:bayarea@telugutimes.net" className="font-semibold text-primary">
             bayarea@telugutimes.net
           </a>{" "}
