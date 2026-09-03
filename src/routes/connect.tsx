@@ -103,7 +103,7 @@ function ConnectPage() {
       </p>
 
       <section className="mt-10">
-        <SectionHeading te="విద్యార్థుల గొంతుకలు" en="Student & Young Professional Voices" />
+        <SectionHeading en="Student & Young Professional Voices" />
         <VoicesRail />
       </section>
 

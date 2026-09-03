@@ -234,7 +234,6 @@ function CategoryPage() {
 
 
         <SectionHeading
-          te={cat.slug === "gallery" ? "సినిమా ఫొటోలు" : "కథనాలు"}
           en={cat.slug === "gallery" ? "Cinema pictures" : "Stories"}
         />
         {articles.length === 0 ? (
@@ -270,7 +269,7 @@ function CategoryPage() {
             })()}
             {shown.some((a) => !a.image) ? (
               <div className="mt-10">
-                <SectionHeading te="క్లుప్తంగా" en="In brief" />
+                <SectionHeading en="In brief" />
                 <ul className="grid gap-x-8 sm:grid-cols-2">
                   {shown.filter((a) => !a.image).map((a) => (
                     <ListRow key={a.id} article={a} />

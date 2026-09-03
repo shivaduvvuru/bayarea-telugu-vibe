@@ -153,7 +153,7 @@ function EventsPage() {
 
       {liveRows.length > 0 && (
         <section className="mt-8">
-          <SectionHeading te="తాజా ఈవెంట్స్" en="Latest listings" />
+          <SectionHeading en="Latest listings" />
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
             {liveRows.map((r) => (
               <li key={r.key} className="flex items-start gap-3 p-3">
@@ -188,7 +188,7 @@ function EventsPage() {
 
       {weekend.length > 0 && (
         <section className="mt-8">
-          <SectionHeading te="ఈ వారాంతం" en="This Weekend" />
+          <SectionHeading en="This Weekend" />
           <div className="grid gap-4 md:grid-cols-2">
             {weekend.map((e) => (
               <EventCard key={e.id} event={e} />
@@ -198,7 +198,7 @@ function EventsPage() {
       )}
 
       <section className="mt-10">
-        <SectionHeading te="రాబోయే ఈవెంట్స్" en="Upcoming Events" />
+        <SectionHeading en="Upcoming Events" />
         <div className="grid gap-4 md:grid-cols-2">
           {upcoming.map((e) => (
             <EventCard key={e.id} event={e} />

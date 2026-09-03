@@ -122,7 +122,7 @@ function CityHub() {
       </div>
 
       <section className="mt-10">
-        <SectionHeading en={`Upcoming events in ${city.en}`} te="రాబోయే ఈవెంట్స్" />
+        <SectionHeading en={`Upcoming events in ${city.en}`} />
         {events.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No events listed in {city.en} right now.{" "}
@@ -141,7 +141,7 @@ function CityHub() {
       </section>
 
       <section className="mt-12">
-        <SectionHeading en={`Discussions about ${city.en}`} te="చర్చలు" />
+        <SectionHeading en={`Discussions about ${city.en}`} />
         {data.threads.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No {city.en} discussions yet.{" "}
@@ -171,7 +171,7 @@ function CityHub() {
       </section>
 
       <section className="mt-12">
-        <SectionHeading en={`Temples in ${city.en}`} te="ఆలయాలు" />
+        <SectionHeading en={`Temples in ${city.en}`} />
         {temples.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No temple tracked in {city.en} yet —{" "}
@@ -209,7 +209,7 @@ function CityHub() {
       </section>
 
       <section className="mt-12">
-        <SectionHeading en={`Businesses & organisations in ${city.en}`} te="వ్యాపారాలు" />
+        <SectionHeading en={`Businesses & organisations in ${city.en}`} />
         {listings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Nothing listed in {city.en} yet.{" "}
