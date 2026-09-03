@@ -1,5 +1,5 @@
 /** Tiny cross-component channel so the bottom tab bar can open the header menu. */
-const EVENT = "batt:open-menu";
+const EVENT = "tba:open-menu";
 
 export function openMobileMenu() {
   window.dispatchEvent(new Event(EVENT));

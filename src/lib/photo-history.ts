@@ -1,3 +1,4 @@
+import { brandKey } from "@/lib/local-key";
 /**
  * Seven-day memory of the pictures the full-size slots have already shown.
  *
@@ -5,7 +6,7 @@
  * for a week. The log lives in localStorage so it survives reloads, and is read
  * synchronously (module cache) so picking a photo never needs a re-render.
  */
-const KEY = "batt-photo-shown";
+const KEY = brandKey("photo-shown");
 /** A picture shown in a full-size slot is off the rotation for this long. */
 export const SHOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 /** Enough for a week of 20-second cycles worth of distinct photos. */

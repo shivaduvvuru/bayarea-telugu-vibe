@@ -27,14 +27,14 @@ type Payload = Record<string, string | number | boolean | undefined>;
 declare global {
   interface Window {
     dataLayer?: unknown[];
-    battEvents?: { event: AnalyticsEvent; payload: Payload; at: number }[];
+    tbaEvents?: { event: AnalyticsEvent; payload: Payload; at: number }[];
   }
 }
 
 export function track(event: AnalyticsEvent, payload: Payload = {}) {
   if (typeof window === "undefined") return;
-  window.battEvents ??= [];
-  window.battEvents.push({ event, payload, at: Date.now() });
+  window.tbaEvents ??= [];
+  window.tbaEvents.push({ event, payload, at: Date.now() });
   window.dataLayer?.push({ event, ...payload });
   if (import.meta.env.DEV) console.debug("[analytics]", event, payload);
 }
