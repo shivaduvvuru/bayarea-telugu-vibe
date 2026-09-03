@@ -12,9 +12,9 @@ import { useLang } from "@/lib/language";
 import { ShortVideoRail, SwipeStories } from "@/components/genz";
 import { SectionHeading } from "@/components/news";
 
-const TITLE = "Explore the Bay Area — Telugu news, food, culture & video";
-const DESC =
-  "Browse Bay Area Telugu local news, things to do, food, culture, cinema and short videos in one place.";
+const TITLE = "Explore the Bay Area — Indian community news, food, culture & video";
+...
+  "Browse Bay Area Indian local news, things to do, food, culture, cinema and short videos in one place.";
 const URL = canonical("/explore");
 
 export const Route = createFileRoute("/explore")({

@@ -9,7 +9,7 @@ import { useLang } from "@/lib/language";
 
 const TITLE = "Search — Times Bay Area";
 const DESC =
-  "Search Bay Area Telugu news, community announcements, temple programs, events and classifieds.";
+  "Search Bay Area Indian community news, announcements, temple programs, events and classifieds.";
 
 export const Route = createFileRoute("/search")({
   validateSearch: (s: Record<string, unknown>) => ({

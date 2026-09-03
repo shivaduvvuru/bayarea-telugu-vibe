@@ -117,7 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Times Bay Area" },
-      { name: "twitter:description", content: "Telugu news, community and events coverage for the San Francisco Bay Area." },
+      { name: "twitter:description", content: "Indian community news, events and coverage for the San Francisco Bay Area." },
     ],
     scripts: [
       {
