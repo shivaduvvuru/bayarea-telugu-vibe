@@ -69,12 +69,6 @@ function ExplorePage() {
               </span>
             </>
           );
-          if (tile.href)
-            return (
-              <a key={tile.en} href={tile.href} target="_blank" rel="noreferrer" className={tileClass}>
-                {body}
-              </a>
-            );
           if (tile.to)
             return (
               <Link key={tile.en} to={tile.to} className={tileClass}>

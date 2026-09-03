@@ -311,7 +311,6 @@ export function SiteHeader() {
               >
                 {t("Advertise With Us", "ప్రకటనల కోసం")}
               </Link>
-              <SocialRow className="justify-center text-ink [&_a]:text-ink" />
             </li>
             {UTILITY_LINKS.map((l) => (
               <li key={`${l.to}-${l.en}`} className="border-b border-border/60">
