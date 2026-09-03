@@ -249,7 +249,7 @@ export function LiteHeader() {
               Times Bay Area
             </span>
             <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Indian community news · What matters around you.
+              For Indian Community — What Matters Around You
             </span>
           </span>
         </Link>
