@@ -39,12 +39,6 @@ const TILES = [
   { en: "Food", te: "ఆహారం", icon: UtensilsCrossed, category: "restaurants" },
   { en: "Culture", te: "సంస్కృతి", icon: Sparkles, category: "community" },
   { en: "Cinema/OTT", te: "సినిమా", icon: Clapperboard, category: "cinema" },
-  {
-    en: "Videos",
-    te: "వీడియోలు",
-    icon: Video,
-    href: "https://www.youtube.com/@telugutimesdigital",
-  },
 ];
 
 function ExplorePage() {
