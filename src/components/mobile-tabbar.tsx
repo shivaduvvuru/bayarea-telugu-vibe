@@ -25,7 +25,7 @@ import {
 import { useSignedIn } from "@/lib/session-state";
 
 
-/** Red text rail at the bottom — utilities, no overlap with the top rail. */
+/** Turquoise text rail at the bottom — utilities, no overlap with the top rail. */
 const TEXT_TABS = [
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
