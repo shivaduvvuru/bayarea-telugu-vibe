@@ -23,8 +23,8 @@ export const Route = createFileRoute("/forums/thread/$threadId")({
   },
   head: ({ loaderData }) => {
     const title = loaderData?.thread
-      ? `${loaderData.thread.title} — Bay Area Telugu Forums`
-      : "Discussion — Bay Area Telugu Forums";
+      ? `${loaderData.thread.title} — Bay Area Community Forums`
+      : "Discussion — Bay Area Community Forums";
     const description =
       loaderData?.thread?.body.slice(0, 155) ??
       "A discussion in the Bay Area Indian community forums.";

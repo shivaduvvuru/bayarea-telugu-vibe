@@ -176,7 +176,7 @@ function ForumsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <p className="text-xs font-bold uppercase tracking-widest text-primary">Community</p>
-      <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">Bay Area Telugu Forums</h1>
+      <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">Bay Area Community Forums</h1>
       <p className="mt-3 max-w-2xl text-[15px] text-muted-foreground">
         Ask neighbours about housing, schools, visas, jobs, temples and the best tiffin in town.
         Posts that clear the AI monitor go live instantly; anything it is unsure about waits for

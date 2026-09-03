@@ -61,11 +61,10 @@ function FoundationIconsPage() {
           got formed as the Bay Area Telugu Association (BATA).
         </p>
         <p>
-          Times Bay Area, with the heritage of Telugu Times since 2003 in the Bay Area, has seen
-          the growth of the Indian community here and its activity from 2004 onwards. We identify
-          and place Telugus who reached the Bay Area in the 80s and 90s and recognise them as
-          <strong>Bay Area Foundation Icons</strong>. We keep adding them as we reach them or they
-          reach us.
+          Times Bay Area has seen the growth of the Indian community here and its activity from
+          2004 onwards. We identify and place community members who reached the Bay Area in the
+          80s and 90s and recognise them as <strong>Bay Area Foundation Icons</strong>. We keep
+          adding them as we reach them or they reach us.
         </p>
       </div>
 
