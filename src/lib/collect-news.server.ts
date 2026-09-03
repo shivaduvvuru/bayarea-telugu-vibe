@@ -2151,13 +2151,21 @@ async function fetchPublisher(
   const stat = publisherDiag(feed.name);
   stat.requests += 1;
   stat.lastFetchAt = new Date().toISOString();
-  const parsed = await fetchFeed(feed.url, { label: feed.name });
+  let parsed = await fetchFeed(feed.url, { label: feed.name });
+  // Several publishers answer 403/404 to a server fetch of their own RSS
+  // (Mercury News, SFGATE, KQED). The configured fallback keeps the source in
+  // the digest instead of logging it as a permanent zero-item feed.
+  if (!parsed?.length && feed.fallbackUrl) {
+    stat.usedFallback = true;
+    parsed = await fetchFeed(feed.fallbackUrl, { label: feed.name });
+  }
   if (!parsed?.length) {
     const errors = formatCountMap(lastDiag.googleNews.bySource[feed.name]?.errors ?? {});
     stat.error = errors || "feed returned no items";
     stat.itemsFetched = 0;
     return [];
   }
+  stat.error = undefined;
   stat.returned += parsed.length;
   stat.itemsFetched = parsed.length;
   lastDiag.fetched += 1;
