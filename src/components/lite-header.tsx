@@ -36,13 +36,21 @@ type MoreItem = { to: string; params?: { category: string }; label: string };
 /** Everything not already on a rail, grouped so the panel scans fast. */
 const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreItem> }> = [
   {
+    heading: "Community",
+    items: [
+      { to: "/submit", label: "Submit a Story" },
+      { to: "/directory", label: "Directory" },
+      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
+      { to: "/temples", label: "Temples" },
+    ],
+  },
+  {
     heading: "India",
     items: [
       { to: "/category/$category", params: { category: "india-immigration" }, label: "Immigration & Visa" },
       { to: "/category/$category", params: { category: "india-telangana" }, label: "Telangana" },
       { to: "/category/$category", params: { category: "india-andhra" }, label: "Andhra Pradesh" },
       { to: "/category/$category", params: { category: "india-nri" }, label: "NRI & Diaspora" },
-      
     ],
   },
   {
@@ -66,12 +74,9 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
   {
     heading: "More from us",
     items: [
-      { to: "/category/$category", params: { category: "classifieds" }, label: "Classifieds" },
       { to: "/desk", label: "Review desk" },
-
       { to: "/favorites", label: "Saved photos" },
       { to: "/epaper", label: "E-Paper" },
-      { to: "/submit", label: "Submit a Story" },
       { to: "/about", label: "About Us" },
       { to: "/contact", label: "Advertise / Contact" },
     ],
