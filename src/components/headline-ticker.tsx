@@ -32,12 +32,12 @@ export function HeadlineTicker() {
   if (dismissedSlug === article.slug) return null;
 
   return (
-    <div className="sticky top-0 z-40 border-b border-primary-dark/40 bg-primary text-primary-foreground">
+    <div className="sticky top-0 z-40 border-b border-nav-hover/40 bg-nav text-nav-foreground">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-ink/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest">
           <span className="relative flex h-2 w-2" aria-hidden>
-            <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-primary-foreground/80" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-foreground" />
+            <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-nav-foreground/80" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-nav-foreground" />
           </span>
           {label ?? "Headline News"}
         </span>
@@ -47,7 +47,7 @@ export function HeadlineTicker() {
           className="group flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold"
         >
           <span className="truncate">{article.title}</span>
-          <span className="hidden shrink-0 items-center gap-1 text-xs font-medium text-primary-foreground/80 sm:inline-flex">
+          <span className="hidden shrink-0 items-center gap-1 text-xs font-medium text-nav-foreground/80 sm:inline-flex">
             <RelativeDate iso={article.date} />
           </span>
           <span className="hidden shrink-0 items-center gap-1 text-xs font-semibold sm:inline-flex">
@@ -58,7 +58,7 @@ export function HeadlineTicker() {
         <button
           type="button"
           aria-label="Dismiss headline"
-          className="shrink-0 rounded-full p-1 hover:bg-ink/20"
+          className="shrink-0 rounded-full p-1 hover:bg-white/20"
           onClick={() => {
             try {
               window.sessionStorage.setItem(KEY, article.slug);
