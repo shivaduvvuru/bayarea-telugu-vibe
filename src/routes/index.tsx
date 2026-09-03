@@ -173,12 +173,6 @@ const homeStatesQuery = queryOptions({
 });
 
 
-/** Community-submitted and editor-published items from the newsroom CMS. */
-const communityQuery = queryOptions({
-  queryKey: ["cms", "community", "home"],
-  queryFn: () => listCommunityItems({ data: { limit: 8 } }),
-  staleTime: 5 * 60 * 1000,
-});
 
 /** Published events from the newsroom CMS — these carry pictures. */
 const cmsEventsQuery = queryOptions({
@@ -640,7 +634,6 @@ function Home() {
   const { hidden } = useHiddenPhotos();
 
   // Fresh, non-blocking reads: these stream in after the snapshot first paint.
-  const { data: communityItems = [] } = useQuery(communityQuery);
   const { data: cmsEvents = [] } = useQuery(cmsEventsQuery);
   const homeStatesRead = useQuery(homeStatesQuery);
   const indiaStates = homeStatesRead.data ?? [];
@@ -699,7 +692,6 @@ function Home() {
     const localPictureStories = localRest.filter((a) => a.image);
     takeUnique([lead, ...localRest], homepageSeen);
 
-    const uniqueCommunity = takeUnique(communityItems, homepageSeen, 8);
     const uniqueCmsEvents = takeUnique(cmsEvents, homepageSeen, 8);
 
     const events = upcomingEvents().slice(0, 5);
@@ -781,7 +773,6 @@ function Home() {
       bannerFresh,
       localRest,
       localPictureStories,
-      uniqueCommunity,
       uniqueTemples,
       uniquePolitics,
       homeStates,
@@ -791,7 +782,6 @@ function Home() {
   }, [
     articles,
     cityNews,
-    communityItems,
     cmsEvents,
     indiaStates,
     templeFeeds,
@@ -810,7 +800,6 @@ function Home() {
     bannerFresh,
     localRest,
     localPictureStories,
-    uniqueCommunity,
     uniqueTemples,
     uniquePolitics,
     homeStates,
@@ -971,22 +960,6 @@ function Home() {
       <BrigadePromo className="mx-auto mt-7 max-w-3xl" />
 
       <div className="mx-auto max-w-3xl">
-        {uniqueCommunity.length > 0 && (
-          <section className="mt-5">
-            <Head more={<MoreTo to="/connect" label="Community" />}>From the community</Head>
-            {uniqueCommunity.map((item) => (
-              <LinkRow
-                key={item.id}
-                href={item.link_url ?? "/connect"}
-                internal={!item.link_url || item.link_url.startsWith("/")}
-                title={item.title}
-                image={item.image_url}
-                meta={[item.city, item.kind].filter(Boolean).join(" · ")}
-              />
-            ))}
-          </section>
-        )}
-
         {happeningSoon.length > 0 && (
           <section className="mt-5">
             <Head more={<MoreTo to="/events" label="All events →" />}>Happening soon</Head>

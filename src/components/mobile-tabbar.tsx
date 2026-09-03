@@ -29,7 +29,6 @@ import { useSignedIn } from "@/lib/session-state";
 const TEXT_TABS = [
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
   { to: "/directory", label: "Directory" },
-  { to: "/associations", label: "Associations & Community" },
   { to: "/connect", label: "Services" },
   { to: "/forums", label: "Forums" },
 ] as const;

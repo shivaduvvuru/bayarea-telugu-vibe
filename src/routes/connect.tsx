@@ -37,7 +37,6 @@ export const Route = createFileRoute("/connect")({
 
 const LINKS = [
   { en: "Community Directory", te: "కమ్యూనిటీ డైరెక్టరీ", icon: Building2, to: "/directory" as const },
-  { en: "Telugu Associations", te: "తెలుగు సంఘాలు", icon: Users, category: "associations" },
   { en: "Temples", te: "దేవాలయాలు", icon: Landmark, category: "temples" },
   { en: "Professionals", te: "నిపుణులు", icon: Stethoscope, category: "people" },
   { en: "Jobs", te: "ఉద్యోగాలు", icon: Briefcase, category: "classifieds" },
