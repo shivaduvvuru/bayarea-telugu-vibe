@@ -30,10 +30,10 @@ const templesQuery = queryOptions({
   staleTime: 60 * 60 * 1000,
 });
 
-const TITLE = "Bay Area Temple Calendar — pujas, festivals & spiritual programs";
+const TITLE = "Bay Area Temple Calendar — Times Bay Area";
 const DESC =
   "One calendar for Hindu temple programs across Fremont, Milpitas, San Jose, Sunnyvale and the Tri-Valley. Filter by date, city, temple, deity and event type.";
-const URL = "https://bayarea-telugu-vibe.lovable.app/temples/calendar";
+const URL = "https://timesbayarea.com/temples/calendar";
 
 export const Route = createFileRoute("/temples/calendar")({
   head: () => ({

@@ -9,7 +9,7 @@ import { CITY_REGIONS } from "@/lib/content";
 import { RelativeDate } from "@/components/news";
 import { supabase } from "@/integrations/supabase/client";
 
-const TITLE = "Bay Area Telugu Community Forums | Telugu Times";
+const TITLE = "Bay Area Telugu Community Forums | Times Bay Area"
 const DESC =
   "Ask and answer questions with Telugu families across the Bay Area — housing, jobs, visas, schools, temples, events and local recommendations.";
 

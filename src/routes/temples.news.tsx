@@ -3,10 +3,10 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { listCommunityItems } from "@/lib/cms.functions";
 import { isTempleNewsClean } from "@/lib/temple-purity";
 
-const TITLE = "Bay Area Temple News — announcements & coverage";
+const TITLE = "Bay Area Temple News — Times Bay Area";
 const DESC =
   "Auto-published announcements and coverage from Bay Area Hindu temples: festivals, program changes, fundraisers and community notices.";
-const URL = "https://bayarea-telugu-vibe.lovable.app/temples/news";
+const URL = "https://timesbayarea.com/temples/news";
 
 export const Route = createFileRoute("/temples/news")({
   head: () => ({

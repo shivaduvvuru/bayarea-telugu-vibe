@@ -967,6 +967,9 @@ function Home() {
         </section>
       </div>
 
+      {/* Sponsored placement follows the first news block, keeping the top of the edition editorial-first. */}
+      <BrigadePromo className="mx-auto mt-7 max-w-3xl" />
+
       <div className="mx-auto max-w-3xl">
         {uniqueCommunity.length > 0 && (
           <section className="mt-5">

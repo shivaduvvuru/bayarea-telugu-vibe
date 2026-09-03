@@ -21,7 +21,7 @@ import {
 } from "@/lib/temple-calendar";
 
 const TIMEOUT_MS = 9000;
-const UA = "BayAreaTeluguTimes/1.0 (+https://bayarea-telugu-vibe.lovable.app)";
+const UA = "TimesBayArea/1.0 (+https://timesbayarea.com)";
 
 type SourceRow = {
   id: string;
