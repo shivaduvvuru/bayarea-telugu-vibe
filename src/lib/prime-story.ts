@@ -90,7 +90,7 @@ export function pickPrimeStory<T extends PrimeCandidate>(
   let bestScore = -Infinity;
   // The prime slot is a featured slot: sensitive stories are excluded.
   const safe = candidates.filter((c) => !isHeroUnsafeText(c.title, c.excerpt));
-  for (const c of (safe.length ? safe : [])) {
+  for (const c of safe) {
     const s = primeScore(c, now);
     if (s > bestScore) {
       bestScore = s;
