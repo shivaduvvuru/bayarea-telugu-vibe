@@ -16,6 +16,7 @@ import { uniqueByContent } from "./dedupe";
 import { isTempleNewsClean } from "./temple-purity";
 import { glamourRotation } from "./glamour-rotation";
 import { ownSiteSectionOf } from "./own-site";
+import { publicText } from "./public-text";
 
 /**
  * Last line of defence against duplicates reaching a reader: collapse articles
