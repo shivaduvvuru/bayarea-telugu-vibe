@@ -2167,7 +2167,7 @@ async function fetchPublisher(
     stat.itemsFetched = 0;
     return [];
   }
-  stat.error = undefined;
+  delete stat.error;
   stat.returned += parsed.length;
   stat.itemsFetched = parsed.length;
   lastDiag.fetched += 1;
