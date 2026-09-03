@@ -51,21 +51,20 @@ function FoundationIconsPage() {
         <p>
           The persons like Sri Kasi Sastry, Sri Durvasula Sastry, Sri Rattayya, Sri Bhaskar Rao,
           Sri Lakireddy Balreddy and Sri Vrudula Rayudu came in the 70s and put in great efforts
-          to commute to places and to unite Telugus coming from India with their services. We
-          understand that Sri Durvasula Sastry spent his personal money and put in efforts to
-          screen a Telugu film in the Stanford University area.
+          to connect Indian families across the Bay Area through their services. We understand
+          that Sri Durvasula Sastry spent his personal money and put in efforts to screen an
+          Indian film in the Stanford University area.
         </p>
         <p>
           People like Sri Anjaneyulu Kothapalli, Sri Venkateswara Rao Vellanki and Sri
-          Satyanarayana Bodapati put in great efforts to start a Telugu Association, which later
-          got formed as the Bay Area Telugu Association (BATA).
+          Satyanarayana Bodapati put in great efforts to build an Indian community network in the
+          Bay Area.
         </p>
         <p>
-          Times Bay Area, with the heritage of Telugu Times since 2003 in the Bay Area, has seen
-          the growth of the Indian community here and its activity from 2004 onwards. We identify
-          and place Telugus who reached the Bay Area in the 80s and 90s and recognise them as
-          <strong>Bay Area Foundation Icons</strong>. We keep adding them as we reach them or they
-          reach us.
+          Times Bay Area has seen the growth of the Indian community here and its activity from
+          2004 onwards. We identify and place community members who reached the Bay Area in the
+          80s and 90s and recognise them as <strong>Bay Area Foundation Icons</strong>. We keep
+          adding them as we reach them or they reach us.
         </p>
       </div>
 
@@ -89,8 +88,8 @@ function FoundationIconsPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           If you or a family elder reached the Bay Area in the 70s, 80s or 90s and helped build
           the Indian community here, write to us at{" "}
-          <a href="mailto:bayarea@telugutimes.net" className="font-semibold text-primary">
-            bayarea@telugutimes.net
+          <a href="mailto:contact@timesbayarea.com" className="font-semibold text-primary">
+            contact@timesbayarea.com
           </a>{" "}
           and we will add their story to this page.
         </p>

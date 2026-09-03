@@ -57,7 +57,6 @@ const NAV_ACTIVE = { className: "bg-nav-hover underline" };
 const COMMUNITY_ITEMS = [
   { en: "Community Forums", to: "/forums" },
   { en: "Events Calendar", to: "/events" },
-  { en: "Associations", to: "/associations" },
   { en: "People", to: "/people" },
   { en: "Foundation Icons", to: "/foundation-icons" },
   { en: "Groups", cat: "groups" },

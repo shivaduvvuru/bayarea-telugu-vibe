@@ -5,8 +5,8 @@ import { PROPERTY_FEATURES, propertyImage } from "@/lib/property-showcase";
  * Sponsor hero carousel slides.
  *
  * Slide 1 is always the CREDAI property-show banner; every slide after it is a
- * single skyscraper property feature from the Telugu Times 23rd Anniversary
- * Special edition, shown full-page so the vertical artwork stays intact.
+ * single skyscraper property feature from the anniversary special edition,
+ * shown full-page so the vertical artwork stays intact.
  *
  * The carousel rotates slowly on purpose — one slide every 30 minutes — so a
  * sponsor page holds the slot long enough to be read.

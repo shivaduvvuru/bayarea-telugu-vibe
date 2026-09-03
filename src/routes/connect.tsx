@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Building2,
-  Users,
   Landmark,
   Stethoscope,
   Briefcase,
@@ -14,9 +13,9 @@ import { CommunityPoll, VoicesRail } from "@/components/genz";
 import { SectionHeading } from "@/components/news";
 import { track } from "@/lib/analytics";
 
-const TITLE = "Connect — Indian associations, temples, professionals & jobs in the Bay Area";
+const TITLE = "Connect — Bay Area services, temples, professionals & jobs";
 const DESC =
-  "Find Bay Area Indian associations, temples, professionals, jobs and classifieds, or submit your own listing.";
+  "Find Bay Area services, temples, professionals, jobs and classifieds, or submit your own listing.";
 const URL = canonical("/connect");
 
 export const Route = createFileRoute("/connect")({
@@ -37,7 +36,6 @@ export const Route = createFileRoute("/connect")({
 
 const LINKS = [
   { en: "Community Directory", te: "కమ్యూనిటీ డైరెక్టరీ", icon: Building2, to: "/directory" as const },
-  { en: "Telugu Associations", te: "తెలుగు సంఘాలు", icon: Users, category: "associations" },
   { en: "Temples", te: "దేవాలయాలు", icon: Landmark, category: "temples" },
   { en: "Professionals", te: "నిపుణులు", icon: Stethoscope, category: "people" },
   { en: "Jobs", te: "ఉద్యోగాలు", icon: Briefcase, category: "classifieds" },
@@ -55,8 +53,8 @@ function ConnectPage() {
       <h1 className="text-3xl font-bold text-ink">{t("Connect", "కనెక్ట్")}</h1>
       <p className="mt-2 text-base text-muted-foreground">
         {t(
-          "The people, organisations and services that make up the Bay Area Indian community.",
-          "బే ఏరియా తెలుగు కమ్యూనిటీలోని వ్యక్తులు, సంస్థలు, సేవలు.",
+          "The people, organisations and services that make up life in the Bay Area.",
+          "బే ఏరియాలోని వ్యక్తులు, సంస్థలు, సేవలు.",
         )}
       </p>
 
@@ -96,8 +94,8 @@ function ConnectPage() {
 
       <p className="mt-4 rounded-lg bg-surface-tint p-4 text-sm text-muted-foreground">
         {t(
-          "Own a business or run an association? Directory profiles can be claimed and updated by their owners after editorial approval.",
-          "వ్యాపారం లేదా సంఘం నడుపుతున్నారా? ఎడిటోరియల్ ఆమోదం తర్వాత మీ డైరెక్టరీ ప్రొఫైల్‌ను మీరే అప్‌డేట్ చేసుకోవచ్చు.",
+          "Own a business? Directory profiles can be claimed and updated by their owners after editorial approval.",
+          "మీ వ్యాపారం ఉందా? ఎడిటోరియల్ ఆమోదం తర్వాత మీ డైరెక్టరీ ప్రొఫైల్‌ను మీరే అప్‌డేట్ చేసుకోవచ్చు.",
         )}{" "}
         <Link to="/contact" className="font-semibold text-primary">
           {t("Claim your listing", "మీ లిస్టింగ్ క్లెయిమ్ చేయండి")}

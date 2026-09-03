@@ -902,7 +902,7 @@ async function addImages(items: RawItem[]): Promise<void> {
 }
 
 /**
- * Region-wide topics Bay Area Telugu readers care about: NRI/immigration and
+ * Region-wide topics Bay Area readers care about: NRI/immigration and
  * India-US news, Telugu community events, and temple announcements.
  */
 const TOPIC_GROUPS: { kind: CollectedItem["kind"]; queries: string[]; match: RegExp }[] = [
@@ -1147,7 +1147,7 @@ const PUBLISHER_FEEDS: {
   // Telugu cinema trade desks — filed under Cinema, photo-led stories also
   // surface in Gallery.
   {
-    name: "Telugu Times Cinema",
+    name: "Cinema Desk",
     url: "https://www.telugutimes.net/en/cinemas/feed/",
     kind: "news",
     limit: 10,

@@ -169,7 +169,7 @@ export type PropertyFilters = {
 };
 
 /**
- * Ranking: Telugu Times advertisers first, then confirmed show participants,
+ * Ranking: Times Bay Area advertisers first, then confirmed show participants,
  * then editorial priority, then data completeness. Filters always win — a
  * sponsored project never appears for a filter it does not match.
  */

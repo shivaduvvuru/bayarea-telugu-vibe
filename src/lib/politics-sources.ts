@@ -33,7 +33,7 @@ const LOCAL: PoliticsSource[] = CITY_REGIONS.flatMap((region) =>
 );
 
 /**
- * Indian politics with the strongest pull for Bay Area Telugu readers:
+ * Indian politics with the strongest pull for Bay Area readers:
  * the two Telugu states first, then national politics and the Indian
  * diaspora angle in US politics.
  */

@@ -48,7 +48,7 @@ async function probe(
   const started = Date.now();
   try {
     const res = await fetch(url, {
-      headers: { Accept: "*/*", "User-Agent": "BayAreaTeluguTimes/health" },
+      headers: { Accept: "*/*", "User-Agent": "TimesBayArea/health" },
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     const body = await res.text().catch(() => "");

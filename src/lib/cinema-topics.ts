@@ -99,8 +99,8 @@ export function isStarGallery(
   const url = (sourceUrl ?? "").toLowerCase();
   // Hard news never belongs in a glamour grid.
   if (NEWSY.test(text)) return false;
-  // Our own newsroom (bayarea.telugutimes.net) is a trusted first-party desk:
-  // its photo galleries and event picture posts belong in Glamourie too.
+  // Our connected newsroom is a trusted first-party desk:
+  // its photo galleries and event picture posts belong in Glamour too.
   const ownSite = /telugutimes\.net/i.test(url);
   const photoDesk =
     (PHOTO_DESK_URL.test(url) && (urlLooksCinema(url) || ENTERTAINMENT_URL.test(url))) ||

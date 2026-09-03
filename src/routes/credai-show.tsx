@@ -481,7 +481,7 @@ function CredaiShowPage() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
             300+ RERA-approved projects and 70+ Grade-A builders at HITEX, August 28–30, 2026 —
-            covered for NRIs by Telugu Times and TimesBayArea with a dedicated buying desk.
+            covered for NRIs by Times Bay Area with a dedicated buying desk.
           </p>
         </header>
 

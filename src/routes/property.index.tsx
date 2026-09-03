@@ -10,7 +10,7 @@ import {
   trackPropertyVideoClick,
 } from "@/lib/property-videos.functions";
 import {
-  EPAPER_ANNIVERSARY_URL,
+  
   PROPERTY_FEATURES,
   propertyImage,
   type PropertyFeature,
@@ -18,7 +18,7 @@ import {
 
 const TITLE = "Property — Hyderabad high-rise projects | Times Bay Area";
 const DESCRIPTION =
-  "Individual skyscraper property features from the Telugu Times 23rd Anniversary Special — Hyderabad towers, developers, short video tours and project highlights for NRI buyers.";
+  "Individual skyscraper property features from our 23rd Anniversary Special — Hyderabad towers, developers, short video tours and project highlights for NRI buyers.";
 
 export const Route = createFileRoute("/property/")({
   head: () => ({
@@ -143,17 +143,10 @@ function PropertyIndex() {
       <header className="mb-5">
         <h1 className="text-2xl font-bold text-ink sm:text-3xl">Property</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Hyderabad high-rise projects, one picture per project, as featured in the{" "}
-          <a
-            href={EPAPER_ANNIVERSARY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-primary hover:underline"
-          >
-            Telugu Times 23rd Anniversary Special
-          </a>
-          .
+          Hyderabad high-rise projects, one picture per project, as featured in our 23rd Anniversary
+          Special.
         </p>
+
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             to="/property/$campaign"
@@ -176,7 +169,7 @@ function PropertyIndex() {
             <span className="ml-1.5 text-xs font-bold opacity-80">({withVideo.length})</span>
           </button>
           <a
-            href={EPAPER_ANNIVERSARY_URL}
+            href="/property"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-primary"
@@ -217,7 +210,7 @@ function PropertyIndex() {
       ) : null}
 
       <p className="mt-6 text-xs text-muted-foreground">
-        Project artwork and claims are the advertisers&apos; own, reproduced from the Telugu Times
+        Project artwork and claims are the advertisers&apos; own, reproduced from the
         anniversary edition. Verify RERA details with the developer before buying.
       </p>
 

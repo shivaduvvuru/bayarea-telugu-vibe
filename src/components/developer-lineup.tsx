@@ -4,7 +4,7 @@ import { developerLineup, priceLabel, type Property } from "@/lib/property";
 
 /**
  * "Meet these developers" — confirmed participants grouped by developer, with
- * Telugu Times advertisers surfaced first and links straight to project pages.
+ * Times Bay Area advertisers surfaced first and links straight to project pages.
  */
 export function DeveloperLineup({
   campaignSlug,
@@ -22,7 +22,7 @@ export function DeveloperLineup({
         Meet these developers
       </h2>
       <p className="mt-2 text-xs text-muted-foreground">
-        Confirmed participating developers. A “Telugu Times advertiser” badge means the developer
+        Confirmed participating developers. A “Times Bay Area advertiser” badge means the developer
         also advertises with us — participation itself is listed as published by the organiser.
       </p>
 
@@ -54,7 +54,7 @@ export function DeveloperLineup({
             <div className="mt-2 flex flex-wrap gap-1.5">
               {d.isAdvertiser ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                  <BadgeCheck className="h-3 w-3" aria-hidden /> Telugu Times advertiser
+                  <BadgeCheck className="h-3 w-3" aria-hidden /> Times Bay Area advertiser
                 </span>
               ) : null}
               {d.isParticipant ? (

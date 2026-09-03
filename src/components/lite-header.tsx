@@ -53,7 +53,7 @@ const MORE_GROUPS: ReadonlyArray<{ heading: string; items: ReadonlyArray<MoreIte
     ],
   },
   {
-    heading: "Community",
+    heading: "Explore",
     items: [
       { to: "/people", label: "People" },
       { to: "/foundation-icons", label: "Foundation Icons" },

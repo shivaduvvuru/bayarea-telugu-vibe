@@ -23,7 +23,7 @@ function AboutPage() {
       <div className="mt-6 space-y-4 text-[17px] leading-relaxed text-foreground">
         <p>
           Times Bay Area is a trusted home for Indian community news across Northern California,
-          with the heritage of Telugu Times and a local Bay Area newsroom.
+          with a local Bay Area newsroom.
         </p>
         <p>
           We cover the news that matters to Indian families here: local government and schools,

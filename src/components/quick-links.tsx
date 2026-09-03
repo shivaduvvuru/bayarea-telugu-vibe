@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
   CalendarDays,
   CalendarPlus,
-  Users,
+  
   Landmark,
   UtensilsCrossed,
   Stethoscope,
@@ -15,7 +15,7 @@ import { useLang } from "@/lib/language";
 const ITEMS = [
   { en: "Events This Weekend", te: "ఈ వారాంతం", icon: CalendarDays, to: "/events" },
   { en: "Submit an Event", te: "ఈవెంట్ పంపండి", icon: CalendarPlus, to: "/contact" },
-  { en: "Telugu Associations", te: "సంఘాలు", icon: Users, to: "/category/$category", param: "associations" },
+  
   { en: "Temples", te: "దేవాలయాలు", icon: Landmark, to: "/category/$category", param: "temples" },
   { en: "Restaurants", te: "రెస్టారెంట్లు", icon: UtensilsCrossed, to: "/category/$category", param: "restaurants" },
   { en: "Doctors & Professionals", te: "డాక్టర్లు & నిపుణులు", icon: Stethoscope, to: "/directory" },

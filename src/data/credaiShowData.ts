@@ -1,6 +1,6 @@
 /**
  * CREDAI Hyderabad Property Show 2026 (Aug 28–30, HITEX) expo hub data.
- * Project artwork reuses the Telugu Times 23rd Anniversary Special pages.
+ * Project artwork reuses the anniversary special pages.
  */
 export interface CredaiProject {
   id: string;
@@ -57,7 +57,7 @@ export const PROXY_SERVICES = [
   },
   {
     title: "Legal & RERA due diligence",
-    body: "Pre-vetted clear titles, RERA registrations and builder delivery track records curated by Telugu Times.",
+    body: "Pre-vetted clear titles, RERA registrations and builder delivery track records curated by Times Bay Area.",
   },
   {
     title: "Family assisted site visits",

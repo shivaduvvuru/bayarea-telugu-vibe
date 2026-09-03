@@ -75,7 +75,6 @@ export const CATEGORIES: Category[] = [
     te: "కమ్యూనిటీ",
     en: "Community",
     children: [
-      { slug: "associations", te: "అసోసియేషన్స్", en: "Associations" },
       { slug: "events-community", te: "ఈవెంట్స్", en: "Events" },
       { slug: "groups", te: "గ్రూప్స్", en: "Groups" },
       { slug: "people", te: "పీపుల్", en: "People" },
@@ -164,7 +163,6 @@ export const LOCAL_SLUGS = [
   "city-news",
   ...CITY_CATEGORIES.map((c) => c.slug),
   "community",
-  "associations",
   "events-community",
   "groups",
   "people",
