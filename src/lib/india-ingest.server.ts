@@ -127,21 +127,9 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     fallback: "india-nri",
     limit: 8,
   },
-  // Connected English desk and picture-led web stories.
-  {
-    name: "India Desk (English)",
-    url: "https://www.telugutimes.net/en/feed/",
-    fallback: "india-national",
-    limit: 12,
-    // Cinema/OTT coverage from the same publisher is read by the Cinema desk.
-    skipLink: /\/en\/cinemas\//i,
-  },
-  {
-    name: "India Web Stories",
-    url: "https://www.telugutimes.net/web-stories/feed/",
-    fallback: "india-national",
-    limit: 8,
-  },
+  // NOTE: TeluguTimes.net India feeds were removed from active ingestion on
+  // 2026-09-03. Existing published stories remain live; new stories are sourced
+  // from Indian-American and Bay Area community publishers instead.
   {
     name: "New India Abroad",
     url: "https://news.google.com/rss/search?q=site%3Anewindiaabroad.com+when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
