@@ -90,6 +90,19 @@ export function subjectOf(a: Article): { subject: string; label: string } {
   return { subject: a.category || "news", label: a.categoryName || "Latest" };
 }
 
+/**
+ * Violent crime, accidents, tragedy and court/police stories are never featured
+ * in the hero: the front page is a family-audience shelf. Such stories still
+ * appear in the regular news lists.
+ */
+const HERO_UNSAFE =
+  /\b(murder|murdered|killed|killing|kills|shot|shooting|shoot[- ]?out|gunman|gun\b|stabb\w*|homicide|rape|raped|sexual|molest\w*|assault\w*|abuse|suicide|self[- ]harm|overdose|arrest\w*|indict\w*|convict\w*|charged|jail\w*|prison|lawsuit|sued|fraud|scam|hate crime|riot|terror\w*|bomb\w*|hostage|kidnap\w*|missing|crash|collision|derail\w*|fatal\w*|died|dies|dead|death|deaths|body found|drown\w*|wildfire|fire kills|injur\w*|victim|deport\w*|ice raid|immigration raid|police|sheriff|fbi|court|custody|allegation|alleged|accus\w*|harass\w*|misconduct|tragedy|tragic|mourn\w*|funeral|obituary)\b/i;
+
+/** True when a story must be kept out of the hero and top featured slots. */
+export function heroUnsafe(a: Article): boolean {
+  return HERO_UNSAFE.test(`${a.title} ${a.excerpt ?? ""}`);
+}
+
 /** Reader-interest cues that lift a story into the hero. */
 const INTEREST =
   /\b(h-?1b|green card|visa|immigration|layoff|hiring|housing|rent|school|election|festival|diwali|ugadi|temple|telugu|indian|nri|crash|fire|storm|earthquake|record|first)\b/i;
@@ -167,7 +180,7 @@ export function buildHeroSet(
   const exclude = options.exclude ?? new Set<string>();
 
   const ranked = articles
-    .filter((a) => a.category !== "gallery" && a.title)
+    .filter((a) => a.category !== "gallery" && a.title && !heroUnsafe(a))
     .map((a) => ({ a, image: heroEligibleImage(a.image), score: heroScore(a, now, options.ignoreRest === true) }))
     .filter((c) => !!c.image)
     .sort((x, y) => y.score - x.score);
