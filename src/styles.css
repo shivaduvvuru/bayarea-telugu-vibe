@@ -62,7 +62,8 @@
 }
 
 :root {
-  --radius: 0.25rem;
+  /* Rounded, friendlier geometry for the youth refresh. */
+  --radius: 0.85rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
@@ -74,21 +75,29 @@
   --primary-dark: oklch(0.43 0.19 27.5);
   --secondary: oklch(0.965 0.004 260);
   --secondary-foreground: oklch(0.2 0.01 260);
-  --muted: oklch(0.965 0.004 260);
-  --muted-foreground: oklch(0.5 0.012 260);
-  --accent: oklch(0.955 0.02 30);
+  --muted: oklch(0.968 0.004 260);
+  /* Darkened for AA contrast on white and on the tinted surface. */
+  --muted-foreground: oklch(0.44 0.014 260);
+  --accent: oklch(0.955 0.03 30);
   --accent-foreground: oklch(0.43 0.19 27.5);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0.006 260);
-  --input: oklch(0.9 0.006 260);
+  --border: oklch(0.905 0.006 260);
+  --input: oklch(0.905 0.006 260);
   --ring: oklch(0.52 0.21 27.5);
-  --ink: oklch(0.12 0.008 260);
+  --ink: oklch(0.14 0.008 260);
   /* Menu bar, matched to bayarea.telugutimes.net (#de292d bar, white links) */
   --nav: oklch(0.56 0.213 27.6);
   --nav-foreground: oklch(1 0 0);
   --nav-hover: oklch(0.43 0.19 27.5);
-  --surface-tint: oklch(0.975 0.005 80);
+  --surface-tint: oklch(0.977 0.008 80);
+  /* Vibrant secondary brand hues — used for youth sections and chips. */
+  --brand-teal: oklch(0.62 0.13 195);
+  --brand-teal-soft: oklch(0.95 0.04 195);
+  --brand-amber: oklch(0.78 0.15 78);
+  --brand-amber-soft: oklch(0.96 0.06 85);
+  --brand-violet: oklch(0.56 0.17 300);
+  --brand-violet-soft: oklch(0.95 0.04 300);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -111,6 +120,12 @@
   --color-nav: var(--nav);
   --color-nav-foreground: var(--nav-foreground);
   --color-nav-hover: var(--nav-hover);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-soft: var(--brand-teal-soft);
+  --color-brand-amber: var(--brand-amber);
+  --color-brand-amber-soft: var(--brand-amber-soft);
+  --color-brand-violet: var(--brand-violet);
+  --color-brand-violet-soft: var(--brand-violet-soft);
   --font-serif-display: Georgia, "Times New Roman", serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -184,6 +199,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
   h1,
@@ -245,7 +262,12 @@
 @layer base {
   h1,
   h2 {
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 3px;
   }
 
   @media (prefers-reduced-motion: reduce) {

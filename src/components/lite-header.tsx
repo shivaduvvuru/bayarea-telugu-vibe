@@ -10,35 +10,24 @@ import { useSignedIn, signOutSession } from "@/lib/session-state";
  * Economic-Times-style lean header: one identity row, one category rail.
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
-/** Full desktop rail — mirrors the mobile split: news first, then utilities. */
+/** Focused top rail — the most-used destinations stay visible; the rest live in More. */
 const RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/property", label: "Property" },
   { to: "/events", label: "Events" },
-  { to: "/temples", label: "Temple Directory" },
-  { to: "/temples/calendar", label: "Temple Calendar" },
-  { to: "/temples/news", label: "Temple News" },
-
   { to: "/food", label: "Food" },
-  { to: "/food/restaurants", label: "Restaurants" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-  { to: "/directory", label: "Directory" },
-  { to: "/associations", label: "Associations & Community" },
-  { to: "/connect", label: "Services" },
-  { to: "/forums", label: "Forums" },
 ] as const;
 
-/** Mobile top rail — news sections; utilities live in the bottom bars. */
+/** Mobile top rail — concise discovery destinations; utilities live in the bottom bars. */
 const MOBILE_RAIL = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
-  { to: "/property", label: "Property" },
-  { to: "/food/restaurants", label: "Restaurants" },
+  { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
 ] as const;
 
 
@@ -329,10 +318,10 @@ export function LiteHeader() {
           )}
         </div>
       </div>
-      {/* Desktop rail — full section list. */}
+      {/* Desktop rail — focused sections with the rest one tap away. */}
       <nav
         aria-label="Sections"
-        className="hidden md:flex overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="hidden overflow-x-auto bg-nav [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex"
       >
         <div className="mx-auto flex max-w-6xl items-center gap-1 px-2">
           {signedIn ? (
@@ -371,9 +360,9 @@ export function LiteHeader() {
             <Link
               key={i}
               to={item.to}
-              params={"params" in item ? item.params : {}}
+              params={item.params}
               activeProps={{ className: "underline" }}
-              className="whitespace-nowrap px-2.5 py-2 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
+              className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold uppercase tracking-tight text-nav-foreground"
             >
               {item.label}
             </Link>

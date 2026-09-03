@@ -12,6 +12,7 @@ import { usableImage } from "@/lib/story-image";
 import { contentDedupeKeys } from "@/lib/dedupe";
 import { classifyItem, isUpcoming, whenLabel } from "@/lib/classify";
 import { HousingHero } from "@/components/housing-hero";
+import { ShortVideoRail, SwipeStories } from "@/components/genz";
 import { SmartDigest } from "@/components/smart-digest";
 import {
   isPrimeBannerFresh,
@@ -330,12 +331,15 @@ function Row({ a }: { a: Article }) {
           <Thumb article={a} sizes="(max-width: 768px) 100vw, 720px" />
         </div>
         <div className="mt-2">
-          <h3 className="line-clamp-3 text-[16px] font-semibold leading-snug text-ink">
+          <h3 className="line-clamp-3 text-[17px] font-semibold leading-snug text-ink">
             {a.title}
           </h3>
-          <p className="mt-1 flex flex-wrap items-center gap-2">
+          {a.excerpt ? (
+            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{a.excerpt}</p>
+          ) : null}
+          <p className="mt-2 flex flex-wrap items-center gap-2">
             <SourceChip article={a} />
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">
               {a.categoryName} · {formatDate(a.date)}
             </span>
           </p>
@@ -816,11 +820,11 @@ function Home() {
       <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">
-        <div className="mb-3 rounded-md border border-border bg-surface-tint px-3 py-2">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+        <div className="mb-4 rounded-2xl border border-border bg-surface-tint px-4 py-3 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
             Digest from sources
           </p>
-          <DigestNote className="mt-0.5" />
+          <DigestNote className="mt-1 text-sm" />
           <CollectStatus mode="all" className="mt-2" />
           <NewsFreshness
             className="mt-2"
@@ -843,10 +847,23 @@ function Home() {
 
         {/* The hand-built prime feature keeps its slot only while fresh. */}
         {bannerFresh ? <div className="mt-4"><HousingHero /></div> : null}
+
+        {/* Youth-first, family-friendly formats arrive before the dense feed. */}
+        <section className="mt-7 rounded-2xl border border-brand-teal/30 bg-brand-teal-soft/60 p-4 sm:p-5" aria-labelledby="young-bay-area-heading">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-teal">Made for the Bay</p>
+              <h2 id="young-bay-area-heading" className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Quick reads &amp; good vibes</h2>
+            </div>
+            <Link to="/explore" className="min-h-11 shrink-0 rounded-full border border-brand-teal px-3 py-2 text-xs font-bold text-brand-teal transition-colors hover:bg-brand-teal hover:text-primary-foreground">Explore</Link>
+          </div>
+          <ShortVideoRail />
+          <div className="mt-5"><SwipeStories /></div>
+        </section>
       </div>
 
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
+      <div className="mt-7 grid grid-cols-1 gap-7 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_340px]">
         <section>
           <Head more={<MoreTo to="/category/city-news" label="All city news" />}>Bay Area digest</Head>
           {bannerFresh ? <Lead a={lead} /> : null}
@@ -1011,7 +1028,7 @@ function Home() {
         )}
 
         {/* Pre-classified digest, read straight from the articles table. */}
-        <section id="daily-smart-digest" className="mt-5 scroll-mt-24">
+        <section id="daily-smart-digest" className="mt-7 scroll-mt-24 rounded-2xl bg-brand-violet-soft/55 p-4 sm:p-5">
           <Head more={<MoreTo to="/digest" label="Open digest" />}>Daily Smart Digest</Head>
           <div className="mt-3">
             <SmartDigest embedded />

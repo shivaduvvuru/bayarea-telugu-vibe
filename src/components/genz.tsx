@@ -3,6 +3,7 @@ import { Play, ChevronLeft, ChevronRight, Tag, Quote } from "lucide-react";
 import { DEALS, POLL, SHORT_VIDEOS, SWIPE_STORIES, VOICES } from "@/lib/genz-data";
 import { SampleChip, SponsoredChip } from "@/components/story-actions";
 import { HRail } from "@/components/news";
+import { SmartImage } from "@/components/smart-image";
 import { useLang } from "@/lib/language";
 import { track } from "@/lib/analytics";
 
@@ -21,11 +22,12 @@ export function ShortVideoRail() {
           className="group w-[46vw] shrink-0 snap-start sm:w-44"
         >
           <div className="relative overflow-hidden rounded-xl bg-surface-tint">
-            <img
+            <SmartImage
               src={v.poster}
               alt={v.title}
               width={720}
               height={1280}
+              optimizedWidth={480}
               loading="lazy"
               decoding="async"
               className="aspect-[9/16] w-full object-cover transition-transform duration-300 group-hover:scale-105"
