@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { canonical } from "@/lib/site";
 import {
   CITY_SLUGS,
   REGION_SLUGS,

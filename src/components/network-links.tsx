@@ -12,7 +12,7 @@ const ITEMS: Item[] = [
   { href: TT_LINKS.site, en: "TeluguTimes.net", te: "తెలుగు టైమ్స్", icon: Globe },
 ];
 
-/** Compact row of Telugu Times network links (site, e-paper, social). */
+/** Compact row of community network links (site, e-paper, social). */
 export function NetworkLinks({ tone = "light" }: { tone?: "light" | "dark" }) {
   const { t } = useLang();
   const base =
@@ -21,7 +21,7 @@ export function NetworkLinks({ tone = "light" }: { tone?: "light" | "dark" }) {
       : "border-border text-ink hover:border-primary hover:text-primary";
   return (
     <nav
-      aria-label={t("Telugu Times network", "తెలుగు టైమ్స్ నెట్‌వర్క్")}
+      aria-label={t("Community network", "కమ్యూనిటీ నెట్‌వర్క్")}
       className="flex flex-wrap items-center gap-2"
     >
       {ITEMS.map(({ href, en, te, icon: Icon }) => (

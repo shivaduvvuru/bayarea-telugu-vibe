@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { canonical } from "@/lib/site";
 import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
 import { listTempleEvents } from "@/lib/temple-calendar.functions";
 import { formatEventDay, formatEventTime } from "@/lib/temple-calendar";
