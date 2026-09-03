@@ -11,9 +11,14 @@
 - [x] Verify crons, run a manual collection now, expose a "Sync News Now" admin control
 - [x] Remove community and associations data from the app
 - [x] Remove remaining old branding and SEO references
-- [ ] Replace top navigation band color with a Gen Z-friendly color (not dark blue, not red)
+- [x] Replace top navigation band color with a Gen Z-friendly color (not dark blue, not red)
 - [ ] Stop pulling stories from TeluguTimes.net; replace with real Indian community stories/events/listings
+  - Decision: stop ingest + backfill with more sources (do not delete existing TeluguTimes stories)
 - [ ] Replace placeholder temple/property/food/event listings with real Bay Area Indian community directory data
+  - Decision: seed from OpenStreetMap (Overpass); delete only clearly fake placeholders
 - [ ] Build a reader submission page for local news, events, and photos
+  - Decision: moderated queue (no sign-in required to submit; staff approve before publish)
 - [ ] Build a real Bay Area Indian community directory (temples, restaurants, schools, businesses), searchable by location
+  - Decision: seed from OpenStreetMap (Overpass)
 - [ ] Replace placeholder news feed stories with real Bay Area Indian news while keeping ingestion sources
+  - Decision: remove TeluguTimes feeds, add more US/Indian community sources
