@@ -143,17 +143,10 @@ function PropertyIndex() {
       <header className="mb-5">
         <h1 className="text-2xl font-bold text-ink sm:text-3xl">Property</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Hyderabad high-rise projects, one picture per project, as featured in the{" "}
-          <a
-            href={EPAPER_ANNIVERSARY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-primary hover:underline"
-          >
-            Telugu Times 23rd Anniversary Special
-          </a>
-          .
+          Hyderabad high-rise projects, one picture per project, as featured in our 23rd Anniversary
+          Special.
         </p>
+
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             to="/property/$campaign"
