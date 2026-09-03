@@ -176,10 +176,17 @@ function CategoryPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       {live ? <PullToRefresh queryKeys={liveKeys} /> : null}
+      {cat.slug === "cinema" ? (
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+          Times Bay Area — Cinema &amp; Entertainment
+        </p>
+      ) : null}
       <h1 className="text-3xl font-bold text-ink">
-        {cat.en}
+        {cat.slug === "cinema" ? "Entertainment Desk" : cat.en}
       </h1>
-      <p className="te-text mt-1 text-sm font-medium text-muted-foreground">{cat.te}</p>
+      <p className="te-text mt-1 text-sm font-medium text-muted-foreground">
+        {cat.slug === "cinema" ? "Reviews, box office, OTT and interviews" : cat.te}
+      </p>
       <DigestNote className="mt-2 max-w-2xl" />
       {live ? (
         <NewsFreshness className="mt-3" queryKeys={liveKeys} updatedAt={dataUpdatedAt} />
