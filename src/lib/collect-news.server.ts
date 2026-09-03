@@ -476,6 +476,8 @@ export const lastDiag = {
          lastFetchAt?: string;
          itemsFetched?: number;
          error?: string;
+         /** True when the primary endpoint failed and the RSS fallback answered. */
+         usedFallback?: boolean;
        }
     >,
   },
