@@ -8,6 +8,8 @@ import {
   runAuditNow,
   sendTestAlert,
 } from "@/lib/ingest-health.functions";
+import { syncNewsNow } from "@/lib/sync-news.functions";
+
 import { Button } from "@/components/ui/button";
 import { SummaryDiagnosticsPanel } from "@/components/summary-diagnostics-panel";
 
@@ -44,7 +46,22 @@ function IngestHealthPage() {
   const runSource = useServerFn(runIngestSource);
   const audit = useServerFn(runAuditNow);
   const test = useServerFn(sendTestAlert);
+  const syncNews = useServerFn(syncNewsNow);
   const [note, setNote] = useState<string | null>(null);
+
+  const sync = useMutation({
+    mutationFn: () => syncNews({ data: { mode: "all" } }),
+    onSuccess: (r: Record<string, unknown>) => {
+      setNote(
+        r["ok"]
+          ? `News sync finished: ${r["published"] ?? 0} published, ${r["collected"] ?? 0} collected.`
+          : `News sync failed: ${String(r["error"] ?? r["status"] ?? "unknown")}`,
+      );
+      query.refetch();
+    },
+    onError: (e) => setNote((e as Error).message),
+  });
+
 
   const query = useQuery({
     queryKey: ["ingest-health"],
@@ -80,7 +97,7 @@ function IngestHealthPage() {
   });
 
   const report = query.data;
-  const busy = run.isPending || alert.isPending || auditRun.isPending;
+  const busy = run.isPending || alert.isPending || auditRun.isPending || sync.isPending;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -104,9 +121,13 @@ function IngestHealthPage() {
           <Button variant="outline" onClick={() => auditRun.mutate()} disabled={busy}>
             Run audit
           </Button>
+          <Button variant="outline" onClick={() => sync.mutate()} disabled={busy}>
+            {sync.isPending ? "Syncing news…" : "Sync News Now"}
+          </Button>
           <Button onClick={() => run.mutate(undefined)} disabled={busy}>
             {run.isPending ? "Running…" : "Run India ingest"}
           </Button>
+
         </div>
       </header>
 

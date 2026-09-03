@@ -225,5 +225,24 @@ export async function publishRawItems(ids: string[]): Promise<number> {
     await db.rpc("increment_items_published", { source_ids: sourceIds });
   }
 
+  // Keep the digest's read table in step with this publish path too — a mirror
+  // failure must never undo a successful publish, so it stays best-effort.
+  const contentIds = [...insertedFor.values()];
+  if (contentIds.length) {
+    try {
+      const { data: stored } = await db
+        .from("content_items")
+        .select("*")
+        .in("id", contentIds);
+      if (stored?.length) {
+        const { mirrorToArticles } = await import("@/lib/articles-mirror.server");
+        await mirrorToArticles(db as never, stored as never);
+      }
+    } catch (error) {
+      console.error("articles mirror failed (ingest publish)", error);
+    }
+  }
+
   return publishedRows.length;
 }
+

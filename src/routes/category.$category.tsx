@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { isChunkLoadError, recoverFromChunkError } from "@/lib/chunk-reload";
+
 import { Heart } from "lucide-react";
 import { canonical } from "@/lib/site";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
@@ -85,11 +87,8 @@ export const Route = createFileRoute("/category/$category")({
       links: [{ rel: "canonical", href: url }],
     };
   },
-  errorComponent: ({ error }) => (
-    <div className="mx-auto max-w-3xl px-4 py-16 text-center" role="alert">
-      <p className="text-sm text-muted-foreground">{error.message}</p>
-    </div>
-  ),
+  errorComponent: CategoryError,
+
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl px-4 py-16 text-center">
       <h1 className="text-2xl font-bold text-ink">Section not found</h1>
@@ -97,6 +96,35 @@ export const Route = createFileRoute("/category/$category")({
   ),
   component: CategoryPage,
 });
+
+/**
+ * A new deploy retires the old hashed chunk for this route, so an open tab's
+ * lazy import can 404. That is recoverable: reload once and the section loads.
+ */
+function CategoryError({ error, reset }: { error: Error; reset: () => void }) {
+  const stale = isChunkLoadError(error);
+  useEffect(() => {
+    recoverFromChunkError(error);
+  }, [error]);
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-16 text-center" role="alert">
+      <p className="text-sm text-muted-foreground">
+        {stale ? "Loading the latest version of this section…" : error.message}
+      </p>
+      {stale ? null : (
+        <button
+          type="button"
+          onClick={reset}
+          className="press mt-4 min-h-11 rounded-full border border-border px-6 text-sm font-semibold text-ink hover:border-primary hover:text-primary"
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  );
+}
+
+
 
 
 
