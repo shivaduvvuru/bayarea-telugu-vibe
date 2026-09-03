@@ -7,8 +7,7 @@ type Banner = { name: string; href: string; note: string };
 /** Partner banners the editorial team sells / trades. */
 const PARTNER_BANNERS: Banner[] = [
   { name: "Remitly", href: "https://www.remitly.com/", note: "Send money to India" },
-  { name: "Biryani Junction", href: "https://www.google.com/search?q=Biryani+Junction+Bay+Area", note: "Bay Area kitchens" },
-  { name: "Bhimavaram Ruchulu", href: "https://www.google.com/search?q=Bhimavaram+Ruchulu+Bay+Area", note: "Andhra meals" },
+  { name: "Remitly", href: "https://www.remitly.com/", note: "Send money to India" },
 ];
 
 function BannerTile({ b }: { b: Banner }) {

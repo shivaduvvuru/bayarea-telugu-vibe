@@ -127,9 +127,9 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     fallback: "india-nri",
     limit: 8,
   },
-  // Telugu Times network — English desk and the picture-led web stories.
+  // Connected English desk and picture-led web stories.
   {
-    name: "Telugu Times (English)",
+    name: "India Desk (English)",
     url: "https://www.telugutimes.net/en/feed/",
     fallback: "india-national",
     limit: 12,
@@ -137,7 +137,7 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     skipLink: /\/en\/cinemas\//i,
   },
   {
-    name: "Telugu Times Web Stories",
+    name: "India Web Stories",
     url: "https://www.telugutimes.net/web-stories/feed/",
     fallback: "india-national",
     limit: 8,
