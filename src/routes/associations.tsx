@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CommunityAppeal } from "@/components/ads";
 import { ASSOCIATIONS, BAY_AREA_TEMPLES } from "@/lib/community-data";
 
-const TITLE = "Telugu Associations in the Bay Area — BATA, TANA, ATA & more";
+const TITLE = "Indian Associations in the Bay Area — BATA, TANA, ATA & more";
 const DESC =
-  "BATA, Silicon Andhra, TANA Bay Area, ATA Bay Area, TDF, NRI TDP and IT Serve — the Telugu associations serving the San Francisco Bay Area.";
+  "BATA, Silicon Andhra, TANA Bay Area, ATA Bay Area, TDF, NRI TDP and IT Serve — the Indian associations serving the San Francisco Bay Area.";
 
 export const Route = createFileRoute("/associations")({
   head: () => ({
@@ -26,7 +26,7 @@ function AssociationsPage() {
       <p className="text-xs font-bold uppercase tracking-widest text-primary">Community</p>
       <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">Associations</h1>
       <p className="mt-3 text-[17px] leading-relaxed text-foreground">
-        The Telugu associations that organise cultural, social and professional life across the
+        The Indian associations that organise cultural, social and professional life across the
         Bay Area.
       </p>
 

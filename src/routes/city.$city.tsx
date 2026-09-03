@@ -39,7 +39,7 @@ export const Route = createFileRoute("/city/$city")({
   head: ({ loaderData }) => {
     const name = loaderData?.city.en ?? "Bay Area";
     const title = `${name} Indian community — businesses, events & discussions`;
-    const description = `Telugu businesses, temples, upcoming events and neighbourhood discussions in ${name}, ${loaderData?.city.region ?? "the Bay Area"}.`;
+    const description = `Indian businesses, temples, upcoming events and neighbourhood discussions in ${name}, ${loaderData?.city.region ?? "the Bay Area"}.`;
     return {
       meta: [
         { title },
