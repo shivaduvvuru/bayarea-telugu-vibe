@@ -2516,8 +2516,13 @@ export let aiBatchMetrics = newBatchMetrics();
 
 type SummaryGroup = { key: string; city: City; items: RawItem[] };
 
-function fallbackSummary(item: RawItem) {
-  return `Reported by ${item.source}. Verify details and add the Telugu translation before publishing.`;
+/**
+ * No summary is better than a workflow note: when the model cannot write one,
+ * the card shows the headline alone. Internal instructions must never be stored
+ * where a reader could see them.
+ */
+function fallbackSummary(_item: RawItem) {
+  return "";
 }
 
 /**
