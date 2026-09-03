@@ -194,8 +194,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background md:static">
       {/* Desktop utility bar — search + language */}
-      <div className="hidden border-b border-border/70 bg-surface-tint md:block">
-        <div className="mx-auto flex max-w-6xl items-center justify-end gap-4 px-4 py-1.5 text-xs text-muted-foreground">
+      <div className="hidden border-b border-border/70 bg-nav md:block">
+        <div className="mx-auto flex max-w-6xl items-center justify-end gap-4 px-4 py-1.5 text-xs text-nav-foreground/90">
           <HeaderSearch />
         </div>
       </div>
