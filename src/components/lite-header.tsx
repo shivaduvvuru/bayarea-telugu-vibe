@@ -10,7 +10,7 @@ import logoUrl from "@/assets/times-bay-area-logo-placeholder.png";
  * No social strip, no tagline block, no mega-menu — content starts fast.
  */
 /** Focused top rail — the most-used destinations stay visible; the rest live in More. */
-const RAIL = [
+const RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
@@ -19,16 +19,16 @@ const RAIL = [
   { to: "/events", label: "Events" },
   { to: "/food", label: "Food" },
   { to: "/category/$category", params: { category: "fun-zone" }, label: "Fun Zone" },
-] as const;
+];
 
 /** Mobile top rail — concise discovery destinations; utilities live in the bottom bars. */
-const MOBILE_RAIL = [
+const MOBILE_RAIL: ReadonlyArray<{ to: string; params?: { category: string }; label: string }> = [
   { to: "/category/$category", params: { category: "city-news" }, label: "City News" },
   { to: "/category/$category", params: { category: "india-news" }, label: "India" },
   { to: "/category/$category", params: { category: "cinema" }, label: "Cinema/OTT" },
   { to: "/category/$category", params: { category: "gallery" }, label: "Glamour" },
   { to: "/directory", label: "Directory" },
-] as const;
+];
 
 
 type MoreItem = { to: string; params?: { category: string }; label: string };
