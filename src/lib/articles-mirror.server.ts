@@ -46,7 +46,9 @@ export function deskOf(row: MirrorSource): string {
   if (row.is_local) return "bay-area";
   if (category === "india-telangana" || category === "india-andhra" || category === "india-news")
     return "telangana-andhra";
-  return "bay-area";
+  // Not local, not India, not film: national/world/business copy files under its
+  // own desk instead of padding the Bay Area column.
+  return "national";
 }
 
 /** Three short takeaways from the fields the newsroom already writes. */

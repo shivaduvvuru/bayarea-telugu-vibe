@@ -29,15 +29,31 @@ export type Article = {
 const COLUMNS =
   "id,title,summary,summary_bullets,desk,city,source_name,source_url,image_url,importance_score,published_at";
 
+// The lead is the most important story of the last three days, not of all time.
+const LEAD_WINDOW_MS = 72 * 60 * 60 * 1000;
+
 async function fetchLead(): Promise<Article[]> {
-  const { data, error } = await supabase
+  const since = new Date(Date.now() - LEAD_WINDOW_MS).toISOString();
+  const query = () =>
+    supabase
+      .from("articles")
+      .select(COLUMNS)
+      .eq("status", "published")
+      .order("importance_score", { ascending: false })
+      .order("published_at", { ascending: false })
+      .limit(1);
+  const { data, error } = await query().gte("published_at", since);
+  if (error) throw error;
+  if (data?.length) return data as Article[];
+  // Quiet stretch: fall back to the newest published story so the hero is never empty.
+  const { data: newest, error: newestError } = await supabase
     .from("articles")
     .select(COLUMNS)
     .eq("status", "published")
-    .order("importance_score", { ascending: false })
+    .order("published_at", { ascending: false })
     .limit(1);
-  if (error) throw error;
-  return (data ?? []) as Article[];
+  if (newestError) throw newestError;
+  return (newest ?? []) as Article[];
 }
 
 async function fetchDesk(desk: string, limit: number): Promise<Article[]> {
@@ -245,6 +261,7 @@ export function SmartDigest({ embedded = false }: { embedded?: boolean }) {
         <div className="space-y-6">
           <DeskList desk="telangana-andhra" limit={15} heading="Telangana & Andhra" compact />
           <DeskList desk="cinema-glamour" limit={10} heading="Glamour & Cinema" compact />
+          <DeskList desk="national" limit={10} heading="National & World" compact />
         </div>
       </div>
     </div>
