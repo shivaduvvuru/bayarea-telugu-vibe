@@ -70,7 +70,7 @@ function ContactPage() {
         </button>
         {sent && (
           <p className="text-sm text-muted-foreground">
-            Message noted. Email us directly at news@bayarea.telugutimes.net for anything urgent.
+            Message noted. We'll get back to you shortly.
           </p>
         )}
       </form>

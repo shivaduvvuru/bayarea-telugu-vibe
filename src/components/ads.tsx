@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube } from "lucide-react";
 import { useLang } from "@/lib/language";
 import { COMMUNITY_EMAIL } from "@/lib/community-data";
-import { PARENT_SITE } from "@/lib/site";
 
 type Banner = { name: string; href: string; note: string };
 
@@ -65,7 +63,6 @@ export function LeaderboardBanner() {
 /** Wide banners shown directly under the main menu (greatandhra.com style). */
 const LEADERBOARD_BANNERS: Banner[] = [
   { name: "Advertise on Times Bay Area", href: "/contact", note: "728x90 leaderboard — reach 50k+ Indian families" },
-  { name: "Telugu Times E-Paper", href: "https://telugutimes.net/", note: "Read today's edition free" },
   { name: "Your Business Here", href: "/contact", note: "Weekly & monthly banner slots available" },
 ];
 
@@ -76,32 +73,15 @@ export function HouseSkyscraper() {
       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         {t("Advertisement", "ప్రకటన")}
       </p>
-      <a
-        href={PARENT_SITE}
-        target="_blank"
-        rel="noreferrer"
+      <Link
+        to="/contact"
         className="block rounded-sm border border-primary bg-primary/5 p-4 transition-colors hover:bg-primary/10"
       >
-        <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-          {t("The first global Telugu newspaper", "మొదటి గ్లోబల్ తెలుగు వార్తాపత్రిక")}
-        </p>
-        <p className="mt-1 text-lg font-bold leading-tight text-ink">Telugu Times</p>
-        <p className="mt-1 text-xs text-muted-foreground">telugutimes.net</p>
-      </a>
-      <a
-        href="https://www.youtube.com/@telugutimesdigital"
-        target="_blank"
-        rel="noreferrer"
-        className="block rounded-sm border border-border bg-surface-tint p-4 transition-colors hover:border-primary"
-      >
-        <Youtube className="h-6 w-6 text-primary" aria-hidden />
-        <p className="mt-1.5 text-base font-bold leading-tight text-ink">
-          Telugu Times {t("YouTube Channel", "యూట్యూబ్ ఛానెల్")}
-        </p>
+        <p className="mt-1 text-lg font-bold leading-tight text-ink">Advertise on Times Bay Area</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          {t("Subscribe for daily video news", "రోజువారీ వీడియో వార్తల కోసం సబ్‌స్క్రైబ్")}
+          {t("Reach Indian families across the Bay Area", "బే ఏరియా అంతటా భారతీయ కుటుంబాలను చేరుకోండి")}
         </p>
-      </a>
+      </Link>
     </div>
   );
 }

@@ -1,47 +1,16 @@
-import { TT_LINKS } from "@/lib/network-links";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Menu,
   X,
-  Youtube,
   Newspaper,
   Search,
-  Globe,
-  Instagram,
-  Facebook,
   ChevronDown,
 } from "lucide-react";
 import { CATEGORIES, CITY_REGIONS } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { onOpenMobileMenu } from "@/lib/ui-menu";
 
-
-/** Times Bay Area social profiles, shown as a row under the utility links. */
-const SOCIAL = [
-  { href: TT_LINKS.youtube, label: "YouTube", icon: Youtube },
-  { href: TT_LINKS.instagram, label: "Instagram", icon: Instagram },
-  { href: TT_LINKS.facebook, label: "Facebook", icon: Facebook },
-] as const;
-
-function SocialRow({ className = "" }: { className?: string }) {
-  return (
-    <div className={`flex items-center gap-1.5 ${className}`}>
-      {SOCIAL.map(({ href, label, icon: Icon }) => (
-        <a
-          key={label}
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Times Bay Area on ${label}`}
-          className="flex h-10 w-10 items-center justify-center rounded-sm text-nav-foreground/85 transition-colors hover:bg-nav-hover"
-        >
-          <Icon className="h-5 w-5" />
-        </a>
-      ))}
-    </div>
-  );
-}
 
 function HeaderSearch({ className = "" }: { className?: string }) {
   const navigate = useNavigate();
@@ -274,28 +243,16 @@ export function SiteHeader() {
             </span>
           </span>
         </Link>
-        <div className="flex w-full max-w-xl items-center justify-end gap-2">
-          <SocialRow />
-        </div>
+        <div className="flex w-full max-w-xl items-center justify-end gap-2" />
       </div>
 
-      {/* Network links + social strip — above main menu, very small script (mobile + desktop) */}
+      {/* Quick utility strip — above main menu (mobile + desktop) */}
       <div className="border-y border-border/70 bg-surface-tint">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-2 py-0.5 text-[9px] text-muted-foreground md:gap-4 md:px-4 md:text-[10px]">
-          <nav aria-label="Indian community network" className="flex min-w-0 items-center">
-            <a
-              href={TT_LINKS.site}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1 pr-1 font-medium text-ink hover:text-primary md:pr-2"
-            >
-              <Globe className="h-3 w-3 text-primary" />
-              TeluguTimes.net
-            </a>
-            <span className="h-3 w-px bg-border" />
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-2 py-0.5 text-[9px] text-muted-foreground md:gap-4 md:px-4 md:text-[10px]">
+          <nav aria-label="Quick links" className="flex min-w-0 items-center">
             <Link
               to="/epaper"
-              className="flex items-center gap-1 px-1 font-medium text-ink hover:text-primary md:px-2"
+              className="flex items-center gap-1 pr-1 font-medium text-ink hover:text-primary md:pr-2"
             >
               <Newspaper className="h-3 w-3 text-primary" />
               E-Paper
@@ -305,21 +262,6 @@ export function SiteHeader() {
               {t("Submit News", "వార్తలు పంపండి")}
             </Link>
           </nav>
-
-          <span className="flex items-center gap-0.5">
-            {SOCIAL.map(({ href, label: l, icon: Icon }) => (
-              <a
-                key={l}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Times Bay Area on ${l}`}
-                className="flex h-4 w-4 items-center justify-center rounded-full hover:bg-background hover:text-primary md:h-5 md:w-5"
-              >
-                <Icon className="h-2.5 w-2.5 md:h-3 md:w-3" />
-              </a>
-            ))}
-          </span>
         </div>
       </div>
 
@@ -354,25 +296,14 @@ export function SiteHeader() {
           <ul className="max-h-[70dvh] overflow-y-auto overscroll-contain border-t border-border bg-background px-4 pb-4 md:hidden">
             <li className="flex flex-col gap-2 border-b border-border/60 py-3">
               <HeaderSearch className="w-full [&_input]:w-full [&_input]:text-sm" />
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={TT_LINKS.site}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
-                >
-                  <Globe className="h-4 w-4 text-primary" />
-                  TeluguTimes.net
-                </a>
-                <Link
-                  to="/epaper"
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
-                >
-                  <Newspaper className="h-4 w-4 text-primary" />
-                  E-Paper
-                </Link>
-              </div>
+              <Link
+                to="/epaper"
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
+              >
+                <Newspaper className="h-4 w-4 text-primary" />
+                E-Paper
+              </Link>
               <Link
                 to="/contact"
                 onClick={() => setOpen(false)}
@@ -380,7 +311,6 @@ export function SiteHeader() {
               >
                 {t("Advertise With Us", "ప్రకటనల కోసం")}
               </Link>
-              <SocialRow className="justify-center text-ink [&_a]:text-ink" />
             </li>
             {UTILITY_LINKS.map((l) => (
               <li key={`${l.to}-${l.en}`} className="border-b border-border/60">

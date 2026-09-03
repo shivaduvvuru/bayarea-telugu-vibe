@@ -1,4 +1,3 @@
-import { TT_LINKS } from "@/lib/network-links";
 import { Link } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/content";
 import { useLang } from "@/lib/language";
@@ -28,7 +27,6 @@ export function SiteFooter() {
           <p className="mt-2 text-xs text-background/70">
             News, culture and community coverage for Indian families across the Bay Area.
           </p>
-          <p className="mt-2 text-xs text-background/70">news@bayarea.telugutimes.net</p>
         </div>
 
         <div>
@@ -78,26 +76,6 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-wrap gap-3 text-xs">
-            <a href={TT_LINKS.site} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              TeluguTimes.net
-            </a>
-            <a href={TT_LINKS.bayarea} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              Bay Area edition
-            </a>
-            <a href={TT_LINKS.epaper} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              E-Paper
-            </a>
-            <a href={TT_LINKS.instagram} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              Instagram
-            </a>
-            <a href={TT_LINKS.facebook} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              Facebook
-            </a>
-            <a href={TT_LINKS.youtube} target="_blank" rel="noreferrer" className="text-background/70 hover:text-background">
-              YouTube
-            </a>
-          </div>
         </div>
       </div>
       <div className="border-t border-background/15 py-4 text-center text-xs text-background/60">

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 const TITLE = "About Times Bay Area — Indian Community News";
 const DESC =
@@ -35,18 +35,13 @@ function AboutPage() {
           Community organisations are welcome to submit event notices and photographs.
         </p>
       </div>
-      <dl className="mt-10 grid gap-6 sm:grid-cols-3">
-        {[
-          ["Newsroom", "news@bayarea.telugutimes.net"],
-          ["Advertising", "ads@bayarea.telugutimes.net"],
-          ["Events", "events@bayarea.telugutimes.net"],
-        ].map(([k, v]) => (
-          <div key={k} className="border-l-4 border-primary pl-4">
-            <dt className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{k}</dt>
-            <dd className="mt-1 text-sm font-semibold text-ink">{v}</dd>
-          </div>
-        ))}
-      </dl>
+      <p className="mt-10 text-sm text-muted-foreground">
+        For news tips, advertising, or event listings, please{" "}
+        <Link to="/contact" className="font-semibold text-primary hover:underline">
+          contact us
+        </Link>
+        .
+      </p>
     </div>
   );
 }

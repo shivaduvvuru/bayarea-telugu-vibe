@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, Sparkles, X, Youtube } from "lucide-react";
-import { TT_LINKS } from "@/lib/network-links";
+import { ChevronDown, ClipboardCheck, LogIn, LogOut, Search, Sparkles, X } from "lucide-react";
 import { useSignedIn, signOutSession } from "@/lib/session-state";
 
 
@@ -91,41 +90,6 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
 };
 
 
-/** Wider Indian community network: site, e-paper and social profiles. */
-const NETWORK = [
-  { href: TT_LINKS.site, label: "TeluguTimes.net", icon: Globe },
-  { href: TT_LINKS.bayarea, label: "Bay Area edition", icon: Globe },
-  { href: TT_LINKS.epaper, label: "E-Paper", icon: Newspaper },
-  { href: TT_LINKS.youtube, label: "YouTube", icon: Youtube },
-  { href: TT_LINKS.instagram, label: "Instagram", icon: Instagram },
-  { href: TT_LINKS.facebook, label: "Facebook", icon: Facebook },
-] as const;
-
-/** Compact icon row of social profiles, shown in the identity row. */
-function SocialIcons() {
-  const items = [
-    { href: TT_LINKS.youtube, label: "Times Bay Area on YouTube", icon: Youtube },
-    { href: TT_LINKS.instagram, label: "Times Bay Area on Instagram", icon: Instagram },
-    { href: TT_LINKS.facebook, label: "Times Bay Area on Facebook", icon: Facebook },
-  ] as const;
-  return (
-    <div className="flex items-center gap-1">
-      {items.map(({ href, label, icon: Icon }) => (
-        <a
-          key={label}
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={label}
-          title={label}
-          className="press flex h-8 w-8 items-center justify-center rounded-full border border-border text-ink hover:border-primary hover:text-primary"
-        >
-          <Icon className="h-4 w-4" aria-hidden />
-        </a>
-      ))}
-    </div>
-  );
-}
 
 function MoreMenu() {
   const [open, setOpen] = useState(false);
@@ -204,26 +168,6 @@ function MoreMenu() {
             ))}
           </div>
 
-          <div className="mx-auto mt-4 max-w-6xl border-t border-border pt-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Community network
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {NETWORK.map(({ href, label, icon: Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12px] font-semibold text-ink hover:border-primary hover:text-primary"
-                >
-                  <Icon className="h-3.5 w-3.5" aria-hidden />
-                  {label}
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
       ) : null}
     </div>
@@ -263,24 +207,6 @@ export function LiteHeader() {
               Desk
             </Link>
           ) : null}
-          <a
-            href={TT_LINKS.epaper}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline-block"
-          >
-            E-Paper
-          </a>
-          <a
-            href={TT_LINKS.site}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
-          >
-            TeluguTimes.net
-          </a>
-
-          <SocialIcons />
           <Link
             to="/"
             hash="daily-smart-digest"

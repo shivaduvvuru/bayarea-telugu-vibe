@@ -5,7 +5,7 @@ import {
   UtensilsCrossed,
   Sparkles,
   Clapperboard,
-  Video,
+  
 } from "lucide-react";
 import { canonical } from "@/lib/site";
 import { useLang } from "@/lib/language";
@@ -39,12 +39,6 @@ const TILES = [
   { en: "Food", te: "ఆహారం", icon: UtensilsCrossed, category: "restaurants" },
   { en: "Culture", te: "సంస్కృతి", icon: Sparkles, category: "community" },
   { en: "Cinema/OTT", te: "సినిమా", icon: Clapperboard, category: "cinema" },
-  {
-    en: "Videos",
-    te: "వీడియోలు",
-    icon: Video,
-    href: "https://www.youtube.com/@telugutimesdigital",
-  },
 ];
 
 function ExplorePage() {
@@ -75,12 +69,6 @@ function ExplorePage() {
               </span>
             </>
           );
-          if (tile.href)
-            return (
-              <a key={tile.en} href={tile.href} target="_blank" rel="noreferrer" className={tileClass}>
-                {body}
-              </a>
-            );
           if (tile.to)
             return (
               <Link key={tile.en} to={tile.to} className={tileClass}>
