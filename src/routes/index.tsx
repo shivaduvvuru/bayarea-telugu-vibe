@@ -841,10 +841,6 @@ function Home() {
             sized so the next section is visible without a full-screen scroll. */}
         <StoryHeroSlider articles={heroSliderPool} />
 
-        {/* Brigade Barcelona showcase: sits between the city-news slider and
-            the CREDAI sponsor carousel. */}
-        <BrigadePromo className="mt-4" />
-
         {/* Sponsor carousel: CREDAI banner first, then the vertical anniversary
             edition features. */}
         <SponsorHeroCarousel className="mt-4" />

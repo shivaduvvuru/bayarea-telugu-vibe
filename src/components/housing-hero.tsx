@@ -61,7 +61,7 @@ export function HousingHero() {
           />
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10"
+            className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/70 to-ink/20"
           />
           <div className="absolute inset-x-0 bottom-0 p-4 md:p-8">
             <div className="flex flex-wrap items-center gap-2">

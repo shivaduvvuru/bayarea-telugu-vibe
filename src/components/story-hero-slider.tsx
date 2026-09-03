@@ -128,7 +128,7 @@ export function StoryHeroSlider({
             />
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5"
+              className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/70 to-ink/20"
             />
             <div className="absolute inset-x-0 bottom-0 p-4 pb-10 md:p-7 md:pb-12">
               <div className="flex flex-wrap items-center gap-2">

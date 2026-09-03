@@ -88,6 +88,15 @@ function escapeText(text: string) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/** Keep card summaries readable: prefer a sentence, then a whole word. */
+function excerptAtBoundary(text: string, max = 300) {
+  if (text.length <= max) return text;
+  const window = text.slice(0, max + 1);
+  const sentence = window.match(/^.*?[.!?](?=\s|$)/);
+  const boundary = sentence?.[0] ?? window.slice(0, max).replace(/\s+\S*$/, "");
+  return `${boundary.trim()}…`;
+}
+
 
 /** City rows store the display name ("San Jose"); pages address them by slug. */
 function citySlugOf(city: string | null): string | undefined {
@@ -143,7 +152,7 @@ function toArticle(row: Row): Article {
     id: numericId(row.id),
     slug: cmsSlug(row.id),
     title: decode(row.title ?? ""),
-    excerpt: text.slice(0, 300),
+    excerpt: excerptAtBoundary(text),
     // Sanitising is only needed for stored article HTML (detail reads). List
     // reads have no body, so the excerpt is escaped and wrapped instead.
     html:
