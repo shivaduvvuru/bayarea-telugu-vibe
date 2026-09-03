@@ -17,7 +17,7 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet"> & {
  */
 export function SmartImage({
   src,
-  fallbackSrc = "/cinema-placeholder.webp",
+  fallbackSrc = "/photo-fallback.svg",
   optimizedWidth = 960,
   quality = 72,
   ...rest

@@ -6,7 +6,6 @@ import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 import { SourceChip } from "@/components/source-credit";
 import { SmartImage } from "@/components/smart-image";
-import masthead from "@/assets/masthead.webp";
 
 
 
@@ -278,8 +277,8 @@ export function StoryCard({ article }: { article: Article }) {
 
 /**
  * Fixed-size list thumbnail. Missing artwork — and remote photos that 404 after
- * the page has rendered — both fall back to the masthead tile, so the column
- * never shows a broken-image box.
+ * the page has rendered — collapse to a plain neutral tile (no branding), so the
+ * column never shows a broken-image box or a repeated logo.
  */
 function ListThumb({ article }: { article: Article }) {
   const [failed, setFailed] = useState(false);
@@ -300,13 +299,7 @@ function ListThumb({ article }: { article: Article }) {
       className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
     >
       {logo ? (
-        <img
-          src={masthead}
-          alt={article.title}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-contain p-2 opacity-80"
-        />
+        <div aria-hidden className="h-full w-full bg-surface-tint" />
       ) : (
         <SmartImage
           src={article.image!}
