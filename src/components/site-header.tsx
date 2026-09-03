@@ -12,7 +12,6 @@ import {
   Facebook,
   ChevronDown,
 } from "lucide-react";
-import masthead from "@/assets/masthead.webp";
 import { CATEGORIES, CITY_REGIONS } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { onOpenMobileMenu } from "@/lib/ui-menu";
@@ -268,16 +267,15 @@ export function SiteHeader() {
 
       {/* Desktop masthead */}
       <div className="mx-auto hidden max-w-6xl items-center justify-between gap-4 px-4 py-5 md:flex">
-        <Link to="/" className="shrink-0">
-          <img
-            src={masthead}
-            alt="Times Bay Area"
-            width={1408}
-            height={512}
-            loading="eager"
-            fetchPriority="high"
-            className="h-16 w-auto"
-          />
+        <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
+          <span className="flex flex-col leading-none">
+            <span className="font-serif-display text-3xl font-bold tracking-tight text-ink">
+              Times Bay Area
+            </span>
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Telugu community news · What matters around you.
+            </span>
+          </span>
         </Link>
         <div className="flex w-full max-w-xl items-center justify-end gap-2">
           <SocialRow />

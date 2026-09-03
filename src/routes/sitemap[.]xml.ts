@@ -14,7 +14,6 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const now = new Date().toISOString();
         const children = [`${BASE_URL}/sitemap-pages.xml`];
 
         let directoryCount = 0;
@@ -47,7 +46,6 @@ export const Route = createFileRoute("/sitemap.xml")({
             [
               `  <sitemap>`,
               `    <loc>${loc.replace(/&/g, "&amp;")}</loc>`,
-              `    <lastmod>${now}</lastmod>`,
               `  </sitemap>`,
             ].join("\n"),
           ),

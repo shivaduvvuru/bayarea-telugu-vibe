@@ -51,7 +51,7 @@ export const Route = createFileRoute("/temples/temple/$slug")({
       ],
       links: [{ rel: "canonical", href: url }],
     };
-  }
+  },
   notFoundComponent: TempleNotFound,
   errorComponent: TempleNotFound,
   component: TempleDetailPage,
