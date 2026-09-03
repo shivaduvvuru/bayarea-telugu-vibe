@@ -9,5 +9,5 @@
 - [x] Chunk-reload guard for stale asset hashes (root + category error boundaries)
 - [x] Mirror every publish path (raw ingest) into articles so the digest never goes stale
 - [x] Verify crons, run a manual collection now, expose a "Sync News Now" admin control
-- [ ] Remove community and associations data from the app
-- [ ] Remove remaining old branding and SEO references
+- [x] Remove community and associations data from the app
+- [x] Remove remaining old branding and SEO references

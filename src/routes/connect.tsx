@@ -13,9 +13,9 @@ import { CommunityPoll, VoicesRail } from "@/components/genz";
 import { SectionHeading } from "@/components/news";
 import { track } from "@/lib/analytics";
 
-const TITLE = "Connect — Indian associations, temples, professionals & jobs in the Bay Area";
+const TITLE = "Connect — Bay Area services, temples, professionals & jobs";
 const DESC =
-  "Find Bay Area Indian associations, temples, professionals, jobs and classifieds, or submit your own listing.";
+  "Find Bay Area services, temples, professionals, jobs and classifieds, or submit your own listing.";
 const URL = canonical("/connect");
 
 export const Route = createFileRoute("/connect")({
@@ -53,8 +53,8 @@ function ConnectPage() {
       <h1 className="text-3xl font-bold text-ink">{t("Connect", "కనెక్ట్")}</h1>
       <p className="mt-2 text-base text-muted-foreground">
         {t(
-          "The people, organisations and services that make up the Bay Area Indian community.",
-          "బే ఏరియా తెలుగు కమ్యూనిటీలోని వ్యక్తులు, సంస్థలు, సేవలు.",
+          "The people, organisations and services that make up life in the Bay Area.",
+          "బే ఏరియాలోని వ్యక్తులు, సంస్థలు, సేవలు.",
         )}
       </p>
 
