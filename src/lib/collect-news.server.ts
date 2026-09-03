@@ -2974,7 +2974,7 @@ export async function collectAll(
           kind: "temple",
           city_slug: slug,
           title: `${a.title} — ${t.source.name}`,
-          summary: `${t.source.name}, ${t.source.city}. ${a.date ? `Listed for ${a.date}. ` : ""}Confirm timings with the temple before publishing.`,
+          summary: `${t.source.name}, ${t.source.city}.${a.date ? ` Listed for ${a.date}.` : ""} Confirm timings with the temple.`,
           source: t.source.name,
           source_url: a.url || t.source.site,
           published_at: null,
