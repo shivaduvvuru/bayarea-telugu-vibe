@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const TITLE = "About Us — Times Bay Area";
+const TITLE = "About Times Bay Area — Telugu Community News";
 const DESC =
-  "Times Bay Area brings local news, culture and community coverage to Telugu families across Northern California.";
+  "Times Bay Area brings local news, culture and community coverage to Telugu families across Northern California."
 
 export const Route = createFileRoute("/about")({
   head: () => ({

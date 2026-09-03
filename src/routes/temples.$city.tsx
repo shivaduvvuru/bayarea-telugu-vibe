@@ -30,11 +30,12 @@ export const Route = createFileRoute("/temples/$city")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Temples not found" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Temples not found — Times Bay Area" }, { name: "robots", content: "noindex" }] };
     }
     const name = loaderData.match.name;
-    const title = `Hindu Temples in ${name} — Bay Area Temple Directory | Telugu Times`;
+    const title = `Hindu Temples in ${name} — Bay Area Temple Directory | Times Bay Area`;
     const desc = `Verified Hindu temples and spiritual centers in ${name}, with addresses, directions, websites and upcoming events.`;
+    const url = canonical(`/temples/${loaderData.match.slug}`);
     return {
       meta: [
         { title },
@@ -42,8 +43,10 @@ export const Route = createFileRoute("/temples/$city")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary" },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   notFoundComponent: TempleCityNotFound,
