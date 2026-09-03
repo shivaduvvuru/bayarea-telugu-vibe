@@ -1148,7 +1148,7 @@ const PUBLISHER_FEEDS: {
   // surface in Gallery.
   {
     name: "Cinema Desk",
-    url: "https://www.telugutimes.net/en/cinemas/feed/",}},{
+    url: "https://www.telugutimes.net/en/cinemas/feed/",
     kind: "news",
     limit: 10,
   },
