@@ -16,6 +16,7 @@ import { Route as AssociationsRouteImport } from './routes/associations'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BayAreaIconsRouteImport } from './routes/bay-area-icons'
 import { Route as BrigadeBarcelonaRouteImport } from './routes/brigade-barcelona'
+import { Route as BusinessRouteImport } from './routes/business'
 import { Route as CommandCenterRouteImport } from './routes/command-center'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -128,6 +129,11 @@ const BayAreaIconsRoute = BayAreaIconsRouteImport.update({
 const BrigadeBarcelonaRoute = BrigadeBarcelonaRouteImport.update({
   id: '/brigade-barcelona',
   path: '/brigade-barcelona',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommandCenterRoute = CommandCenterRouteImport.update({
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
   '/brigade-barcelona': typeof BrigadeBarcelonaRoute
+  '/business': typeof BusinessRoute
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
@@ -636,6 +643,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
   '/brigade-barcelona': typeof BrigadeBarcelonaRoute
+  '/business': typeof BusinessRoute
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
@@ -721,6 +729,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/bay-area-icons': typeof BayAreaIconsRoute
   '/brigade-barcelona': typeof BrigadeBarcelonaRoute
+  '/business': typeof BusinessRoute
   '/command-center': typeof CommandCenterRoute
   '/connect': typeof ConnectRoute
   '/contact': typeof ContactRoute
@@ -810,6 +819,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bay-area-icons'
     | '/brigade-barcelona'
+    | '/business'
     | '/command-center'
     | '/connect'
     | '/contact'
@@ -897,6 +907,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bay-area-icons'
     | '/brigade-barcelona'
+    | '/business'
     | '/command-center'
     | '/connect'
     | '/contact'
@@ -981,6 +992,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bay-area-icons'
     | '/brigade-barcelona'
+    | '/business'
     | '/command-center'
     | '/connect'
     | '/contact'
@@ -1070,6 +1082,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BayAreaIconsRoute: typeof BayAreaIconsRoute
   BrigadeBarcelonaRoute: typeof BrigadeBarcelonaRoute
+  BusinessRoute: typeof BusinessRoute
   CommandCenterRoute: typeof CommandCenterRoute
   ConnectRoute: typeof ConnectRoute
   ContactRoute: typeof ContactRoute
@@ -1179,6 +1192,13 @@ declare module '@tanstack/react-router' {
       path: '/brigade-barcelona'
       fullPath: '/brigade-barcelona'
       preLoaderRoute: typeof BrigadeBarcelonaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business': {
+      id: '/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof BusinessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/command-center': {
@@ -1840,6 +1860,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BayAreaIconsRoute: BayAreaIconsRoute,
   BrigadeBarcelonaRoute: BrigadeBarcelonaRoute,
+  BusinessRoute: BusinessRoute,
   CommandCenterRoute: CommandCenterRoute,
   ConnectRoute: ConnectRoute,
   ContactRoute: ContactRoute,
