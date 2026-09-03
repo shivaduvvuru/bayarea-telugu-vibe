@@ -26,7 +26,7 @@ function AssociationsPage() {
       <p className="text-xs font-bold uppercase tracking-widest text-primary">Community</p>
       <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">Associations</h1>
       <p className="mt-3 text-[17px] leading-relaxed text-foreground">
-        The Telugu associations that organise cultural, social and professional life across the
+        The Indian associations that organise cultural, social and professional life across the
         Bay Area.
       </p>
 
