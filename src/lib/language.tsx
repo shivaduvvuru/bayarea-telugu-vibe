@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { brandKey } from "@/lib/local-key";
 
 export type Lang = "en" | "te";
 
@@ -12,7 +13,7 @@ const LanguageContext = createContext<Ctx>({
 
 // v2: resets any previously stored Telugu preference so every visitor starts
 // on the English interface.
-const STORAGE_KEY = "batt-lang-v2";
+const STORAGE_KEY = brandKey("lang-v2");
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   // English-first default keeps the site readable for Telugu speakers who
