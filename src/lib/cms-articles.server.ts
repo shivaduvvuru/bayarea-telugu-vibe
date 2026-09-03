@@ -147,7 +147,9 @@ function toArticle(row: Row): Article {
         : (citySlugOf(row.city) ?? stored ?? "community");
   const cat = categoryBySlug(slug);
   // Feed text arrives with HTML entities (&#8217; etc.); render real characters.
-  const text = decode(row.summary ?? "");
+  // Internal editorial notes ("verify before publishing") must never reach a
+  // reader: strip them and show nothing instead.
+  const text = publicText(decode(row.summary ?? ""));
   return {
     id: numericId(row.id),
     slug: cmsSlug(row.id),
