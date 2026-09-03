@@ -246,7 +246,7 @@ export function SiteHeader() {
           <span className="flex min-w-0 flex-col items-center leading-none">
             <span className="font-serif-display text-xl font-bold tracking-tight text-ink">Times Bay Area</span>
             <span className="mt-1 max-w-full truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              Indian community news
+              For Indian Community — What Matters Around You
             </span>
           </span>
         </Link>
@@ -270,7 +270,7 @@ export function SiteHeader() {
               Times Bay Area
             </span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Indian community news · What matters around you.
+              For Indian Community — What Matters Around You
             </span>
           </span>
         </Link>
