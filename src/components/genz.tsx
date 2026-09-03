@@ -3,6 +3,7 @@ import { Play, ChevronLeft, ChevronRight, Tag, Quote } from "lucide-react";
 import { DEALS, POLL, SHORT_VIDEOS, SWIPE_STORIES, VOICES } from "@/lib/genz-data";
 import { SampleChip, SponsoredChip } from "@/components/story-actions";
 import { HRail } from "@/components/news";
+import { SmartImage } from "@/components/smart-image";
 import { useLang } from "@/lib/language";
 import { track } from "@/lib/analytics";
 
