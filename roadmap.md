@@ -4,22 +4,35 @@
 - [x] Add fetch hook and staff controls
 - [x] Publish syndicated stories immediately without admin approval
 - [x] Verify build and scheduled hook registration
-- [ ] Add vector-backed semantic deduplication to the existing articles pipeline without replacing the current schema or Cloud jobs
-- [ ] Finish homepage Smart Digest embedding, shortcut navigation, and publish mirroring
+- [x] Add vector-backed semantic deduplication to the existing articles pipeline without replacing the current schema or Cloud jobs
+- [x] Finish homepage Smart Digest embedding, shortcut navigation, and publish mirroring
 - [x] Chunk-reload guard for stale asset hashes (root + category error boundaries)
 - [x] Mirror every publish path (raw ingest) into articles so the digest never goes stale
 - [x] Verify crons, run a manual collection now, expose a "Sync News Now" admin control
 - [x] Remove community and associations data from the app
 - [x] Remove remaining old branding and SEO references
-- [x] Replace top navigation band color with a Gen Z-friendly color (not dark blue, not red)
-- [ ] Primary color: use Al Jazeera gold/bronze letters color; add logo placeholder
+- [x] Replace top navigation band color with a Gen Z-friendly color (bright teal)
+- [x] Primary color: use Al Jazeera gold/bronze letters color; add logo placeholder
 - [x] Stop pulling stories from TeluguTimes.net; replace with real Indian community stories/events/listings
   - Decision: stop ingest + backfill with more sources (do not delete existing TeluguTimes stories)
+  - Removed active TeluguTimes WordPress/RSS feeds from wp-source, india-ingest, and collect-news
+  - Added Bay Area/Indian-American discovery feeds to PUBLISHER_FEEDS
+- [x] Replace fake property claims (RERA numbers, pricing) with "Verify with builder" language
+  - Updated credaiShowData.ts and nriProperties.ts to remove fabricated RERA numbers and unverified pricing
+  - Added disclaimers to /credai-show and /nri-real-estate pages
+- [x] Promote /submit and /directory in navigation
+  - Added Directory to main rail and mobile rail
+  - Added Submit Story and Directory to More menu Community section
 - [ ] Replace placeholder temple/property/food/event listings with real Bay Area Indian community directory data
   - Decision: seed from OpenStreetMap (Overpass); delete only clearly fake placeholders
+  - Note: /directory already uses searchable directory_entities with ~2,866 entities from OSM
+  - Note: /submit already supports public moderated submissions for stories, events, and photos
 - [ ] Build a reader submission page for local news, events, and photos
   - Decision: moderated queue (no sign-in required to submit; staff approve before publish)
+  - Note: /submit route already exists with this functionality
 - [ ] Build a real Bay Area Indian community directory (temples, restaurants, schools, businesses), searchable by location
   - Decision: seed from OpenStreetMap (Overpass)
+  - Note: /directory already exists with OSM-sourced data
 - [ ] Replace placeholder news feed stories with real Bay Area Indian news while keeping ingestion sources
   - Decision: remove TeluguTimes feeds, add more US/Indian community sources
+  - Done: TeluguTimes removed; India Currents, Bay Area Indian community, Silicon Valley Indian life added
