@@ -41,6 +41,8 @@ export function isPrimeBannerFresh(
  * stronger story it takes over the slot.
  */
 
+import { isHeroUnsafeText } from "./hero-safety";
+
 /** Big US metros plus the Bay Area cities our readers live in. */
 const POPULAR_PLACES = [
   "bay area", "san francisco", "san jose", "fremont", "santa clara", "sunnyvale",
@@ -55,7 +57,7 @@ const POPULAR_TOPICS = [
   "h-1b", "h1b", "green card", "visa", "immigration", "uscis", "trump",
   "telugu", "indian american", "nri", "layoff", "hiring", "tech", "google",
   "apple", "nvidia", "tesla", "housing", "rent", "school", "election",
-  "police", "crash", "fire", "storm", "earthquake", "students", "startup",
+  "storm", "students", "startup", "festival", "temple", "food", "events",
 ];
 
 export type PrimeCandidate = {
@@ -86,14 +88,16 @@ export function pickPrimeStory<T extends PrimeCandidate>(
 ): T | undefined {
   let best: T | undefined;
   let bestScore = -Infinity;
-  for (const c of candidates) {
+  // The prime slot is a featured slot: sensitive stories are excluded.
+  const safe = candidates.filter((c) => !isHeroUnsafeText(c.title, c.excerpt));
+  for (const c of (safe.length ? safe : [])) {
     const s = primeScore(c, now);
     if (s > bestScore) {
       bestScore = s;
       best = c;
     }
   }
-  return best ?? candidates[0];
+  return best ?? candidates.find((c) => !isHeroUnsafeText(c.title, c.excerpt));
 }
 
 /** How long one story holds the rotating prime slot. */
@@ -110,7 +114,9 @@ export function pickRotatingPrime<T extends PrimeCandidate>(
   now: Date = new Date(),
   poolSize = 5,
 ): T | undefined {
-  const ranked = [...candidates].sort((a, b) => primeScore(b, now) - primeScore(a, now));
+  const ranked = candidates
+    .filter((c) => !isHeroUnsafeText(c.title, c.excerpt))
+    .sort((a, b) => primeScore(b, now) - primeScore(a, now));
   const pool = ranked.slice(0, Math.max(1, poolSize));
   if (pool.length === 0) return undefined;
   const i = ((slot % pool.length) + pool.length) % pool.length;

@@ -19,6 +19,7 @@ import { isBayArea, isBayAreaSource } from "./bay-area";
 import { classifyIndia } from "./india-topics";
 import { looksHighRes, usableImage } from "./story-image";
 import { isResting, lastUsed, timesUsed } from "./image-usage";
+import { isHeroUnsafeText } from "./hero-safety";
 
 /** Maximum slides in the hero — a curated set, never a long gallery. */
 export const HERO_MAX_SLIDES = 5;
@@ -88,19 +89,6 @@ export function subjectOf(a: Article): { subject: string; label: string } {
     return { subject: "bay-area", label: "Bay Area" };
   }
   return { subject: a.category || "news", label: a.categoryName || "Latest" };
-}
-
-/**
- * Violent crime, accidents, tragedy and court/police stories are never featured
- * in the hero: the front page is a family-audience shelf. Such stories still
- * appear in the regular news lists.
- */
-const HERO_UNSAFE =
-  /\b(murder|murdered|killed|killing|kills|shot|shooting|shoot[- ]?out|gunman|gun\b|stabb\w*|homicide|rape|raped|sexual|molest\w*|assault\w*|abuse|suicide|self[- ]harm|overdose|arrest\w*|indict\w*|convict\w*|charged|jail\w*|prison|lawsuit|sued|fraud|scam|hate crime|riot|terror\w*|bomb\w*|hostage|kidnap\w*|missing|crash|collision|derail\w*|fatal\w*|died|dies|dead|death|deaths|body found|drown\w*|wildfire|fire kills|injur\w*|victim|deport\w*|ice raid|immigration raid|police|sheriff|fbi|court|custody|allegation|alleged|accus\w*|harass\w*|misconduct|tragedy|tragic|mourn\w*|funeral|obituary)\b/i;
-
-/** True when a story must be kept out of the hero and top featured slots. */
-export function heroUnsafe(a: Article): boolean {
-  return HERO_UNSAFE.test(`${a.title} ${a.excerpt ?? ""}`);
 }
 
 /** Reader-interest cues that lift a story into the hero. */
@@ -180,7 +168,7 @@ export function buildHeroSet(
   const exclude = options.exclude ?? new Set<string>();
 
   const ranked = articles
-    .filter((a) => a.category !== "gallery" && a.title && !heroUnsafe(a))
+    .filter((a) => a.category !== "gallery" && a.title && !isHeroUnsafeText(a.title, a.excerpt))
     .map((a) => ({ a, image: heroEligibleImage(a.image), score: heroScore(a, now, options.ignoreRest === true) }))
     .filter((c) => !!c.image)
     .sort((x, y) => y.score - x.score);
