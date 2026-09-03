@@ -10,6 +10,7 @@
  */
 import { sendPushover, MAX_BODY } from "./pushover.server";
 import { INDIA_FEEDS, QUIET_SOURCES } from "./india-ingest.server";
+import { PUBLISHER_FEEDS } from "./collect-news.server";
 
 const SITE = "https://project--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app";
 
@@ -217,6 +218,24 @@ async function feedHealth(): Promise<FeedHealth[]> {
         runFinishedAt: run.finished_at ?? null,
       });
     }
+  }
+
+  // Include every configured publisher, not only feeds touched by the last 40
+  // runs. This makes an unrotated feed visibly distinct from a feed that failed.
+  for (const source of PUBLISHER_FEEDS.map((feed) => feed.name)) {
+    if (byFeed.has(source)) continue;
+    byFeed.set(source, {
+      source,
+      lastFetchAt: null,
+      fetched: 0,
+      kept: 0,
+      withImage: 0,
+      zeroItems: true,
+      usedFallback: false,
+      error: null,
+      runMode: null,
+      runFinishedAt: null,
+    });
   }
 
   // Zero-item feeds first: that is the list the editor needs to act on.

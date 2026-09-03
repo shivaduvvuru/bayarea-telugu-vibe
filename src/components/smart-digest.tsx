@@ -241,10 +241,10 @@ export function SmartDigest({ embedded = false }: { embedded?: boolean }) {
     <div>
       <LeadHero headingLevel={embedded ? "h3" : "h1"} />
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <DeskList desk="bay-area" limit={15} heading="Bay Area Digest" />
+        <DeskList desk="bay-area" limit={25} heading="Bay Area Digest" />
         <div className="space-y-6">
-          <DeskList desk="telangana-andhra" limit={10} heading="Telangana & Andhra" compact />
-          <DeskList desk="cinema-glamour" limit={6} heading="Glamour & Cinema" compact />
+          <DeskList desk="telangana-andhra" limit={15} heading="Telangana & Andhra" compact />
+          <DeskList desk="cinema-glamour" limit={10} heading="Glamour & Cinema" compact />
         </div>
       </div>
     </div>

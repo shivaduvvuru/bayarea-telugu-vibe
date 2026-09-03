@@ -1068,7 +1068,7 @@ async function fetchTopics(
  * immigration sources (USCIS newsroom, Murthy Law Firm, Immigration.com).
  * Publishers without a working RSS feed are read through a site: news search.
  */
-const PUBLISHER_FEEDS: {
+export const PUBLISHER_FEEDS: {
   name: string;
   url: string;
   /** RSS fallback for publishers whose primary endpoint blocks server fetches. */
