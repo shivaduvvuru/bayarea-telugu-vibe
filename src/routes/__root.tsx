@@ -104,21 +104,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Telugu news, community and events coverage for the San Francisco Bay Area.",
+          "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.",
       },
       { name: "author", content: "Times Bay Area" },
+      { property: "og:site_name", content: "Times Bay Area" },
       { property: "og:title", content: "Times Bay Area" },
       {
         property: "og:description",
         content:
-          "Telugu news, community and events coverage for the San Francisco Bay Area.",
+          "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Times Bay Area" },
       { name: "twitter:description", content: "Telugu news, community and events coverage for the San Francisco Bay Area." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1aae6ac1-946e-464d-9ded-9ec47a8acf26/id-preview-5d7f2ddb--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app-1785864451015.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1aae6ac1-946e-464d-9ded-9ec47a8acf26/id-preview-5d7f2ddb--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app-1785864451015.png" },
     ],
     scripts: [
       {
@@ -128,14 +127,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@graph": [
             {
               "@type": "NewsMediaOrganization",
-              "@id": "https://bayarea-telugu-vibe.lovable.app/#organization",
+              "@id": "https://timesbayarea.com/#organization",
               name: "Times Bay Area",
-              url: "https://bayarea-telugu-vibe.lovable.app",
+              url: "https://timesbayarea.com",
               areaServed: "San Francisco Bay Area, California",
             },
             {
               "@type": "WebSite",
-              "@id": "https://bayarea-telugu-vibe.lovable.app/#website",
+              "@id": "https://timesbayarea.com/#website",
               name: "Times Bay Area",
               url: "https://bayarea-telugu-vibe.lovable.app",
               inLanguage: ["te", "en"],

@@ -264,7 +264,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { property: "og:url", content: HOME_URL },
+      { property: "og:image", content: "https://timesbayarea.com/times-bay-area-social.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
+      { name: "twitter:image", content: "https://timesbayarea.com/times-bay-area-social.jpg" },
     ],
     links: [{ rel: "canonical", href: HOME_URL }],
     scripts: [
@@ -820,7 +824,7 @@ function Home() {
       <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">
-        <div className="mb-4 rounded-2xl border border-border bg-surface-tint px-4 py-3 shadow-sm">
+        <div className="mb-3 rounded-xl border border-border/60 bg-surface-tint/70 px-3 py-2">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
             Digest from sources
           </p>
