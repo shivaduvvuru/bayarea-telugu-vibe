@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { isChunkLoadError, recoverFromChunkError } from "../lib/chunk-reload";
+
 
 import { LiteHeader } from "../components/lite-header";
 import { SiteFooter } from "../components/site-footer";
@@ -45,9 +47,22 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const chunkError = isChunkLoadError(error);
   useEffect(() => {
+    if (recoverFromChunkError(error)) return;
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  if (chunkError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm text-muted-foreground" role="status">
+          Loading the latest version…
+        </p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -164,18 +179,8 @@ function RootComponent() {
   // A stale cached bundle makes lazy route chunks fail to import, which looks
   // like navigation (e.g. sign-in → desk) "hanging". Recover once per session.
   useEffect(() => {
-    const KEY = "chunk-reload-at";
-    const onFail = (message: string) => {
-      if (!/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(message))
-        return;
-      const last = Number(sessionStorage.getItem(KEY) ?? 0);
-      if (Date.now() - last < 30_000) return;
-      sessionStorage.setItem(KEY, String(Date.now()));
-      window.location.reload();
-    };
-    const onRejection = (e: PromiseRejectionEvent) =>
-      onFail(String((e.reason as { message?: string } | undefined)?.message ?? e.reason ?? ""));
-    const onError = (e: ErrorEvent) => onFail(e.message ?? "");
+    const onRejection = (e: PromiseRejectionEvent) => recoverFromChunkError(e.reason);
+    const onError = (e: ErrorEvent) => recoverFromChunkError(e.error ?? e.message);
     window.addEventListener("unhandledrejection", onRejection);
     window.addEventListener("error", onError);
     return () => {
@@ -183,6 +188,7 @@ function RootComponent() {
       window.removeEventListener("error", onError);
     };
   }, []);
+
 
   // Offline-tolerant shell + long-lived image cache for repeat mobile visits.
   useEffect(() => {
