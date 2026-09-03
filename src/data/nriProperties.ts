@@ -152,12 +152,12 @@ export const luxuryProperties: PropertyItem[] = [
 
 export const TRUST_POINTS = [
   {
-    title: "100% RERA & clear title",
-    body: "Every project is CREDAI-listed with RERA registration and legal title verification before it is shown here.",
+    title: "RERA & title verification",
+    body: "Confirm RERA registration and legal title directly with the developer before purchase.",
   },
   {
-    title: "High rental yield & capital growth",
-    body: "Micro-markets picked for tenant demand — Financial District, Neopolis, Kokapet and the ORR corridor.",
+    title: "Independent valuation",
+    body: "Get an independent market valuation; projected yields are estimates only.",
   },
   {
     title: "NRI concierge",
