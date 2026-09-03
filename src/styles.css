@@ -199,6 +199,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
   h1,
@@ -260,7 +262,12 @@
 @layer base {
   h1,
   h2 {
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 3px;
   }
 
   @media (prefers-reduced-motion: reduce) {

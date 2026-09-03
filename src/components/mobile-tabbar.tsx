@@ -67,7 +67,7 @@ const textLinkClass =
   "flex h-full items-center whitespace-nowrap px-2.5 py-2 text-[11px] font-semibold uppercase tracking-tight text-nav-foreground transition-colors hover:bg-nav-hover";
 
 const iconTabClass =
-  "flex min-h-13 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] font-semibold text-ink";
+  "flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-semibold text-ink transition-colors active:bg-surface-tint";
 
 export function MobileTabBar() {
   const [open, setOpen] = useState(false);

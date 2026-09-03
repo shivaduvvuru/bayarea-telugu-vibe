@@ -15,22 +15,19 @@ type Props = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "srcSet"> & {
  */
 export function SmartImage({ src, optimizedWidth = 960, quality = 72, ...rest }: Props) {
   const [failed, setFailed] = useState(false);
+  const fallbackSrc = "/cinema-placeholder.webp";
 
   useEffect(() => {
     setFailed(false);
   }, [src]);
 
-  if (failed) {
-    return <img {...rest} src={src} />;
-  }
-
   return (
     <img
       {...rest}
-      src={cdnImage(src, optimizedWidth, quality)}
-      srcSet={cdnSrcSet(src, quality)}
+      src={failed ? fallbackSrc : cdnImage(src, optimizedWidth, quality)}
+      srcSet={failed ? undefined : cdnSrcSet(src, quality)}
       onError={(event) => {
-        setFailed(true);
+        if (!failed) setFailed(true);
         rest.onError?.(event);
       }}
     />
