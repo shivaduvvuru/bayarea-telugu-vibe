@@ -12,7 +12,8 @@
 - [x] Remove community and associations data from the app
 - [x] Remove remaining old branding and SEO references
 - [x] Replace top navigation band color with a Gen Z-friendly color (not dark blue, not red)
-- [ ] Stop pulling stories from TeluguTimes.net; replace with real Indian community stories/events/listings
+- [ ] Primary color: use Al Jazeera gold/bronze letters color; add logo placeholder
+- [x] Stop pulling stories from TeluguTimes.net; replace with real Indian community stories/events/listings
   - Decision: stop ingest + backfill with more sources (do not delete existing TeluguTimes stories)
 - [ ] Replace placeholder temple/property/food/event listings with real Bay Area Indian community directory data
   - Decision: seed from OpenStreetMap (Overpass); delete only clearly fake placeholders
