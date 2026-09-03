@@ -6,11 +6,6 @@ type Banner = { name: string; href: string; note: string };
 
 /** Partner banners the editorial team sells / trades. */
 const PARTNER_BANNERS: Banner[] = [
-  { name: "BATA", href: "https://www.bata.org/", note: "Bay Area Telugu Association" },
-  { name: "Silicon Andhra", href: "https://siliconandhra.org/", note: "Arts, language, culture" },
-  { name: "TANA", href: "https://www.tana.org/", note: "Telugu Association of North America" },
-  { name: "ATA", href: "https://ataworld.org/", note: "American Telugu Association" },
-  { name: "NRI TDP", href: "https://www.nritdp.com/", note: "NRI TDP Bay Area" },
   { name: "Remitly", href: "https://www.remitly.com/", note: "Send money to India" },
   { name: "Biryani Junction", href: "https://www.google.com/search?q=Biryani+Junction+Bay+Area", note: "Bay Area kitchens" },
   { name: "Bhimavaram Ruchulu", href: "https://www.google.com/search?q=Bhimavaram+Ruchulu+Bay+Area", note: "Andhra meals" },

@@ -2,58 +2,6 @@
 
 export const COMMUNITY_EMAIL = "contact@timesbayarea.com";
 
-export type Association = {
-  name: string;
-  short: string;
-  url: string;
-  blurb: string;
-};
-
-/** Order fixed by the editorial team. */
-export const ASSOCIATIONS: Association[] = [
-  {
-    name: "Bay Area Telugu Association",
-    short: "BATA",
-    url: "https://www.bata.org/",
-    blurb: "The oldest Telugu association in the Bay Area, founded by community pioneers.",
-  },
-  {
-    name: "Silicon Andhra",
-    short: "Silicon Andhra",
-    url: "https://siliconandhra.org/",
-    blurb: "Kuchipudi, Telugu language classes, Manabadi and the biennial international conference.",
-  },
-  {
-    name: "TANA Bay Area",
-    short: "TANA",
-    url: "https://www.tana.org/",
-    blurb: "Bay Area chapter of the Telugu Association of North America.",
-  },
-  {
-    name: "ATA Bay Area",
-    short: "ATA",
-    url: "https://ataworld.org/",
-    blurb: "Bay Area chapter of the American Telugu Association.",
-  },
-  {
-    name: "Telangana Development Forum",
-    short: "TDF",
-    url: "https://www.tdfusa.org/",
-    blurb: "Telangana community, cultural and social service initiatives in the Bay Area.",
-  },
-  {
-    name: "NRI TDP, Bay Area",
-    short: "NRI TDP",
-    url: "https://www.nritdp.com/",
-    blurb: "Bay Area unit of the NRI Telugu Desam Party forum.",
-  },
-  {
-    name: "IT Serve Bay Area",
-    short: "IT Serve",
-    url: "https://itserve.org/",
-    blurb: "IT staffing and entrepreneur network chapter serving the Bay Area.",
-  },
-];
 
 export type TempleInfo = {
   name: string;

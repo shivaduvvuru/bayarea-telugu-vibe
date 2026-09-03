@@ -10,7 +10,7 @@ import {
   trackPropertyVideoClick,
 } from "@/lib/property-videos.functions";
 import {
-  EPAPER_ANNIVERSARY_URL,
+  
   PROPERTY_FEATURES,
   propertyImage,
   type PropertyFeature,

@@ -24,6 +24,7 @@ function AssociationsPage() {
       <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">Associations</h1>
       <p className="mt-3 text-[17px] leading-relaxed text-muted-foreground">
         Association listings are currently unavailable.
+      </p>
     </div>
   );
 }

@@ -51,14 +51,14 @@ function FoundationIconsPage() {
         <p>
           The persons like Sri Kasi Sastry, Sri Durvasula Sastry, Sri Rattayya, Sri Bhaskar Rao,
           Sri Lakireddy Balreddy and Sri Vrudula Rayudu came in the 70s and put in great efforts
-          to commute to places and to unite Telugus coming from India with their services. We
-          understand that Sri Durvasula Sastry spent his personal money and put in efforts to
-          screen a Telugu film in the Stanford University area.
+          to connect Indian families across the Bay Area through their services. We understand
+          that Sri Durvasula Sastry spent his personal money and put in efforts to screen an
+          Indian film in the Stanford University area.
         </p>
         <p>
           People like Sri Anjaneyulu Kothapalli, Sri Venkateswara Rao Vellanki and Sri
-          Satyanarayana Bodapati put in great efforts to start a Telugu Association, which later
-          got formed as the Bay Area Telugu Association (BATA).
+          Satyanarayana Bodapati put in great efforts to build an Indian community network in the
+          Bay Area.
         </p>
         <p>
           Times Bay Area has seen the growth of the Indian community here and its activity from

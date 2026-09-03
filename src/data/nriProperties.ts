@@ -1,8 +1,7 @@
 /**
  * Curated luxury inventory for the NRI Real Estate showcase. These entries are
- * the editorial shortlist Telugu Times presents to Bay Area investors; the
- * anniversary-edition tower artwork used in the hero comes from
- * `@/lib/property-showcase`.
+ * the editorial shortlist presented to Bay Area investors; the anniversary-edition
+ * tower artwork used in the hero comes from `@/lib/property-showcase`.
  */
 export interface PropertyItem {
   id: string;

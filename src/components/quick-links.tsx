@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import {
   CalendarDays,
   CalendarPlus,
-  Users,
+  
   Landmark,
   UtensilsCrossed,
   Stethoscope,
