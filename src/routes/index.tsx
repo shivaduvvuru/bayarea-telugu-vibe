@@ -264,7 +264,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { property: "og:url", content: HOME_URL },
+      { property: "og:image", content: "https://timesbayarea.com/times-bay-area-social.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
+      { name: "twitter:image", content: "https://timesbayarea.com/times-bay-area-social.jpg" },
     ],
     links: [{ rel: "canonical", href: HOME_URL }],
     scripts: [
@@ -820,7 +824,7 @@ function Home() {
       <PullToRefresh queryKeys={HOME_LIVE_KEYS} />
 
       <div className="mx-auto max-w-3xl">
-        <div className="mb-4 rounded-2xl border border-border bg-surface-tint px-4 py-3 shadow-sm">
+        <div className="mb-3 rounded-xl border border-border/60 bg-surface-tint/70 px-3 py-2">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
             Digest from sources
           </p>
@@ -836,10 +840,6 @@ function Home() {
         {/* Compact editorial hero: a curated 4–5 story slider (6s cross-fade),
             sized so the next section is visible without a full-screen scroll. */}
         <StoryHeroSlider articles={heroSliderPool} />
-
-        {/* Brigade Barcelona showcase: sits between the city-news slider and
-            the CREDAI sponsor carousel. */}
-        <BrigadePromo className="mt-4" />
 
         {/* Sponsor carousel: CREDAI banner first, then the vertical anniversary
             edition features. */}
@@ -966,6 +966,9 @@ function Home() {
           </Suspense>
         </section>
       </div>
+
+      {/* Sponsored placement follows the first news block, keeping the top of the edition editorial-first. */}
+      <BrigadePromo className="mx-auto mt-7 max-w-3xl" />
 
       <div className="mx-auto max-w-3xl">
         {uniqueCommunity.length > 0 && (

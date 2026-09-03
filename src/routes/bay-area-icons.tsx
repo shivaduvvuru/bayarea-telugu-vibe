@@ -32,7 +32,7 @@ function BayAreaIconsPage() {
         <p>
           While the Foundation Icons built the base, the Bay Area Telugu community today is
           carried forward by leaders in technology, business, medicine, law, arts, education and
-          social service. Telugu Times identifies and places these individuals as{" "}
+          social service. Times Bay Area identifies and places these individuals as{" "}
           <strong>Bay Area Icons</strong>, and keeps adding to the list as we reach them or they
           reach us.
         </p>

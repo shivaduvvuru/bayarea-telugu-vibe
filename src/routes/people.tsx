@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CommunityAppeal } from "@/components/ads";
 
-const TITLE = "Bay Area Telugu People — Foundation Icons & Bay Area Icons";
+const TITLE = "Bay Area Telugu People — Foundation Icons & Bay Area Icons | Times Bay Area";
 const DESC =
-  "Community leaders, pioneers and achievers: Bay Area Foundation Icons and Bay Area Icons recognised by Telugu Times.";
+  "Community leaders, pioneers and achievers: Bay Area Foundation Icons and Bay Area Icons recognised by Times Bay Area.";
 
 export const Route = createFileRoute("/people")({
   head: () => ({
@@ -25,7 +25,7 @@ function PeoplePage() {
       <p className="text-xs font-bold uppercase tracking-widest text-primary">Community</p>
       <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">People</h1>
       <p className="mt-3 text-[17px] leading-relaxed text-foreground">
-        Telugu Times recognises the people who built and who represent the Bay Area Telugu
+        Times Bay Area recognises the people who built and who represent the Bay Area Telugu
         community in two ways — the pioneers who came first, and the achievers of today.
       </p>
 

@@ -7,11 +7,11 @@ import towers from "@/assets/brigade-barcelona-towers.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { canonical } from "@/lib/site";
 
-const TITLE = "Brigade Barcelona, Neopolis Hyderabad — Exclusive USA Property Showcase";
+const TITLE = "Brigade Barcelona, Neopolis Hyderabad — Times Bay Area";
 const DESC =
   "An exclusive opportunity to own a home in Hyderabad's most anticipated new launch. Brigade Barcelona pre-launch showcase touring 8 US cities with Westcliff Realty. Free EOI, by appointment only.";
 const HOME_URL = canonical("/brigade-barcelona");
-const OG_IMAGE = `https://bayarea-telugu-vibe.lovable.app${towers.url}`;
+const OG_IMAGE = `https://timesbayarea.com${towers.url}`;
 const PHONE = "818-272-1955";
 const PHONE_TEL = "+18182721955";
 const WHATSAPP =

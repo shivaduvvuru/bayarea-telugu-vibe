@@ -1,10 +1,8 @@
 /**
  * Single source of truth for where this edition is published.
  *
- * Today the app is served at the Lovable preview origin. The target
- * production location is https://www.telugutimes.net/bayarea/ — set
- * VITE_SITE_ORIGIN and VITE_BASE_PATH at build time to move it there
- * without touching route code. See docs/deployment-bayarea.md.
+ * The public edition is canonical at https://timesbayarea.com. Preview builds
+ * can override the origin with VITE_SITE_ORIGIN without touching route code.
  */
 const rawOrigin =
   (import.meta.env['VITE_SITE_ORIGIN'] as string | undefined) ??

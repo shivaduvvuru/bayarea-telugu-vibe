@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ClipboardCheck, Facebook, Globe, Instagram, LogIn, LogOut, Newspaper, Search, Sparkles, X, Youtube } from "lucide-react";
-import masthead from "@/assets/masthead.webp";
 import { TT_LINKS } from "@/lib/network-links";
 import { useSignedIn, signOutSession } from "@/lib/session-state";
 
@@ -92,7 +91,7 @@ const STAFF_GROUP: { heading: string; items: ReadonlyArray<MoreItem> } = {
 };
 
 
-/** Telugu Times network: site, e-paper and social profiles. */
+/** Wider Telugu community network: site, e-paper and social profiles. */
 const NETWORK = [
   { href: TT_LINKS.site, label: "TeluguTimes.net", icon: Globe },
   { href: TT_LINKS.bayarea, label: "Bay Area edition", icon: Globe },
@@ -105,9 +104,9 @@ const NETWORK = [
 /** Compact icon row of social profiles, shown in the identity row. */
 function SocialIcons() {
   const items = [
-    { href: TT_LINKS.youtube, label: "Telugu Times on YouTube", icon: Youtube },
-    { href: TT_LINKS.instagram, label: "Telugu Times on Instagram", icon: Instagram },
-    { href: TT_LINKS.facebook, label: "Telugu Times on Facebook", icon: Facebook },
+    { href: TT_LINKS.youtube, label: "Times Bay Area on YouTube", icon: Youtube },
+    { href: TT_LINKS.instagram, label: "Times Bay Area on Instagram", icon: Instagram },
+    { href: TT_LINKS.facebook, label: "Times Bay Area on Facebook", icon: Facebook },
   ] as const;
   return (
     <div className="flex items-center gap-1">
@@ -207,7 +206,7 @@ function MoreMenu() {
 
           <div className="mx-auto mt-4 max-w-6xl border-t border-border pt-3">
             <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Telugu Times network
+              Community network
             </p>
             <div className="flex flex-wrap gap-2">
               {NETWORK.map(({ href, label, icon: Icon }) => (
@@ -245,14 +244,14 @@ export function LiteHeader() {
 
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
         <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
-          <img
-            src={masthead}
-            alt="Times Bay Area"
-            width={150}
-            height={30}
-            className="h-7 w-auto"
-            decoding="async"
-          />
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="font-serif-display text-[22px] font-bold tracking-tight text-ink sm:text-[25px]">
+              Times Bay Area
+            </span>
+            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Telugu community news · What matters around you.
+            </span>
+          </span>
         </Link>
         <div className="ml-auto flex items-center gap-1.5">
           {signedIn ? (

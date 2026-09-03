@@ -24,11 +24,11 @@ const eventPostsQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
 });
 
-const TITLE = "Bay Area Events Calendar — festivals, meetups & community";
+const TITLE = "Bay Area Events Calendar — Times Bay Area";
 const DESC =
   "Verified community events across San Francisco, San Jose, Fremont and the Tri-Valley: dates, venues, ticket prices and directions.";
 
-const EVENTS_URL = "https://bayarea-telugu-vibe.lovable.app/events";
+const EVENTS_URL = "https://timesbayarea.com/events";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({

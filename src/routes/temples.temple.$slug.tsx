@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { canonical } from "@/lib/site";
 import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
 import { listTempleEvents } from "@/lib/temple-calendar.functions";
 import { formatEventDay, formatEventTime } from "@/lib/temple-calendar";
@@ -30,14 +31,15 @@ export const Route = createFileRoute("/temples/temple/$slug")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Temple not found" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Temple not found — Times Bay Area" }, { name: "robots", content: "noindex" }] };
     }
     const t = loaderData.temple;
     const place = t.city ?? t.nearby_city ?? t.region;
-    const title = `${t.name}, ${place} — Bay Area Temple Directory | Telugu Times`;
+    const title = `${t.name}, ${place} — Bay Area Temple Directory | Times Bay Area`;
     const desc = `${t.name} in ${place}: address, directions, website${
       t.deities.length ? `, deities (${t.deities.join(", ")})` : ""
     } and upcoming events.`;
+    const url = canonical(`/temples/temple/${t.slug}`);
     return {
       meta: [
         { title },
@@ -45,8 +47,10 @@ export const Route = createFileRoute("/temples/temple/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary" },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   notFoundComponent: TempleNotFound,

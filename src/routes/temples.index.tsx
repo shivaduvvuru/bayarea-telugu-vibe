@@ -16,9 +16,10 @@ import {
 import { TempleCard } from "@/components/temple-card";
 import { COMMUNITY_EMAIL } from "@/lib/community-data";
 
-const TITLE = "Bay Area Temple Directory — Hindu Temples by City | Telugu Times";
+const TITLE = "Bay Area Temple Directory — Hindu Temples by City | Times Bay Area";
 const DESC =
   "Verified Hindu temples and Indian spiritual centers across the Bay Area, organized by South Bay, East Bay, Peninsula and San Francisco with directions, websites and events.";
+const URL = "https://timesbayarea.com/temples";
 
 export const Route = createFileRoute("/temples/")({
   head: () => ({
@@ -28,8 +29,10 @@ export const Route = createFileRoute("/temples/")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: URL },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: URL }],
   }),
   component: TempleDirectoryPage,
 });

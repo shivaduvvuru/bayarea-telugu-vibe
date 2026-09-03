@@ -5,7 +5,7 @@ import { POLITICS_REGIONS } from "@/lib/politics-sources";
 import { RelativeDate } from "@/components/news";
 import { CommunityAppeal } from "@/components/ads";
 
-const TITLE = "Bay Area City Politics & Indian Political News | Telugu Times";
+const TITLE = "Bay Area City Politics & Indian Political News | Times Bay Area"
 const DESC =
   "City council, mayor and election news from all 16 Bay Area cities, plus Andhra Pradesh, Telangana, national Indian politics and Indian-American candidates.";
 

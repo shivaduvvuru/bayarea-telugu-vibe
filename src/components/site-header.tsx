@@ -12,13 +12,12 @@ import {
   Facebook,
   ChevronDown,
 } from "lucide-react";
-import masthead from "@/assets/masthead.webp";
 import { CATEGORIES, CITY_REGIONS } from "@/lib/content";
 import { useLang } from "@/lib/language";
 import { onOpenMobileMenu } from "@/lib/ui-menu";
 
 
-/** Telugu Times social profiles, shown as a row under the utility links. */
+/** Times Bay Area social profiles, shown as a row under the utility links. */
 const SOCIAL = [
   { href: TT_LINKS.youtube, label: "YouTube", icon: Youtube },
   { href: TT_LINKS.instagram, label: "Instagram", icon: Instagram },
@@ -34,7 +33,7 @@ function SocialRow({ className = "" }: { className?: string }) {
           href={href}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Telugu Times on ${label}`}
+          aria-label={`Times Bay Area on ${label}`}
           className="flex h-10 w-10 items-center justify-center rounded-sm text-nav-foreground/85 transition-colors hover:bg-nav-hover"
         >
           <Icon className="h-5 w-5" />
@@ -233,7 +232,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile bar: hamburger · logo · language · search */}
+      {/* Mobile bar: hamburger · masthead · search */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 md:hidden">
         <button
           onClick={() => setOpen((v) => !v)}
@@ -243,16 +242,13 @@ export function SiteHeader() {
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
-        <Link to="/" className="flex min-w-0 justify-center">
-          <img
-            src={masthead}
-            alt="Times Bay Area"
-            width={1408}
-            height={512}
-            loading="eager"
-            fetchPriority="high"
-            className="h-9 w-auto max-w-full"
-          />
+        <Link to="/" className="flex min-w-0 justify-center" aria-label="Times Bay Area home">
+          <span className="flex min-w-0 flex-col items-center leading-none">
+            <span className="font-serif-display text-xl font-bold tracking-tight text-ink">Times Bay Area</span>
+            <span className="mt-1 max-w-full truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              Telugu community news
+            </span>
+          </span>
         </Link>
         <div className="flex items-center gap-1">
           <Link
@@ -268,16 +264,15 @@ export function SiteHeader() {
 
       {/* Desktop masthead */}
       <div className="mx-auto hidden max-w-6xl items-center justify-between gap-4 px-4 py-5 md:flex">
-        <Link to="/" className="shrink-0">
-          <img
-            src={masthead}
-            alt="Times Bay Area"
-            width={1408}
-            height={512}
-            loading="eager"
-            fetchPriority="high"
-            className="h-16 w-auto"
-          />
+        <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
+          <span className="flex flex-col leading-none">
+            <span className="font-serif-display text-3xl font-bold tracking-tight text-ink">
+              Times Bay Area
+            </span>
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Telugu community news · What matters around you.
+            </span>
+          </span>
         </Link>
         <div className="flex w-full max-w-xl items-center justify-end gap-2">
           <SocialRow />
@@ -287,7 +282,7 @@ export function SiteHeader() {
       {/* Network links + social strip — above main menu, very small script (mobile + desktop) */}
       <div className="border-y border-border/70 bg-surface-tint">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-2 py-0.5 text-[9px] text-muted-foreground md:gap-4 md:px-4 md:text-[10px]">
-          <nav aria-label="Telugu Times network" className="flex min-w-0 items-center">
+          <nav aria-label="Telugu community network" className="flex min-w-0 items-center">
             <a
               href={TT_LINKS.site}
               target="_blank"
@@ -318,7 +313,7 @@ export function SiteHeader() {
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={`Telugu Times on ${l}`}
+                aria-label={`Times Bay Area on ${l}`}
                 className="flex h-4 w-4 items-center justify-center rounded-full hover:bg-background hover:text-primary md:h-5 md:w-5"
               >
                 <Icon className="h-2.5 w-2.5 md:h-3 md:w-3" />
