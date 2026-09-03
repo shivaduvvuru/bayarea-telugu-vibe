@@ -188,12 +188,21 @@ export function LiteHeader() {
 
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2">
         <Link to="/" className="shrink-0" aria-label="Times Bay Area home">
-          <span className="flex min-w-0 flex-col leading-none">
-            <span className="font-serif-display text-[22px] font-bold tracking-tight text-ink sm:text-[25px]">
-              Times Bay Area
-            </span>
-            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              For Indian Community — What Matters Around You
+          <span className="flex min-w-0 items-center gap-2 leading-none">
+            <img
+              src={logoUrl}
+              alt="Times Bay Area"
+              width={40}
+              height={40}
+              className="h-9 w-9 shrink-0 object-contain"
+            />
+            <span className="flex min-w-0 flex-col leading-none">
+              <span className="font-serif-display text-[22px] font-bold tracking-tight text-ink sm:text-[25px]">
+                Times Bay Area
+              </span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                For Indian Community — What Matters Around You
+              </span>
             </span>
           </span>
         </Link>
