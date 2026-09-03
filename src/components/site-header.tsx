@@ -296,25 +296,14 @@ export function SiteHeader() {
           <ul className="max-h-[70dvh] overflow-y-auto overscroll-contain border-t border-border bg-background px-4 pb-4 md:hidden">
             <li className="flex flex-col gap-2 border-b border-border/60 py-3">
               <HeaderSearch className="w-full [&_input]:w-full [&_input]:text-sm" />
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={TT_LINKS.site}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
-                >
-                  <Globe className="h-4 w-4 text-primary" />
-                  TeluguTimes.net
-                </a>
-                <Link
-                  to="/epaper"
-                  onClick={() => setOpen(false)}
-                  className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
-                >
-                  <Newspaper className="h-4 w-4 text-primary" />
-                  E-Paper
-                </Link>
-              </div>
+              <Link
+                to="/epaper"
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center justify-center gap-1.5 rounded-sm border border-border text-sm font-semibold text-ink"
+              >
+                <Newspaper className="h-4 w-4 text-primary" />
+                E-Paper
+              </Link>
               <Link
                 to="/contact"
                 onClick={() => setOpen(false)}
