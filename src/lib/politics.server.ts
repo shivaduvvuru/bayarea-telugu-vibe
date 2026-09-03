@@ -73,7 +73,7 @@ async function fetchSource(source: PoliticsSource): Promise<PoliticsFeedResult> 
   try {
     const res = await fetch(source.url, {
       headers: {
-        "User-Agent": "BayAreaTeluguTimes/1.0 (+https://bayarea.telugutimes.net)",
+        "User-Agent": "TimesBayArea/1.0 (+https://timesbayarea.com)",
         Accept: "application/rss+xml,application/xml",
       },
       signal: AbortSignal.timeout(TIMEOUT_MS),

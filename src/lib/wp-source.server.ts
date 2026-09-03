@@ -1,5 +1,5 @@
 /**
- * First-party WordPress sources for Telugu Times editions.
+ * First-party WordPress sources for the connected news editions.
  *
  * Posts are normalized here and then flow through the same collection pipeline
  * as every other source, including canonical URL/title/image deduplication.
@@ -89,7 +89,7 @@ export async function fetchWordPressPosts(limit = 300, site = WP_SITE): Promise<
   for (let page = 1; page <= Math.ceil(limit / perPage); page += 1) {
     const url = `${site}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&status=publish&_embed=wp:featuredmedia`;
     const res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "BayAreaTeluguTimes/1.0" },
+      headers: { Accept: "application/json", "User-Agent": "TimesBayArea/1.0" },
     });
     if (res.status === 400) break;
     if (!res.ok) {

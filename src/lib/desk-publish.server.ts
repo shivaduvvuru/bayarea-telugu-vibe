@@ -27,7 +27,7 @@ export function deskRowToIngest(row: Row): IngestRow {
   // Our own WordPress newsroom is first-party local reporting: it is additive to
   // the aggregated digest and must never be reclassified into an India section.
   const source = `${str(row["source"]) ?? str(payload["source"]) ?? ""}`.toLowerCase();
-  const firstParty = source.includes("wordpress") || source.includes("telugu times");
+  const firstParty = source.includes("wordpress") || source.includes("first-party") || source.includes("news desk");
   const image = str(payload["image"]) ?? str(payload["image_url"]);
   // Rows collected for the picture desk have a gal-* ID. Approval is the final
   // editorial quality decision, so keep those picks in Glamour even when a

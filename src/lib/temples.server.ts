@@ -102,7 +102,7 @@ async function fetchSource(source: TempleSource): Promise<TempleFeedResult> {
     try {
       const res = await fetch(feed.url, {
         headers: {
-          "User-Agent": "BayAreaTeluguTimes/1.0 (+https://bayarea.telugutimes.net)",
+          "User-Agent": "TimesBayArea/1.0 (+https://timesbayarea.com)",
           Accept: feed.mode === "rss" ? "application/rss+xml,application/xml" : "text/html",
         },
         signal: AbortSignal.timeout(TIMEOUT_MS),
