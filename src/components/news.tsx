@@ -42,13 +42,13 @@ export function SectionHeading({
   en,
   more,
 }: {
-  te: string;
+  /** Legacy Telugu caption — retained in call sites but no longer rendered. */
+  te?: string;
   en?: string;
   more?: ReactNode;
 }) {
-  // English is always the prominent caption; Telugu sits underneath in a
-  // smaller supporting line.
-  const english = en ?? te;
+  // English-only headings: any legacy Telugu caption is ignored.
+  const english = en ?? "";
   return (
     <div className="section-rule mb-5 flex items-end justify-between gap-3 pb-2">
       <h2 className="min-w-0 text-xl font-bold text-ink sm:text-2xl">
@@ -56,11 +56,6 @@ export function SectionHeading({
           <span className="min-w-0">{english}</span>
           <ChevronRight className="h-5 w-5 shrink-0 text-primary" />
         </span>
-        {te && te !== english && (
-          <span className="te-text mt-0.5 block text-xs font-medium text-muted-foreground sm:text-sm">
-            {te}
-          </span>
-        )}
       </h2>
       {more}
     </div>
@@ -106,7 +101,7 @@ export function LangBadge({ article }: { article: Article }) {
       className="border border-border px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground"
       title={isTe ? "Written in Telugu" : "Written in English"}
     >
-      <span className={isTe ? "te-text" : undefined}>{isTe ? "తెలుగు" : "English"}</span>
+      <span>{isTe ? "Telugu" : "English"}</span>
     </span>
   );
 }

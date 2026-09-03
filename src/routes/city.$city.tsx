@@ -87,9 +87,6 @@ function CityHub() {
       </p>
       <h1 className="mt-2 text-3xl font-bold text-ink md:text-4xl">
         {city.en}
-        <span className="te-text mt-1 block text-sm font-medium text-muted-foreground">
-          {city.te}
-        </span>
       </h1>
       <p className="mt-3 text-[15px] text-muted-foreground">
         Everything we track in {city.en}: community businesses, temples, upcoming events and

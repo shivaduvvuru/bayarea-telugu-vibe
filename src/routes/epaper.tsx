@@ -27,7 +27,7 @@ export const Route = createFileRoute("/epaper")({
 function EPaperPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-3xl font-bold text-ink">ఈ-పేపర్</h1>
+      <h1 className="text-3xl font-bold text-ink">E-Paper</h1>
       <p className="mt-2 text-muted-foreground">
         The weekly print edition, published every Friday.
       </p>
