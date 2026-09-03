@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Youtube } from "lucide-react";
 import { useLang } from "@/lib/language";
 import { COMMUNITY_EMAIL } from "@/lib/community-data";
-import { PARENT_SITE } from "@/lib/site";
 
 type Banner = { name: string; href: string; note: string };
 
