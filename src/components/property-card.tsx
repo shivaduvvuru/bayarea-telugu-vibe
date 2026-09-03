@@ -47,7 +47,7 @@ export function PropertyCard({
         <div className="flex flex-wrap items-center gap-1.5">
           {p.is_tt_advertiser ? (
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-              Telugu Times partner
+              Times Bay Area partner
             </span>
           ) : null}
           {p.is_credai_participant ? (
