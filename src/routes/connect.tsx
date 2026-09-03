@@ -94,8 +94,8 @@ function ConnectPage() {
 
       <p className="mt-4 rounded-lg bg-surface-tint p-4 text-sm text-muted-foreground">
         {t(
-          "Own a business or run an association? Directory profiles can be claimed and updated by their owners after editorial approval.",
-          "వ్యాపారం లేదా సంఘం నడుపుతున్నారా? ఎడిటోరియల్ ఆమోదం తర్వాత మీ డైరెక్టరీ ప్రొఫైల్‌ను మీరే అప్‌డేట్ చేసుకోవచ్చు.",
+          "Own a business? Directory profiles can be claimed and updated by their owners after editorial approval.",
+          "మీ వ్యాపారం ఉందా? ఎడిటోరియల్ ఆమోదం తర్వాత మీ డైరెక్టరీ ప్రొఫైల్‌ను మీరే అప్‌డేట్ చేసుకోవచ్చు.",
         )}{" "}
         <Link to="/contact" className="font-semibold text-primary">
           {t("Claim your listing", "మీ లిస్టింగ్ క్లెయిమ్ చేయండి")}

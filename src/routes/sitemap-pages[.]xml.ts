@@ -41,7 +41,6 @@ export const Route = createFileRoute("/sitemap-pages.xml")({
           { path: "/food/restaurants", changefreq: "weekly", priority: "0.7" },
           { path: "/politics", changefreq: "daily", priority: "0.7" },
           { path: "/forums", changefreq: "daily", priority: "0.7" },
-          
           { path: "/people", changefreq: "weekly", priority: "0.6" },
           { path: "/bay-area-icons", changefreq: "monthly", priority: "0.6" },
           { path: "/explore", changefreq: "weekly", priority: "0.5" },
