@@ -66,18 +66,6 @@ export type FeedHealth = {
 };
 
 /** Latest per-publisher fetch outcome, read from the newest collect run funnels. */
-export type FeedHealth = {
-  source: string;
-  lastFetchAt: string | null;
-  fetched: number;
-  kept: number;
-  withImage: number;
-  zeroItems: boolean;
-  usedFallback: boolean;
-  error: string | null;
-  runMode: string | null;
-  runFinishedAt: string | null;
-};
 
 export type IngestHealthReport = {
   checkedAt: string;
