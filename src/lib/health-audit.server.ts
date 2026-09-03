@@ -10,6 +10,7 @@
  */
 import { sendPushover, MAX_BODY } from "./pushover.server";
 import { INDIA_FEEDS, QUIET_SOURCES } from "./india-ingest.server";
+import { PUBLISHER_FEEDS } from "./collect-news.server";
 
 const SITE = "https://project--21d2eeed-01e3-4e0e-a028-88e01859acea.lovable.app";
 
@@ -52,12 +53,28 @@ export type SourceHealth = {
   flagged: boolean;
 };
 
+export type FeedHealth = {
+  source: string;
+  lastFetchAt: string | null;
+  fetched: number;
+  kept: number;
+  withImage: number;
+  zeroItems: boolean;
+  usedFallback: boolean;
+  error: string | null;
+  runMode: string | null;
+  runFinishedAt: string | null;
+};
+
+/** Latest per-publisher fetch outcome, read from the newest collect run funnels. */
+
 export type IngestHealthReport = {
   checkedAt: string;
   categories: CategoryHealth[];
   sources: SourceHealth[];
+  feeds: FeedHealth[];
   jobs: { mode: string; lastRun: string | null; firedInLast24h: boolean }[];
-  issues: { kind: "category" | "source" | "job" | "alerts"; text: string; priority: 0 | 1 }[];
+  issues: { kind: "category" | "source" | "job" | "alerts" | "feed"; text: string; priority: 0 | 1 }[];
 };
 
 async function db() {
@@ -149,6 +166,84 @@ async function sourceHealth(): Promise<SourceHealth[]> {
   return out.sort((a, b) => a.items7d - b.items7d);
 }
 
+/**
+ * Latest fetch result per publisher feed. The collector already records
+ * requests / returned / kept / errors per source in `collect_runs.funnel`, so
+ * the desk reads the newest run that mentions each feed rather than guessing
+ * from insert counts (a source can fetch fine and still insert nothing).
+ */
+async function feedHealth(): Promise<FeedHealth[]> {
+  const client = await db();
+  const { data } = await client
+    .from("collect_runs")
+    .select("mode, finished_at, started_at, funnel")
+    .order("started_at", { ascending: false })
+    .limit(40);
+
+  type PublisherStat = {
+    requests?: number;
+    returned?: number;
+    kept?: number;
+    withImage?: number;
+    itemsFetched?: number;
+    lastFetchAt?: string;
+    error?: string;
+    usedFallback?: boolean;
+  };
+
+  const byFeed = new Map<string, FeedHealth>();
+  for (const run of (data ?? []) as {
+    mode: string | null;
+    finished_at: string | null;
+    started_at: string | null;
+    funnel: unknown;
+  }[]) {
+    const publishers = (run.funnel as { publishers?: { bySource?: Record<string, PublisherStat> } } | null)
+      ?.publishers?.bySource;
+    if (!publishers) continue;
+    for (const [source, stat] of Object.entries(publishers)) {
+      // Runs are newest-first, so the first sighting of a feed is its latest.
+      if (byFeed.has(source)) continue;
+      const fetched = stat.itemsFetched ?? stat.returned ?? 0;
+      byFeed.set(source, {
+        source,
+        lastFetchAt: stat.lastFetchAt ?? run.finished_at ?? run.started_at ?? null,
+        fetched,
+        kept: stat.kept ?? 0,
+        withImage: stat.withImage ?? 0,
+        zeroItems: fetched === 0,
+        usedFallback: !!stat.usedFallback,
+        error: stat.error ?? null,
+        runMode: run.mode ?? null,
+        runFinishedAt: run.finished_at ?? null,
+      });
+    }
+  }
+
+  // Include every configured publisher, not only feeds touched by the last 40
+  // runs. This makes an unrotated feed visibly distinct from a feed that failed.
+  for (const source of PUBLISHER_FEEDS.map((feed) => feed.name)) {
+    if (byFeed.has(source)) continue;
+    byFeed.set(source, {
+      source,
+      lastFetchAt: null,
+      fetched: 0,
+      kept: 0,
+      withImage: 0,
+      zeroItems: true,
+      usedFallback: false,
+      error: null,
+      runMode: null,
+      runFinishedAt: null,
+    });
+  }
+
+  // Zero-item feeds first: that is the list the editor needs to act on.
+  return [...byFeed.values()].sort(
+    (a, b) => Number(b.zeroItems) - Number(a.zeroItems) || a.fetched - b.fetched,
+  );
+}
+
 /** Did each scheduled job fire in the last 24 hours? */
 async function jobHealth() {
   const client = await db();
@@ -202,9 +297,10 @@ async function retryJob(job: (typeof SCHEDULED_JOBS)[number]): Promise<string> {
 }
 
 export async function buildIngestHealth(): Promise<IngestHealthReport> {
-  const [categories, sources, jobs] = await Promise.all([
+  const [categories, sources, feeds, jobs] = await Promise.all([
     categoryHealth(),
     sourceHealth(),
+    feedHealth(),
     jobHealth(),
   ]);
 
@@ -227,6 +323,19 @@ export async function buildIngestHealth(): Promise<IngestHealthReport> {
     issues.push({
       kind: "job",
       text: `job "${j.mode}" has not run in 24h (last ${j.lastRun ?? "never"})`,
+      priority: 0,
+    });
+  }
+  // Feeds that answered but returned nothing: the single most common reason the
+  // digest thins out, and invisible in insert counts.
+  const dead = feeds.filter((f) => f.zeroItems);
+  if (dead.length) {
+    issues.push({
+      kind: "feed",
+      text: `${dead.length} feed(s) returned 0 items on their latest fetch: ${dead
+        .slice(0, 6)
+        .map((f) => `${f.source}${f.error ? ` (${f.error.slice(0, 40)})` : ""}`)
+        .join("; ")}`,
       priority: 0,
     });
   }
@@ -254,6 +363,7 @@ export async function buildIngestHealth(): Promise<IngestHealthReport> {
     checkedAt: new Date().toISOString(),
     categories,
     sources,
+    feeds,
     jobs,
     issues,
   };

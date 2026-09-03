@@ -14,9 +14,12 @@
 - [x] Replace top navigation band color with a Gen Z-friendly color (bright teal)
 - [x] Primary color: use Al Jazeera gold/bronze letters color; add logo placeholder
 - [x] Stop pulling stories from TeluguTimes.net; replace with real Indian community stories/events/listings
-  - Decision: stop ingest + backfill with more sources (do not delete existing TeluguTimes stories)
-  - Removed active TeluguTimes WordPress/RSS feeds from wp-source, india-ingest, and collect-news
-  - Added Bay Area/Indian-American discovery feeds to PUBLISHER_FEEDS
+   - Decision: stop ingest and remove existing TeluguTimes-derived public rows and visible references
+   - Removed active TeluguTimes WordPress/RSS feeds from wp-source, india-ingest, and collect-news
+   - Added Bay Area/Indian-American discovery feeds to PUBLISHER_FEEDS
+- [ ] Remove anything same or similar to Telugu Times
+   - Remove clearly attributable Telugu Times rows from public content and hide legacy source links
+   - Preserve independent reporting from other publishers
 - [x] Replace fake property claims (RERA numbers, pricing) with "Verify with builder" language
   - Updated credaiShowData.ts and nriProperties.ts to remove fabricated RERA numbers and unverified pricing
   - Added disclaimers to /credai-show and /nri-real-estate pages
@@ -34,5 +37,15 @@
   - Decision: seed from OpenStreetMap (Overpass)
   - Note: /directory already exists with OSM-sourced data
 - [ ] Replace placeholder news feed stories with real Bay Area Indian news while keeping ingestion sources
-  - Decision: remove TeluguTimes feeds, add more US/Indian community sources
-  - Done: TeluguTimes removed; India Currents, Bay Area Indian community, Silicon Valley Indian life added
+   - Decision: remove TeluguTimes feeds, add more US/Indian community sources
+   - Done: TeluguTimes removed; India Currents, Bay Area Indian community, Silicon Valley Indian life added
+- [ ] Increase digest source volume and expose latest per-source fetch diagnostics
+    - Expand Bay Area, India/Telugu, and NRI feeds; retain hourly refresh and hero-only safety filtering
+    - Show per-source fetched, kept, zero-item, last-fetch, and error results in the health desk
+    - Ensure the combined digest can surface 50+ current items without weakening dedupe or safety rules
+- [x] Add three family-friendly Glamour hero-size slides to the homepage rotation
+      - Use editorial fashion/cinema imagery and place the slides after the primary news sequence
+      - Added the three-slide Glamour spotlight after the first Bay Area editorial block
+- [ ] Replace remaining legacy placeholder stories with real India Currents and Bay Area Indian feed articles
+- [ ] Complete real community directory coverage and public moderated story submissions
+- [ ] Replace hero and digest placeholder imagery with ingested article images plus a generic fallback

@@ -1,11 +1,13 @@
 /**
- * Individual high-rise (skyscraper) property features published in the Telugu
- * Times 23rd Anniversary Special edition. Each entry is one page of that
- * edition, so the reader sees the developer's own artwork exactly as printed.
+ * Individual high-rise (skyscraper) property features from the sponsored
+ * Hyderabad property showcase. Artwork is a neutral in-app placeholder; the
+ * developer's own site link stays with each entry.
  *
  * Only skyscraper / tower projects are listed — villa, jewellery, insurance and
  * association pages of the same edition are deliberately left out.
  */
+import propertyPlaceholder from "@/assets/article-fallback-community.jpg";
+
 export interface PropertyFeature {
   /** ePaper page file name (also the stable id). */
   id: string;
@@ -20,10 +22,6 @@ export interface PropertyFeature {
   videoId?: string;
 }
 
-export const EPAPER_ANNIVERSARY_URL =
-  "https://www.telugutimes.net/epaper/16-31-23rd-anniv-special";
-
-const BASE = "https://www.telugutimes.net/wp-content/uploads/2026/03";
 
 /** Fallback: a YouTube search for readers when no video is on file. */
 export function propertyVideoSearchUrl(item: { project: string; developer: string }): string {
@@ -32,9 +30,9 @@ export function propertyVideoSearchUrl(item: { project: string; developer: strin
   )}`;
 }
 
-/** Full-page image for a feature. */
-export function propertyImage(id: string): string {
-  return `${BASE}/${id}.jpg`;
+/** Showcase artwork for a feature. Neutral in-app placeholder. */
+export function propertyImage(_id: string): string {
+  return propertyPlaceholder;
 }
 
 export const PROPERTY_FEATURES: readonly PropertyFeature[] = [

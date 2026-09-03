@@ -29,7 +29,7 @@ export const NRI_FILTERS = [
 
 export type NriFilterKey = (typeof NRI_FILTERS)[number]["key"];
 
-const EPAPER = "https://www.telugutimes.net/wp-content/uploads/2026/03";
+import showcasePlaceholder from "@/assets/article-fallback-community.jpg";
 
 export const luxuryProperties: PropertyItem[] = [
   {
@@ -45,7 +45,7 @@ export const luxuryProperties: PropertyItem[] = [
     roiEstimate: "Verify with builder",
     reraApproved: true,
     badge: "Pre-launch window",
-    image: `${EPAPER}/26.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-2",
@@ -60,7 +60,7 @@ export const luxuryProperties: PropertyItem[] = [
     roiEstimate: "Verify with builder",
     reraApproved: true,
     badge: "CREDAI verified",
-    image: `${EPAPER}/23.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-3",
@@ -75,7 +75,7 @@ export const luxuryProperties: PropertyItem[] = [
     roiEstimate: "Verify with builder",
     reraApproved: true,
     badge: "CREDAI verified",
-    image: `${EPAPER}/3-1.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-4",
@@ -89,7 +89,7 @@ export const luxuryProperties: PropertyItem[] = [
     possession: "Verify with builder",
     roiEstimate: "Verify with builder",
     reraApproved: true,
-    image: `${EPAPER}/18-1.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-5",
@@ -103,7 +103,7 @@ export const luxuryProperties: PropertyItem[] = [
     possession: "Verify with builder",
     roiEstimate: "Verify with builder",
     reraApproved: true,
-    image: `${EPAPER}/2-1.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-6",
@@ -117,7 +117,7 @@ export const luxuryProperties: PropertyItem[] = [
     possession: "Verify with builder",
     roiEstimate: "Verify with builder",
     reraApproved: true,
-    image: `${EPAPER}/23.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-7",
@@ -132,7 +132,7 @@ export const luxuryProperties: PropertyItem[] = [
     roiEstimate: "Verify with builder",
     reraApproved: true,
     badge: "Fully managed",
-    image: `${EPAPER}/22.jpg`,
+    image: showcasePlaceholder,
   },
   {
     id: "prop-8",
@@ -146,7 +146,7 @@ export const luxuryProperties: PropertyItem[] = [
     possession: "Verify with builder",
     roiEstimate: "Verify with builder",
     reraApproved: true,
-    image: `${EPAPER}/27.jpg`,
+    image: showcasePlaceholder,
   },
 ];
 

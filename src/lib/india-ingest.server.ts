@@ -127,7 +127,7 @@ export const INDIA_FEEDS: IndiaFeed[] = [
     fallback: "india-nri",
     limit: 8,
   },
-  // NOTE: TeluguTimes.net India feeds were removed from active ingestion on
+  // NOTE: the legacy partner India feeds were removed from active ingestion on
   // 2026-09-03. Existing published stories remain live; new stories are sourced
   // from Indian-American and Bay Area community publishers instead.
   {
@@ -175,7 +175,7 @@ export const QUIET_SOURCES = new Set(["USCIS", "Murthy Law Firm", "Immigration.c
 
 
 const UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36 BayAreaTeluguTimes/1.0";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36 TimesBayArea/1.0";
 const MAX_AGE_DAYS = 4;
 
 type Parsed = {
@@ -256,7 +256,8 @@ async function readFeed(feed: IndiaFeed): Promise<Parsed[]> {
     if (seen.has(key)) continue;
     seen.add(key);
     kept.push(item);
-    if (kept.length >= (feed.limit ?? 6)) break;
+    // Keep a healthy 10–15 item batch per source for the digest.
+    if (kept.length >= Math.min(15, Math.max(10, feed.limit ?? 12))) break;
   }
   return kept;
 }
@@ -331,11 +332,12 @@ export async function runIndiaIngest(opts?: {
         return true;
       });
 
-      // Every card needs artwork: use the feed image, else read the article.
+      // Artwork is best-effort: use the feed image, else read the article page.
+      // A story is never dropped for lacking a picture — the card falls back to
+      // generic artwork, and only hero slots require a real photo.
       const rows = [] as Parameters<typeof ingest>[0];
       for (const item of fresh) {
         const image = item.image ?? (await fetchArticleImage(item.link).catch(() => null));
-        if (!usableImage(image)) continue;
         // The classifier decides the section; the feed's own desk is the
         // fallback so a Telangana story never lands outside the India desk.
         const section = classifyIndia(item.title, item.summary, item.link) ?? feed.fallback;

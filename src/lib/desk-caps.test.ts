@@ -56,9 +56,9 @@ describe("per-desk caps", () => {
     expect(capByRecency(items, deskCap("micro-drama").total).kept).toHaveLength(30);
   });
 
-  it("keeps news and unknown desks on the previous behaviour", () => {
-    expect(deskCap("news").total).toBe(8);
-    expect(deskCap("events").total).toBe(8);
+  it("keeps the expanded news cap and unknown desks on the default behaviour", () => {
+    expect(deskCap("news").total).toBe(15);
+    expect(deskCap("events").total).toBe(15);
     expect(deskCap(undefined)).toEqual(DESK_CAPS.default);
   });
 });

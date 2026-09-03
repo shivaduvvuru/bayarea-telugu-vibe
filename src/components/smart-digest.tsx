@@ -2,6 +2,8 @@ import { useQuery, queryOptions } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SmartImage } from "@/components/smart-image";
+import articleFallback from "@/assets/article-fallback-community.jpg";
 import { RelativeDate } from "@/components/news";
 import { publicBullets, publicText } from "@/lib/public-text";
 
@@ -136,18 +138,31 @@ function Takeaways({ article }: { article: Article }) {
 function NewsCard({ article, compact = false }: { article: Article; compact?: boolean }) {
   return (
     <article className="border-b border-border py-4 last:border-b-0">
-      <div className="flex items-start justify-between gap-3">
-        <h3
-          className={
-            compact ? "text-sm font-semibold leading-snug" : "text-base font-bold leading-snug"
-          }
-        >
-          {article.title}
-        </h3>
-        <SourceLink url={article.source_url} />
+      <div className="flex gap-3">
+        <SmartImage
+          src={article.image_url || articleFallback}
+          fallbackSrc={articleFallback}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          optimizedWidth={240}
+          className="h-16 w-24 shrink-0 rounded-md object-cover"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <h3
+              className={
+                compact ? "text-sm font-semibold leading-snug" : "text-base font-bold leading-snug"
+              }
+            >
+              {article.title}
+            </h3>
+            <SourceLink url={article.source_url} />
+          </div>
+          <MetaRow article={article} />
+          <Takeaways article={article} />
+        </div>
       </div>
-      <MetaRow article={article} />
-      <Takeaways article={article} />
     </article>
   );
 }
@@ -160,14 +175,13 @@ function LeadHero({ headingLevel = "h1" }: { headingLevel?: "h1" | "h3" }) {
   const Heading = headingLevel;
   return (
     <article className="overflow-hidden rounded-xl border border-border bg-card">
-      {lead.image_url ? (
-        <img
-          src={lead.image_url}
-          alt={lead.title}
-          loading="lazy"
-          className="h-52 w-full object-cover sm:h-72"
-        />
-      ) : null}
+      <SmartImage
+        src={lead.image_url || articleFallback}
+        fallbackSrc={articleFallback}
+        alt={lead.title}
+        loading="lazy"
+        className="h-52 w-full object-cover sm:h-72"
+      />
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <Heading className="text-xl font-extrabold leading-tight sm:text-3xl">
@@ -227,10 +241,10 @@ export function SmartDigest({ embedded = false }: { embedded?: boolean }) {
     <div>
       <LeadHero headingLevel={embedded ? "h3" : "h1"} />
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <DeskList desk="bay-area" limit={15} heading="Bay Area Digest" />
+        <DeskList desk="bay-area" limit={25} heading="Bay Area Digest" />
         <div className="space-y-6">
-          <DeskList desk="telangana-andhra" limit={10} heading="Telangana & Andhra" compact />
-          <DeskList desk="cinema-glamour" limit={6} heading="Glamour & Cinema" compact />
+          <DeskList desk="telangana-andhra" limit={15} heading="Telangana & Andhra" compact />
+          <DeskList desk="cinema-glamour" limit={10} heading="Glamour & Cinema" compact />
         </div>
       </div>
     </div>

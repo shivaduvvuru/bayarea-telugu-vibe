@@ -1,13 +1,15 @@
 /**
- * Our own newsrooms: the Bay Area edition (bayarea.telugutimes.net) and the
- * English national edition (www.telugutimes.net/en). Both are first-party
- * reporting, so their stories are trusted and are never relabelled into an
- * India / topic bucket by the regex classifiers.
+ * First-party newsroom hosts. The legacy partner editions were retired, so no
+ * external host is treated as first-party any more; only links published on
+ * timesbayarea.com count.
  */
+const OWN_HOSTS = [/(^|\.)timesbayarea\.com$/i];
+
 export function isOwnSiteLink(link: string | null | undefined): boolean {
   if (!link) return false;
   try {
-    return /(^|\.)telugutimes\.net$/i.test(new URL(link).hostname);
+    const host = new URL(link).hostname;
+    return OWN_HOSTS.some((re) => re.test(host));
   } catch {
     return false;
   }

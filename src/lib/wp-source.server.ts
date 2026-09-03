@@ -4,16 +4,13 @@
  * Posts are normalized here and then flow through the same collection pipeline
  * as every other source, including canonical URL/title/image deduplication.
  *
- * NOTE: TeluguTimes.net editions were removed from active ingestion on
- * 2026-09-03. The helper functions remain so existing rows can still be
- * removal-synced if the list is ever re-populated.
+ * NOTE: The legacy partner editions were retired on 2026-09-03. The helper
+ * functions remain so a future first-party WordPress edition can be added.
  */
 import { usableImage } from "./story-image";
 
-export const WP_SITE = "https://bayarea.telugutimes.net";
+export const WP_SITE = "https://www.timesbayarea.com";
 export const WP_SOURCE_NAME = "Times Bay Area (WordPress)";
-export const WP_ENGLISH_SITE = "https://www.telugutimes.net/en";
-export const WP_ENGLISH_SOURCE_NAME = "Telugu Times English (WordPress)";
 
 /** Active first-party WordPress editions. Empty while we source from local/community feeds. */
 export const WORDPRESS_SOURCES: { site: string; name: string }[] = [];

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SmartImage } from "@/components/smart-image";
+import articleFallback from "@/assets/article-fallback-community.jpg";
 import type { Article } from "@/lib/content";
 import { formatDate } from "@/lib/content";
 import { SourceChip } from "@/components/source-credit";
@@ -114,14 +116,14 @@ export function StoryHeroSlider({
               pointerEvents: i === index ? "auto" : "none",
             }}
           >
-            <img
+            <SmartImage
               src={slide.image}
+              fallbackSrc={articleFallback}
               alt={slide.article.title}
               // Only the first slide is a priority download; every other slide
               // stays lazy so it never competes with it on a phone.
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "low"}
-
               decoding="async"
               sizes="(max-width: 768px) 100vw, 1100px"
               className="h-full w-full object-cover object-[center_28%]"

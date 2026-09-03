@@ -55,7 +55,7 @@ export function classifyIndia(
 
   const host = (sourceUrl ?? "").toLowerCase();
   const indianPublisher =
-    /indiatimes|thehindu|ndtv|indiatoday|outlookindia|theweek\.in|frontline|indiawest|newindiaabroad|americanbazaar|telugutimes\.net|murthy\.com|immigration\.com|uscis\.gov|indianembassy|cgisf/.test(
+    /indiatimes|thehindu|ndtv|indiatoday|outlookindia|theweek\.in|frontline|indiawest|newindiaabroad|americanbazaar|murthy\.com|immigration\.com|uscis\.gov|indianembassy|cgisf/.test(
       host,
     );
   const indiaText = /\bindia\b|\bindian\b|new delhi|modi\b|lok sabha|rupee|\bbharat\b/i.test(text);

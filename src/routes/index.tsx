@@ -36,6 +36,7 @@ import { useFavoritePhotos, useHiddenPhotos } from "@/lib/photo-favorites";
 
 import { RefreshGalleryButton } from "@/components/refresh-gallery-button";
 import { GalleryHero } from "@/components/gallery-hero";
+import { GlamourEditorialHero } from "@/components/glamour-editorial-hero";
 import { StoryHeroSlider } from "@/components/story-hero-slider";
 import { SponsorHeroCarousel } from "@/components/sponsor-hero-carousel";
 import { BrigadePromo } from "@/components/brigade-promo";
@@ -927,6 +928,11 @@ function Home() {
           ) : null}
         </section>
 
+        {/* Curated wide Glamour spotlights follow the first editorial block and
+            remain separate from the live, safety-screened picture intake. */}
+        <div className="md:col-span-2">
+          <GlamourEditorialHero />
+        </div>
 
         <section>
           <Head more={<MoreTo to="/category/india-news" label="All India news" />}>
