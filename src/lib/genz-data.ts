@@ -56,7 +56,7 @@ export const SHORT_VIDEOS: ShortVideo[] = [
     city: "Fremont",
     duration: "0:58",
     poster: img("photo-1503676260728-1c00da094a0b"),
-    href: "https://www.youtube.com/@telugutimesdigital",
+    href: "https://www.youtube.com/@timesbayarea",
     sample: true,
   },
   {
@@ -65,7 +65,7 @@ export const SHORT_VIDEOS: ShortVideo[] = [
     city: "San Jose",
     duration: "0:47",
     poster: img("photo-1585937421612-70a008356fbe"),
-    href: "https://www.youtube.com/@telugutimesdigital",
+    href: "https://www.youtube.com/@timesbayarea",
     sample: true,
   },
   {
@@ -74,7 +74,7 @@ export const SHORT_VIDEOS: ShortVideo[] = [
     city: "Livermore",
     duration: "1:02",
     poster: img("photo-1604608672516-f1b9b1a0a3f9"),
-    href: "https://www.youtube.com/@telugutimesdigital",
+    href: "https://www.youtube.com/@timesbayarea",
     sample: true,
   },
   {
@@ -83,7 +83,7 @@ export const SHORT_VIDEOS: ShortVideo[] = [
     city: "Santa Clara",
     duration: "0:52",
     poster: img("photo-1524178232363-1fb2b075b655"),
-    href: "https://www.youtube.com/@telugutimesdigital",
+    href: "https://www.youtube.com/@timesbayarea",
     sample: true,
   },
 ];

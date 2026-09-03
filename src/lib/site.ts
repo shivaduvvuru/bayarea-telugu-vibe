@@ -25,4 +25,4 @@ export const SITE_TAGLINE = "For Indian Community — What Matters Around You";
 export const SITE_DESCRIPTION =
   "Local news, events, culture, food and community connections for Indian community members across the San Francisco Bay Area.";
 export const HERITAGE_LINE =
-  "From Telugu Times — serving the global Indian community since 2003.";
+  "Serving the global Indian community since 2003.";

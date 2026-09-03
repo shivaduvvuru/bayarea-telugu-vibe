@@ -1,6 +1,6 @@
 /** Shared community reference data for the Bay Area portal. */
 
-export const COMMUNITY_EMAIL = "bayarea@telugutimes.net";
+export const COMMUNITY_EMAIL = "contact@timesbayarea.com";
 
 export type Association = {
   name: string;

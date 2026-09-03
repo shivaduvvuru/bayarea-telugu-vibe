@@ -57,7 +57,7 @@ export const PROXY_SERVICES = [
   },
   {
     title: "Legal & RERA due diligence",
-    body: "Pre-vetted clear titles, RERA registrations and builder delivery track records curated by Telugu Times.",
+    body: "Pre-vetted clear titles, RERA registrations and builder delivery track records curated by Times Bay Area.",
   },
   {
     title: "Family assisted site visits",

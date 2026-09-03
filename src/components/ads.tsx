@@ -30,7 +30,7 @@ function BannerTile({ b }: { b: Banner }) {
   );
 }
 
-/** House ads: Telugu Times + the Telugu Times YouTube channel. */
+/** House ads. */
 export function LeaderboardBanner() {
   const { t } = useLang();
   return (

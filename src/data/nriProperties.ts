@@ -171,7 +171,6 @@ export const TRUST_POINTS = [
 ];
 
 export const PARTNERS = [
-  "Telugu Times",
   "TimesBayArea.com",
   "CREDAI Hyderabad",
   "BATA",

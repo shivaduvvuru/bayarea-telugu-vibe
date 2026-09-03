@@ -18,7 +18,7 @@ import {
 
 const TITLE = "Property — Hyderabad high-rise projects | Times Bay Area";
 const DESCRIPTION =
-  "Individual skyscraper property features from the Telugu Times 23rd Anniversary Special — Hyderabad towers, developers, short video tours and project highlights for NRI buyers.";
+  "Individual skyscraper property features from our 23rd Anniversary Special — Hyderabad towers, developers, short video tours and project highlights for NRI buyers.";
 
 export const Route = createFileRoute("/property/")({
   head: () => ({
@@ -217,7 +217,7 @@ function PropertyIndex() {
       ) : null}
 
       <p className="mt-6 text-xs text-muted-foreground">
-        Project artwork and claims are the advertisers&apos; own, reproduced from the Telugu Times
+        Project artwork and claims are the advertisers&apos; own, reproduced from the
         anniversary edition. Verify RERA details with the developer before buying.
       </p>
 

@@ -70,7 +70,7 @@
   --card-foreground: oklch(0.16 0.01 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.01 260);
-  --primary: oklch(0.56 0.213 27.6); /* #de292d — Telugu Times brand red */
+  --primary: oklch(0.56 0.213 27.6); /* #de292d — brand red */
   --primary-foreground: oklch(0.99 0 0);
   --primary-dark: oklch(0.43 0.19 27.5);
   --secondary: oklch(0.965 0.004 260);
@@ -86,7 +86,7 @@
   --input: oklch(0.905 0.006 260);
   --ring: oklch(0.52 0.21 27.5);
   --ink: oklch(0.14 0.008 260);
-  /* Menu bar, matched to bayarea.telugutimes.net (#de292d bar, white links) */
+  /* Menu bar (#de292d bar, white links) */
   --nav: oklch(0.56 0.213 27.6);
   --nav-foreground: oklch(1 0 0);
   --nav-hover: oklch(0.43 0.19 27.5);
