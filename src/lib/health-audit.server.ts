@@ -277,9 +277,10 @@ async function retryJob(job: (typeof SCHEDULED_JOBS)[number]): Promise<string> {
 }
 
 export async function buildIngestHealth(): Promise<IngestHealthReport> {
-  const [categories, sources, jobs] = await Promise.all([
+  const [categories, sources, feeds, jobs] = await Promise.all([
     categoryHealth(),
     sourceHealth(),
+    feedHealth(),
     jobHealth(),
   ]);
 
