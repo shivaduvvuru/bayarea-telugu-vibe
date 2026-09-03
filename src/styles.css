@@ -86,10 +86,10 @@
   --input: oklch(0.905 0.006 260);
   --ring: oklch(0.52 0.21 27.5);
   --ink: oklch(0.14 0.008 260);
-  /* Menu bar (bright teal/turquoise band, white links) */
-  --nav: oklch(0.62 0.13 185); /* bright teal */
+  /* Menu bar (Al Jazeera deep red band, white links) */
+  --nav: oklch(0.45 0.20 25); /* Al Jazeera burgundy/red */
   --nav-foreground: oklch(1 0 0);
-  --nav-hover: oklch(0.52 0.12 185);
+  --nav-hover: oklch(0.40 0.18 25);
   --surface-tint: oklch(0.977 0.008 80);
   /* Vibrant secondary brand hues — used for youth sections and chips. */
   --brand-teal: oklch(0.62 0.13 195);
