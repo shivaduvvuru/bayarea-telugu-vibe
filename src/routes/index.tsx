@@ -331,12 +331,15 @@ function Row({ a }: { a: Article }) {
           <Thumb article={a} sizes="(max-width: 768px) 100vw, 720px" />
         </div>
         <div className="mt-2">
-          <h3 className="line-clamp-3 text-[16px] font-semibold leading-snug text-ink">
+          <h3 className="line-clamp-3 text-[17px] font-semibold leading-snug text-ink">
             {a.title}
           </h3>
-          <p className="mt-1 flex flex-wrap items-center gap-2">
+          {a.excerpt ? (
+            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{a.excerpt}</p>
+          ) : null}
+          <p className="mt-2 flex flex-wrap items-center gap-2">
             <SourceChip article={a} />
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">
               {a.categoryName} · {formatDate(a.date)}
             </span>
           </p>
