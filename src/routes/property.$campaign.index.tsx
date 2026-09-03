@@ -52,7 +52,7 @@ export const Route = createFileRoute("/property/$campaign/")({
       ? `Highlights from ${c.name}${dates ? ` (${dates})` : ""} plus the Hyderabad projects featured in Times Bay Area, with developer details and enquiries.`
       : `${c.name}${dates ? `, ${dates}` : ""}${
           c.venue ? ` at ${c.venue}` : ""
-        }. Browse Hyderabad projects from developers featured in Times Bay Area and send an enquiry.`;
+        }. Browse Hyderabad projects from Times Bay Area partners and send an enquiry.`;
     const url = canonical(`/property/${params.campaign}`);
     return {
       meta: [
@@ -269,7 +269,7 @@ function CampaignPage() {
         <p className="mt-2 text-xs text-muted-foreground">
           {past
             ? "Projects that featured in this showcase remain listed here. Details are as published by the developer — verify approvals, pricing and timelines before you commit."
-            : "Projects promoted by developers advertising with Times Bay Area. Details are as published by the developer — verify approvals, pricing and timelines before you commit."}
+            : "Projects promoted by Times Bay Area partners. Details are as published by the developer — verify approvals, pricing and timelines before you commit."}
         </p>
 
         <div className="mt-3 space-y-2">

@@ -169,7 +169,7 @@ function PropertyIndex() {
             <span className="ml-1.5 text-xs font-bold opacity-80">({withVideo.length})</span>
           </button>
           <a
-            href={EPAPER_ANNIVERSARY_URL}
+            href="/property"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-primary"

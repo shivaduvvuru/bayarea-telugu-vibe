@@ -9,7 +9,7 @@ export const PROPERTY_HERO_ROTATE_MS = 15 * 60 * 1000;
 
 /**
  * Hero-size slide from the property folder: a single skyscraper feature from the
- * Telugu Times 23rd Anniversary Special, changing once every 15 minutes.
+ * 23rd Anniversary Special, changing once every 15 minutes.
  */
 export function PropertyHero({ className }: { className?: string }) {
   // Server and first client paint agree on slide 0; rotation starts after mount
