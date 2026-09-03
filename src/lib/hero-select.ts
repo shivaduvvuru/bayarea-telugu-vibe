@@ -19,6 +19,7 @@ import { isBayArea, isBayAreaSource } from "./bay-area";
 import { classifyIndia } from "./india-topics";
 import { looksHighRes, usableImage } from "./story-image";
 import { isResting, lastUsed, timesUsed } from "./image-usage";
+import { isHeroUnsafeText } from "./hero-safety";
 
 /** Maximum slides in the hero — a curated set, never a long gallery. */
 export const HERO_MAX_SLIDES = 5;
@@ -167,7 +168,7 @@ export function buildHeroSet(
   const exclude = options.exclude ?? new Set<string>();
 
   const ranked = articles
-    .filter((a) => a.category !== "gallery" && a.title)
+    .filter((a) => a.category !== "gallery" && a.title && !isHeroUnsafeText(a.title, a.excerpt))
     .map((a) => ({ a, image: heroEligibleImage(a.image), score: heroScore(a, now, options.ignoreRest === true) }))
     .filter((c) => !!c.image)
     .sort((x, y) => y.score - x.score);

@@ -2516,8 +2516,13 @@ export let aiBatchMetrics = newBatchMetrics();
 
 type SummaryGroup = { key: string; city: City; items: RawItem[] };
 
-function fallbackSummary(item: RawItem) {
-  return `Reported by ${item.source}. Verify details and add the Telugu translation before publishing.`;
+/**
+ * No summary is better than a workflow note: when the model cannot write one,
+ * the card shows the headline alone. Internal instructions must never be stored
+ * where a reader could see them.
+ */
+function fallbackSummary(_item: RawItem) {
+  return "";
 }
 
 /**
@@ -2969,7 +2974,7 @@ export async function collectAll(
           kind: "temple",
           city_slug: slug,
           title: `${a.title} — ${t.source.name}`,
-          summary: `${t.source.name}, ${t.source.city}. ${a.date ? `Listed for ${a.date}. ` : ""}Confirm timings with the temple before publishing.`,
+          summary: `${t.source.name}, ${t.source.city}.${a.date ? ` Listed for ${a.date}.` : ""} Confirm timings with the temple.`,
           source: t.source.name,
           source_url: a.url || t.source.site,
           published_at: null,
