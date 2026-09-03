@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_article_from_content_item() FROM PUBLIC, anon, authenticated;
