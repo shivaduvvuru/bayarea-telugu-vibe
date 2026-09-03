@@ -1144,14 +1144,9 @@ const PUBLISHER_FEEDS: {
   },
   { name: "Murthy Law Firm", url: "https://www.murthy.com/feed/", kind: "news", limit: 5 },
   { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
-  // Telugu cinema trade desks — filed under Cinema, photo-led stories also
-  // surface in Gallery.
-  {
-    name: "Cinema Desk",
-    url: "https://www.telugutimes.net/en/cinemas/feed/",
-    kind: "news",
-    limit: 10,
-  },
+  // NOTE: TeluguTimes.net cinema feed was removed from active ingestion on
+  // 2026-09-03. Cinema/OTT stories continue from 123Telugu, Gulte, GreatAndhra,
+  // Google News sweeps and the dedicated cinema hook.
   { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 12 },
   { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 12 },
   { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 12 },
