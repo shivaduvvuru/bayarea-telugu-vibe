@@ -332,11 +332,12 @@ export async function runIndiaIngest(opts?: {
         return true;
       });
 
-      // Every card needs artwork: use the feed image, else read the article.
+      // Artwork is best-effort: use the feed image, else read the article page.
+      // A story is never dropped for lacking a picture — the card falls back to
+      // generic artwork, and only hero slots require a real photo.
       const rows = [] as Parameters<typeof ingest>[0];
       for (const item of fresh) {
         const image = item.image ?? (await fetchArticleImage(item.link).catch(() => null));
-        if (!usableImage(image)) continue;
         // The classifier decides the section; the feed's own desk is the
         // fallback so a Telangana story never lands outside the India desk.
         const section = classifyIndia(item.title, item.summary, item.link) ?? feed.fallback;
