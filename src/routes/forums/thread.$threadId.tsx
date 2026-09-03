@@ -27,7 +27,7 @@ export const Route = createFileRoute("/forums/thread/$threadId")({
       : "Discussion — Bay Area Telugu Forums";
     const description =
       loaderData?.thread?.body.slice(0, 155) ??
-      "A discussion in the Bay Area Telugu community forums.";
+      "A discussion in the Bay Area Indian community forums.";
     return {
       meta: [
         { title },

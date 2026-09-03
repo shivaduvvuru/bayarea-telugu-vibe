@@ -70,7 +70,7 @@ export const Route = createFileRoute("/category/$category")({
       return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
     }
     const title = `${loaderData.cat.en} — Times Bay Area`;
-    const description = `${loaderData.cat.en} coverage for the Bay Area Telugu community.`;
+    const description = `${loaderData.cat.en} coverage for the Bay Area Indian community.`;
     const url = canonical(`/category/${loaderData.cat.slug}`);
     return {
       meta: [

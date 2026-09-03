@@ -9,9 +9,9 @@ import { CITY_REGIONS } from "@/lib/content";
 import { RelativeDate } from "@/components/news";
 import { supabase } from "@/integrations/supabase/client";
 
-const TITLE = "Bay Area Telugu Community Forums | Times Bay Area"
+const TITLE = "Bay Area Indian Community Forums | Times Bay Area"
 const DESC =
-  "Ask and answer questions with Telugu families across the Bay Area — housing, jobs, visas, schools, temples, events and local recommendations.";
+  "Ask and answer questions with Indian families across the Bay Area — housing, jobs, visas, schools, temples, events and local recommendations.";
 
 const threadsQuery = queryOptions({
   queryKey: ["forum", "threads"],

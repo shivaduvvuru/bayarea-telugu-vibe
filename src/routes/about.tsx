@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const TITLE = "About Times Bay Area — Telugu Community News";
+const TITLE = "About Times Bay Area — Indian Community News";
 const DESC =
-  "Times Bay Area brings local news, culture and community coverage to Telugu families across Northern California."
+  "Times Bay Area brings local news, culture and community coverage to Indian families across Northern California."
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -22,11 +22,11 @@ function AboutPage() {
       <h1 className="text-3xl font-bold text-ink">మా గురించి</h1>
       <div className="mt-6 space-y-4 text-[17px] leading-relaxed text-foreground">
         <p>
-          Times Bay Area is a trusted home for Telugu community news across Northern California,
+          Times Bay Area is a trusted home for Indian community news across Northern California,
           with the heritage of Telugu Times and a local Bay Area newsroom.
         </p>
         <p>
-          We cover the news that matters to Telugu families here: local government and schools,
+          We cover the news that matters to Indian families here: local government and schools,
           immigration and careers, temple and association activity, cinema, sport and the
           cultural calendar from San Francisco to San Jose.
         </p>

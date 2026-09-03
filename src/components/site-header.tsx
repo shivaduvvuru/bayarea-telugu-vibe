@@ -246,7 +246,7 @@ export function SiteHeader() {
           <span className="flex min-w-0 flex-col items-center leading-none">
             <span className="font-serif-display text-xl font-bold tracking-tight text-ink">Times Bay Area</span>
             <span className="mt-1 max-w-full truncate text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              Telugu community news
+              Indian community news
             </span>
           </span>
         </Link>
@@ -270,7 +270,7 @@ export function SiteHeader() {
               Times Bay Area
             </span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Telugu community news · What matters around you.
+              Indian community news · What matters around you.
             </span>
           </span>
         </Link>
@@ -282,7 +282,7 @@ export function SiteHeader() {
       {/* Network links + social strip — above main menu, very small script (mobile + desktop) */}
       <div className="border-y border-border/70 bg-surface-tint">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-2 py-0.5 text-[9px] text-muted-foreground md:gap-4 md:px-4 md:text-[10px]">
-          <nav aria-label="Telugu community network" className="flex min-w-0 items-center">
+          <nav aria-label="Indian community network" className="flex min-w-0 items-center">
             <a
               href={TT_LINKS.site}
               target="_blank"

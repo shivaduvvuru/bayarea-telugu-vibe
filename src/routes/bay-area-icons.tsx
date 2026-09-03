@@ -3,7 +3,7 @@ import { CommunityAppeal } from "@/components/ads";
 
 const TITLE = "Bay Area Icons — Times Bay Area";
 const DESC =
-  "Telugu community leaders, entrepreneurs, artists and volunteers representing the San Francisco Bay Area today.";
+  "Indian community leaders, entrepreneurs, artists and volunteers representing the San Francisco Bay Area today.";
 
 export const Route = createFileRoute("/bay-area-icons")({
   head: () => ({
@@ -30,7 +30,7 @@ function BayAreaIconsPage() {
 
       <div className="mt-6 space-y-4 text-[17px] leading-relaxed text-foreground">
         <p>
-          While the Foundation Icons built the base, the Bay Area Telugu community today is
+          While the Foundation Icons built the base, the Bay Area Indian community today is
           carried forward by leaders in technology, business, medicine, law, arts, education and
           social service. Times Bay Area identifies and places these individuals as{" "}
           <strong>Bay Area Icons</strong>, and keeps adding to the list as we reach them or they

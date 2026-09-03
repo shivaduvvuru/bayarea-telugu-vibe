@@ -52,7 +52,7 @@ function PeoplePage() {
           <h2 className="mt-2 text-xl font-bold text-ink">Bay Area Icons</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Community leaders, entrepreneurs, artists, doctors and volunteers who represent the
-            Telugu community across the Bay Area today.
+            Indian community across the Bay Area today.
           </p>
           <span className="mt-4 inline-block text-sm font-semibold text-primary">
             View Bay Area Icons

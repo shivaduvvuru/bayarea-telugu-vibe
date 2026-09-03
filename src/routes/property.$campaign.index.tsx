@@ -396,7 +396,7 @@ function CampaignPage() {
               Advertise in this showcase
             </h2>
             <p className="mt-2 text-xs text-muted-foreground">
-              Telugu Times reaches Telugu families across the Bay Area and the wider U.S. diaspora.
+              Telugu Times reaches Indian families across the Bay Area and the wider U.S. diaspora.
               Developers listed here get a project page, enquiry capture and a monthly report of
               views and enquiries by project and country.
             </p>

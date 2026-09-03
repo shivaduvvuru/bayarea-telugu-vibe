@@ -23,7 +23,7 @@ export function canonical(path = "/") {
 export const SITE_NAME = "Times Bay Area";
 export const SITE_TAGLINE = "What matters around you.";
 export const SITE_DESCRIPTION =
-  "Local news, events, culture, food and community connections for Telugu people across the San Francisco Bay Area.";
+  "Local news, events, culture, food and community connections for Indian community members across the San Francisco Bay Area.";
 export const HERITAGE_LINE =
-  "From Telugu Times — serving the global Telugu community since 2003.";
+  "From Telugu Times — serving the global Indian community since 2003.";
 export const PARENT_SITE = "https://www.telugutimes.net";

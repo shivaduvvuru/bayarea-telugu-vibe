@@ -55,7 +55,7 @@ import { SmartImage } from "@/components/smart-image";
 
 const TITLE = "Times Bay Area — Digest of newspapers & journals";
 const DESC =
-  "A daily digest of newspapers and journals for the Bay Area Telugu community: every headline credits its publisher and links to the original report.";
+  "A daily digest of newspapers and journals for the Bay Area Indian community: every headline credits its publisher and links to the original report.";
 const HOME_URL = canonical("/");
 
 /** Reserves every headline, source URL and image once across the whole homepage. */

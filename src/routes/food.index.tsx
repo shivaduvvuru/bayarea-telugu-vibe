@@ -182,7 +182,7 @@ function FoodHome() {
       <Row title="Best Indian restaurants" items={sets.indian} to={{ cuisine: "Indian" }} />
       <Row title="Best biryani" items={sets.biryani} to={{ dish: "Biryani" }} />
       <Row title="Best dosa & tiffins" items={sets.tiffins} to={{ dish: "Dosa" }} />
-      <Row title="Telugu community favorites" items={sets.telugu} to={{ cuisine: "Telugu" }} />
+      <Row title="Telugu cuisine favorites" items={sets.telugu} to={{ cuisine: "Telugu" }} />
       <Row title="Family dining" items={sets.family} />
       <Row title="Weekend brunch" items={sets.brunch} to={{ cuisine: "Brunch" }} />
       <Row title="Late night food" items={sets.lateNight} />
