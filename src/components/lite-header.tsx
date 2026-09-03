@@ -168,26 +168,6 @@ function MoreMenu() {
             ))}
           </div>
 
-          <div className="mx-auto mt-4 max-w-6xl border-t border-border pt-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Community network
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {NETWORK.map(({ href, label, icon: Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12px] font-semibold text-ink hover:border-primary hover:text-primary"
-                >
-                  <Icon className="h-3.5 w-3.5" aria-hidden />
-                  {label}
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
       ) : null}
     </div>
@@ -227,24 +207,6 @@ export function LiteHeader() {
               Desk
             </Link>
           ) : null}
-          <a
-            href={TT_LINKS.epaper}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink sm:inline-block"
-          >
-            E-Paper
-          </a>
-          <a
-            href={TT_LINKS.site}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-ink"
-          >
-            TeluguTimes.net
-          </a>
-
-          <SocialIcons />
           <Link
             to="/"
             hash="daily-smart-digest"
