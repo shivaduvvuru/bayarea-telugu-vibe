@@ -194,8 +194,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background md:static">
       {/* Desktop utility bar — search + language */}
-      <div className="hidden border-b border-border/70 bg-surface-tint md:block">
-        <div className="mx-auto flex max-w-6xl items-center justify-end gap-4 px-4 py-1.5 text-xs text-muted-foreground">
+      <div className="hidden border-b border-border/70 bg-nav md:block">
+        <div className="mx-auto flex max-w-6xl items-center justify-end gap-4 px-4 py-1.5 text-xs text-nav-foreground/90">
           <HeaderSearch />
         </div>
       </div>
@@ -246,18 +246,18 @@ export function SiteHeader() {
       </div>
 
       {/* Quick utility strip — above main menu (mobile + desktop) */}
-      <div className="border-y border-border/70 bg-surface-tint">
-        <div className="mx-auto flex max-w-7xl items-center gap-2 px-2 py-0.5 text-[9px] text-muted-foreground md:gap-4 md:px-4 md:text-[10px]">
+      <div className="border-y border-border/70 bg-nav">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-2 py-0.5 text-[9px] text-nav-foreground/90 md:gap-4 md:px-4 md:text-[10px]">
           <nav aria-label="Quick links" className="flex min-w-0 items-center">
             <Link
               to="/epaper"
-              className="flex items-center gap-1 pr-1 font-medium text-ink hover:text-primary md:pr-2"
+              className="flex items-center gap-1 pr-1 font-medium text-nav-foreground hover:text-nav-foreground/80 md:pr-2"
             >
-              <Newspaper className="h-3 w-3 text-primary" />
+              <Newspaper className="h-3 w-3 text-nav-foreground" />
               E-Paper
             </Link>
-            <span className="h-3 w-px bg-border hidden sm:block" />
-            <Link to="/submit" className="hidden px-1 hover:text-primary sm:block md:px-2">
+            <span className="h-3 w-px bg-nav-foreground/20 hidden sm:block" />
+            <Link to="/submit" className="hidden px-1 text-nav-foreground hover:text-nav-foreground/80 sm:block md:px-2">
               {t("Submit News", "వార్తలు పంపండి")}
             </Link>
           </nav>
