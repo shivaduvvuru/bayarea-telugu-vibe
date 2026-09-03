@@ -87,9 +87,9 @@
   --ring: oklch(0.52 0.21 27.5);
   --ink: oklch(0.14 0.008 260);
   /* Menu bar (#de292d bar, white links) */
-  --nav: oklch(0.56 0.213 27.6);
+  --nav: oklch(0.33 0.075 262); /* deep navy — #0B2A5B family */
   --nav-foreground: oklch(1 0 0);
-  --nav-hover: oklch(0.43 0.19 27.5);
+  --nav-hover: oklch(0.26 0.06 262);
   --surface-tint: oklch(0.977 0.008 80);
   /* Vibrant secondary brand hues — used for youth sections and chips. */
   --brand-teal: oklch(0.62 0.13 195);
