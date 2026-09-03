@@ -1075,6 +1075,37 @@ const PUBLISHER_FEEDS: {
   { name: "New India Abroad", url: "https://news.google.com/rss/search?q=site:newindiaabroad.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
   { name: "India West", url: "https://news.google.com/rss/search?q=site:indiawest.com+when:7d&hl=en-US&gl=US&ceid=US:en", kind: "news", limit: 5 },
   { name: "The American Bazaar", url: "https://americanbazaaronline.com/feed/", kind: "news", limit: 5 },
+  // Bay Area / Silicon Valley Indian community sources
+  {
+    name: "India Currents",
+    url: "https://news.google.com/rss/search?q=site:indiacurrents.com+when:7d&hl=en-US&gl=US&ceid=US:en",
+    kind: "news",
+    limit: 6,
+  },
+  {
+    name: "Bay Area Indian community",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '("Indian community" OR "Indian Americans" OR "South Asian") ("San Francisco Bay Area" OR "Silicon Valley" OR "Bay Area") news when:7d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Silicon Valley Indian life",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '(Indian OR "South Asian") ("Silicon Valley" OR "Santa Clara" OR "San Jose" OR Fremont OR Milpitas OR Cupertino) community news when:7d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 8,
+  },
+  {
+    name: "Bay Area Indian events & culture",
+    url: `https://news.google.com/rss/search?q=${encodeURIComponent(
+      '(Diwali OR Holi OR "Indian festival" OR "Indian event" OR "Bollywood night" OR "Indian food festival") ("Bay Area" OR "San Francisco" OR "Silicon Valley") when:14d',
+    )}&hl=en-US&gl=US&ceid=US:en`,
+    kind: "news",
+    limit: 6,
+  },
   // Indian national dailies and magazines
   { name: "The Times of India (NRI)", url: "https://timesofindia.indiatimes.com/rssfeeds/7098551.cms", kind: "news", limit: 5 },
   { name: "NDTV India", url: "https://feeds.feedburner.com/ndtvnews-india-news", kind: "news", limit: 4 },
@@ -1144,14 +1175,9 @@ const PUBLISHER_FEEDS: {
   },
   { name: "Murthy Law Firm", url: "https://www.murthy.com/feed/", kind: "news", limit: 5 },
   { name: "Immigration.com", url: "https://www.immigration.com/rss.xml", kind: "news", limit: 5 },
-  // Telugu cinema trade desks — filed under Cinema, photo-led stories also
-  // surface in Gallery.
-  {
-    name: "Cinema Desk",
-    url: "https://www.telugutimes.net/en/cinemas/feed/",
-    kind: "news",
-    limit: 10,
-  },
+  // NOTE: TeluguTimes.net cinema feed was removed from active ingestion on
+  // 2026-09-03. Cinema/OTT stories continue from 123Telugu, Gulte, GreatAndhra,
+  // Google News sweeps and the dedicated cinema hook.
   { name: "123Telugu", url: "https://www.123telugu.com/feed", kind: "news", limit: 12 },
   { name: "Gulte", url: "https://www.gulte.com/feed", kind: "news", limit: 12 },
   { name: "GreatAndhra", url: "https://www.greatandhra.com/rss/rssfeed.php", kind: "news", limit: 12 },
