@@ -69,8 +69,13 @@ export const Route = createFileRoute("/category/$category")({
     if (!loaderData) {
       return { meta: [{ title: "Unavailable" }, { name: "robots", content: "noindex" }] };
     }
-    const title = `${loaderData.cat.en} — Times Bay Area`;
-    const description = `${loaderData.cat.en} coverage for the Bay Area Indian community.`;
+    const isCinema = loaderData.cat.slug === "cinema";
+    const title = isCinema
+      ? "Cinema & Entertainment News | Times Bay Area"
+      : `${loaderData.cat.en} — Times Bay Area`;
+    const description = isCinema
+      ? "Latest cinema reviews, box office updates, exclusive interviews, and entertainment coverage from Times Bay Area."
+      : `${loaderData.cat.en} coverage for the Bay Area Indian community.`;
     const url = canonical(`/category/${loaderData.cat.slug}`);
     return {
       meta: [
