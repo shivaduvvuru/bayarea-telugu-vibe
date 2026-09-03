@@ -215,12 +215,23 @@ export async function syndicateNewIndiaAbroad(
     const urls = fresh.map((e) => e.url);
     const { data: existingRows } = await db
       .from("syndicated_stories")
-      .select("canonical_url,image_url,excerpt")
+      .select("canonical_url,image_url,excerpt,status")
       .in("canonical_url", urls.length ? urls : ["__none__"]);
-    const existing = new Map<string, { image_url: string | null; excerpt: string | null }>(
-      ((existingRows ?? []) as Array<{ canonical_url: string; image_url: string | null; excerpt: string | null }>).map(
-        (r) => [r.canonical_url, { image_url: r.image_url, excerpt: r.excerpt }],
-      ),
+    const existing = new Map<
+      string,
+      { image_url: string | null; excerpt: string | null; status: string | null }
+    >(
+      (
+        (existingRows ?? []) as Array<{
+          canonical_url: string;
+          image_url: string | null;
+          excerpt: string | null;
+          status: string | null;
+        }>
+      ).map((r) => [
+        r.canonical_url,
+        { image_url: r.image_url, excerpt: r.excerpt, status: r.status },
+      ]),
     );
 
     const rows: SyndicatedRow[] = [];
@@ -241,7 +252,8 @@ export async function syndicateNewIndiaAbroad(
         image_url: meta.image ?? known?.image_url ?? null,
         published_at: entry.publishedAt,
         fetched_at: new Date().toISOString(),
-        status: "published",
+        // Never resurrect a story an editor hid: an existing status wins.
+        status: (known?.status as SyndicatedRow["status"]) ?? "published",
       });
       if (!known) inserted += 1;
       else updated += 1;

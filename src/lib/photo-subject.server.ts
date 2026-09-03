@@ -39,6 +39,36 @@ const verdictSchema = z.object({
   explicitContent: z.boolean(),
 });
 
+/**
+ * Many publishers (koimoi, ndtvimg, …) answer 403 to the AI gateway's direct
+ * image fetch (hotlink protection). We download the bytes ourselves with a
+ * browser-like Referer/User-Agent and hand the model the file, so a blocked
+ * hotlink never turns into a silently rejected photo.
+ */
+async function loadImageBytes(url: string): Promise<Uint8Array | null> {
+  try {
+    const parsed = new URL(url);
+    const res = await fetch(parsed, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        Referer: `${parsed.protocol}//${parsed.hostname}/`,
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) {
+      console.warn(`photo fetch blocked ${res.status} ${url}`);
+      return null;
+    }
+    const buf = new Uint8Array(await res.arrayBuffer());
+    return buf.byteLength > 0 ? buf : null;
+  } catch (error) {
+    console.warn(`photo fetch failed ${url}`, error);
+    return null;
+  }
+}
+
 function parseVerdicts(raw: string) {
   try {
     const start = raw.indexOf("[");
@@ -88,6 +118,14 @@ export async function verifySoloWomanPhotos(
       nextBatch += 1;
       if (!batch) continue;
       try {
+        const loaded = await Promise.all(
+          batch.map(async (candidate) => ({
+            candidate,
+            bytes: await loadImageBytes(candidate.image),
+          })),
+        );
+        const usable = loaded.filter((entry) => entry.bytes);
+        if (!usable.length) continue;
         const { text } = await generateText({
           model: gateway("google/gemini-3.6-flash"),
           system:
@@ -104,9 +142,9 @@ export async function verifySoloWomanPhotos(
           messages: [
             {
               role: "user",
-              content: batch.flatMap((candidate) => [
+              content: usable.flatMap(({ candidate, bytes }) => [
                 { type: "text" as const, text: `Photo id: ${candidate.id}` },
-                { type: "image" as const, image: new URL(candidate.image) },
+                { type: "image" as const, image: bytes! },
               ]),
             },
           ],
@@ -184,6 +222,8 @@ export async function countPeopleInPhotos(
       next += 1;
       if (!candidate) continue;
       try {
+        const bytes = await loadImageBytes(candidate.image);
+        if (!bytes) continue;
         const { text } = await generateText({
           model: gateway("google/gemini-3.6-flash"),
           system:
@@ -196,7 +236,7 @@ export async function countPeopleInPhotos(
               role: "user",
               content: [
                 { type: "text" as const, text: `Photo id: ${candidate.id}` },
-                { type: "image" as const, image: new URL(candidate.image) },
+                { type: "image" as const, image: bytes },
               ],
             },
           ],
