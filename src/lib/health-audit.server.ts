@@ -306,6 +306,19 @@ export async function buildIngestHealth(): Promise<IngestHealthReport> {
       priority: 0,
     });
   }
+  // Feeds that answered but returned nothing: the single most common reason the
+  // digest thins out, and invisible in insert counts.
+  const dead = feeds.filter((f) => f.zeroItems);
+  if (dead.length) {
+    issues.push({
+      kind: "feed",
+      text: `${dead.length} feed(s) returned 0 items on their latest fetch: ${dead
+        .slice(0, 6)
+        .map((f) => `${f.source}${f.error ? ` (${f.error.slice(0, 40)})` : ""}`)
+        .join("; ")}`,
+      priority: 0,
+    });
+  }
 
   // A broken alert channel is itself an issue worth showing on the page.
   const client = await db();
@@ -330,6 +343,7 @@ export async function buildIngestHealth(): Promise<IngestHealthReport> {
     checkedAt: new Date().toISOString(),
     categories,
     sources,
+    feeds,
     jobs,
     issues,
   };
