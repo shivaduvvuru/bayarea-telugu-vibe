@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 const TITLE = "About Times Bay Area — Indian Community News";
 const DESC =

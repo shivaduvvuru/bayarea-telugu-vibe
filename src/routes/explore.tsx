@@ -5,7 +5,7 @@ import {
   UtensilsCrossed,
   Sparkles,
   Clapperboard,
-  Video,
+  
 } from "lucide-react";
 import { canonical } from "@/lib/site";
 import { useLang } from "@/lib/language";
