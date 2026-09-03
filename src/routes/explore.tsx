@@ -89,12 +89,12 @@ function ExplorePage() {
       </div>
 
       <section className="mt-10">
-        <SectionHeading te="60 సెకన్ల బే ఏరియా" en="60-Second Bay Area" />
+        <SectionHeading en="60-Second Bay Area" />
         <ShortVideoRail />
       </section>
 
       <section className="mt-10">
-        <SectionHeading te="స్వైప్ స్టోరీస్" en="Swipe Stories" />
+        <SectionHeading en="Swipe Stories" />
         <SwipeStories />
       </section>
     </div>

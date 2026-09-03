@@ -128,7 +128,7 @@ function BusinessPage() {
       ) : null}
 
       <div className="mt-8">
-        <SectionHeading te="వ్యాపార వార్తలు" en="Top of the business wire" />
+        <SectionHeading en="Top of the business wire" />
         {data.items.length === 0 ? (
           <p className="text-muted-foreground">The business wire is quiet right now — check back shortly.</p>
         ) : (
@@ -168,7 +168,7 @@ function BusinessPage() {
 
             {rest.length ? (
               <div className="mt-10">
-                <SectionHeading te="క్లుప్తంగా" en="In brief" />
+                <SectionHeading en="In brief" />
                 <ul className="grid gap-x-8 sm:grid-cols-2">
                   {rest.map((item) => (
                     <li key={item.id} className="border-b border-border py-3">

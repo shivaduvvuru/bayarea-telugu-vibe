@@ -201,7 +201,7 @@ function ArticlePage() {
       </article>
 
       <aside>
-        <SectionHeading te="ఇతర వార్తలు" en="More" />
+        <SectionHeading en="More" />
         <ul>
           {related.map((a) => (
             <ListRow key={a.id} article={a} />

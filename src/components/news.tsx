@@ -6,7 +6,6 @@ import { useLang } from "@/lib/language";
 import { StoryActions } from "@/components/story-actions";
 import { SourceChip } from "@/components/source-credit";
 import { SmartImage } from "@/components/smart-image";
-import masthead from "@/assets/masthead.webp";
 
 
 
@@ -42,13 +41,13 @@ export function SectionHeading({
   en,
   more,
 }: {
-  te: string;
+  /** Legacy Telugu caption — retained in call sites but no longer rendered. */
+  te?: string;
   en?: string;
   more?: ReactNode;
 }) {
-  // English is always the prominent caption; Telugu sits underneath in a
-  // smaller supporting line.
-  const english = en ?? te;
+  // English-only headings: any legacy Telugu caption is ignored.
+  const english = en ?? "";
   return (
     <div className="section-rule mb-5 flex items-end justify-between gap-3 pb-2">
       <h2 className="min-w-0 text-xl font-bold text-ink sm:text-2xl">
@@ -56,11 +55,6 @@ export function SectionHeading({
           <span className="min-w-0">{english}</span>
           <ChevronRight className="h-5 w-5 shrink-0 text-primary" />
         </span>
-        {te && te !== english && (
-          <span className="te-text mt-0.5 block text-xs font-medium text-muted-foreground sm:text-sm">
-            {te}
-          </span>
-        )}
       </h2>
       {more}
     </div>
@@ -106,7 +100,7 @@ export function LangBadge({ article }: { article: Article }) {
       className="border border-border px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground"
       title={isTe ? "Written in Telugu" : "Written in English"}
     >
-      <span className={isTe ? "te-text" : undefined}>{isTe ? "తెలుగు" : "English"}</span>
+      <span>{isTe ? "Telugu" : "English"}</span>
     </span>
   );
 }
@@ -283,8 +277,8 @@ export function StoryCard({ article }: { article: Article }) {
 
 /**
  * Fixed-size list thumbnail. Missing artwork — and remote photos that 404 after
- * the page has rendered — both fall back to the masthead tile, so the column
- * never shows a broken-image box.
+ * the page has rendered — collapse to a plain neutral tile (no branding), so the
+ * column never shows a broken-image box or a repeated logo.
  */
 function ListThumb({ article }: { article: Article }) {
   const [failed, setFailed] = useState(false);
@@ -305,13 +299,7 @@ function ListThumb({ article }: { article: Article }) {
       className="block h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-tint sm:h-[110px] sm:w-40"
     >
       {logo ? (
-        <img
-          src={masthead}
-          alt={article.title}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-contain p-2 opacity-80"
-        />
+        <div aria-hidden className="h-full w-full bg-surface-tint" />
       ) : (
         <SmartImage
           src={article.image!}

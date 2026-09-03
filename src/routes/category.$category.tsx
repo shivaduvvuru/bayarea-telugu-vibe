@@ -184,9 +184,11 @@ function CategoryPage() {
       <h1 className="text-3xl font-bold text-ink">
         {cat.slug === "cinema" ? "Entertainment Desk" : cat.en}
       </h1>
-      <p className="te-text mt-1 text-sm font-medium text-muted-foreground">
-        {cat.slug === "cinema" ? "Reviews, box office, OTT and interviews" : cat.te}
-      </p>
+      {cat.slug === "cinema" ? (
+        <p className="mt-1 text-sm font-medium text-muted-foreground">
+          Reviews, box office, OTT and interviews
+        </p>
+      ) : null}
       <DigestNote className="mt-2 max-w-2xl" />
       {live ? (
         <NewsFreshness className="mt-3" queryKeys={liveKeys} updatedAt={dataUpdatedAt} />
@@ -232,7 +234,6 @@ function CategoryPage() {
 
 
         <SectionHeading
-          te={cat.slug === "gallery" ? "సినిమా ఫొటోలు" : "కథనాలు"}
           en={cat.slug === "gallery" ? "Cinema pictures" : "Stories"}
         />
         {articles.length === 0 ? (
@@ -268,7 +269,7 @@ function CategoryPage() {
             })()}
             {shown.some((a) => !a.image) ? (
               <div className="mt-10">
-                <SectionHeading te="క్లుప్తంగా" en="In brief" />
+                <SectionHeading en="In brief" />
                 <ul className="grid gap-x-8 sm:grid-cols-2">
                   {shown.filter((a) => !a.image).map((a) => (
                     <ListRow key={a.id} article={a} />
