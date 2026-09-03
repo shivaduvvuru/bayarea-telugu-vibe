@@ -221,19 +221,40 @@ function IngestHealthPage() {
                     <p className="text-xs text-muted-foreground">
                       {s.items7d} items / 7d · {s.items72h} / 72h · last ok {ago(s.lastSuccess)}
                     </p>
-                    {s.lastError && (
-                      <p className="truncate text-xs text-destructive">{s.lastError}</p>
-                    )}
+                    {s.lastError && <p className="truncate text-xs text-destructive">{s.lastError}</p>}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="shrink-0"
-                    disabled={busy}
-                    onClick={() => run.mutate(s.source)}
-                  >
+                  <Button size="sm" variant="outline" className="shrink-0" disabled={busy} onClick={() => run.mutate(s.source)}>
                     Run now
                   </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="mt-8">
+            <h2 className="border-b-2 border-primary pb-1.5 text-sm font-bold uppercase tracking-wide text-ink">
+              Latest feed fetches
+              <span className="ml-2 font-normal normal-case text-muted-foreground">
+                zero-item feeds first; fetched → kept
+              </span>
+            </h2>
+            <ul className="mt-2 divide-y divide-border">
+              {report.feeds.map((f) => (
+                <li key={f.source} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-ink">
+                      {f.source}
+                      {f.zeroItems && <span className="ml-2 text-xs text-destructive">0 items</span>}
+                      {f.usedFallback && <span className="ml-2 text-xs text-primary">fallback</span>}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {f.fetched} fetched → {f.kept} kept · {f.withImage} with image · last {ago(f.lastFetchAt)}
+                    </p>
+                    {f.error && <p className="truncate text-xs text-destructive">{f.error}</p>}
+                  </div>
+                  <span className={`shrink-0 text-xs font-bold ${f.zeroItems || f.error ? "text-destructive" : "text-emerald-700"}`}>
+                    {f.runMode ?? "unknown"}
+                  </span>
                 </li>
               ))}
             </ul>
