@@ -3,7 +3,7 @@ import { CommunityAppeal } from "@/components/ads";
 import { ASSOCIATIONS, BAY_AREA_TEMPLES } from "@/lib/community-data";
 
 const TITLE = "Indian Associations in the Bay Area — BATA, TANA, ATA & more";
-...
+const DESC =
   "BATA, Silicon Andhra, TANA Bay Area, ATA Bay Area, TDF, NRI TDP and IT Serve — the Indian associations serving the San Francisco Bay Area.";
 
 export const Route = createFileRoute("/associations")({

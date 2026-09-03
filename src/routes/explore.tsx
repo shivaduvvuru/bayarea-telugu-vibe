@@ -13,7 +13,7 @@ import { ShortVideoRail, SwipeStories } from "@/components/genz";
 import { SectionHeading } from "@/components/news";
 
 const TITLE = "Explore the Bay Area — Indian community news, food, culture & video";
-...
+const DESC =
   "Browse Bay Area Indian local news, things to do, food, culture, cinema and short videos in one place.";
 const URL = canonical("/explore");
 

@@ -15,7 +15,7 @@ import { SectionHeading } from "@/components/news";
 import { track } from "@/lib/analytics";
 
 const TITLE = "Connect — Indian associations, temples, professionals & jobs in the Bay Area";
-...
+const DESC =
   "Find Bay Area Indian associations, temples, professionals, jobs and classifieds, or submit your own listing.";
 const URL = canonical("/connect");
 
