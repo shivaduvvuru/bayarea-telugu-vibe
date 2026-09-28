@@ -57,5 +57,5 @@
 - [ ] Photo-check result cache, 5-minute hook rate limit, submit/like rate limits
 
 ## Low-cost strip-down (2026-09-28)
-- [ ] Apply cost directive (text-first news only) — waiting on user confirmation of scope
-- [ ] "Turn off all other sites" — waiting on user: which sites/sections
+- [ ] Apply cost directive (text-first news only) — keep Glamour photo, picture collection, review desk; blocked: backend unreachable
+- [ ] Turn off BayTabloid draft — user deletes it in the drafts panel (no tool to delete)
