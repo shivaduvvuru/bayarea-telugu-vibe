@@ -101,8 +101,13 @@ function parseItem(block: string, desk: BizItem["desk"]): BizItem | null {
  * Business / tech / political headlines aggregated by BizToc, plus a Statista
  * chart-of-the-day statistic. Both sources are credited and linked out.
  */
+const BRIEF_TTL_MS = 15 * 60 * 1000;
+let briefCache: { at: number; value: BusinessBrief } | null = null;
+
 export const getBusinessBrief = createServerFn({ method: "GET" }).handler(
   async (): Promise<BusinessBrief> => {
+    // Reuse a recent pull so every visitor does not trigger four outside fetches.
+    if (briefCache && Date.now() - briefCache.at < BRIEF_TTL_MS) return briefCache.value;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 12_000);
     try {
@@ -158,7 +163,9 @@ export const getBusinessBrief = createServerFn({ method: "GET" }).handler(
         }
       }
 
-      return { items, stat: statista, fetchedAt: new Date().toISOString() };
+      const value = { items, stat: statista, fetchedAt: new Date().toISOString() };
+      if (items.length) briefCache = { at: Date.now(), value };
+      return value;
     } finally {
       clearTimeout(timer);
     }

@@ -69,12 +69,16 @@ const PRIVATE_PREFIXES = [
 function publicCacheHeader(pathname: string): string | null {
   if (PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
   if (pathname.startsWith("/article/")) {
-    return "public, max-age=0, s-maxage=300, stale-while-revalidate=600";
+    return "public, max-age=0, s-maxage=900, stale-while-revalidate=3600";
   }
   if (pathname.startsWith("/category/")) {
     return "public, max-age=0, s-maxage=120, stale-while-revalidate=300";
   }
-  return "public, max-age=0, s-maxage=60, stale-while-revalidate=300";
+  if (pathname === "/business" || pathname === "/politics") {
+    return "public, max-age=0, s-maxage=900, stale-while-revalidate=1800";
+  }
+  if (pathname === "/") return "public, max-age=0, s-maxage=300, stale-while-revalidate=600";
+  return "public, max-age=0, s-maxage=120, stale-while-revalidate=300";
 }
 
 function withPublicCache(request: Request, response: Response): Response {

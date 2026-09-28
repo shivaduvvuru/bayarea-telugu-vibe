@@ -49,3 +49,9 @@
 - [ ] Replace remaining legacy placeholder stories with real India Currents and Bay Area Indian feed articles
 - [ ] Complete real community directory coverage and public moderated story submissions
 - [ ] Replace hero and digest placeholder imagery with ingested article images plus a generic fallback
+
+## Cloud credit audit (2026-09-28)
+- [x] Visitor-side refresh cuts, business-news cache, longer page caching
+- [ ] Reschedule news (hourly) and cinema (every 30 min) jobs; merge hourly sweeps; weekly directory/Yelp — blocked: backend unreachable
+- [ ] Index migration (content_items, articles, raw_ingestion_items, collect_runs) — blocked: backend unreachable
+- [ ] Photo-check result cache, 5-minute hook rate limit, submit/like rate limits
