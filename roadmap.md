@@ -55,3 +55,7 @@
 - [ ] Reschedule news (hourly) and cinema (every 30 min) jobs; merge hourly sweeps; weekly directory/Yelp — blocked: backend unreachable
 - [ ] Index migration (content_items, articles, raw_ingestion_items, collect_runs) — blocked: backend unreachable
 - [ ] Photo-check result cache, 5-minute hook rate limit, submit/like rate limits
+
+## Low-cost strip-down (2026-09-28)
+- [ ] Apply cost directive (text-first news only) — waiting on user confirmation of scope
+- [ ] "Turn off all other sites" — waiting on user: which sites/sections
