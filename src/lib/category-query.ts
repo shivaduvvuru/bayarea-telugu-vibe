@@ -17,7 +17,8 @@ export const postsQuery = (category: string) =>
     // micro-drama 30 min) and re-read when a parked tab is focused again.
     staleTime: 5 * 60 * 1000,
     refetchInterval: newsRefreshMs(category),
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
     ...(category === "gallery" ? { staleTime: 60_000, refetchOnMount: "always" as const } : {}),
   });
 
